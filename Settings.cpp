@@ -14,7 +14,7 @@
 #include <Windows.h>
 // [CTRL][RSHIFT][A] [TAB] Src\Teszt mappa [ESC]
 
-void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, MacroContainer* c)
+void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
     constexpr const char* start_seq_str = "KEY_SEQ[";
     constexpr size_t start_seq_offset_len = std::char_traits<char>::length(start_seq_str);
@@ -47,7 +47,7 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
                 keys.push_back(key);
             }
 
-            c->key_vec[key_code].push_back(new KeyCombination(std::move(keys)));
+            c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(keys)));
         }
         else if(first_text != std::string::npos && second_text != std::string::npos)
         {
@@ -61,7 +61,7 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
                 uint16_t key = CustomMacro::Get()->GetKeyCode(i);
                 keys.push_back(key);
             }
-            c->key_vec[key_code].push_back(new KeyText(std::move(keys)));
+            c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(keys)));
         }
         else
         {
@@ -116,7 +116,7 @@ void Settings::Init(void)
         }
 #endif
        
-        MacroContainer* p = new MacroContainer();
+        std::unique_ptr<MacroContainer> p = std::make_unique<MacroContainer>();
         macro_section.clear();
         auto& global_child = pt.get_child("Keys_Global");
         for(auto& key : global_child)
@@ -124,14 +124,14 @@ void Settings::Init(void)
             std::string& str = key.second.data();
             ParseMacroKeys(0, key.first.c_str()[0], str, p);
         }
-        CustomMacro::Get()->macros.push_back(p);
+        CustomMacro::Get()->macros.push_back(std::move(p));
 
         /* load per-application macros */
         size_t counter = 1;
         size_t cnt = 0;
         while((cnt = pt.count("Keys_Macro" + std::to_string(counter))) == 1)
         {
-            MacroContainer* p2 = new MacroContainer();
+            std::unique_ptr<MacroContainer> p2 = std::make_unique<MacroContainer>();
             auto& ch = pt.get_child("Keys_Macro" + std::to_string(counter));
             for(auto& key : ch)
             {
@@ -144,7 +144,7 @@ void Settings::Init(void)
                 ParseMacroKeys(counter, key.first.c_str()[0], str, p2);
             }
             counter++;
-            CustomMacro::Get()->macros.push_back(p2);
+            CustomMacro::Get()->macros.push_back(std::move(p2));
         }
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
         Sensors::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());

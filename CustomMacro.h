@@ -82,7 +82,7 @@ public:
     {
         //key_vec.push_back(p);
     }
-    std::map<char, std::vector<KeyClass*>> key_vec;
+    std::map<char, std::vector<std::unique_ptr<KeyClass>>> key_vec;
     std::string name;
 private:
 };
@@ -150,7 +150,7 @@ private:
         return ret;
     }
 
-    std::vector<MacroContainer*> macros;
+    std::vector<std::unique_ptr<MacroContainer>> macros;
     uint16_t com_port = 2005;
     bool use_per_app_macro;
 };
