@@ -72,6 +72,21 @@ public:
 private:
 };
 
+/* each given macro per-app get's a macro container */
+class MacroContainer
+{
+public:
+    MacroContainer() = default;
+    template <class T>
+    MacroContainer(std::string& name, T* p)
+    {
+        //key_vec.push_back(p);
+    }
+    std::map<char, std::vector<KeyClass*>> key_vec;
+    std::string name;
+private:
+};
+
 //class Settings;
 class CustomMacro : public CSingleton < CustomMacro >
 {
@@ -135,7 +150,7 @@ private:
         return ret;
     }
 
-    std::map<char, std::string> key_bindings;
-    std::map<char, std::vector<KeyClass*>> key_map;
+    std::vector<MacroContainer*> macros;
     uint16_t com_port = 2005;
+    bool use_per_app_macro;
 };

@@ -4,6 +4,8 @@
 #include "Logger.h"
 
 #include "utils/crc16.h"
+#include <string>
+#include <boost/algorithm/string.hpp>
 
 using namespace std::chrono_literals;
 
@@ -41,15 +43,44 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
     //printf("data recv %c", data[0]);
     KeyData_t* k = (KeyData_t*)data;
     uint16_t crc = crc16_calculate((uint8_t*)data, 1);
-    if (k->crc == crc)
+    if(k->crc == crc)
     {
-        const auto it = key_map.find(k->key);
-        if (it != key_map.end())
+        if(use_per_app_macro)
         {
-            for(const auto& i : it->second)
+            HWND foreground = GetForegroundWindow();
+            if(foreground)
             {
-                i->DoWrite();
+                char window_title[256];
+                GetWindowTextA(foreground, window_title, 256);
+                DBG("Focus: %s\n", window_title);
+                for(auto& m : macros)
+                {
+                    if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)
+                    {
+                        const auto it = m->key_vec.find(k->key);
+                        if(it != m->key_vec.end())
+                        {
+                            for(const auto& i : it->second)
+                            {
+                                i->DoWrite();
+                            }
+                        }
+                        return; /* Exit from loop */
+                    }
+                }
             }
+        }
+        else
+        {
+            const auto it = macros[0]->key_vec.find(k->key);
+            if(it != macros[0]->key_vec.end())
+            {
+                for(const auto& i : it->second)
+                {
+                    i->DoWrite();
+                }
+            }
+
         }
     }
 }
