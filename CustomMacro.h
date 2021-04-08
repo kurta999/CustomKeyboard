@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Logger.h"
+#include <thread>
 
 #pragma pack(push, 1)
 typedef struct
@@ -24,17 +25,22 @@ public:
     virtual void DoWrite(void) = 0;
 
 public:
-    void PressReleaseKey(char key, bool press = true)
+    void PressReleaseKey(uint16_t key, bool press = true, bool shift_for_capital_letters = false)
     {
         INPUT Input = { 0 };
+        if((key & (1 << 15)) && shift_for_capital_letters)  /* press shift if the key is uppercase */
+        {
+            Input.type = INPUT_KEYBOARD;
+            Input.ki.dwFlags = press ? 0 : KEYEVENTF_KEYUP;
+            Input.ki.wVk = VK_LSHIFT;
+            SendInput(1, &Input, sizeof(INPUT));
+        }
         Input.type = INPUT_KEYBOARD;
-        if(!press)  /* relase */
-            Input.ki.dwFlags = KEYEVENTF_KEYUP;
-        Input.ki.wVk = key;
+        Input.ki.dwFlags = press ? 0 : KEYEVENTF_KEYUP;
+        Input.ki.wVk = key & 0x7FFF;
         SendInput(1, &Input, sizeof(INPUT));
     }
 protected:
-    std::vector < uint16_t> seq; /* virtual key codes to press and release*/
 };
 
 class KeyText : public KeyClass
@@ -49,10 +55,12 @@ public:
     {
         for(size_t i = 0; i < seq.size(); i++)
         {
-            PressReleaseKey(seq[i]);
-            PressReleaseKey(seq[i], false);
+            PressReleaseKey(seq[i], true, true);
+            PressReleaseKey(seq[i], false, true);
         }
     }
+private:
+    std::vector<uint16_t> seq; /* virtual key codes to press and release*/
 };
 
 class KeyCombination : public KeyClass
@@ -70,6 +78,24 @@ public:
             PressReleaseKey(seq[i], false);
     }
 private:
+    std::vector<uint16_t> seq; /* virtual key codes to press and release*/
+
+};
+// teszt szöveg
+class KeyDelay : public KeyClass
+{
+public:
+    KeyDelay(uint32_t delay) : delay_ms(delay)
+    {
+        
+    }
+
+    void DoWrite()
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    }
+private:
+    uint32_t delay_ms;
 };
 
 /* each given macro per-app get's a macro container */
@@ -103,9 +129,12 @@ private:
     void UartDataReceived(const char* data, unsigned int len);
     void WorkerThread(void);
 
-    inline uint16_t GetKeyCode(char from_char)
+    uint16_t GetKeyCode(char from_char)
     {
-        return VkKeyScanExA(from_char, GetKeyboardLayout(0));
+        uint16_t ret = VkKeyScanExA(from_char, GetKeyboardLayout(0));
+        if(isupper((unsigned char)from_char))
+            ret |= 1 << 15;
+        return ret;
     }
     uint16_t GetSpecialKeyCode(std::string str)
     {
@@ -114,6 +143,7 @@ private:
         {
             {"LCTRL",       VK_LCONTROL},
             {"RCTRL",       VK_RCONTROL},
+            {"ALT",         VK_MENU},
             {"LSHIFT",      VK_LSHIFT},
             {"RSHIFT",      VK_RSHIFT},
             {"BACKSPACE",   VK_BACK},
@@ -134,12 +164,12 @@ private:
             {"INSERT",      VK_INSERT},
             {"DELETE",      VK_DELETE},
         };
-
+        
         if(str.length() == 1)
         {
-            const char ch = tolower(str.at(0));
+            const char ch = str[0];
             if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9'))
-                ret = GetKeyCode(ch);
+                ret = GetKeyCode(tolower(str[0]));
         }
         else
         {

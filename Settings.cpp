@@ -19,23 +19,40 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
     constexpr const char* start_seq_str = "KEY_SEQ[";
     constexpr size_t start_seq_offset_len = std::char_traits<char>::length(start_seq_str);
     constexpr const char* start_text_str = "KEY_TYPE[";
-    constexpr size_t start_text_offset_len = std::char_traits<char>::length(start_text_str);
+    constexpr size_t start_text_offset_len = std::char_traits<char>::length(start_text_str); 
+    constexpr const char* start_delay_str = "DELAY[";
+    constexpr size_t start_delay_offset_len = std::char_traits<char>::length(start_delay_str);
     constexpr const char* seq_separator = "+";
 
     size_t pos = 1;
     while(pos < str.length() - 1)
     {
-        size_t first = str.find(start_seq_str, pos - 1);
-        size_t first_text = str.find(start_text_str, pos - 1);
+        size_t first_end = str.find("]", pos + 1);
 
-        size_t second = first < first_text ? str.find("]", first) : std::string::npos;
-        size_t second_text = first_text < first ? str.find("]", first_text) : std::string::npos;
+        size_t first = str.substr(0, first_end).find(start_seq_str, pos - 1);
+        size_t first_text = str.substr(0, first_end).find(start_text_str, pos - 1);
+        size_t first_delay = str.substr(0, first_end).find(start_delay_str, pos - 1);
 
-        if(first != std::string::npos && second != std::string::npos)
+        uint8_t input_type = 0xFF;
+        /*
+        if(first > first_end || first_text >= first_end || first_delay > first_end)
         {
-            pos = second;
+            LOGMSG(error, "Invalid format in settings.ini");
+            break;
+        }
+       */
+        if(first != std::string::npos && first_text == std::string::npos && first_delay == std::string::npos)
+            input_type = 0;
+        if(first == std::string::npos && first_text != std::string::npos && first_delay == std::string::npos)
+            input_type = 1;
+        if(first == std::string::npos && first_text == std::string::npos && first_delay != std::string::npos)
+            input_type = 2;
+
+        if(input_type == 0)
+        {
+            pos = first_end;
             std::vector<uint16_t> keys;
-            std::string sequence = str.substr(first + start_seq_offset_len, second - first - start_seq_offset_len);
+            std::string sequence = str.substr(first + start_seq_offset_len, first_end - first - start_seq_offset_len);
 
             boost::char_separator<char> sep(seq_separator);
             boost::tokenizer< boost::char_separator<char> > tok(sequence, sep);
@@ -49,11 +66,11 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
 
             c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(keys)));
         }
-        else if(first_text != std::string::npos && second_text != std::string::npos)
+        else if(input_type == 1)
         {
-            pos = second_text;
+            pos = first_end;
             std::vector<uint16_t> keys;
-            std::string sequence = str.substr(first_text + start_text_offset_len, second_text - first_text - start_text_offset_len);
+            std::string sequence = str.substr(first_text + start_text_offset_len, first_end - first_text - start_text_offset_len);
 
             DBG("Text Token: %s\n", sequence.c_str());
             for(const auto& i : sequence)
@@ -62,6 +79,15 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
                 keys.push_back(key);
             }
             c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(keys)));
+        }
+        else if(input_type == 2)
+        {
+            pos = first_end;
+            std::string sequence = str.substr(first_delay + start_delay_offset_len, first_end - first_delay - start_delay_offset_len);
+
+            uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
+            DBG("Delay: %d\n", delay);
+            c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
         }
         else
         {
