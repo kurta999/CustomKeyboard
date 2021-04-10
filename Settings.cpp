@@ -12,7 +12,6 @@
 #include <boost/optional.hpp>
 
 #include <Windows.h>
-// [CTRL][RSHIFT][A] [TAB] Src\Teszt mappa [ESC]
 
 void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
@@ -60,7 +59,7 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
             {
                 DBG("Token: %s\n", beg->c_str());
                 std::string key_code = *beg;
-                uint16_t key = CustomMacro::Get()->GetSpecialKeyCode(key_code);
+                uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
                 keys.push_back(key);
             }
 
@@ -69,16 +68,10 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
         else if(input_type == 1)
         {
             pos = first_end;
-            std::vector<uint16_t> keys;
             std::string sequence = str.substr(first_text + start_text_offset_len, first_end - first_text - start_text_offset_len);
 
             DBG("Text Token: %s\n", sequence.c_str());
-            for(const auto& i : sequence)
-            {
-                uint16_t key = CustomMacro::Get()->GetKeyCode(i);
-                keys.push_back(key);
-            }
-            c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(keys)));
+            c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
         }
         else if(input_type == 2)
         {

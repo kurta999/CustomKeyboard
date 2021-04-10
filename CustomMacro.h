@@ -5,6 +5,7 @@
 #include "Settings.h"
 
 #include <inttypes.h>
+#include <unordered_map>
 #include <map>
 #include <string>
 
@@ -25,20 +26,28 @@ public:
     virtual void DoWrite(void) = 0;
 
 public:
-    void PressReleaseKey(uint16_t key, bool press = true, bool shift_for_capital_letters = false)
+    void PressReleaseKey(uint16_t scancode, bool press = true)
     {
-        INPUT Input = { 0 };
-        if((key & (1 << 15)) && shift_for_capital_letters)  /* press shift if the key is uppercase */
-        {
-            Input.type = INPUT_KEYBOARD;
-            Input.ki.dwFlags = press ? 0 : KEYEVENTF_KEYUP;
-            Input.ki.wVk = VK_LSHIFT;
-            SendInput(1, &Input, sizeof(INPUT));
-        }
-        Input.type = INPUT_KEYBOARD;
-        Input.ki.dwFlags = press ? 0 : KEYEVENTF_KEYUP;
-        Input.ki.wVk = key & 0x7FFF;
-        SendInput(1, &Input, sizeof(INPUT));
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wScan = scancode;
+        input.ki.dwFlags = (press ? 0 : KEYEVENTF_KEYUP) | KEYEVENTF_SCANCODE;
+        if((scancode & 0xFF00) == 0xE000)
+            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+        SendInput(1, &input, sizeof(input));
+    }
+  
+    void TypeCharacter(WORD character)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wScan = character;
+        input.ki.dwFlags = KEYEVENTF_UNICODE;
+        if((character & 0xFF00) == 0xE000)
+            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+        SendInput(1, &input, sizeof(input));
+        input.ki.dwFlags |= KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(input));
     }
 protected:
 };
@@ -46,21 +55,20 @@ protected:
 class KeyText : public KeyClass
 {
 public:
-    KeyText(std::vector<uint16_t>&& keys)
+    KeyText(std::string&& keys)
     {
         seq = std::move(keys);
     }
 
     void DoWrite()
     {
-        for(size_t i = 0; i < seq.size(); i++)
+        for(size_t i = 0; i < seq.length(); i++)
         {
-            PressReleaseKey(seq[i], true, true);
-            PressReleaseKey(seq[i], false, true);
+            TypeCharacter(seq[i] & 0xFF);
         }
     }
 private:
-    std::vector<uint16_t> seq; /* virtual key codes to press and release*/
+    std::string seq; /* virtual key codes to press and release*/
 };
 
 class KeyCombination : public KeyClass
@@ -78,7 +86,7 @@ public:
             PressReleaseKey(seq[i], false);
     }
 private:
-    std::vector<uint16_t> seq; /* virtual key codes to press and release*/
+    std::vector<uint16_t> seq; /* scan codes to press and release*/
 
 };
 // teszt szöveg
@@ -136,47 +144,93 @@ private:
             ret |= 1 << 15;
         return ret;
     }
-    uint16_t GetSpecialKeyCode(std::string str)
+    uint16_t GetKeyScanCode(std::string str)
     {
         uint16_t ret = 0xFFFF;
-        static const std::map<std::string, int> special_keys =
+        static const std::unordered_map<std::string, int> scan_codes =
         {
-            {"LCTRL",       VK_LCONTROL},
-            {"RCTRL",       VK_RCONTROL},
-            {"ALT",         VK_MENU},
-            {"LSHIFT",      VK_LSHIFT},
-            {"RSHIFT",      VK_RSHIFT},
-            {"BACKSPACE",   VK_BACK},
-            {"TAB",         VK_TAB},
-            {"ENTER",       VK_RETURN},
-            {"ESC",         VK_ESCAPE},
-            {"ESC",         VK_CAPITAL},
-            {"SPACE",       VK_SPACE},
-            {"PAGEUP",      VK_PRIOR},
-            {"PAGEDOWN",    VK_NEXT},
-            {"END",         VK_END},
-            {"HOME",        VK_HOME},
-            {"LEFT",        VK_LEFT},
-            {"UP",          VK_UP},
-            {"RIGHT",       VK_RIGHT},
-            {"DOWN",        VK_DOWN},
-            {"PRINT",       VK_SNAPSHOT},
-            {"INSERT",      VK_INSERT},
-            {"DELETE",      VK_DELETE},
+            {"LCTRL",       0x1D},
+            {"RCTRL",       0xE01D},
+            {"LALT",        0x38},
+            {"RALT",        0xE038},
+            {"LSHIFT",      0x2A},
+            {"RSHIFT",      0x36},
+            {"BACKSPACE",   0xE0},
+            {"TAB",         0x0F},
+            {"ENTER",       0x1C},
+            {"ESC",         0x01},
+            {"SPACE",       0x39},
+            {"PAGEUP",      0xE049},
+            {"PAGEDOWN",    0xE051},
+            {"END",         0xE04F},
+            {"HOME",        0xE047},
+            {"PRINT",       0x0}, // TODO
+            {"INSERT",      0xE052},
+            {"DELETE",      0xE053},
+            {"NUM_1",       0x4F},
+            {"NUM_2",       0x50},
+            {"NUM_3",       0x51},
+            {"NUM_4",       0x4B},
+            {"NUM_5",       0x4C},
+            {"NUM_6",       0x4D},
+            {"NUM_7",       0x47},
+            {"NUM_8",       0x48},
+            {"NUM_9",       0x49},
+            {"NUM_0",       0x52},
+            {"NUM_MUL",     0x37},
+            {"NUM_DOT",     0x53},
+            {"NUM_PLUS",    0x4E},
+            {"NUM_MINUS",   0x4A},
+            {"NUM_DIV",     0xE035},
+            {"A",           0x1E},
+            {"B",           0x30},
+            {"C",           0x2E},
+            {"D",           0x20},
+            {"E",           0x12},
+            {"F",           0x21},
+            {"G",           0x22},
+            {"H",           0x23},
+            {"I",           0x17},
+            {"J",           0x24},
+            {"K",           0x25},
+            {"L",           0x26},
+            {"M",           0x32},
+            {"N",           0x31},
+            {"O",           0x18},
+            {"P",           0x19},
+            {"Q",           0x10},
+            {"R",           0x13},
+            {"S",           0x1F},
+            {"T",           0x14},
+            {"U",           0x16},
+            {"V",           0x2F},
+            {"W",           0x11},
+            {"X",           0x2D},
+            {"Y",           0x15},
+            {"Z",           0x2C},
+            {"1",           0x02},
+            {"2",           0x03},
+            {"F1",          0x3B},
+            {"F2",          0x3C},
+            {"F3",          0x3D},
+            {"F4",          0x3E},
+            {"F5",          0x3F},
+            {"F6",          0x40},
+            {"F7",          0x41},
+            {"F8",          0x42},
+            {"F9",          0x43},
+            {"F10",         0x44},
+            {"F11",         0x59},
+            {"F12",         0x58},
+            {"LEFT",        0xE04B},
+            {"RIGHT",       0xE04D},
+            {"UP",          0xE048},
+            {"DOWN",        0xE050},
         };
-        
-        if(str.length() == 1)
-        {
-            const char ch = str[0];
-            if((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9'))
-                ret = GetKeyCode(tolower(str[0]));
-        }
-        else
-        {
-            auto it = special_keys.find(str);
-            if(it != special_keys.end())
-                ret = it->second;
-        }
+
+        auto it = scan_codes.find(str);
+        if(it != scan_codes.end())
+            ret = it->second;
         return ret;
     }
 
