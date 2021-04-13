@@ -1,3 +1,5 @@
+#include <boost/asio.hpp>
+
 #include "CustomKeyboard.h"
 #include "main_frame.h"
 #include <wx/wxprec.h>
@@ -14,7 +16,8 @@
 #include "CustomMacro.h"
 #include "Logger.h"
 #include "Settings.h"
-#include "Sensors.h"
+#include "Server.h"
+#include "Database.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -26,7 +29,8 @@ bool MyApp::OnInit()
     Logger::Get()->Init();
     Settings::Get()->Init();
     CustomMacro::Get()->Init();
-    Sensors::Get()->Init();
+    Server::Get()->Init();
+    Database::Get()->Init();
 
     LOGMSG(normal, "Starting...");
     LOGMSG(warning, "Testing log file");

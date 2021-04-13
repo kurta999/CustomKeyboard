@@ -102,7 +102,7 @@ void CustomMacro::WorkerThread(void)
         {
             if (serial.errorStatus() || serial.isOpen() == false)
             {
-                //Logger::Get()->Log(error, "Serial port unexpectedly closed");
+                LOGMSG(error, "Serial port unexpectedly closed");
                 break;
             }
             std::this_thread::sleep_for(1ms);

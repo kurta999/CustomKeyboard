@@ -92,13 +92,13 @@ public:
 	void OnHelp(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 
+	void SetIconTooltip(const wxString& str);
 	MainPanel* main_panel;
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;
 	LogPanel* log_panel;
 
 	wxDECLARE_EVENT_TABLE();
-
 private:
 	wxIcon applicationIcon;
 	NotificationIcon* notification;

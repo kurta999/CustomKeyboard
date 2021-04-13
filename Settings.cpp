@@ -1,6 +1,7 @@
+#include <boost/asio.hpp>
 
 #include "Settings.h"
-#include "Sensors.h"
+#include "Server.h"
 #include "Logger.h"
 
 #include <filesystem>
@@ -11,7 +12,7 @@
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 
-#include <Windows.h>
+//#include <Windows.h>
 
 void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
@@ -166,7 +167,7 @@ void Settings::Init(void)
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
-        Sensors::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
+        Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &e)
     {

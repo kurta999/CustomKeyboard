@@ -65,6 +65,13 @@ void MyFrame::OnClose(wxCloseEvent& event)
 	ExitProcess(0);
 }
 
+void MyFrame::SetIconTooltip(const wxString &str)
+{
+	if(!notification->SetIcon(wxIcon(wxT("aaaa")), str))
+	{
+		wxLogError("Could not set icon.");
+	}
+}
 
 MyFrame::MyFrame(const wxString& title)
 	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition,
@@ -72,10 +79,7 @@ MyFrame::MyFrame(const wxString& title)
 {
 	notification = new NotificationIcon();
 	notification->SetMainFrame(this);
-	if (!notification->SetIcon(wxIcon(wxT("aaaa")), "No measurements"))
-	{
-		wxLogError("Could not set icon.");
-	}
+	SetIconTooltip(wxT("No measurements"));
 	
 	m_mgr.SetManagedWindow(this);
 
@@ -302,8 +306,6 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
 	topSizer->Add(this, 1, wxEXPAND);
 	SetSizer(topSizer);
-
-
 }
 
 LogPanel::LogPanel(wxFrame* parent)
