@@ -1,3 +1,7 @@
+#include <boost/asio.hpp>
+
+#include "Server.h"
+
 #include "main_frame.h"
 #include <wx/valnum.h>
 #include <wx/spinctrl.h>
@@ -24,6 +28,7 @@
 #include "Notification.h"
 
 #include <wx/charts/wxcharts.h>
+
 
 constexpr int WINDOW_SIZE_X = 800;
 constexpr int WINDOW_SIZE_Y = 600;
@@ -102,7 +107,7 @@ MyFrame::MyFrame(const wxString& title)
 
 	SetMenuBar(menuBar);
 	CreateStatusBar();
-	SetStatusText("Welcome in wxCreator v0.2");
+	SetStatusText("Welcome in CustomKeyboard");
 
 	main_panel = new MainPanel(this);
 	escape_panel = new EscaperPanel(this);
@@ -119,18 +124,27 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->Thaw();
 }
 
+MainPanel::MainPanel(wxFrame* parent)
+    : wxPanel(parent, wxID_ANY)
+{	
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer(wxVERTICAL);
+
+	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
+	m_RefreshButton->SetToolTip("Request new measurements");
+	bSizer1->Add(m_RefreshButton, 0, wxALL, 5);
+	
+	m_RefreshButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
+		});
+
 #define ADD_MEASUREMENT_TEXT(var_name, name) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
 	var_name->Wrap(-1); \
 	var_name->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
 	var_name->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)); \
 	bSizer1->Add(var_name, 0, wxALL, 5)
-
-MainPanel::MainPanel(wxFrame* parent)
-    : wxPanel(parent, wxID_ANY)
-{	
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	ADD_MEASUREMENT_TEXT(m_textTemp, "Temperature: N/A");
 	ADD_MEASUREMENT_TEXT(m_textHum, "Humidity: N/A");
@@ -142,10 +156,6 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT: N/A");
 
 	this->SetSizer(bSizer1);
-	this->Layout();
-	/*
-	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
-	*/
 }
 
 EscaperPanel::EscaperPanel(wxFrame* parent)
@@ -234,7 +244,6 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 				wxTheClipboard->Close();
 			}
 		});
-
 }
 
 MacroPanel::MacroPanel(wxFrame* parent)
@@ -314,7 +323,7 @@ LogPanel::LogPanel(wxFrame* parent)
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer(wxVERTICAL);
 	
-	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(300, 80), 0, 0, wxLB_EXTENDED | wxLB_HSCROLL | wxLB_NEEDED_SB);
+	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(600, 400), 0, 0, wxLB_EXTENDED | wxLB_HSCROLL | wxLB_NEEDED_SB);
 	m_Log->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& event)
 		{
 			wxClipboard* clip = new wxClipboard();
@@ -326,7 +335,14 @@ LogPanel::LogPanel(wxFrame* parent)
 	bSizer1->Add(m_Log, 0, wxALL, 5);
 	this->SetSizer(bSizer1);
 	this->Layout();
-	/*
-	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
-	*/
+
+	m_ClearButton = new wxButton(this, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ClearButton->SetToolTip("Clear log box");
+	bSizer1->Add(m_ClearButton, 0, wxALL, 5);
+
+	m_ClearButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			m_Log->Clear();
+		});
+
 }

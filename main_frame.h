@@ -30,7 +30,7 @@ class MainPanel : public wxPanel
 public:
 	MainPanel(wxFrame* parent);
 
-
+	wxButton* m_RefreshButton = nullptr;
 	wxStaticText* m_textTemp;
 	wxStaticText* m_textHum;
 	wxStaticText* m_textCO2;
@@ -72,6 +72,7 @@ public:
 	LogPanel(wxFrame* parent);
 
 	wxListBox* m_Log;
+	wxButton* m_ClearButton = nullptr;
 private:
 	wxDECLARE_EVENT_TABLE();
 };
