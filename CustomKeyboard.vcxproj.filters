@@ -75,7 +75,7 @@
     <ClInclude Include="Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sensors.h">
+    <ClInclude Include="Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\wxCharts\include\wx\charts\wxareachart.h">
@@ -450,6 +450,15 @@
     <ClInclude Include="utils\wxCharts\include\wx\charts\wxtimeserieschartoptions.h">
       <Filter>Header Files\utils\wxCharts</Filter>
     </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomKeyboard.cpp">
@@ -482,7 +491,7 @@
     <ClCompile Include="Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sensors.cpp">
+    <ClCompile Include="Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils\wxCharts\include\wx\charts\wxareachart.cpp">
@@ -850,6 +859,15 @@
     </ClCompile>
     <ClCompile Include="utils\wxCharts\include\wx\charts\wxtimeserieschartoptions.cpp">
       <Filter>Source Files\utils\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sensors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
