@@ -36,6 +36,6 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     }
     else
     {
-        LOGMSG(warning, "Invalid data received from %s", from_ip);
+        LOGMSG(warning, "Invalid data received from {}", from_ip);
     }
 }

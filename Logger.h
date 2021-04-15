@@ -34,6 +34,8 @@
 #include "CustomKeyboard.h"
 #include <ctime>
 #include <filesystem>
+#include <fmt/format.h>
+#include "fmt/chrono.h"
 
 DECLARE_APP(MyApp);
 
@@ -57,20 +59,17 @@ class Logger : public CSingleton < Logger >
 public:
     Logger() = default;
     void Init(void);
-    void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, ...)
+
+    template<typename... Args>
+    void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
     {
-        va_list args;
-        va_start(args, msg);
-        char buf[256];
-        uint16_t len = vsnprintf(buf, sizeof(buf), (char*)msg, args);
-        va_end(args);
-        
+        std::string str;
+        std::string formatted_msg = fmt::format(msg, std::forward<Args>(args)...);
         time_t current_time;
         tm* current_tm;
         time(&current_time);
         current_tm = localtime(&current_time);
-        char date_str[64];
-        strftime(date_str, sizeof(date_str), "%Y.%m.%d %H:%M:%S", current_tm);
+        str = fmt::format("{:%Y.%m.%d %H:%M:%S} {}", *current_tm, formatted_msg);
 
         //OutputDebugStringA(buf);
         const char* filename = file;
@@ -84,21 +83,19 @@ public:
         }
         if(lvl > normal)
         {
-            char fmt[384];
-            size_t log_len = snprintf(fmt, sizeof(fmt), "%s [%s:%d - %s] %s", date_str, filename, line, function, msg);
-            fwrite(fmt, 1, log_len, fLog);
+            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}:{} - {}] {}", *current_tm, filename, line, function, formatted_msg);
+            fwrite(str_file.c_str(), 1, str_file.length(), fLog);
             fflush(fLog);
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
-            frame->log_panel->m_Log->Append(wxString(msg));
-
+            frame->log_panel->m_Log->Append(wxString(str));
     }
 private:
     FILE* fLog = nullptr;
 };
 
-#ifdef _DEBUG 
+#ifdef _DEBUG /* this is only for debugging, it remains oldschool */
 #define DBG(str, ...) \
     {\
         char __debug_format_str[256]; \

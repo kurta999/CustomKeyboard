@@ -6,7 +6,7 @@ bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, cha
     rc = sqlite3_exec(db, query, callback, 0, &zErrMsg);
     if(rc != SQLITE_OK)
     {
-        LOGMSG(error, "SQL Error: %s", zErrMsg);
+        LOGMSG(error, "SQL Error: {}", zErrMsg);
         sqlite3_free(zErrMsg);
         return false;
     }
@@ -21,7 +21,7 @@ bool Database::Open(void)
 
     if(rc)
     {
-        LOGMSG(error, "Can't open database: %s", sqlite3_errmsg(db));
+        LOGMSG(error, "Can't open database: {}", sqlite3_errmsg(db));
     }
     else
     {

@@ -899,6 +899,12 @@
     <ClCompile Include="libs\wxCharts\include\wx\charts\wxtimeserieschartoptions.cpp">
       <Filter>libs\wxCharts</Filter>
     </ClCompile>
+    <ClCompile Include="libs\fmt\format.cc">
+      <Filter>libs\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\fmt\os.cc">
+      <Filter>libs\fmt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">

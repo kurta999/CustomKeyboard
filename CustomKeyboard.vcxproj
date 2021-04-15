@@ -322,6 +322,8 @@
     <ClCompile Include="CustomKeyboard.cpp" />
     <ClCompile Include="CustomMacro.cpp" />
     <ClCompile Include="Database.cpp" />
+    <ClCompile Include="libs\fmt\format.cc" />
+    <ClCompile Include="libs\fmt\os.cc" />
     <ClCompile Include="libs\sqlite\shell.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
     </ClCompile>

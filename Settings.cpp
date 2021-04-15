@@ -85,7 +85,7 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
         }
         else
         {
-            LOGMSG(error, "Invalid sequence/text format in line: %s", str.c_str());
+            LOGMSG(error, "Invalid sequence/text format in line: {}", str.c_str());
             break;
         }
     }
@@ -116,7 +116,7 @@ void Settings::Init(void)
     }
     catch(std::exception& e)
     {
-        LOGMSG(error, "exception: %s", e.what());
+        LOGMSG(error, "exception: {}", e.what());
     }
 
     try
@@ -171,7 +171,7 @@ void Settings::Init(void)
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &e)
     {
-        LOGMSG(error, "exception: %s", e.what());
+        LOGMSG(error, "exception: {}", e.what());
     }
 
 

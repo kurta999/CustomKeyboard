@@ -84,7 +84,7 @@ void CustomMacro::WorkerThread(void)
     }
     catch (std::exception& e)
     {
-        LOGMSG(error, "Exception %s", e.what());
+        LOGMSG(error, "Exception {}", e.what());
     }
 
 }
