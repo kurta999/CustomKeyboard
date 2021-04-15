@@ -133,7 +133,6 @@ public:
 
 private:
     friend class Settings;
-    void PressKey(char key_to_press);
     void UartDataReceived(const char* data, unsigned int len);
     void WorkerThread(void);
 

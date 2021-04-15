@@ -3,46 +3,19 @@
 #include "CustomMacro.h"
 #include "Logger.h"
 
-#include "utils/crc16.h"
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include <boost/crc.hpp>
 
 using namespace std::chrono_literals;
-
-void CustomMacro::PressKey(char key_to_press)
-{
-    INPUT ip;  // Set up a generic keyboard event.
-    ip.type = INPUT_KEYBOARD;
-    ip.ki.wScan = 0; // hardware scan code for key
-    ip.ki.time = 0;
-    ip.ki.dwExtraInfo = 0;
-    if (isupper(key_to_press))
-    {
-        INPUT Input = { 0 };  // shift key down
-        Input.type = INPUT_KEYBOARD;
-        Input.ki.wVk = VK_LSHIFT;
-        SendInput(1, &Input, sizeof(INPUT));
-    }
-    ip.ki.wVk = VkKeyScanExA(key_to_press, GetKeyboardLayout(0));  // Press the "A" key
-    ip.ki.dwFlags = 0; // 0 for key press
-    SendInput(1, &ip, sizeof(INPUT));
-    if (isupper(key_to_press))  // shift key release
-    {
-        INPUT Input = { 0 };
-        Input.type = INPUT_KEYBOARD;
-        Input.ki.dwFlags = KEYEVENTF_KEYUP;
-        Input.ki.wVk = VK_LSHIFT;
-        SendInput(1, &Input, sizeof(INPUT));
-    }
-    ip.ki.dwFlags = KEYEVENTF_KEYUP; //  Release the "A" key - KEYEVENTF_KEYUP for key release
-    SendInput(1, &ip, sizeof(INPUT));
-}
+using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 
 void CustomMacro::UartDataReceived(const char* data, unsigned int len)
 {
-    //printf("data recv %c", data[0]);
     KeyData_t* k = (KeyData_t*)data;
-    uint16_t crc = crc16_calculate((uint8_t*)data, 1);
+    crc16_modbus_t calc_result;
+    calc_result.process_byte((uint8_t)data[0]);
+    uint16_t crc = calc_result.checksum();
     if(k->crc == crc)
     {
         if(use_per_app_macro)

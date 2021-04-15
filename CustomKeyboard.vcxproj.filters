@@ -13,23 +13,23 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\sqlite">
-      <UniqueIdentifier>{5cb5af4d-d3ab-49d3-9d63-5bfaf2818a22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\utils">
       <UniqueIdentifier>{f41e40f0-647a-4f83-897d-d28b3d661e37}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\utils">
       <UniqueIdentifier>{882f18e5-820e-4a28-94bf-3b18f0a483f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\sqlite">
-      <UniqueIdentifier>{e815a5df-a932-4887-82bf-6d8313110004}</UniqueIdentifier>
+    <Filter Include="libs">
+      <UniqueIdentifier>{30ed3812-466e-43d1-b8a2-367882daa7dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\utils\wxCharts">
-      <UniqueIdentifier>{d6e5fcda-176f-4fb8-9572-c394db892aed}</UniqueIdentifier>
+    <Filter Include="libs\fmt">
+      <UniqueIdentifier>{4e1d0ea1-47f2-42c3-a382-2a75711fbe8f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\utils\wxCharts">
-      <UniqueIdentifier>{0a4270b1-0212-4fe0-9d84-ed0a8b2ee38a}</UniqueIdentifier>
+    <Filter Include="libs\wxCharts">
+      <UniqueIdentifier>{d398e562-c69a-4e7f-8cd0-4b079c85adec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\sqlite">
+      <UniqueIdentifier>{cf1d0355-c7e2-41b6-9a73-63801df4a88c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,19 +51,10 @@
     <ClInclude Include="Notification.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sqlite\sqlite3ext.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite\sqlite3.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
     <ClInclude Include="CustomMacro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils\AsyncSerial.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\crc16.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="CSingleton.h">
@@ -78,378 +69,6 @@
     <ClInclude Include="Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxareachart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxareachartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxareachartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxareachartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbarchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbarchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbarchartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbarchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxboxplot.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxboxplotctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxboxplotdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxboxplotoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbubblechart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbubblechartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxbubblechartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcandlestickchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcandlestickchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcandlestickchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcolumnchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcolumnchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcolumnchartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcolumnchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcombinationchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcombinationchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcombinationchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxdoughnutandpiechartbase.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxdoughnutandpiechartoptionsbase.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxdoughnutchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxdoughnutchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxdoughnutchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxhistogram.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxhistogramctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxhistogramoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartbackground.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartbackgroundoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartcommonoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartfontoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartmultitooltip.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartmultitooltipoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartobservers.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartpadding.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcharts.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsarc.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsarcoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsaxis.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsaxisoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsbrushoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartscategoricalaxis.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartscategoricaldata.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartscategoricaldataobserver.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartscircle.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartscircleoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsdataset.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsdatasetid.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsdatasettheme.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsdoubledataset.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartselement.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsgrid.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsgridmapping.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsgridoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslabel.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslabelgroup.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslabeloptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslegendctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslegenditem.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslegendline.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslegendlineoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslegendoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartslicedata.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsnumericalaxis.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsohlcdata.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartspenoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartspoint.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartspointoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsprecisiontheme.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartspresentationtheme.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsradialgrid.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsradialgridoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsrectangle.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsrectangleoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartstheme.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsthemefactory.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsthemeid.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartstimeaxis.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxchartsutilities.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcharttooltip.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcharttooltipoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxcharttooltipprovider.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxlinechart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxlinechartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxlinechartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxlinechartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxmath2dplot.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxmath2dplotctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxmath2dplotoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxohlcchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxohlcchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxohlcchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpiechart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpiechartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpiechartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpolarareachart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpolarareachartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxpolarareachartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxradarchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxradarchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxradarchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxscatterplot.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxscatterplotctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxscatterplotoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedbarchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedbarchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedbarchartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedbarchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartdatasetoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxtimeserieschart.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxtimeserieschartctrl.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\wxCharts\include\wx\charts\wxtimeserieschartoptions.h">
-      <Filter>Header Files\utils\wxCharts</Filter>
-    </ClInclude>
     <ClInclude Include="Database.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -458,6 +77,420 @@
     </ClInclude>
     <ClInclude Include="Session.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\color.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\compile.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\core.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\format.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\format-inl.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\chrono.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\locale.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\os.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\ostream.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\posix.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\printf.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\fmt\ranges.h">
+      <Filter>libs\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\sqlite\sqlite3.h">
+      <Filter>libs\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\sqlite\sqlite3ext.h">
+      <Filter>libs\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxareachart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxareachartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxareachartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxareachartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbarchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbarchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbarchartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbarchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxboxplot.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxboxplotctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxboxplotdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxboxplotoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbubblechart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbubblechartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxbubblechartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcandlestickchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcandlestickchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcandlestickchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcolumnchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcolumnchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcolumnchartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcolumnchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcombinationchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcombinationchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcombinationchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxdoughnutandpiechartbase.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxdoughnutandpiechartoptionsbase.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxdoughnutchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxdoughnutchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxdoughnutchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxhistogram.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxhistogramctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxhistogramoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartbackground.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartbackgroundoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartcommonoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartfontoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartmultitooltip.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartmultitooltipoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartobservers.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartpadding.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcharts.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsarc.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsarcoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsaxis.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsaxisoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsbrushoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartscategoricalaxis.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartscategoricaldata.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartscategoricaldataobserver.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartscircle.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartscircleoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsdataset.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsdatasetid.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsdatasettheme.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsdoubledataset.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartselement.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsgrid.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsgridmapping.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsgridoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslabel.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslabelgroup.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslabeloptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslegendctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslegenditem.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslegendline.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslegendlineoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslegendoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartslicedata.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsnumericalaxis.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsohlcdata.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartspenoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartspoint.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartspointoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsprecisiontheme.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartspresentationtheme.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsradialgrid.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsradialgridoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsrectangle.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsrectangleoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartstheme.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsthemefactory.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsthemeid.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartstimeaxis.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxchartsutilities.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcharttooltip.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcharttooltipoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxcharttooltipprovider.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxlinechart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxlinechartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxlinechartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxlinechartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxmath2dplot.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxmath2dplotctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxmath2dplotoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxohlcchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxohlcchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxohlcchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpiechart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpiechartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpiechartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpolarareachart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpolarareachartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxpolarareachartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxradarchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxradarchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxradarchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxscatterplot.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxscatterplotctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxscatterplotoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedbarchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedbarchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedbarchartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedbarchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartdatasetoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartoptions.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxtimeserieschart.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxtimeserieschartctrl.h">
+      <Filter>libs\wxCharts</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\wxCharts\include\wx\charts\wxtimeserieschartoptions.h">
+      <Filter>libs\wxCharts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -470,19 +503,10 @@
     <ClCompile Include="Notification.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sqlite\sqlite3.c">
-      <Filter>Source Files\sqlite</Filter>
-    </ClCompile>
-    <ClCompile Include="sqlite\shell.c">
-      <Filter>Source Files\sqlite</Filter>
-    </ClCompile>
     <ClCompile Include="CustomMacro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils\AsyncSerial.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\crc16.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
@@ -494,372 +518,6 @@
     <ClCompile Include="Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxareachart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxareachartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxareachartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxareachartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbarchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbarchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbarchartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbarchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxboxplot.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxboxplotctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxboxplotdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxboxplotoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbubblechart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbubblechartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxbubblechartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcandlestickchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcandlestickchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcandlestickchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcolumnchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcolumnchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcolumnchartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcolumnchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcombinationchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcombinationchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcombinationchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxdoughnutandpiechartbase.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxdoughnutandpiechartoptionsbase.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxdoughnutchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxdoughnutchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxdoughnutchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxhistogram.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxhistogramctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxhistogramoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartbackground.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartbackgroundoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartcommonoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartfontoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartmultitooltip.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartmultitooltipoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartpadding.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsarc.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsarcoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsaxis.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsaxisoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsbrushoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartscategoricalaxis.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartscategoricaldata.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartscategoricaldataobserver.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartscircle.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartscircleoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsdataset.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsdatasetid.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsdatasettheme.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsdoubledataset.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartselement.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsgrid.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsgridmapping.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsgridoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslabel.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslabelgroup.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslabeloptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslegendctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslegenditem.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslegendline.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslegendlineoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslegendoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartslicedata.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsnumericalaxis.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsohlcdata.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartspenoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartspoint.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartspointoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsprecisiontheme.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartspresentationtheme.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsradialgrid.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsradialgridoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsrectangle.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsrectangleoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartstheme.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsthemefactory.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsthemeid.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartstimeaxis.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxchartsutilities.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcharttooltip.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcharttooltipoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxcharttooltipprovider.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxlinechart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxlinechartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxlinechartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxlinechartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxmath2dplot.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxmath2dplotctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxmath2dplotoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxohlcchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxohlcchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxohlcchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpiechart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpiechartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpiechartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpolarareachart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpolarareachartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxpolarareachartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxradarchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxradarchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxradarchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxscatterplot.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxscatterplotctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxscatterplotoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedbarchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedbarchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedbarchartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedbarchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartdatasetoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxstackedcolumnchartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxtimeserieschart.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxtimeserieschartctrl.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\wxCharts\include\wx\charts\wxtimeserieschartoptions.cpp">
-      <Filter>Source Files\utils\wxCharts</Filter>
-    </ClCompile>
     <ClCompile Include="Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -868,6 +526,378 @@
     </ClCompile>
     <ClCompile Include="Session.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sqlite\shell.c">
+      <Filter>libs\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sqlite\sqlite3.c">
+      <Filter>libs\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxareachart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxareachartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxareachartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxareachartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbarchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbarchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbarchartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbarchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxboxplot.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxboxplotctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxboxplotdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxboxplotoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbubblechart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbubblechartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxbubblechartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcandlestickchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcandlestickchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcandlestickchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcolumnchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcolumnchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcolumnchartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcolumnchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcombinationchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcombinationchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcombinationchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxdoughnutandpiechartbase.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxdoughnutandpiechartoptionsbase.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxdoughnutchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxdoughnutchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxdoughnutchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxhistogram.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxhistogramctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxhistogramoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartbackground.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartbackgroundoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartcommonoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartfontoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartmultitooltip.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartmultitooltipoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartpadding.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsarc.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsarcoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsaxis.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsaxisoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsbrushoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartscategoricalaxis.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartscategoricaldata.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartscategoricaldataobserver.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartscircle.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartscircleoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsdataset.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsdatasetid.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsdatasettheme.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsdoubledataset.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartselement.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsgrid.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsgridmapping.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsgridoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslabel.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslabelgroup.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslabeloptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslegendctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslegenditem.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslegendline.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslegendlineoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslegendoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartslicedata.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsnumericalaxis.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsohlcdata.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartspenoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartspoint.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartspointoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsprecisiontheme.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartspresentationtheme.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsradialgrid.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsradialgridoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsrectangle.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsrectangleoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartstheme.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsthemefactory.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsthemeid.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartstimeaxis.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxchartsutilities.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcharttooltip.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcharttooltipoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxcharttooltipprovider.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxlinechart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxlinechartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxlinechartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxlinechartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxmath2dplot.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxmath2dplotctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxmath2dplotoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxohlcchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxohlcchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxohlcchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpiechart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpiechartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpiechartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpolarareachart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpolarareachartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxpolarareachartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxradarchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxradarchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxradarchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxscatterplot.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxscatterplotctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxscatterplotoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedbarchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedbarchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedbarchartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedbarchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartdatasetoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxstackedcolumnchartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxtimeserieschart.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxtimeserieschartctrl.cpp">
+      <Filter>libs\wxCharts</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\wxCharts\include\wx\charts\wxtimeserieschartoptions.cpp">
+      <Filter>libs\wxCharts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
