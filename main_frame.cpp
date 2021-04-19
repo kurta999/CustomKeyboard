@@ -56,13 +56,15 @@ wxEND_EVENT_TABLE()
 wxBEGIN_EVENT_TABLE(MacroPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
+wxBEGIN_EVENT_TABLE(ParserPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
 {
-	wxMessageBox("Click on objects in the bottom of the screen to create them.\nAfterwards click on them and move with the mouse on the screen\n\
-		Re-selecting an object can be done with Left mouse button\nMove Up & Down, Left & Right with keys\nResize them with 4, 8, 6, 2", "Help");
+	wxMessageBox("TODO: write here something useful", "Help");
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
@@ -112,6 +114,7 @@ MyFrame::MyFrame(const wxString& title)
 	main_panel = new MainPanel(this);
 	escape_panel = new EscaperPanel(this);
 	macro_panel = new MacroPanel(this);
+	parser_panel = new ParserPanel(this);
 	log_panel = new LogPanel(this);
 
 	wxSize client_size = GetClientSize();
@@ -120,6 +123,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(main_panel, "Main page", false);
 	ctrl->AddPage(escape_panel, "C StrEscape", false);
 	ctrl->AddPage(macro_panel, "Custom Macro", false);
+	ctrl->AddPage(parser_panel, "Sturct Parser", false);
 	ctrl->AddPage(log_panel, "Log", false);
 	ctrl->Thaw();
 }
@@ -315,6 +319,77 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
 	topSizer->Add(this, 1, wxEXPAND);
 	SetSizer(topSizer);
+}
+
+ParserPanel::ParserPanel(wxFrame* parent)
+	: wxPanel(parent, wxID_ANY)
+{
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer(wxVERTICAL);
+	
+	m_IsModbus = new wxCheckBox(this, wxID_ANY, wxT("Is modbus?"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer1->Add(m_IsModbus, 0, wxALL, 5);
+
+	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(640, 320), 0, wxEmptyString);
+	m_StyledTextCtrl->SetUseTabs(true);
+	m_StyledTextCtrl->SetTabWidth(4);
+	m_StyledTextCtrl->SetIndent(4);
+	m_StyledTextCtrl->SetTabIndents(true);
+	m_StyledTextCtrl->SetBackSpaceUnIndents(true);
+	m_StyledTextCtrl->SetViewEOL(false);
+	m_StyledTextCtrl->SetViewWhiteSpace(false);
+	m_StyledTextCtrl->SetMarginWidth(2, 0);
+	m_StyledTextCtrl->SetIndentationGuides(true);
+	m_StyledTextCtrl->SetMarginType(1, wxSTC_MARGIN_SYMBOL);
+	m_StyledTextCtrl->SetMarginMask(1, wxSTC_MASK_FOLDERS);
+	m_StyledTextCtrl->SetMarginWidth(1, 16);
+	m_StyledTextCtrl->SetMarginSensitive(1, true);
+	m_StyledTextCtrl->SetProperty(wxT("fold"), wxT("1"));
+	m_StyledTextCtrl->SetFoldFlags(wxSTC_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSTC_FOLDFLAG_LINEAFTER_CONTRACTED);
+	m_StyledTextCtrl->SetMarginType(0, wxSTC_MARGIN_NUMBER);
+	m_StyledTextCtrl->SetMarginWidth(0, m_StyledTextCtrl->TextWidth(wxSTC_STYLE_LINENUMBER, wxT("_99999")));
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDER, wxSTC_MARK_BOXPLUS);
+	m_StyledTextCtrl->MarkerSetBackground(wxSTC_MARKNUM_FOLDER, wxColour(wxT("BLACK")));
+	m_StyledTextCtrl->MarkerSetForeground(wxSTC_MARKNUM_FOLDER, wxColour(wxT("WHITE")));
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDEROPEN, wxSTC_MARK_BOXMINUS);
+	m_StyledTextCtrl->MarkerSetBackground(wxSTC_MARKNUM_FOLDEROPEN, wxColour(wxT("BLACK")));
+	m_StyledTextCtrl->MarkerSetForeground(wxSTC_MARKNUM_FOLDEROPEN, wxColour(wxT("WHITE")));
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_EMPTY);
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_BOXPLUS);
+	m_StyledTextCtrl->MarkerSetBackground(wxSTC_MARKNUM_FOLDEREND, wxColour(wxT("BLACK")));
+	m_StyledTextCtrl->MarkerSetForeground(wxSTC_MARKNUM_FOLDEREND, wxColour(wxT("WHITE")));
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_BOXMINUS);
+	m_StyledTextCtrl->MarkerSetBackground(wxSTC_MARKNUM_FOLDEROPENMID, wxColour(wxT("BLACK")));
+	m_StyledTextCtrl->MarkerSetForeground(wxSTC_MARKNUM_FOLDEROPENMID, wxColour(wxT("WHITE")));
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDERMIDTAIL, wxSTC_MARK_EMPTY);
+	m_StyledTextCtrl->MarkerDefine(wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_EMPTY);
+	m_StyledTextCtrl->SetSelBackground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
+	m_StyledTextCtrl->SetSelForeground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+
+	// Set the lexer to the C++ lexer
+	m_StyledTextCtrl->SetLexer(wxSTC_LEX_CPP);
+
+	// Set the color to use for various elements
+	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_COMMENTLINE, wxColor(60, 162, 2));
+	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_PREPROCESSOR, wxColor(0, 0, 255));
+	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_STRING, wxColor(255, 60, 10));
+	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_WORD, wxColor(0, 0, 255));
+
+	// Give a list of keywords. They will be given the style specified for
+	// wxSTC_C_WORD items.
+	m_StyledTextCtrl->SetKeyWords(0, wxT("return int char this new"));
+
+	bSizer1->Add(m_StyledTextCtrl);
+
+	m_OkButton = new wxButton(this, wxID_ANY, wxT("Generate"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer1->Add(m_OkButton, 0, wxALL, 5);
+
+	this->SetSizer(bSizer1);
+	this->Layout();
+	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			DBG("OK");
+		});
 }
 
 LogPanel::LogPanel(wxFrame* parent)

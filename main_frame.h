@@ -50,8 +50,8 @@ public:
 	EscaperPanel(wxFrame* parent);
 
 	wxStyledTextCtrl* m_StyledTextCtrl = nullptr;
-	wxCheckBox* m_IsEscapePercent = nullptr;;
-	wxCheckBox* m_IsBackslashAtEnd = nullptr;;
+	wxCheckBox* m_IsEscapePercent = nullptr;
+	wxCheckBox* m_IsBackslashAtEnd = nullptr;
 	wxButton* m_OkButton = nullptr;
 private:
 	wxDECLARE_EVENT_TABLE();
@@ -62,6 +62,18 @@ class MacroPanel : public wxPanel
 public:
 	MacroPanel(wxFrame* parent);
 
+private:
+	wxDECLARE_EVENT_TABLE();
+};
+
+class ParserPanel : public wxPanel
+{
+public:
+	ParserPanel(wxFrame* parent);
+
+	wxCheckBox* m_IsModbus = nullptr;
+	wxStyledTextCtrl* m_StyledTextCtrl = nullptr;
+	wxButton* m_OkButton = nullptr;
 private:
 	wxDECLARE_EVENT_TABLE();
 };
@@ -97,6 +109,7 @@ public:
 	MainPanel* main_panel;
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;
+	ParserPanel* parser_panel;
 	LogPanel* log_panel;
 
 	wxDECLARE_EVENT_TABLE();

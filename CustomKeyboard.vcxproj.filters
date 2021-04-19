@@ -492,6 +492,9 @@
     <ClInclude Include="libs\wxCharts\include\wx\charts\wxtimeserieschartoptions.h">
       <Filter>libs\wxCharts</Filter>
     </ClInclude>
+    <ClInclude Include="StructParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomKeyboard.cpp">
@@ -904,6 +907,9 @@
     </ClCompile>
     <ClCompile Include="libs\fmt\os.cc">
       <Filter>libs\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="StructParser.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
