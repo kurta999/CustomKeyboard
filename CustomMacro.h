@@ -52,7 +52,7 @@ public:
 protected:
 };
 
-class KeyText : public KeyClass
+class KeyText final : public KeyClass
 {
 public:
     KeyText(std::string&& keys)
@@ -71,7 +71,7 @@ private:
     std::string seq; /* virtual key codes to press and release*/
 };
 
-class KeyCombination : public KeyClass
+class KeyCombination final : public KeyClass
 {
 public:
     KeyCombination(std::vector<uint16_t>&& keys)
@@ -89,8 +89,8 @@ private:
     std::vector<uint16_t> seq; /* scan codes to press and release*/
 
 };
-// teszt szöveg
-class KeyDelay : public KeyClass
+
+class KeyDelay final : public KeyClass
 {
 public:
     KeyDelay(uint32_t delay) : delay_ms(delay)
@@ -136,13 +136,6 @@ private:
     void UartDataReceived(const char* data, unsigned int len);
     void WorkerThread(void);
 
-    uint16_t GetKeyCode(char from_char)
-    {
-        uint16_t ret = VkKeyScanExA(from_char, GetKeyboardLayout(0));
-        if(isupper((unsigned char)from_char))
-            ret |= 1 << 15;
-        return ret;
-    }
     uint16_t GetKeyScanCode(std::string str)
     {
         uint16_t ret = 0xFFFF;
