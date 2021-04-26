@@ -2,6 +2,28 @@
 
 #include "utils/CSingleton.h"
 
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include <variant>
+
+const std::unordered_map < std::string, size_t> types =
+{
+	{"uint8_t", sizeof(uint8_t), },
+	{"int8_t", sizeof(int8_t)},
+	{"uint16_t", sizeof(uint16_t)},
+	{"int16_t", sizeof(int16_t)},
+	{"uint32_t", sizeof(uint32_t)},
+	{"int32_t", sizeof(int32_t)},
+	{"int", sizeof(int32_t)},
+	{"uint64_t", sizeof(uint64_t)},
+	{"int64_t", sizeof(int64_t)},
+	{"float", sizeof(float)},
+	{"double", sizeof(double)},
+	{"p", 4}, /* TODO: this can change */
+};
+
+
 class ClassBase
 {
 public:
