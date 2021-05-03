@@ -7,14 +7,27 @@
 #include <variant>
 
 #include <boost/algorithm/string.hpp>
+#include <fmt/format.h>
 
-#if 0
+size_t ClassElement::pointer_size = 4;
 
-/**< 15 - 23 */
-#endif
+#define TESTING_PARSER 1
+
+#ifdef TESTING_PARSER
+
+#include <iostream>
+#include <fstream>
 
 /* spaces after ; have to be TRIMMED */
 char test_array[] = "\
+typedef struct\
+{\
+float x;\
+float y;\
+float z;\
+} Vector3;\
+\
+#pragma pack(4)\
 typedef struct\
 {\
 int      a;   \
@@ -25,7 +38,9 @@ float e;\
 double f;\
 uint64_t items[15];  /**< 23 - 143 */\
 void* g;  /**< 143 - 147 */\
+Vector3 vec; /**< vector3D */\
 } FirstStructure_t; \
+#pragma pack()\
 \
 typedef struct\
 {\
@@ -46,58 +61,97 @@ FirstStructure_t a;\
 SecondStructure_t b;\
 uint16_t c;\
 } EmbeddedStruct;\
+\
+#pragma pack(push, 8)\
+typedef struct\
+{\
+float x2;\
+float y2;\
+float z2;\
+} Pack8;\
+#pragma pack(pop)\
 ";
 
-std::unordered_map<std::string, size_t> custom_types;
+/*
+Vector3
+FirstStructure_t
+- Vector3
+SecondStructure_t
 
-bool IsDefaultType(std::string& type)
-{
-	auto it = types.find(type);
-	return it != types.end();
-}
-
-size_t GetType(std::string& type)
-{
-	if(IsDefaultType(type))
-		return types.at(type);
-	return custom_types.at(type);
-}
-
-void CreateType(std::string& type, size_t value)
-{
-	if(IsDefaultType(type))
-		return;
-	auto it = custom_types.find(type);
-	if(it == types.end())
-		custom_types[type] = value;
-}
-
-#if 0
-+ input, 150	0x00b07670 "typedef struct{int       a;  /**< 0 */uint8_t b; /**< 4 */uint16_t c;  /**< 5 */uint32_t d;float e;  /**< 11 */double f;  /**< 15 - 23 */} FirstS"	char[150]
+EmbeddedStruct
+- FirstStructure_t
++++ Vector3
+- SecondStructure_t
+ */
 #endif
 
-std::vector<ClassContainer*> classes;  /* all classes in a container */
-
-ClassContainer* IsClassAlreadyExists(std::string& class_name)
+size_t StructParser::FindPragmaPack(std::string& input, size_t from, size_t& push_start)
 {
-	for(auto& i : classes)
+	size_t packing = 1;
+	size_t pos1 = input.find("#pragma pack(push, ", from);
+	size_t pos2 = input.find("#pragma pack(", from);
+	if(pos1 <= pos2 && input[pos1 + 1] == 'p')
 	{
-		if(i->type_name == class_name)
-			return i;
+		packing = std::stoi(&input[pos1 + std::char_traits<char>::length("#pragma pack(push, ")]);
+		push_start = pos1;
 	}
-	return NULL;
+	else
+	{
+		packing = std::stoi(&input[pos2 + std::char_traits<char>::length("#pragma pack(")]);
+		push_start = pos2;
+	}
+	return packing;
 }
 
-void ParserStructure(char* input)
+size_t StructParser::FindPragmaPop(std::string& input, size_t from, size_t to)
 {
-	std::string str_in(input);
+	size_t packing = 1;
+	size_t pos = input.find("#pragma pack()", from);
+	if(pos != std::string::npos)
+	{
 
+	}
+	else
+	{
+		pos = input.find("#pragma pack(pop, ", from);
+	}
+	return pos;
+}
+
+size_t StructParser::FindPacking(std::string& input, size_t from, size_t& push_start, size_t& pop_end)
+{
+	size_t pack = FindPragmaPack(input, from, push_start);
+	pop_end = FindPragmaPop(input, from, 0);
+	if(pop_end <= push_start)
+	{
+		LOGMSG(error, "Invalid packing format, pop is before push.");
+		pack = 1;
+	}
+	return pack;
+}
+
+void StructParser::ParseStructure(std::string& input, std::string& output)
+{
+	std::string& str_in = input;
+
+	size_t packing = 1;
+	size_t push_start = 1;
+	size_t pop_end = 0;
+	size_t found_packing = FindPacking(input, 0, push_start, pop_end);
 	size_t input_len = 0;
 	while(input_len < str_in.length() - 1)
 	{
 		size_t struct_begin = str_in.find("{", input_len);
 		size_t struct_end = str_in.find("}", input_len + 1);
 		size_t struct_name_pos = str_in.find(";", struct_end);
+
+		if(struct_begin > push_start && struct_end < pop_end)
+			packing = found_packing;
+		else
+			packing = 1;
+
+		if(struct_begin > pop_end)  /* Update packing information when whe left last pragma pop in current structure*/
+			found_packing = FindPacking(input, struct_begin, push_start, pop_end);
 
 		if(struct_begin == std::string::npos || struct_end == std::string::npos || struct_name_pos == std::string::npos)
 		{
@@ -108,7 +162,7 @@ void ParserStructure(char* input)
 		std::string struct_name = str_in.substr(struct_end + 1, struct_name_pos - struct_end - 1);
 		boost::trim(struct_name);
 
-		ClassContainer* c = new ClassContainer(struct_name);
+		ClassContainer* c = new ClassContainer(struct_name, packing);
 		classes.push_back(c);
 
 		size_t line_counter = struct_begin;
@@ -143,13 +197,7 @@ void ParserStructure(char* input)
 					DBG("Array size: %d", array_size);
 				}
 
-#if 0
 
-				if(sscanf(var_name.c_str(), "%*[^[][%d]", &array_size) == 1)  /* Good old sscanf... */
-				{
-
-				}
-#endif
 				size_t doxygen_style_comment_start = str_in.find_first_of("/**<", semicolon_pos);
 				size_t doxygen_style_comment_end = str_in.find("*/", doxygen_style_comment_start);
 				std::string var_comment;
@@ -170,7 +218,7 @@ void ParserStructure(char* input)
 				ClassContainer* c_exist = IsClassAlreadyExists(var_type);
 				if(c_exist)
 				{
-					c->elems.push_back(c_exist);
+					c->elems.insert(c->elems.begin(), c_exist->elems.begin(), c_exist->elems.end());
 				}
 				else
 				{
@@ -187,33 +235,34 @@ void ParserStructure(char* input)
 
 	for(auto& c : classes)
 	{
-		LOGMSG(error, "{}\n\n", c->type_name);
+		output += ":: " + c->type_name + " ::" + "\r\n\r\n";
+
 		size_t offset = 0;
 		for(auto& e : c->elems)
 		{
-			if(std::holds_alternative<ClassElement*>(e))
-			{
-				LOGMSG(error, "{} {} [{} - {}]\n", std::get<ClassElement*>(e)->type_name, std::get<ClassElement*>(e)->name, 
-					offset, offset + std::get<ClassElement*>(e)->GetSize());
-				offset += std::get<ClassElement*>(e)->GetSize();
-			}
-			else if(std::holds_alternative<ClassContainer*>(e))
-			{
-				for(auto& cx : std::get<ClassContainer*>(e)->elems)
-				{
-					LOGMSG(error, "{} {} [{} - {}]\n", std::get<ClassElement*>(cx)->type_name, std::get<ClassElement*>(cx)->name,
-						offset, offset + std::get<ClassElement*>(cx)->GetSize());
-					offset += std::get<ClassElement*>(cx)->GetSize();
-				}
-			}
+			size_t real_size = c->packing > 1 ? (e->GetSize() + (c->packing - e->GetSize())) : e->GetSize();
+			if(e->desc.empty())
+				output += fmt::format("{} {} [{} - {}]\r\n", e->type_name, e->name, offset, (offset + real_size) - 1);
+			else
+				output += fmt::format("{} {} [{} - {}] /**< {} >\r\n", e->type_name, e->name, offset, (offset + real_size) - 1, e->desc);
+
+			offset += real_size;
 		}
-		LOGMSG(error, "\n\n", c->type_name);
+		output += fmt::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
 	}
 }
 
 void StructParser::Init()
 {
-	ParserStructure(test_array);
+#ifdef TESTING_PARSER
+	std::string in_str(test_array);
+	std::string out_str;
+	ParseStructure(in_str, out_str);
+
+	std::ofstream out("output.txt", std::ofstream::binary);
+	out << out_str;
+	out.close();
+#endif
 }
 
 

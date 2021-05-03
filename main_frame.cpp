@@ -26,9 +26,11 @@
 #include<boost/algorithm/string.hpp>
 
 #include "Notification.h"
+#include "StructParser.h"
 
 #include <wx/charts/wxcharts.h>
-
+#include <boost/algorithm/string.hpp>
+#include <assert.h>
 
 constexpr int WINDOW_SIZE_X = 800;
 constexpr int WINDOW_SIZE_Y = 600;
@@ -61,6 +63,9 @@ wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
 wxEND_EVENT_TABLE()
+
+#define WX_SIZERPADDING(sizer) \
+	sizer->Add(new wxStaticText(this, wxID_ANY, ""), 0, wxALL, 5);
 
 void MyFrame::OnHelp(wxCommandEvent& event)
 {
@@ -126,6 +131,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(parser_panel, "Sturct Parser", false);
 	ctrl->AddPage(log_panel, "Log", false);
 	ctrl->Thaw();
+	ctrl->SetSelection(3);
 }
 
 MainPanel::MainPanel(wxFrame* parent)
@@ -324,13 +330,30 @@ MacroPanel::MacroPanel(wxFrame* parent)
 ParserPanel::ParserPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
-	
-	m_IsModbus = new wxCheckBox(this, wxID_ANY, wxT("Is modbus?"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_IsModbus, 0, wxALL, 5);
+	wxFlexGridSizer* fgSizer1;
+	fgSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	fgSizer1->SetFlexibleDirection(wxBOTH);
+	fgSizer1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(640, 320), 0, wxEmptyString);
+	m_IsModbus = new wxCheckBox(this, wxID_ANY, wxT("Is modbus?"), wxDefaultPosition, wxDefaultSize, 0);
+	fgSizer1->Add(m_IsModbus, 0, wxALL, 5);
+	WX_SIZERPADDING(fgSizer1);
+
+	const std::vector<wxString> vec_pointer_sizes = { "Ptr size: 1", "Ptr size: 2", "Ptr size: 4", "Ptr size: 8" };
+	m_PointerSize = new wxComboBox(this, wxID_ANY, wxT("Ptr size: 4"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
+	m_PointerSize->Set(vec_pointer_sizes);
+	m_PointerSize->SetSelection(2);
+	m_PointerSize->SetHelpText("Select pointer size");
+	fgSizer1->Add(m_PointerSize, 0, wxALL, 5);
+	WX_SIZERPADDING(fgSizer1);
+
+	m_StructurePadding = new wxSpinCtrl(this, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1000, 1);
+	m_StructurePadding->SetHelpText("Select structure padding");
+	fgSizer1->Add(m_StructurePadding, 0, wxALL, 5);
+	WX_SIZERPADDING(fgSizer1);
+
+	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(320, 320), 0, wxEmptyString);
+
 	m_StyledTextCtrl->SetUseTabs(true);
 	m_StyledTextCtrl->SetTabWidth(4);
 	m_StyledTextCtrl->SetIndent(4);
@@ -374,21 +397,43 @@ ParserPanel::ParserPanel(wxFrame* parent)
 	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_PREPROCESSOR, wxColor(0, 0, 255));
 	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_STRING, wxColor(255, 60, 10));
 	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_WORD, wxColor(0, 0, 255));
+	m_StyledTextCtrl->StyleSetForeground(wxSTC_C_USERLITERAL, wxColor(0, 255, 255));
 
 	// Give a list of keywords. They will be given the style specified for
 	// wxSTC_C_WORD items.
-	m_StyledTextCtrl->SetKeyWords(0, wxT("return int char this new"));
+	m_StyledTextCtrl->SetKeyWords(0, wxT("return int float double char this new delete goto for while do if else uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t"));
+	fgSizer1->Add(m_StyledTextCtrl);
 
-	bSizer1->Add(m_StyledTextCtrl);
+	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(320, 320), wxTE_MULTILINE | wxTE_READONLY);
+	fgSizer1->Add(m_Output, 0, wxALL, 5);
 
 	m_OkButton = new wxButton(this, wxID_ANY, wxT("Generate"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_OkButton, 0, wxALL, 5);
+	fgSizer1->Add(m_OkButton, 0, wxALL, 5);
 
-	this->SetSizer(bSizer1);
+	this->SetSizer(fgSizer1);
 	this->Layout();
+	this->Centre(wxBOTH);
+
 	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 		{
-			DBG("OK");
+			const uint8_t pointer_sizes[4] = { 1, 2, 4, 8 };
+			bool is_modbus = m_IsModbus->GetValue();
+
+			assert(m_PointerSize->GetSelection() < 4);
+
+			int pointer_size = pointer_sizes[m_PointerSize->GetSelection()];
+			int struct_padding = m_StructurePadding->GetValue();
+
+			wxString str = m_StyledTextCtrl->GetText();
+			std::string input(str.mb_str());
+			std::string output;
+			boost::replace_all(input, "\r\n", "");
+			boost::replace_all(input, "\t", "");
+			StructParser::Get()->ParseStructure(input, output);
+
+			wxString wxout(output);
+			m_Output->Clear();
+			m_Output->SetLabelText(wxout);
 		});
 }
 

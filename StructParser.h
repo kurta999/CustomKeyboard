@@ -7,23 +7,6 @@
 #include <vector>
 #include <variant>
 
-const std::unordered_map < std::string, size_t> types =
-{
-	{"uint8_t", sizeof(uint8_t), },
-	{"int8_t", sizeof(int8_t)},
-	{"uint16_t", sizeof(uint16_t)},
-	{"int16_t", sizeof(int16_t)},
-	{"uint32_t", sizeof(uint32_t)},
-	{"int32_t", sizeof(int32_t)},
-	{"int", sizeof(int32_t)},
-	{"uint64_t", sizeof(uint64_t)},
-	{"int64_t", sizeof(int64_t)},
-	{"float", sizeof(float)},
-	{"double", sizeof(double)},
-	{"p", 4}, /* TODO: this can change */
-};
-
-
 class ClassBase
 {
 public:
@@ -53,7 +36,7 @@ public:
 	{
 		size_t ret = 0;
 		if(is_pointer)
-			ret = types.at("p");
+			ret = pointer_size;
 		else
 			ret = types.at(type_name);
 
@@ -61,27 +44,49 @@ public:
 			ret *= array_size;
 		return ret;
 	}
-};
-#if 0
-class Class  /* holds the structure elements itself */
-{
-public:
-	size_t offset;  /* starting offset of this structure */
 
-	elements;
+	static size_t pointer_size;
+private:
+	const std::unordered_map < std::string, size_t> types =
+	{
+		{"uint8_t", sizeof(uint8_t), },
+		{"int8_t", sizeof(int8_t)},
+		{"uint16_t", sizeof(uint16_t)},
+		{"int16_t", sizeof(int16_t)},
+		{"uint32_t", sizeof(uint32_t)},
+		{"int32_t", sizeof(int32_t)},
+		{"int", sizeof(int32_t)},
+		{"uint64_t", sizeof(uint64_t)},
+		{"int64_t", sizeof(int64_t)},
+		{"float", sizeof(float)},
+		{"double", sizeof(double)},
+	};
 };
-#endif
+
+/*
+Vector3
+FirstStructure_t
+- Vector3
+SecondStructure_t
+
+EmbeddedStruct
+- FirstStructure_t
++++ Vector3
+- SecondStructure_t
+ */
 
 class ClassContainer : public ClassBase /* holds a class and expands the further ones when a duplicated one found */
 {
 public:
-	ClassContainer(std::string type_name_, bool is_pointer_ = 0, size_t array_size_ = std::numeric_limits<size_t>::max(), std::string&& name_ = "", std::string&& desc_ = "") :
-		ClassBase(std::move(type_name_), is_pointer_, array_size_, std::move(name_), std::move(desc_))
+	ClassContainer(std::string type_name_, size_t packing_, bool is_pointer_ = 0, size_t array_size_ = std::numeric_limits<size_t>::max(), std::string&& name_ = "", std::string&& desc_ = "") :
+		ClassBase(std::move(type_name_), is_pointer_, array_size_, std::move(name_), std::move(desc_)), packing(packing_)
 	{
 
 	}
 
-	std::vector<std::variant<ClassElement*, ClassContainer*>> elems;
+	uint8_t type = 0; /* 0 = elemes, 1 = class */
+	size_t packing;
+	std::vector<ClassElement*> elems;
 };
 
 class StructParser : public CSingleton < StructParser >
@@ -89,8 +94,23 @@ class StructParser : public CSingleton < StructParser >
     friend class CSingleton < StructParser >;
 public:
     void Init();
-    void ProcessIncommingData(char* recv_data, const char* from_ip);
-
+	void ParseStructure(std::string& input, std::string& output);
 
 private:
+	size_t FindPragmaPack(std::string& input, size_t from, size_t& push_start);
+	size_t FindPragmaPop(std::string& input, size_t from, size_t to);
+	size_t FindPacking(std::string& input, size_t from, size_t& push_start, size_t& pop_end);
+
+	std::vector<ClassContainer*> classes;  /* all classes in a container */
+
+	ClassContainer* IsClassAlreadyExists(std::string& class_name)
+	{
+		for(auto& i : classes)
+		{
+			if(i->type_name == class_name)
+				return i;
+		}
+		return NULL;
+	}
 };
+
