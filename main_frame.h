@@ -72,7 +72,10 @@ public:
 	ParserPanel(wxFrame* parent);
 
 	wxCheckBox* m_IsModbus = nullptr;
+	wxComboBox* m_PointerSize = nullptr;
+	wxSpinCtrl* m_StructurePadding = nullptr;
 	wxStyledTextCtrl* m_StyledTextCtrl = nullptr;
+	wxTextCtrl* m_Output = nullptr;
 	wxButton* m_OkButton = nullptr;
 private:
 	wxDECLARE_EVENT_TABLE();

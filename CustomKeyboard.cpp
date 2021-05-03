@@ -18,6 +18,7 @@
 #include "Settings.h"
 #include "Server.h"
 #include "Database.h"
+#include "StructParser.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -31,6 +32,7 @@ bool MyApp::OnInit()
     CustomMacro::Get()->Init();
     Server::Get()->Init();
     Database::Get()->Init();
+    StructParser::Get()->Init();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
@@ -39,6 +41,7 @@ bool MyApp::OnInit()
     SetTopWindow(frame);
     return true;
 }
+
 /*
 void MyFrame::OnExit(wxCommandEvent& event)
 {
