@@ -3,6 +3,7 @@
 #include "Settings.h"
 #include "Server.h"
 #include "Logger.h"
+#include "PrintScreenSaver.h"
 
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -168,6 +169,8 @@ void Settings::Init(void)
         }
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
         Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
+        PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
+        PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &e)
     {

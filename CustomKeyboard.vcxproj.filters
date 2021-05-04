@@ -31,6 +31,9 @@
     <Filter Include="libs\sqlite">
       <UniqueIdentifier>{cf1d0355-c7e2-41b6-9a73-63801df4a88c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\lodepng">
+      <UniqueIdentifier>{1e60b691-2095-46e1-9760-a5d39f105ac2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -495,6 +498,12 @@
     <ClInclude Include="StructParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libs\lodepng\lodepng.h">
+      <Filter>libs\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintScreenSaver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomKeyboard.cpp">
@@ -909,6 +918,12 @@
       <Filter>libs\fmt</Filter>
     </ClCompile>
     <ClCompile Include="StructParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\lodepng\lodepng.cpp">
+      <Filter>libs\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintScreenSaver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

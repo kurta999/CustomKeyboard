@@ -19,6 +19,7 @@
 #include "Server.h"
 #include "Database.h"
 #include "StructParser.h"
+#include "PrintScreenSaver.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -33,6 +34,7 @@ bool MyApp::OnInit()
     Server::Get()->Init();
     Database::Get()->Init();
     StructParser::Get()->Init();
+    PrintScreenSaver::Get()->Init();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
