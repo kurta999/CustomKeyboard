@@ -8,14 +8,28 @@
 #include <unordered_map>
 #include <map>
 #include <string>
+#include <variant>
 
 #include "Logger.h"
 #include <thread>
 
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
+
 #pragma pack(push, 1)
 typedef struct
 {
-    char key;
+    uint8_t state;
+    uint8_t lctrl;
+    uint8_t lshift;
+    uint8_t lalt;
+    uint8_t lgui;
+    uint8_t rctrl;
+    uint8_t rshift;
+    uint8_t ralt;
+    uint8_t rgui;
+    uint8_t keys[6];
     uint16_t crc;
 } KeyData_t;
 #pragma pack(pop)
@@ -93,17 +107,54 @@ private:
 class KeyDelay final : public KeyClass
 {
 public:
-    KeyDelay(uint32_t delay) : delay_ms(delay)
+    KeyDelay(uint32_t delay_) : delay(delay_)
     {
         
+    }    
+    KeyDelay(uint32_t start_, uint32_t end_) : delay(std::array<uint32_t, 2>{start_, end_})
+    {
+        //delay = ;
     }
 
     void DoWrite()
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+        if(std::holds_alternative<uint32_t>(delay))
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::get<uint32_t>(delay)));
+        else
+        {
+            std::array<uint32_t, 2> d = std::get<std::array<uint32_t, 2>>(delay);
+            boost::uniform_int<> dist(d[0], d[1]);
+            boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(gen, dist);
+
+            int ret = die();
+            std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+        }
     }
 private:
-    uint32_t delay_ms;
+    std::variant<uint32_t, std::array<uint32_t, 2>> delay;
+    boost::mt19937 gen;
+};
+
+
+
+
+class BindedKey
+{
+public:
+    BindedKey()
+    {
+
+    }
+
+    enum class BindType
+    {
+        Press,
+        Release
+    };
+
+
+    std::vector<uint8_t> keys;
+    BindType type;
 };
 
 /* each given macro per-app get's a macro container */
@@ -116,7 +167,7 @@ public:
     {
         //key_vec.push_back(p);
     }
-    std::map<char, std::vector<std::unique_ptr<KeyClass>>> key_vec;
+    std::map<std::string, std::vector<std::unique_ptr<KeyClass>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
     std::string name;
 private:
 };
@@ -134,7 +185,7 @@ public:
 private:
     friend class Settings;
     void UartDataReceived(const char* data, unsigned int len);
-    void WorkerThread(void);
+    void UartReceiveThread(void);
 
     uint16_t GetKeyScanCode(std::string str)
     {
@@ -226,7 +277,106 @@ private:
         return ret;
     }
 
+    uint8_t GetKeyHidCodeFromString(const std::string& key_str)
+    {
+        uint8_t ret = 0xFF;
+        auto code = hid_scan_codes.find(key_str);
+        if(code != hid_scan_codes.end())
+            ret = code->second;
+        return ret;
+    }
     std::vector<std::unique_ptr<MacroContainer>> macros;
     uint16_t com_port = 2005;
     bool use_per_app_macro;
+    std::string pressed_keys;
+
+    const std::unordered_map<std::string, int> hid_scan_codes =  /* replace key & value with each other */
+    {
+        {"A",       0x04},
+        {"B",       0x05},
+        {"C",       0x06},
+        {"D",       0x07},
+        {"E",       0x08},
+        {"F",       0x09},
+        {"G",       0x0A},
+        {"H",       0x0B},
+        {"I",       0x0C},
+        {"J",       0x0D},
+        {"K",       0x0E},
+        {"L",       0x0F},
+        {"M",       0x10},
+        {"N",       0x11},
+        {"O",       0x12},
+        {"P",       0x13},
+        {"Q",       0x14},
+        {"R",       0x15},
+        {"S",       0x16},
+        {"T",       0x17},
+        {"U",       0x18},
+        {"V",       0x19},
+        {"W",       0x1A},
+        {"X",       0x1B},
+        {"Y",       0x1C},
+        {"Z",       0x1D},
+        {"1",       0x1E},
+        {"2",       0x1F},
+        {"3",       0x20},
+        {"4",       0x21},
+        {"5",       0x22},
+        {"6",       0x23},
+        {"7",       0x24},
+        {"8",       0x25},
+        {"9",       0x26},
+        {"0",       0x27},
+        {"F1",      0x3A},
+        {"F2",      0x3B},
+        {"F3",      0x3C},
+        {"F4",      0x3D},
+        {"F5",      0x3E},
+        {"F6",      0x3F},
+        {"F7",      0x40},
+        {"F8",      0x41},
+        {"F9",      0x42},
+        {"F10",     0x43},
+        {"F11",     0x44},
+        {"F12",     0x45},
+        {"PRINT",   0x46},
+        {"SCROLL",  0x47},
+        {"PUASE",   0x48},
+        {"INSERT",  0x49},
+        {"HOME",    0x4A},
+        {"PAGEUP",  0x4B},
+        {"DELETE",  0x4C},
+        {"END",     0x4D},
+        {"PAGEDOWN",0x4E},
+        {"RIGHT",   0x4F},
+        {"LEFT",    0x50},
+        {"UP",      0x51},
+        {"DOWN",    0x52},
+        {"NUM_LOCK",    0x53},
+        {"NUM_DIV",     0x54},
+        {"NUM_MUL",     0x55},
+        {"NUM_MINUS",   0x56},
+        {"NUM_PLUS",    0x57},
+        {"ENTER",   0x58},
+        {"NUM_1",   0x59},
+        {"NUM_2",   0x5A},
+        {"NUM_3",   0x5B},
+        {"NUM_4",   0x5C},
+        {"NUM_5",   0x5D},
+        {"NUM_6",   0x5E},
+        {"NUM_7",   0x5F},
+        {"NUM_8",   0x60},
+        {"NUM_9",   0x61},
+        {"NUM_0",   0x62},
+        {"NUM_DEL", 0x63},
+        {"LCTRL",   0xF0},
+        {"LSHIFT",  0xF1},
+        {"LALT",    0xF2},
+        {"LGUI",    0xF3},
+        {"RCTRL",   0xF4},
+        {"RSHIFT",  0xF5},
+        {"RALT",    0xF6},
+        {"RGUI",    0xF7},
+    };
 };

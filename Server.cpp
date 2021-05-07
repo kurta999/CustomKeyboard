@@ -71,6 +71,7 @@ bool Server::CreateAcceptor(unsigned short port)
     acceptor->open(endpoint.protocol(), error);
     if(error)
     {
+        LOGMSG(critical, "open error {} - {}", port, error.message());
         acceptor.reset();
         return false;
     }
@@ -78,18 +79,21 @@ bool Server::CreateAcceptor(unsigned short port)
     acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), error);
     if(error)
     {
+        LOGMSG(critical, "reuse_address error - {}", error.message());
         acceptor.reset();
         return false;
     }
     acceptor->bind(endpoint, error);
     if(error)
     {
+        LOGMSG(critical, "bind error - {}", error.message());
         acceptor.reset();
         return false;
     }
     acceptor->listen(boost::asio::socket_base::max_connections, error);
     if(error)
     {
+        LOGMSG(critical, "listen error - {}", error.message());
         acceptor.reset();
         return false;
     }

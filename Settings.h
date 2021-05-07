@@ -12,6 +12,6 @@ public:
     Settings() = default;
     void Init(void);
 private:
-    void ParseMacroKeys(size_t id, const char key_code, std::string& str, std::unique_ptr<MacroContainer>& c);
+    void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c);
     std::string macro_section;
 };

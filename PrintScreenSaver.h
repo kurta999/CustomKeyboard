@@ -17,6 +17,7 @@ public:
 
     std::string timestamp_format;
     std::filesystem::path screenshot_path;
+    std::string screenshot_key;
 private:
     void FormatTimestamp(char* buf, uint8_t len);
     INT GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader);

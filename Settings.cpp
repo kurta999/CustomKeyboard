@@ -12,10 +12,11 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
+#include <array>
 
 //#include <Windows.h>
 
-void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
+void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
     constexpr const char* start_seq_str = "KEY_SEQ[";
     constexpr size_t start_seq_offset_len = std::char_traits<char>::length(start_seq_str);
@@ -80,9 +81,21 @@ void Settings::ParseMacroKeys(size_t id, const char key_code, std::string& str, 
             pos = first_end;
             std::string sequence = str.substr(first_delay + start_delay_offset_len, first_end - first_delay - start_delay_offset_len);
 
-            uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
-            DBG("Delay: %d\n", delay);
-            c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
+            size_t separator_pos = sequence.find("-");
+            if(separator_pos != std::string::npos)
+            {
+                uint32_t delay_start = static_cast<uint32_t>(std::stoi(sequence));
+                uint32_t delay_end = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
+                DBG("Random Delay range: %d, %d\n", delay_start, delay_end);
+
+                c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay_start, delay_end));
+            }
+            else
+            {
+                uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
+                DBG("Delay: %d\n", delay);
+                c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
+            }
         }
         else
         {
@@ -143,7 +156,7 @@ void Settings::Init(void)
         for(auto& key : global_child)
         {
             std::string& str = key.second.data();
-            ParseMacroKeys(0, key.first.c_str()[0], str, p);
+            ParseMacroKeys(0, key.first, str, p);
         }
         CustomMacro::Get()->macros.push_back(std::move(p));
 
@@ -162,7 +175,7 @@ void Settings::Init(void)
                     continue;
                 }
                 std::string& str = key.second.data();
-                ParseMacroKeys(counter, key.first.c_str()[0], str, p2);
+                ParseMacroKeys(counter, key.first, str, p2);
             }
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
@@ -171,6 +184,10 @@ void Settings::Init(void)
         Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
+        PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
+
+        if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
+            std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &e)
     {

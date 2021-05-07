@@ -77,8 +77,10 @@ void PrintScreenSaver::SaveScreenshot()
     unsigned w_, h_;
     unsigned error = decodeBMP(bmp_to_encode, w_, h_, clipboard_bmp);
     unsigned long error_code = lodepng::encode(png, bmp_to_encode, BitmapInfoHeader->biWidth, BitmapInfoHeader->biHeight, LCT_RGBA, 8);
-    lodepng::save_file(png, buf);
-    LOGMSG(notification, "Image saved. {}", buf);
+
+    std::string save_path = screenshot_path.string() + "\\" + buf;
+    lodepng::save_file(png, save_path.c_str());
+    LOGMSG(notification, "Image saved to {}", save_path);
 }
 
 // Returns the offset, in bytes, from the start of the BITMAPINFO, to the start of the pixel data array, for a packed DIB.
