@@ -42,10 +42,11 @@ enum
 	PGID = 1,
 	ID_Hello,
 	FileMenuQuitID,
+	ID_UpdateMousePosText,
 };
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_MENU(ID_Hello, MyFrame::OnHelp)
+//EVT_MENU(ID_Hello, MyFrame::OnHelp)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -67,9 +68,32 @@ wxEND_EVENT_TABLE()
 #define WX_SIZERPADDING(sizer) \
 	sizer->Add(new wxStaticText(this, wxID_ANY, ""), 0, wxALL, 5);
 
-void MyFrame::OnHelp(wxCommandEvent& event)
+void MyFrame::TimerEvent(wxTimerEvent& event)
 {
-	wxMessageBox("TODO: write here something useful", "Help");
+	int sel = ctrl->GetSelection();
+	HWND foreground = GetForegroundWindow();
+	if(sel == 2 && foreground)
+	{
+		POINT p;
+		if(::GetCursorPos(&p))
+		{
+			if(::ScreenToClient(foreground, &p))
+			{
+				RECT rect;
+				if(GetWindowRect(foreground, &rect))
+				{
+					int width = rect.right - rect.left;
+					int height = rect.bottom - rect.top;
+					wxString str = wxString::Format(wxT("Mouse: %d,%d\n\nRect: %d,%d"), p.x, p.y, width, height);
+					macro_panel->m_MousePos->SetLabelText(str);
+					if(GetAsyncKeyState(VK_SCROLL))
+					{
+						LOGMSG(normal, str.ToStdString().c_str());
+					}
+				}
+			}
+		}
+	}
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
@@ -132,6 +156,10 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(log_panel, "Log", false);
 	ctrl->Thaw();
 	ctrl->SetSelection(3);
+
+	m_timer = new wxTimer(this, ID_UpdateMousePosText);
+	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::TimerEvent), NULL, this);
+	m_timer->Start(100, false);
 }
 
 MainPanel::MainPanel(wxFrame* parent)
@@ -260,17 +288,20 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
 
-#if 0
+
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer(wxVERTICAL);
 	
+	m_MousePos = new wxStaticText(this, wxID_ANY, "Pos: 0,0");
+	bSizer1->Add(m_MousePos);
+
 	this->SetSizer(bSizer1);
 	this->Layout();
 	/*
 	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
 	*/
-#endif
 
+#if 0
 	// Create the data for the line chart widget
 	wxVector<wxString> labels;
 	labels.push_back("January");
@@ -325,6 +356,7 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
 	topSizer->Add(this, 1, wxEXPAND);
 	SetSizer(topSizer);
+#endif
 }
 
 ParserPanel::ParserPanel(wxFrame* parent)

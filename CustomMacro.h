@@ -63,6 +63,16 @@ public:
         input.ki.dwFlags |= KEYEVENTF_KEYUP;
         SendInput(1, &input, sizeof(input));
     }
+
+    void PressReleaseMouse(WORD mouse_button)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_MOUSE;
+        input.mi.dwFlags = mouse_button;
+        SendInput(1, &input, sizeof(input));
+        input.mi.dwFlags = mouse_button << (uint16_t)1;
+        SendInput(1, &input, sizeof(input));
+    }
 protected:
 };
 
@@ -101,7 +111,6 @@ public:
     }
 private:
     std::vector<uint16_t> seq; /* scan codes to press and release*/
-
 };
 
 class KeyDelay final : public KeyClass
@@ -135,16 +144,48 @@ private:
     boost::mt19937 gen;
 };
 
+class MouseMovement final : public KeyClass
+{
+public:
+    MouseMovement(LPPOINT* pos_)
+    {
+        memcpy(&pos, pos_, sizeof(pos));
+    }
 
+    void DoWrite()
+    {
+        POINT to_screen;
+        HWND hwnd = GetForegroundWindow();
+        memcpy(&to_screen, &pos, sizeof(to_screen));
+        ClientToScreen(hwnd, &to_screen);
+        ShowCursor(FALSE);
+        SetCursorPos(to_screen.x, to_screen.y);
+        ShowCursor(TRUE);
+    }
+
+private:
+    POINT pos;
+};
+
+class MouseClick final : public KeyClass
+{
+public:
+    MouseClick(uint16_t key_) : key(key_)
+    {}
+
+    void DoWrite()
+    {
+        PressReleaseMouse(key);
+    }
+private:
+    uint16_t key;
+};
 
 
 class BindedKey
 {
 public:
-    BindedKey()
-    {
-
-    }
+    BindedKey() = default;
 
     enum class BindType
     {
@@ -154,7 +195,7 @@ public:
 
 
     std::vector<uint8_t> keys;
-    BindType type;
+    BindType type = BindType::Press;
 };
 
 /* each given macro per-app get's a macro container */

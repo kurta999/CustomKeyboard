@@ -24,6 +24,11 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     constexpr size_t start_text_offset_len = std::char_traits<char>::length(start_text_str); 
     constexpr const char* start_delay_str = "DELAY[";
     constexpr size_t start_delay_offset_len = std::char_traits<char>::length(start_delay_str);
+    constexpr const char* start_move_str = "MOUSE_MOVE[";
+    constexpr size_t start_move_offset_len = std::char_traits<char>::length(start_move_str);
+    constexpr const char* start_click_str = "MOUSE_CLICK[";
+    constexpr size_t start_click_offset_len = std::char_traits<char>::length(start_click_str);
+
     constexpr const char* seq_separator = "+";
 
     size_t pos = 1;
@@ -34,6 +39,8 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
         size_t first = str.substr(0, first_end).find(start_seq_str, pos - 1);
         size_t first_text = str.substr(0, first_end).find(start_text_str, pos - 1);
         size_t first_delay = str.substr(0, first_end).find(start_delay_str, pos - 1);
+        size_t first_move = str.substr(0, first_end).find(start_move_str, pos - 1);
+        size_t first_click = str.substr(0, first_end).find(start_click_str, pos - 1);
 
         uint8_t input_type = 0xFF;
         /*
@@ -43,12 +50,16 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             break;
         }
        */
-        if(first != std::string::npos && first_text == std::string::npos && first_delay == std::string::npos)
+        if(first != std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
             input_type = 0;
-        if(first == std::string::npos && first_text != std::string::npos && first_delay == std::string::npos)
+        if(first == std::string::npos && first_text != std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
             input_type = 1;
-        if(first == std::string::npos && first_text == std::string::npos && first_delay != std::string::npos)
+        if(first == std::string::npos && first_text == std::string::npos && first_delay != std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
             input_type = 2;
+        if(first == std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move != std::string::npos && first_click == std::string::npos)
+            input_type = 3;
+        if(first == std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click != std::string::npos)
+            input_type = 4;
 
         if(input_type == 0)
         {
@@ -96,6 +107,39 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 DBG("Delay: %d\n", delay);
                 c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
             }
+        }
+        else if(input_type == 3)
+        {
+            pos = first_end;
+            std::string sequence = str.substr(first_move + start_move_offset_len, first_end - first_move - start_move_offset_len);
+
+            size_t separator_pos = sequence.find(",");
+            if(separator_pos != std::string::npos)
+            {
+                POINT pos;
+                pos.x = static_cast<long>(std::stoi(sequence));
+                pos.y = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
+                DBG("Mouse Movement: %d, %d\n", pos.x, pos.y);
+
+                c->key_vec[key_code].push_back(std::make_unique<MouseMovement>((LPPOINT*)&pos));
+            }
+        }
+        else if(input_type == 4)
+        {
+            pos = first_end;
+            std::string sequence = str.substr(first_click + start_click_offset_len, first_end - first_click - start_click_offset_len);
+
+            uint16_t mouse_button = 0xFFFF; 
+            if(sequence == "L" || sequence == "LEFT")
+                mouse_button = MOUSEEVENTF_LEFTDOWN;
+            if(sequence == "R" || sequence == "RIGHT")
+                mouse_button = MOUSEEVENTF_RIGHTDOWN; 
+            if(sequence == "M" || sequence == "RIGHT")
+                mouse_button = MOUSEEVENTF_MIDDLEDOWN;
+            if(mouse_button != 0xFFFF)
+                c->key_vec[key_code].push_back(std::make_unique<MouseClick>(mouse_button));
+            else
+                LOGMSG(error, "Invalid mouse button name format!");
         }
         else
         {

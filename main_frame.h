@@ -61,6 +61,7 @@ class MacroPanel : public wxPanel
 {
 public:
 	MacroPanel(wxFrame* parent);
+	wxStaticText* m_MousePos;
 
 private:
 	wxDECLARE_EVENT_TABLE();
@@ -105,7 +106,7 @@ public:
 		m_mgr.UnInit();
 	}
 
-	void OnHelp(wxCommandEvent& event);
+	void TimerEvent(wxTimerEvent& event);
 	void OnClose(wxCloseEvent& event);
 
 	void SetIconTooltip(const wxString& str);
@@ -120,4 +121,5 @@ private:
 	wxIcon applicationIcon;
 	NotificationIcon* notification;
 	wxAuiManager m_mgr;
+	wxTimer* m_timer;
 };
