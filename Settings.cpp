@@ -14,20 +14,22 @@
 #include <boost/optional.hpp>
 #include <array>
 
-//#include <Windows.h>
+inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
+{
+    return str.substr(start + len, start_end - start - len);
+}
 
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
-    constexpr const char* start_seq_str = "KEY_SEQ[";
-    constexpr size_t start_seq_offset_len = std::char_traits<char>::length(start_seq_str);
-    constexpr const char* start_text_str = "KEY_TYPE[";
-    constexpr size_t start_text_offset_len = std::char_traits<char>::length(start_text_str); 
-    constexpr const char* start_delay_str = "DELAY[";
-    constexpr size_t start_delay_offset_len = std::char_traits<char>::length(start_delay_str);
-    constexpr const char* start_move_str = "MOUSE_MOVE[";
-    constexpr size_t start_move_offset_len = std::char_traits<char>::length(start_move_str);
-    constexpr const char* start_click_str = "MOUSE_CLICK[";
-    constexpr size_t start_click_offset_len = std::char_traits<char>::length(start_click_str);
+    enum ConfigTypes : uint8_t
+    {
+        KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK
+    };
+
+    constexpr size_t MAX_ITEMS = 5;
+    constexpr const char* start_str_arr[MAX_ITEMS] = { "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
+    constexpr const char start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]), std::char_traits<char>::length(start_str_arr[1]), 
+        std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), std::char_traits<char>::length(start_str_arr[4]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -35,116 +37,121 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     while(pos < str.length() - 1)
     {
         size_t first_end = str.find("]", pos + 1);
-
-        size_t first = str.substr(0, first_end).find(start_seq_str, pos - 1);
-        size_t first_text = str.substr(0, first_end).find(start_text_str, pos - 1);
-        size_t first_delay = str.substr(0, first_end).find(start_delay_str, pos - 1);
-        size_t first_move = str.substr(0, first_end).find(start_move_str, pos - 1);
-        size_t first_click = str.substr(0, first_end).find(start_click_str, pos - 1);
+        size_t first_pos[5];
+        for(int i = 0; i != MAX_ITEMS; ++i)
+        {
+            first_pos[i] = str.substr(0, first_end).find(start_str_arr[i], pos - 1);
+        }
 
         uint8_t input_type = 0xFF;
-        /*
-        if(first > first_end || first_text >= first_end || first_delay > first_end)
+        uint8_t not_empty_cnt = 0;
+        for(int i = 0; i != MAX_ITEMS; ++i)
         {
-            LOGMSG(error, "Invalid format in settings.ini");
-            break;
-        }
-       */
-        if(first != std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
-            input_type = 0;
-        if(first == std::string::npos && first_text != std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
-            input_type = 1;
-        if(first == std::string::npos && first_text == std::string::npos && first_delay != std::string::npos && first_move == std::string::npos && first_click == std::string::npos)
-            input_type = 2;
-        if(first == std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move != std::string::npos && first_click == std::string::npos)
-            input_type = 3;
-        if(first == std::string::npos && first_text == std::string::npos && first_delay == std::string::npos && first_move == std::string::npos && first_click != std::string::npos)
-            input_type = 4;
-
-        if(input_type == 0)
-        {
-            pos = first_end;
-            std::vector<uint16_t> keys;
-            std::string sequence = str.substr(first + start_seq_offset_len, first_end - first - start_seq_offset_len);
-
-            boost::char_separator<char> sep(seq_separator);
-            boost::tokenizer< boost::char_separator<char> > tok(sequence, sep);
-            for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
+            if(first_pos[i] != std::string::npos)
             {
-                DBG("Token: %s\n", beg->c_str());
-                std::string key_code = *beg;
-                uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
-                keys.push_back(key);
-            }
-
-            c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(keys)));
-        }
-        else if(input_type == 1)
-        {
-            pos = first_end;
-            std::string sequence = str.substr(first_text + start_text_offset_len, first_end - first_text - start_text_offset_len);
-
-            DBG("Text Token: %s\n", sequence.c_str());
-            c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
-        }
-        else if(input_type == 2)
-        {
-            pos = first_end;
-            std::string sequence = str.substr(first_delay + start_delay_offset_len, first_end - first_delay - start_delay_offset_len);
-
-            size_t separator_pos = sequence.find("-");
-            if(separator_pos != std::string::npos)
-            {
-                uint32_t delay_start = static_cast<uint32_t>(std::stoi(sequence));
-                uint32_t delay_end = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
-                DBG("Random Delay range: %d, %d\n", delay_start, delay_end);
-
-                c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay_start, delay_end));
-            }
-            else
-            {
-                uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
-                DBG("Delay: %d\n", delay);
-                c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
+                input_type = i;
+                not_empty_cnt++;
             }
         }
-        else if(input_type == 3)
-        {
-            pos = first_end;
-            std::string sequence = str.substr(first_move + start_move_offset_len, first_end - first_move - start_move_offset_len);
 
-            size_t separator_pos = sequence.find(",");
-            if(separator_pos != std::string::npos)
+        if(not_empty_cnt > 1 || input_type == 0xFF)
+        {
+            LOGMSG(error, "Error with config file macro formatting");
+            return;
+        }
+
+        switch(input_type)
+        {
+            case ConfigTypes::KEY_SEQ:
             {
-                POINT pos;
-                pos.x = static_cast<long>(std::stoi(sequence));
-                pos.y = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
-                DBG("Mouse Movement: %d, %d\n", pos.x, pos.y);
+                pos = first_end;
+                std::vector<uint16_t> keys;
+                std::string sequence = extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
 
-                c->key_vec[key_code].push_back(std::make_unique<MouseMovement>((LPPOINT*)&pos));
+                boost::char_separator<char> sep(seq_separator);
+                boost::tokenizer< boost::char_separator<char> > tok(sequence, sep);
+                for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
+                {
+                    DBG("Token: %s\n", beg->c_str());
+                    std::string key_code = *beg;
+                    uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
+                    keys.push_back(key);
+                }
+
+                c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(keys)));
+                break;
             }
-        }
-        else if(input_type == 4)
-        {
-            pos = first_end;
-            std::string sequence = str.substr(first_click + start_click_offset_len, first_end - first_click - start_click_offset_len);
+            case ConfigTypes::KEY_TYPE:
+            {
+                pos = first_end;
+                std::string sequence = extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
 
-            uint16_t mouse_button = 0xFFFF; 
-            if(sequence == "L" || sequence == "LEFT")
-                mouse_button = MOUSEEVENTF_LEFTDOWN;
-            if(sequence == "R" || sequence == "RIGHT")
-                mouse_button = MOUSEEVENTF_RIGHTDOWN; 
-            if(sequence == "M" || sequence == "RIGHT")
-                mouse_button = MOUSEEVENTF_MIDDLEDOWN;
-            if(mouse_button != 0xFFFF)
-                c->key_vec[key_code].push_back(std::make_unique<MouseClick>(mouse_button));
-            else
-                LOGMSG(error, "Invalid mouse button name format!");
-        }
-        else
-        {
-            LOGMSG(error, "Invalid sequence/text format in line: {}", str.c_str());
-            break;
+                DBG("Text Token: %s\n", sequence.c_str());
+                c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
+                break;
+            }
+            case ConfigTypes::DELAY:
+            {
+                pos = first_end;
+                std::string sequence = extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
+
+                size_t separator_pos = sequence.find("-");
+                if(separator_pos != std::string::npos)
+                {
+                    uint32_t delay_start = static_cast<uint32_t>(std::stoi(sequence));
+                    uint32_t delay_end = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
+                    DBG("Random Delay range: %d, %d\n", delay_start, delay_end);
+
+                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay_start, delay_end));
+                }
+                else
+                {
+                    uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
+                    DBG("Delay: %d\n", delay);
+                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
+                }
+                break;
+            }
+            case ConfigTypes::MOUSE_MOVE:
+            {
+                pos = first_end;
+                std::string sequence = extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
+
+                size_t separator_pos = sequence.find(",");
+                if(separator_pos != std::string::npos)
+                {
+                    POINT pos;
+                    pos.x = static_cast<long>(std::stoi(sequence));
+                    pos.y = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
+                    DBG("Mouse Movement: %d, %d\n", pos.x, pos.y);
+
+                    c->key_vec[key_code].push_back(std::make_unique<MouseMovement>((LPPOINT*)&pos));
+                }
+                break;
+            }
+            case ConfigTypes::MOUSE_CLICK:
+            {
+                pos = first_end;
+                std::string sequence = extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);
+
+                uint16_t mouse_button = 0xFFFF;
+                if(sequence == "L" || sequence == "LEFT")
+                    mouse_button = MOUSEEVENTF_LEFTDOWN;
+                if(sequence == "R" || sequence == "RIGHT")
+                    mouse_button = MOUSEEVENTF_RIGHTDOWN;
+                if(sequence == "M" || sequence == "RIGHT")
+                    mouse_button = MOUSEEVENTF_MIDDLEDOWN;
+                if(mouse_button != 0xFFFF)
+                    c->key_vec[key_code].push_back(std::make_unique<MouseClick>(mouse_button));
+                else
+                    LOGMSG(error, "Invalid mouse button name format!");
+                break;
+            }
+            default:
+            {
+                LOGMSG(error, "Invalid sequence/text format in line: {}", str.c_str());
+                break;
+            }
         }
     }
 }
