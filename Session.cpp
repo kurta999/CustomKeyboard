@@ -38,11 +38,11 @@ void Session::HandleRead(const boost::system::error_code& error, std::size_t byt
 	{
 		receivedData[bytesTransferred] = 0;
 		Sensors::Get()->ProcessIncommingData(receivedData, sessionSocket.remote_endpoint().address().to_string().c_str());
-		sessionSocket.async_read_some(boost::asio::buffer(receivedData), 
+		sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)),
 			boost::bind(&Session::HandleRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-		SendAsync(receivedData);
-		DBG(receivedData);
-		DBG("\n");
+		//SendAsync(receivedData);
+		//DBG(receivedData);
+		//DBG("\n");
 	}
 }
 

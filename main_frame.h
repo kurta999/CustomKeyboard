@@ -1,29 +1,11 @@
 #pragma once
 
 #include <wx/wx.h>
-#include <wx/slider.h>
-#include <wx/artprov.h>
 #include <wx/spinctrl.h>
-#include <wx/filepicker.h>
 #include <wx/aui/aui.h>
 #include <wx/button.h>
 #include <wx/combobox.h>
-#include <wx/choice.h>
-#include <wx/statline.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/aui/aui.h>
 #include <wx/stc/stc.h>
-#include <wx/tglbtn.h>
-#include <wx/srchctrl.h>
-#include <wx/clrpicker.h>
-#include <wx/fontpicker.h>
-#include <wx/filepicker.h>
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
-#include <wx/timectrl.h>
-#include <wx/calctrl.h>
-#include <wx/treectrl.h>
 
 class MainPanel : public wxPanel
 {
@@ -41,6 +23,15 @@ public:
 	wxStaticText* m_textCCT;
 private:
 
+	wxDECLARE_EVENT_TABLE();
+};
+
+class GraphPanel : public wxPanel
+{
+public:
+	GraphPanel(wxFrame* parent);
+
+private:
 	wxDECLARE_EVENT_TABLE();
 };
 
@@ -106,15 +97,18 @@ public:
 		m_mgr.UnInit();
 	}
 
-	void TimerEvent(wxTimerEvent& event);
+	void OnHelp(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
+	void OnTimer(wxTimerEvent& event);
 
 	void SetIconTooltip(const wxString& str);
 	MainPanel* main_panel;
+	GraphPanel* graph_panel;
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;
 	ParserPanel* parser_panel;
 	LogPanel* log_panel;
+	wxAuiNotebook* ctrl;
 
 	wxDECLARE_EVENT_TABLE();
 private:

@@ -327,7 +327,9 @@
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="libs\fmt\format.cc" />
     <ClCompile Include="libs\fmt\os.cc" />
-    <ClCompile Include="libs\lodepng\lodepng.cpp" />
+    <ClCompile Include="libs\lodepng\lodepng.cpp">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="libs\sqlite\shell.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
     </ClCompile>

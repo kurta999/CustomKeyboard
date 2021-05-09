@@ -35,22 +35,22 @@
 constexpr int WINDOW_SIZE_X = 800;
 constexpr int WINDOW_SIZE_Y = 600;
 
-wxAuiNotebook* ctrl;
-
 enum
 {
-	PGID = 1,
-	ID_Hello,
-	FileMenuQuitID,
+	ID_Hello = 1,
+	ID_Quit,
 	ID_UpdateMousePosText,
 };
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-//EVT_MENU(ID_Hello, MyFrame::OnHelp)
+EVT_MENU(ID_Hello, MyFrame::OnHelp)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(MainPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(GraphPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
@@ -68,11 +68,22 @@ wxEND_EVENT_TABLE()
 #define WX_SIZERPADDING(sizer) \
 	sizer->Add(new wxStaticText(this, wxID_ANY, ""), 0, wxALL, 5);
 
-void MyFrame::TimerEvent(wxTimerEvent& event)
+void MyFrame::OnHelp(wxCommandEvent& event)
+{
+	wxMessageBox("This is a simple program which made for improving my coding experience.\n\
+		Feel free to re(use) it in any way what you want.", "Help");
+}
+
+void MyFrame::OnClose(wxCloseEvent& event)
+{
+	ExitProcess(0);
+}
+
+void MyFrame::OnTimer(wxTimerEvent& event)
 {
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
-	if(sel == 2 && foreground)
+	if(sel == 3 && foreground)
 	{
 		POINT p;
 		if(::GetCursorPos(&p))
@@ -94,11 +105,6 @@ void MyFrame::TimerEvent(wxTimerEvent& event)
 			}
 		}
 	}
-}
-
-void MyFrame::OnClose(wxCloseEvent& event)
-{
-	ExitProcess(0);
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
@@ -131,7 +137,7 @@ MyFrame::MyFrame(const wxString& title)
 	wxMenu* menu = new wxMenu;
 
 	menu->AppendSeparator();
-	menu->Append(FileMenuQuitID, _("E&xit"));
+	menu->Append(ID_Quit, _("E&xit"));
 
 	wxMenuBar* menuBar_ = new wxMenuBar;
 	menuBar_->Append(menu, _("&File"));
@@ -141,6 +147,7 @@ MyFrame::MyFrame(const wxString& title)
 	SetStatusText("Welcome in CustomKeyboard");
 
 	main_panel = new MainPanel(this);
+	graph_panel = new GraphPanel(this);
 	escape_panel = new EscaperPanel(this);
 	macro_panel = new MacroPanel(this);
 	parser_panel = new ParserPanel(this);
@@ -150,15 +157,16 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	ctrl->Freeze();
 	ctrl->AddPage(main_panel, "Main page", false);
+	ctrl->AddPage(graph_panel, "Graph page", false);
 	ctrl->AddPage(escape_panel, "C StrEscape", false);
 	ctrl->AddPage(macro_panel, "Custom Macro", false);
 	ctrl->AddPage(parser_panel, "Sturct Parser", false);
 	ctrl->AddPage(log_panel, "Log", false);
 	ctrl->Thaw();
-	ctrl->SetSelection(3);
+	ctrl->SetSelection(4);
 
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
-	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::TimerEvent), NULL, this);
+	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
 }
 
@@ -194,6 +202,86 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT: N/A");
 
 	this->SetSizer(bSizer1);
+}
+
+GraphPanel::GraphPanel(wxFrame* parent)
+    : wxPanel(parent, wxID_ANY)
+{	
+#if 0
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer(wxVERTICAL);
+
+	// Create the data for the line chart widget
+	wxVector<wxString> labels;
+	labels.push_back("January");
+	labels.push_back("February");
+	labels.push_back("March");
+	labels.push_back("April");
+	labels.push_back("May");
+	labels.push_back("June");
+	labels.push_back("July");
+	wxChartsCategoricalData::ptr chartData = wxChartsCategoricalData::make_shared(labels);
+
+	// Add the first dataset
+	wxVector<wxDouble> points1;
+	points1.push_back(300);
+	points1.push_back(-20.5);
+	points1.push_back(-1.2);
+	points1.push_back(3000);
+	points1.push_back(6);
+	points1.push_back(5);
+	points1.push_back(1);
+	wxChartsDoubleDataset::ptr dataset1(new wxChartsDoubleDataset("My First Dataset", points1));
+	chartData->AddDataset(dataset1);
+
+	// Add the second dataset
+	wxVector<wxDouble> points2;
+	points2.push_back(1);
+	points2.push_back(-1.33);
+	points2.push_back(2.5);
+	points2.push_back(7);
+	points2.push_back(3);
+	points2.push_back(-1.8);
+	points2.push_back(0.4);
+	wxChartsDoubleDataset::ptr dataset2(new wxChartsDoubleDataset("My Second Dataset", points2));
+	chartData->AddDataset(dataset2);
+
+	// Create the line chart widget from the constructed data
+	wxLineChartCtrl* lineChartCtrl = new wxLineChartCtrl(this, wxID_ANY, chartData,
+		wxCHARTSLINETYPE_STRAIGHT, wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
+
+	// Create the legend widget
+	wxChartsLegendData legendData(chartData->GetDatasets());
+	wxChartsLegendCtrl* legendCtrl = new wxChartsLegendCtrl(this, wxID_ANY, legendData,
+		wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
+
+	// Set up the sizer for the panel
+	wxBoxSizer* panelSizer = new wxBoxSizer(wxHORIZONTAL);
+	panelSizer->Add(lineChartCtrl, 1, wxEXPAND);
+	panelSizer->Add(legendCtrl, 1, wxEXPAND);
+	SetSizer(panelSizer);
+
+	// Set up the sizer for the frame
+	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
+	topSizer->Add(this, 1, wxEXPAND);
+	SetSizer(topSizer);
+
+	labels.push_back("August");
+	labels.push_back("September");
+	labels.push_back("October");
+
+	points1.push_back(30);
+	points1.push_back(40);
+	points1.push_back(50);
+
+	points2.push_back(0.5);
+	points2.push_back(10);
+	points2.push_back(20);
+	wxChartsLegendData legendData2(chartData->GetDatasets());
+
+	delete lineChartCtrl;
+	delete legendCtrl;
+#endif
 }
 
 EscaperPanel::EscaperPanel(wxFrame* parent)
@@ -287,8 +375,6 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 MacroPanel::MacroPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-
-
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer(wxVERTICAL);
 	
@@ -300,63 +386,6 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	/*
 	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
 	*/
-
-#if 0
-	// Create the data for the line chart widget
-	wxVector<wxString> labels;
-	labels.push_back("January");
-	labels.push_back("February");
-	labels.push_back("March");
-	labels.push_back("April");
-	labels.push_back("May");
-	labels.push_back("June");
-	labels.push_back("July");
-	wxChartsCategoricalData::ptr chartData = wxChartsCategoricalData::make_shared(labels);
-
-	// Add the first dataset
-	wxVector<wxDouble> points1;
-	points1.push_back(300);
-	points1.push_back(-20.5);
-	points1.push_back(-1.2);
-	points1.push_back(3000);
-	points1.push_back(6);
-	points1.push_back(5);
-	points1.push_back(1);
-	wxChartsDoubleDataset::ptr dataset1(new wxChartsDoubleDataset("My First Dataset", points1));
-	chartData->AddDataset(dataset1);
-
-	// Add the second dataset
-	wxVector<wxDouble> points2;
-	points2.push_back(1);
-	points2.push_back(-1.33);
-	points2.push_back(2.5);
-	points2.push_back(7);
-	points2.push_back(3);
-	points2.push_back(-1.8);
-	points2.push_back(0.4);
-	wxChartsDoubleDataset::ptr dataset2(new wxChartsDoubleDataset("My Second Dataset", points2));
-	chartData->AddDataset(dataset2);
-
-	// Create the line chart widget from the constructed data
-	wxLineChartCtrl* lineChartCtrl = new wxLineChartCtrl(this, wxID_ANY, chartData,
-		wxCHARTSLINETYPE_STRAIGHT, wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
-
-	// Create the legend widget
-	wxChartsLegendData legendData(chartData->GetDatasets());
-	wxChartsLegendCtrl* legendCtrl = new wxChartsLegendCtrl(this, wxID_ANY, legendData,
-		wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
-
-	// Set up the sizer for the panel
-	wxBoxSizer* panelSizer = new wxBoxSizer(wxHORIZONTAL);
-	panelSizer->Add(lineChartCtrl, 1, wxEXPAND);
-	panelSizer->Add(legendCtrl, 1, wxEXPAND);
-	SetSizer(panelSizer);
-
-	// Set up the sizer for the frame
-	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
-	topSizer->Add(this, 1, wxEXPAND);
-	SetSizer(topSizer);
-#endif
 }
 
 ParserPanel::ParserPanel(wxFrame* parent)

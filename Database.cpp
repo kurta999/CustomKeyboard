@@ -1,4 +1,6 @@
 #include "Database.h"
+#include "Sensors.h"
+#include "boost/lexical_cast.hpp"
 
 bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, char**))
 {
@@ -16,9 +18,7 @@ bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, cha
 
 bool Database::Open(void)
 {
-    /* Open database */
-    rc = sqlite3_open("test.db", &db);
-
+    rc = sqlite3_open("test.db", &db);  /* Open database */
     if(rc)
     {
         LOGMSG(error, "Can't open database: {}", sqlite3_errmsg(db));
@@ -30,25 +30,47 @@ bool Database::Open(void)
     return rc == 0;
 }
 
-int callback_(void* NotUsed, int argc, char** argv, char** azColName)
-{
-    int i;
-    for(i = 0; i < argc; i++)
-    {
-        DBG("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    DBG("\n");
-    return 0;
-}
-
 
 void Database::Init()
 {
     bool is_open = Open();
-    if(is_open)
+    if(!is_open)
+        return;
+    sqlite3_stmt* stmt;
+
+    if(sqlite3_prepare_v2(db, (char*)"SELECT* FROM(SELECT rowid, sensor_id, temp, hum, co2, voc, pm25, pm10, lux, cct, strftime('%H:%M:%S', time, 'unixepoch') as date_time \
+FROM data ORDER BY rowid DESC LIMIT 30) ORDER BY rowid ASC", -1, &stmt, 0) == SQLITE_OK)
     {
-        char* query = (char*)"SELECT* FROM(SELECT rowid, *FROM data ORDER BY rowid DESC LIMIT 3) ORDER BY rowid ASC";
-        ExecuteQuery(query, &callback_);
+        int cols = sqlite3_column_count(stmt);
+        int result = 0;
+
+        while(true)
+        {
+            rc = sqlite3_step(stmt);
+            if(rc == SQLITE_DONE)
+                break;
+            if(rc != SQLITE_ROW) 
+            {
+                DBG("error: %s!\n", sqlite3_errmsg(db));
+                break;
+            }
+
+            float temp = boost::lexical_cast<float>(sqlite3_column_text(stmt, 2)) / 10.f;
+            float hum = boost::lexical_cast<float>(sqlite3_column_text(stmt, 3)) / 10.f;
+            int co2 = sqlite3_column_int(stmt, 4);
+            int voc = sqlite3_column_int(stmt, 5);
+            int pm25 = sqlite3_column_int(stmt, 6);
+            int pm10 = sqlite3_column_int(stmt, 7);
+            int lux = sqlite3_column_int(stmt, 8);
+            int cct = sqlite3_column_int(stmt, 9);
+            std::string time = std::string((const char*)sqlite3_column_text(stmt, 10));
+
+            std::shared_ptr<Measurement> m = std::make_shared<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time));
+            Sensors::Get()->AddMeasurement(m);
+        }
+
+        Sensors::Get()->WriteGraphs();
+        sqlite3_finalize(stmt);
     }
 }
 

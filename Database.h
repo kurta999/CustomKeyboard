@@ -11,7 +11,7 @@
 
 #include <sqlite/sqlite3.h>
 
-#include "Sensors.h"
+class Measurement;
 
 class Database : public CSingleton < Database >
 {

@@ -11,13 +11,12 @@
 #endif
 #include "wx/taskbar.h"
 
-//#include <Windows.h>
-
 #include "CustomMacro.h"
 #include "Logger.h"
 #include "Settings.h"
 #include "Server.h"
 #include "Database.h"
+#include "Sensors.h"
 #include "StructParser.h"
 #include "PrintScreenSaver.h"
 
@@ -32,6 +31,7 @@ bool MyApp::OnInit()
     Settings::Get()->Init();
     CustomMacro::Get()->Init();
     Server::Get()->Init();
+    Sensors::Get()->Init();
     Database::Get()->Init();
     StructParser::Get()->Init();
     PrintScreenSaver::Get()->Init();
@@ -43,14 +43,3 @@ bool MyApp::OnInit()
     SetTopWindow(frame);
     return true;
 }
-
-/*
-void MyFrame::OnExit(wxCommandEvent& event)
-{
-    Close(true);
-}
-
-void MyFrame::OnAbout(wxCommandEvent& event)
-{
-
-}*/
