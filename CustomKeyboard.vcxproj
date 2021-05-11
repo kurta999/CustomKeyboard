@@ -310,6 +310,7 @@
     <ClInclude Include="libs\wxCharts\include\wx\charts\wxtimeserieschartoptions.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="main_frame.h" />
+    <ClInclude Include="PathSeparator.h" />
     <ClInclude Include="PrintScreenSaver.h" />
     <ClInclude Include="Sensors.h" />
     <ClInclude Include="Notification.h" />
@@ -462,6 +463,7 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
     </ClCompile>
     <ClCompile Include="main_frame.cpp" />
+    <ClCompile Include="PathSeparator.cpp" />
     <ClCompile Include="PrintScreenSaver.cpp" />
     <ClCompile Include="Sensors.cpp" />
     <ClCompile Include="Notification.cpp" />

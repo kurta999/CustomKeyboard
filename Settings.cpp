@@ -4,6 +4,7 @@
 #include "Server.h"
 #include "Logger.h"
 #include "PrintScreenSaver.h"
+#include "PathSeparator.h"
 
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -235,7 +236,7 @@ void Settings::Init(void)
         Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
-        PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
+        PathSeparator::Get()->replace_key = pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data();
 
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
