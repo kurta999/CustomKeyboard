@@ -28,7 +28,6 @@
 #include "Notification.h"
 #include "StructParser.h"
 
-#include <wx/charts/wxcharts.h>
 #include <boost/algorithm/string.hpp>
 #include <assert.h>
 
@@ -208,79 +207,7 @@ GraphPanel::GraphPanel(wxFrame* parent)
     : wxPanel(parent, wxID_ANY)
 {	
 #if 0
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
-
-	// Create the data for the line chart widget
-	wxVector<wxString> labels;
-	labels.push_back("January");
-	labels.push_back("February");
-	labels.push_back("March");
-	labels.push_back("April");
-	labels.push_back("May");
-	labels.push_back("June");
-	labels.push_back("July");
-	wxChartsCategoricalData::ptr chartData = wxChartsCategoricalData::make_shared(labels);
-
-	// Add the first dataset
-	wxVector<wxDouble> points1;
-	points1.push_back(300);
-	points1.push_back(-20.5);
-	points1.push_back(-1.2);
-	points1.push_back(3000);
-	points1.push_back(6);
-	points1.push_back(5);
-	points1.push_back(1);
-	wxChartsDoubleDataset::ptr dataset1(new wxChartsDoubleDataset("My First Dataset", points1));
-	chartData->AddDataset(dataset1);
-
-	// Add the second dataset
-	wxVector<wxDouble> points2;
-	points2.push_back(1);
-	points2.push_back(-1.33);
-	points2.push_back(2.5);
-	points2.push_back(7);
-	points2.push_back(3);
-	points2.push_back(-1.8);
-	points2.push_back(0.4);
-	wxChartsDoubleDataset::ptr dataset2(new wxChartsDoubleDataset("My Second Dataset", points2));
-	chartData->AddDataset(dataset2);
-
-	// Create the line chart widget from the constructed data
-	wxLineChartCtrl* lineChartCtrl = new wxLineChartCtrl(this, wxID_ANY, chartData,
-		wxCHARTSLINETYPE_STRAIGHT, wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
-
-	// Create the legend widget
-	wxChartsLegendData legendData(chartData->GetDatasets());
-	wxChartsLegendCtrl* legendCtrl = new wxChartsLegendCtrl(this, wxID_ANY, legendData,
-		wxDefaultPosition, wxSize(800, 400), wxBORDER_NONE);
-
-	// Set up the sizer for the panel
-	wxBoxSizer* panelSizer = new wxBoxSizer(wxHORIZONTAL);
-	panelSizer->Add(lineChartCtrl, 1, wxEXPAND);
-	panelSizer->Add(legendCtrl, 1, wxEXPAND);
-	SetSizer(panelSizer);
-
-	// Set up the sizer for the frame
-	wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
-	topSizer->Add(this, 1, wxEXPAND);
-	SetSizer(topSizer);
-
-	labels.push_back("August");
-	labels.push_back("September");
-	labels.push_back("October");
-
-	points1.push_back(30);
-	points1.push_back(40);
-	points1.push_back(50);
-
-	points2.push_back(0.5);
-	points2.push_back(10);
-	points2.push_back(20);
-	wxChartsLegendData legendData2(chartData->GetDatasets());
-
-	delete lineChartCtrl;
-	delete legendCtrl;
+	// might be useful for something in the future
 #endif
 }
 
