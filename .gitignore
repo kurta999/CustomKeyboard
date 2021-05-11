@@ -47,11 +47,13 @@ commitid.h
 /Backup_Release/
 /Release/
 /TrueSTUDIO/
+/Graphs/
+/Screenshots/
 
 #Visual Studio
 .vs/
 x64/
 *.aps
 logfile.txt
-test.db
+*.db
 output.txt
