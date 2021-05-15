@@ -188,6 +188,7 @@ void Settings::Init(void)
     try
     {
         CustomMacro::Get()->use_per_app_macro = (bool)std::stoi(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data()) != 0;
+        CustomMacro::Get()->advanced_key_binding = (bool)std::stoi(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data()) != 0;
 
         //CustomMacro::Get()->macro_names.push_back("null");
 

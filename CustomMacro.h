@@ -329,6 +329,7 @@ private:
     std::vector<std::unique_ptr<MacroContainer>> macros;
     uint16_t com_port = 2005;
     bool use_per_app_macro;
+    bool advanced_key_binding;
     std::string pressed_keys;
 
     const std::unordered_map<std::string, int> hid_scan_codes =  /* replace key & value with each other */

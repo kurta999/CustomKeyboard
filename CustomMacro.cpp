@@ -36,6 +36,15 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             if(!pressed_keys.empty() && pressed_keys[pressed_keys.length() - 1] != '+')
                 pressed_keys += '+';
 
+            if(advanced_key_binding)
+            {
+                static const char no_keys[6] = { 0, 0, 0, 0, 0, 0 };
+                if(!memcmp(k->keys, no_keys, sizeof(k->keys)))
+                {
+                    return;
+                }
+            }
+            
             if(k->lshift)
                 pressed_keys += "LSHIFT";
             else if(k->lalt)
@@ -43,7 +52,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             else if(k->lgui)
                 pressed_keys += "LGUI";
             else if(k->lctrl)
-                pressed_keys += "LALT"; 
+                pressed_keys += "LCTRL"; 
             if(k->rshift)
                 pressed_keys += "RSHIFT";
             else if(k->ralt)
@@ -51,16 +60,18 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             else if(k->rgui)
                 pressed_keys += "RGUI";
             else if(k->rctrl)
-                pressed_keys += "RALT";
-            else  /* only supporting 1 addon key (for now?), it should be more than enough - possible to bind more than 700 macros - PER APPLICATION! */
+                pressed_keys += "RCTRL";
+            
+            for(auto& i : hid_scan_codes)
             {
-                for(auto& i : hid_scan_codes)
+                /* only supporting 1 addon key (for now?), it should be more than enough - possible to bind more than 700 macros - PER APPLICATION! */
+                if(i.second == k->keys[0])
                 {
-                    if(i.second == k->keys[0])
-                    {
-                        pressed_keys += i.first;
-                        break;
-                    }
+                    if(!pressed_keys.empty() && pressed_keys[pressed_keys.length() - 1] != '+')
+                        pressed_keys += '+';
+
+                    pressed_keys += i.first;
+                    break;
                 }
             }
 
