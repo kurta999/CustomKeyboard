@@ -27,7 +27,7 @@ public:
 };
 #pragma pack(pop)
 
-constexpr size_t MAX_MEAS_QUEUE = 30;
+constexpr size_t MAX_MEAS_QUEUE = 100;
 
 class Sensors : public CSingleton < Sensors >
 {
@@ -44,7 +44,14 @@ public:
             last_meas.pop_front();
 
         last_meas.push_back(meas);
-        Database::Get()->InsertMeasurement(meas);
+    }
+    inline void AddMeasurementDay(std::shared_ptr<Measurement>& meas)
+    {
+        last_day.push_back(meas);
+    }
+    inline void AddMeasurementWeek(std::shared_ptr<Measurement>& meas)
+    {
+        last_week.push_back(meas);
     }
 
     const std::deque<std::shared_ptr<Measurement>>& GetMeasurements()
@@ -53,7 +60,14 @@ public:
     }
 
 private:
-    template<typename T1, typename T2> void WriteGraph(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2);
+    /* TODO: one day merge these functions with more template specialization */
+    template<typename T1> void WriteGraphQueue(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
+    template<typename T1, typename T2> void WriteGraphVector(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2, std::vector<std::shared_ptr<Measurement>>& vec);
 
     std::deque<std::shared_ptr<Measurement>> last_meas;
+    std::vector<std::shared_ptr<Measurement>> last_day;
+    std::vector<std::shared_ptr<Measurement>> last_week;
+    std::vector<std::shared_ptr<Measurement>> custom;
+
+    std::string template_str;
 };

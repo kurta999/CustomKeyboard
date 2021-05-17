@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)https://www.chartjs.org/samples/latest/charts/line/multi-axis.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Line Chart Multiple Axes</title>
+	<script async="" src="./Line Chart Multiple Axes_files/analytics.js.download"></script><script src="./Line Chart Multiple Axes_files/Chart.min.js.download"></script>
+	<script src="./Line Chart Multiple Axes_files/utils.js.download"></script>
+	<style>
+	canvas {
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}	</style>
+<style type="text/css">/* Chart.js */
+@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}</style></head
+>
+<body>
+	<div style="width:75%;"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+		<canvas id="canvas" style="display: block; width: 1428px; height: 714px;" width="1428" height="714" class="chartjs-render-monitor"></canvas>
+	</div>
+	<script>
+		var lineChartData = {
+        labels: [
+'aaa','aaa','aaa',], datasets: [{
+label: 'CO2',
+borderColor : window.chartColors.red,
+backgroundColor : window.chartColors.red,
+fill : false,
+data : [
+22,23,24,
+],
+yAxisID: 'y-axis-1',
+}, {
+label: 'VOC',
+                borderColor : window.chartColors.blue,
+                backgroundColor : window.chartColors.blue,
+                fill : false,
+                data : [
+35,37,38,
+],yAxisID: 'y-axis-2'
+            }]
+        };
+
+        window.onload = function() {
+            var ctx = document.getElementById('canvas').getContext('2d');
+            window.myLine = Chart.Line(ctx, {
+                data: lineChartData,
+                options: {
+                    responsive: true,
+                    hoverMode: 'index',
+                    stacked: false,
+                    title: {
+                        display: true,
+                        text: 'Chart.js Line Chart - Multi Axis'
+                    },
+                    scales: {
+                        yAxes: [{
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            id: 'y-axis-1',
+                        },
+                        {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            id: 'y-axis-2',
+
+                            gridLines: {
+                                drawOnChartArea: false,
+                            },
+                        }],
+                    }
+                }
+            });
+        };
+        </script>
+            </body> </html>

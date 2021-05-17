@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iterator>
 
+#include <fmt/format.h>
+
 void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 {
     float temp, hum;
@@ -20,6 +22,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
         current_tm = localtime(&current_time);
         
         std::shared_ptr<Measurement> m = std::make_shared<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(fmt::format("{:%H:%M:%S}", *current_tm)));
+        Database::Get()->InsertMeasurement(m);
         AddMeasurement(m);
         WriteGraphs();
 
@@ -43,84 +46,6 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     }
 }
 
-const char* html_page_1= "<!DOCTYPE html>\n\
-<!-- saved from url=(0066)https://www.chartjs.org/samples/latest/charts/line/multi-axis.html -->\n\
-<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n\
-	<title>Line Chart Multiple Axes</title>\n\
-	<script async=\"\" src=\"./Line Chart Multiple Axes_files/analytics.js.download\"></script><script src=\"./Line Chart Multiple Axes_files/Chart.min.js.download\"></script>\n\
-	<script src=\"./Line Chart Multiple Axes_files/utils.js.download\"></script>\n\
-	<style>\n\
-	canvas {\n\
-		-moz-user-select: none;\n\
-		-webkit-user-select: none;\n\
-		-ms-user-select: none;\n\
-	}\
-	</style>\n\
-<style type=\"text/css\">/* Chart.js */\n\
-@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}</style></head\n>\
-\n\
-<body>\n\
-	<div style=\"width:75%;\"><div class=\"chartjs-size-monitor\"><div class=\"chartjs-size-monitor-expand\"><div class=\"\"></div></div><div class=\"chartjs-size-monitor-shrink\"><div class=\"\"></div></div></div>\n\
-		<canvas id=\"canvas\" style=\"display: block; width: 1428px; height: 714px;\" width=\"1428\" height=\"714\" class=\"chartjs-render-monitor\"></canvas>\n\
-	</div>\n\
-	<script>\n\
-		var lineChartData = {\n\
-        labels: [\n";
-
-const char* html_page_2 = "\
-borderColor : window.chartColors.red,\n\
-backgroundColor : window.chartColors.red,\n\
-fill : false,\n\
-data : [\n";
-
-const char* html_page_3 = "\
-                borderColor : window.chartColors.blue,\n\
-                backgroundColor : window.chartColors.blue,\n\
-                fill : false,\n\
-                data : [\n"; \
-
-
-    const char* html_page_4 = "\n],\
-yAxisID: 'y-axis-2'\n\
-            }]\n\
-        };\n\
-\n\
-        window.onload = function() {\n\
-            var ctx = document.getElementById('canvas').getContext('2d');\n\
-            window.myLine = Chart.Line(ctx, {\n\
-                data: lineChartData,\n\
-                options: {\n\
-                    responsive: true,\n\
-                    hoverMode: 'index',\n\
-                    stacked: false,\n\
-                    title: {\n\
-                        display: true,\n\
-                        text: 'Chart.js Line Chart - Multi Axis'\n\
-                    },\n\
-                    scales: {\n\
-                        yAxes: [{\n\
-                            type: 'linear',\n\
-                            display: true,\n\
-                            position: 'left',\n\
-                            id: 'y-axis-1',\n\
-                        },\n\
-                        {\n\
-                            type: 'linear',\n\
-                            display: true,\n\
-                            position: 'right',\n\
-                            id: 'y-axis-2',\n\
-\n\
-                            gridLines: {\n\
-                                drawOnChartArea: false,\n\
-                            },\n\
-                        }],\n\
-                    }\n\
-                }\n\
-            });\n\
-        };\n\
-        </script>\n\
-            </body> </html>";
-
 template<typename T> T GetValueFromDequeue(std::shared_ptr<Measurement> meas, int offset)
 {
     T retval = *(T*)((DWORD)meas.get() + (char)offset);
@@ -129,14 +54,114 @@ template<typename T> T GetValueFromDequeue(std::shared_ptr<Measurement> meas, in
 
 void Sensors::WriteGraphs()
 {
-    WriteGraph<float, float>("TempHum.html", "Temperature", "Humidity", offsetof(Measurement, temp), offsetof(Measurement, hum));
-    WriteGraph<int, int>("CO2VOC.html", "CO2", "VOC", offsetof(Measurement, co2), offsetof(Measurement, voc));
-    WriteGraph<int, int>("Particle.html", "PM2.5", "PM1.0", offsetof(Measurement, pm25), offsetof(Measurement, pm10));
-    WriteGraph<int, int>("Light.html", "Lux", "CCT", offsetof(Measurement, lux), offsetof(Measurement, cct));
-
+    WriteGraphQueue<decltype(Measurement::temp)>("Temperature.html", 15, 40, "Temperature", offsetof(Measurement, temp));
+    WriteGraphQueue<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
+    WriteGraphQueue<decltype(Measurement::co2)>("CO2.html", 200, 3000, "Temperature", offsetof(Measurement, co2));
+    WriteGraphQueue<decltype(Measurement::voc)>("VOC.html", 0, 65535, "Temperature", offsetof(Measurement, voc));
+    WriteGraphQueue<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "Temperature", offsetof(Measurement, pm25));
+    WriteGraphQueue<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "Temperature", offsetof(Measurement, pm10));
+    WriteGraphQueue<decltype(Measurement::lux)>("Lux.html", 0, 10000, "Temperature", offsetof(Measurement, lux));
+    WriteGraphQueue<decltype(Measurement::cct)>("CCT.html", 0, 10000, "Temperature", offsetof(Measurement, cct));
 }
 
-template<typename T1, typename T2> void Sensors::WriteGraph(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2)
+template<typename T1> void Sensors::WriteGraphQueue(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
+{
+    if(!std::filesystem::exists("Graphs"))
+        std::filesystem::create_directory("Graphs");
+
+    std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
+   
+    std::string labels_time_last;
+    std::string data_latest;
+    std::string labels_time_day;
+    std::string data_day;
+    std::string labels_time_week;
+    std::string data_week;
+    for(const auto& it : last_meas)
+    {
+        labels_time_last += "'" + it->time + "',";
+    }
+    for(const auto& it : last_meas)
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_latest += std::to_string(val) + ",";
+    }
+    for(const auto& it : last_day)
+    {
+        labels_time_day += "'" + it->time + "',";
+    }
+    for(const auto& it : last_day)
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_day += std::to_string(val) + ",";
+    }
+    for(const auto& it : last_week)
+    {
+        labels_time_week += "'" + it->time + "',";
+    }
+    for(const auto& it : last_week)
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_week += std::to_string(val) + ",";
+    }
+
+    try
+    {
+        std::string out_str = std::move(fmt::format(template_str, min_val, max_val,
+            labels_time_last, "Latest temperature readings", "window.chartColors.red", "window.chartColors.red", data_latest,
+            labels_time_day,
+            "Temperature (Avg)", "window.chartColors.red", "window.chartColors.red", data_day,
+            "Temperature (Max)", "window.chartColors.blue", "window.chartColors.red", "0",
+            "Temperature (Min)", "window.chartColors.green", "window.chartColors.red", "0",
+            labels_time_week,
+            "Temperature (Avg)", "window.chartColors.red", "window.chartColors.red", data_week,
+            "Temperature (Max)", "window.chartColors.blue", "window.chartColors.red", "0",
+            "Temperature (Min)", "window.chartColors.green", "window.chartColors.red", "0",
+            "Last X", "Last Day", "Last Week"));
+        out << out_str;
+        out.close();
+    }
+    catch(std::exception& ex)
+    {
+        DBG("%s", ex.what());
+    }
+}
+
+void Sensors::Init()
+{
+    if(!std::filesystem::exists("Graphs"))
+        std::filesystem::create_directory("Graphs");
+
+    std::ifstream t("Graphs/template.html", std::ifstream::binary);
+    if(!t.is_open())
+        throw fmt::format("missing template.html");
+
+    t.seekg(0, std::ios::end);
+    size_t size = t.tellg();
+    t.seekg(0);
+    template_str.resize(size);
+
+    t.read(&template_str[0], size);
+    t.close();
+#if 0
+    last_meas2.push_back(std::make_shared<Measurement>(0.34f, 1.2f, 22, 35, 4, 5, 6, 7, "aaa"));
+    last_meas2.push_back(std::make_shared<Measurement>(0.74f, 2.2f, 23, 37, 4, 5, 6, 7, "aaa"));
+    last_meas2.push_back(std::make_shared<Measurement>(0.94f, 3.2f, 24, 38, 4, 5, 6, 7, "aaa"));
+
+    std::vector<std::string> labels{ "Januar", "Februar", "Marcius" };
+    std::vector<int> values_1{ 20, 22, 21 };
+    std::vector<int> values_2{ 40, 44, 46 };
+    /*
+    std::string temp = "Temperature";
+    std::string hum = "Humidity";
+    */
+#endif
+}
+
+
+
+#if 0
+template<typename T1, typename T2> void Sensors::WriteGraphQueue(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2)
 {
     if(!std::filesystem::exists("Graphs"))
         std::filesystem::create_directory("Graphs");
@@ -144,7 +169,7 @@ template<typename T1, typename T2> void Sensors::WriteGraph(const char* filename
     std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
     out << html_page_1;
 
-    for(const auto &it : last_meas)
+    for(const auto& it : last_meas)
     {
         out << fmt::format("'{}',", it->time);
     }
@@ -167,20 +192,31 @@ template<typename T1, typename T2> void Sensors::WriteGraph(const char* filename
     out.close();
 }
 
-
-void Sensors::Init()
+template<typename T1, typename T2> void Sensors::WriteGraphVector(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2, std::vector<std::shared_ptr<Measurement>>& vec)
 {
-#if 0
-    last_meas2.push_back(std::make_shared<Measurement>(0.34f, 1.2f, 22, 35, 4, 5, 6, 7, "aaa"));
-    last_meas2.push_back(std::make_shared<Measurement>(0.74f, 2.2f, 23, 37, 4, 5, 6, 7, "aaa"));
-    last_meas2.push_back(std::make_shared<Measurement>(0.94f, 3.2f, 24, 38, 4, 5, 6, 7, "aaa"));
+    std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
+    out << html_page_1;
 
-    std::vector<std::string> labels{ "Januar", "Februar", "Marcius" };
-    std::vector<int> values_1{ 20, 22, 21 };
-    std::vector<int> values_2{ 40, 44, 46 };
-    /*
-    std::string temp = "Temperature";
-    std::string hum = "Humidity";
-    */
-#endif
+    for(const auto& it : vec)
+    {
+        out << fmt::format("'{}',", it->time);
+    }
+    out << "], datasets: [{\nlabel: '" << first_name << "',\n";
+    out << html_page_2;
+    for(const auto& it : vec)
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        out << val << ",";
+    }
+    out << "\n],\nyAxisID: 'y-axis-1',\n}, {\nlabel: '" << second_name << "',\n";
+
+    out << html_page_3;
+    for(const auto& it : vec)
+    {
+        T2 val = GetValueFromDequeue<T2>(it, offset_2);
+        out << val << ",";
+    }
+    out << html_page_4;
+    out.close();
 }
+#endif

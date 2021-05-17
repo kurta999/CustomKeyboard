@@ -47,7 +47,6 @@ commitid.h
 /Backup_Release/
 /Release/
 /TrueSTUDIO/
-/Graphs/
 /Screenshots/
 
 #Visual Studio
@@ -57,3 +56,13 @@ x64/
 logfile.txt
 *.db
 output.txt
+
+# Graphs
+/Graphs/Temperature.html
+/Graphs/Humidity.html
+/Graphs/CO2.html
+/Graphs/Lux.html
+/Graphs/VOC.html
+/Graphs/CCT.html
+/Graphs/PM10.html
+/Graphs/PM25.html

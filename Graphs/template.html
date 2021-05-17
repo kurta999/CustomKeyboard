@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)https://www.chartjs.org/samples/latest/charts/line/multi-axis.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Line Chart Multiple Axes</title>
+	<script src="./Line Chart Multiple Axes_files/Chart.min.js.download"></script>
+	<script src="./Line Chart Multiple Axes_files/utils.js.download"></script>
+	<style>
+	canvas {{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}}
+	* {{box-sizing: border-box}}
+
+/* Set height of body and the document to 100% */
+body, html {{
+  height: 100%;
+  margin: 0;
+  font-family: Arial;
+}}
+
+/* Style tab links */
+.tablink {{
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 16px;
+  width: 12%;
+}}
+
+.tablink:hover {{
+  background-color: #777;
+}}
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {{
+  color: white;
+  display: none;
+  padding: 10px 20px;
+  height: 100%;
+}}
+
+#Home {{background-color: red;}}
+#News {{background-color: green;}}
+#Contact {{background-color: blue;}}
+#About {{background-color: orange;}}
+</style>
+<style type="text/css">/* Chart.js */
+@keyframes chartjs-render-animation{{from{{opacity:.99}}to{{opacity:1}}}}.chartjs-render-monitor{{animation:chartjs-render-animation 1ms}}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}}.chartjs-size-monitor-expand>div{{position:absolute;width:1000000px;height:1000000px;left:0;top:0}}.chartjs-size-monitor-shrink>div{{position:absolute;width:200%;height:200%;left:0;top:0}}</style></head>
+
+<body>
+	<div style="width:95%;"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+	<button class="tablink" onclick="location.href='Temperature.html'">Temperature</button>
+	<button class="tablink" onclick="location.href='Humidity.html'">Humidity</button>
+	<button class="tablink" onclick="location.href='CO2.html'">CO2</button>
+	<button class="tablink" onclick="location.href='VOC.html'">VOC</button>
+	<button class="tablink" onclick="location.href='PM25.html'">PM2.5</button>
+	<button class="tablink" onclick="location.href='PM10.html'">PM10</button>
+	<button class="tablink" onclick="location.href='Lux.html'">Lux</button>
+	<button class="tablink" onclick="location.href='CCT.html'">CCT</button>
+
+	<canvas id="canvas" style="display: block; width: 1428px; height: 714px;" width="1428" height="714" class="chartjs-render-monitor"></canvas>
+	<canvas id="canvas2" style="display: block; width: 1428px; height: 714px;" width="1428" height="714" class="chartjs-render-monitor"></canvas>
+	<canvas id="canvas3" style="display: block; width: 1428px; height: 714px;" width="1428" height="714" class="chartjs-render-monitor"></canvas>
+	</div>
+	<script>
+		var myLine3;
+		const GRAPH_MIN = {};
+		const GRAPH_MAX = {};		
+		var lineChartDataLastX = {{
+			labels: [{}],
+			datasets: [
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tlast', }}, 
+				]
+			}};
+		var lineChartDataT24 = {{
+			labels: [{}],
+			datasets: [
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tavg7', }}, 
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tmax7', }}, 
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tmin7', }}, 
+			]
+		}};		
+		var lineChartDataTWeek = {{
+			labels: [{}],
+			datasets: [
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tavg24', }}, 
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tmax24', }}, 
+				{{label: '{}', borderColor: {}, backgroundColor: {}, fill: false, data: [{}], yAxisID: 'tmin24', }}, 
+			]
+		}};
+
+		function ShowGraphs() 
+		{{
+			//window.myLine.destroy();
+			
+			var ctx0 = document.getElementById('canvas').getContext('2d');
+			window.myLine0 = Chart.Line(ctx0, {{data: lineChartDataLastX, options: {{responsive: true, hoverMode: 'index', stacked: false,
+					title: {{display: true, text: '{}'}},
+					scales: 
+					{{
+						yAxes: [{{type: 'linear', display: true, position: 'left', id: 'tlast', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}, ],
+					}}
+				}}
+			}});
+			
+			
+			var ctx = document.getElementById('canvas2').getContext('2d');
+			window.myLine1 = Chart.Line(ctx, {{data: lineChartDataT24, options: {{responsive: true, hoverMode: 'index', stacked: false,
+					title: {{display: true, text: '{}'}},
+					scales: 
+					{{
+						yAxes: [{{type: 'linear', display: true, position: 'left', id: 'tavg7', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}, 
+								{{type: 'linear', display: false, position: 'left', id: 'tmin7', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}, 
+								{{type: 'linear', display: false, position: 'left', id: 'tmax7', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}
+								],
+					}}
+				}}
+			}});
+			var ctx2 = document.getElementById('canvas3').getContext('2d');
+			window.myLine2 = Chart.Line(ctx2, {{data: lineChartDataTWeek, options: {{responsive: true, hoverMode: 'index', stacked: false,
+					title: {{display: true, text: '{}'}},
+					scales: 
+					{{
+						yAxes: [{{type: 'linear', display: true, position: 'left', id: 'tavg24', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}, 
+								{{type: 'linear', display: false, position: 'left', id: 'tmin24', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}, 
+								{{type: 'linear', display: false, position: 'left', id: 'tmax24', ticks: {{min: GRAPH_MIN, max: GRAPH_MAX}}}}
+								],
+					}}
+				}}
+			}});
+			
+		}}		
+		window.onload = function() 
+		{{
+			ShowGraphs();
+		}};
+		
+
+	</script>
+</body></html>
