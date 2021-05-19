@@ -22,7 +22,7 @@ public:
     }
 
     float temp, hum;
-    int send_interval = 0, co2, voc, pm25, pm10, lux, cct;
+    int co2, voc, pm25, pm10, lux, cct;
     std::string time;
 };
 #pragma pack(pop)
@@ -45,29 +45,17 @@ public:
 
         last_meas.push_back(meas);
     }
-    inline void AddMeasurementDay(std::shared_ptr<Measurement>& meas)
-    {
-        last_day.push_back(meas);
-    }
-    inline void AddMeasurementWeek(std::shared_ptr<Measurement>& meas)
-    {
-        last_week.push_back(meas);
-    }
 
     const std::deque<std::shared_ptr<Measurement>>& GetMeasurements()
     {
         return last_meas;
     }
 
+    std::vector<std::shared_ptr<Measurement>> last_day[3];  /* avg, max, min */
+    std::vector<std::shared_ptr<Measurement>> last_week[3];  /* avg, max, min */
 private:
-    /* TODO: one day merge these functions with more template specialization */
-    template<typename T1> void WriteGraphQueue(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
-    template<typename T1, typename T2> void WriteGraphVector(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2, std::vector<std::shared_ptr<Measurement>>& vec);
+    template<typename T1> void WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
 
     std::deque<std::shared_ptr<Measurement>> last_meas;
-    std::vector<std::shared_ptr<Measurement>> last_day;
-    std::vector<std::shared_ptr<Measurement>> last_week;
-    std::vector<std::shared_ptr<Measurement>> custom;
-
     std::string template_str;
 };

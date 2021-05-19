@@ -54,29 +54,26 @@ template<typename T> T GetValueFromDequeue(std::shared_ptr<Measurement> meas, in
 
 void Sensors::WriteGraphs()
 {
-    WriteGraphQueue<decltype(Measurement::temp)>("Temperature.html", 15, 40, "Temperature", offsetof(Measurement, temp));
-    WriteGraphQueue<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
-    WriteGraphQueue<decltype(Measurement::co2)>("CO2.html", 200, 3000, "Temperature", offsetof(Measurement, co2));
-    WriteGraphQueue<decltype(Measurement::voc)>("VOC.html", 0, 65535, "Temperature", offsetof(Measurement, voc));
-    WriteGraphQueue<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "Temperature", offsetof(Measurement, pm25));
-    WriteGraphQueue<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "Temperature", offsetof(Measurement, pm10));
-    WriteGraphQueue<decltype(Measurement::lux)>("Lux.html", 0, 10000, "Temperature", offsetof(Measurement, lux));
-    WriteGraphQueue<decltype(Measurement::cct)>("CCT.html", 0, 10000, "Temperature", offsetof(Measurement, cct));
+    WriteGraph<decltype(Measurement::temp)>("Temperature.html", 15, 35, "Temperature", offsetof(Measurement, temp));
+    WriteGraph<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
+    WriteGraph<decltype(Measurement::co2)>("CO2.html", 200, 3000, "CO2", offsetof(Measurement, co2));
+    WriteGraph<decltype(Measurement::voc)>("VOC.html", 0, 65535, "VOC", offsetof(Measurement, voc));
+    WriteGraph<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "PM2.5", offsetof(Measurement, pm25));
+    WriteGraph<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "PM10", offsetof(Measurement, pm10));
+    WriteGraph<decltype(Measurement::lux)>("Lux.html", 0, 10000, "Lux", offsetof(Measurement, lux));
+    WriteGraph<decltype(Measurement::cct)>("CCT.html", 0, 10000, "CCT", offsetof(Measurement, cct));
 }
 
-template<typename T1> void Sensors::WriteGraphQueue(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
+template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
 {
-    if(!std::filesystem::exists("Graphs"))
-        std::filesystem::create_directory("Graphs");
-
     std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
    
     std::string labels_time_last;
     std::string data_latest;
-    std::string labels_time_day;
-    std::string data_day;
-    std::string labels_time_week;
-    std::string data_week;
+    std::string labels_time_day[3];
+    std::string data_day[3];
+    std::string labels_time_week[3];
+    std::string data_week[3];
     for(const auto& it : last_meas)
     {
         labels_time_last += "'" + it->time + "',";
@@ -86,38 +83,75 @@ template<typename T1> void Sensors::WriteGraphQueue(const char* filename, uint16
         T1 val = GetValueFromDequeue<T1>(it, offset_1);
         data_latest += std::to_string(val) + ",";
     }
-    for(const auto& it : last_day)
+    for(const auto& it : last_day[0])
     {
-        labels_time_day += "'" + it->time + "',";
+        labels_time_day[0] += "'" + it->time + "',";
     }
-    for(const auto& it : last_day)
+    for(const auto& it : last_day[0])
     {
         T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_day += std::to_string(val) + ",";
+        data_day[0] += std::to_string(val) + ",";
     }
-    for(const auto& it : last_week)
+    for(const auto& it : last_day[1])
     {
-        labels_time_week += "'" + it->time + "',";
+        labels_time_day[1] += "'" + it->time + "',";
     }
-    for(const auto& it : last_week)
+    for(const auto& it : last_day[1])
     {
         T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_week += std::to_string(val) + ",";
+        data_day[1] += std::to_string(val) + ",";
+    }
+    for(const auto& it : last_day[2])
+    {
+        labels_time_day[2] += "'" + it->time + "',";
+    }
+    for(const auto& it : last_day[2])
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_day[2] += std::to_string(val) + ",";
+    }
+
+    for(const auto& it : last_week[0])
+    {
+        labels_time_week[0] += "'" + it->time + "',";
+    }
+    for(const auto& it : last_week[0])
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_week[0] += std::to_string(val) + ",";
+    }
+    for(const auto& it : last_week[1])
+    {
+        labels_time_week[1] += "'" + it->time + "',";
+    }
+    for(const auto& it : last_week[1])
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_week[1] += std::to_string(val) + ",";
+    }
+    for(const auto& it : last_week[2])
+    {
+        labels_time_week[2] += "'" + it->time + "',";
+    }
+    for(const auto& it : last_week[2])
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset_1);
+        data_week[2] += std::to_string(val) + ",";
     }
 
     try
     {
         std::string out_str = std::move(fmt::format(template_str, min_val, max_val,
-            labels_time_last, "Latest temperature readings", "window.chartColors.red", "window.chartColors.red", data_latest,
-            labels_time_day,
-            "Temperature (Avg)", "window.chartColors.red", "window.chartColors.red", data_day,
-            "Temperature (Max)", "window.chartColors.blue", "window.chartColors.red", "0",
-            "Temperature (Min)", "window.chartColors.green", "window.chartColors.red", "0",
-            labels_time_week,
-            "Temperature (Avg)", "window.chartColors.red", "window.chartColors.red", data_week,
-            "Temperature (Max)", "window.chartColors.blue", "window.chartColors.red", "0",
-            "Temperature (Min)", "window.chartColors.green", "window.chartColors.red", "0",
-            "Last X", "Last Day", "Last Week"));
+            labels_time_last, "Latest " + std::string(name) + " readings", "window.chartColors.orange", "window.chartColors.red", data_latest,
+            labels_time_day[0],
+            std::string(name) + " (Avg)", "window.chartColors.red", "window.chartColors.red", data_day[0],
+            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.red", data_day[1],
+            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.red", data_day[2],
+            labels_time_week[0],
+            std::string(name) + " (Avg)", "window.chartColors.red", "window.chartColors.red", data_week[0],
+            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.red", data_week[1],
+            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.red", data_week[2],
+            "Last " + std::to_string(MAX_MEAS_QUEUE) + " measurements", "Last Day", "Last Week"));
         out << out_str;
         out.close();
     }
@@ -134,7 +168,7 @@ void Sensors::Init()
 
     std::ifstream t("Graphs/template.html", std::ifstream::binary);
     if(!t.is_open())
-        throw fmt::format("missing template.html");
+        throw fmt::format("Missing template.html");
 
     t.seekg(0, std::ios::end);
     size_t size = t.tellg();
@@ -143,80 +177,4 @@ void Sensors::Init()
 
     t.read(&template_str[0], size);
     t.close();
-#if 0
-    last_meas2.push_back(std::make_shared<Measurement>(0.34f, 1.2f, 22, 35, 4, 5, 6, 7, "aaa"));
-    last_meas2.push_back(std::make_shared<Measurement>(0.74f, 2.2f, 23, 37, 4, 5, 6, 7, "aaa"));
-    last_meas2.push_back(std::make_shared<Measurement>(0.94f, 3.2f, 24, 38, 4, 5, 6, 7, "aaa"));
-
-    std::vector<std::string> labels{ "Januar", "Februar", "Marcius" };
-    std::vector<int> values_1{ 20, 22, 21 };
-    std::vector<int> values_2{ 40, 44, 46 };
-    /*
-    std::string temp = "Temperature";
-    std::string hum = "Humidity";
-    */
-#endif
 }
-
-
-
-#if 0
-template<typename T1, typename T2> void Sensors::WriteGraphQueue(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2)
-{
-    if(!std::filesystem::exists("Graphs"))
-        std::filesystem::create_directory("Graphs");
-
-    std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
-    out << html_page_1;
-
-    for(const auto& it : last_meas)
-    {
-        out << fmt::format("'{}',", it->time);
-    }
-    out << "], datasets: [{\nlabel: '" << first_name << "',\n";
-    out << html_page_2;
-    for(const auto& it : last_meas)
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        out << val << ",";
-    }
-    out << "\n],\nyAxisID: 'y-axis-1',\n}, {\nlabel: '" << second_name << "',\n";
-
-    out << html_page_3;
-    for(const auto& it : last_meas)
-    {
-        T2 val = GetValueFromDequeue<T2>(it, offset_2);
-        out << val << ",";
-    }
-    out << html_page_4;
-    out.close();
-}
-
-template<typename T1, typename T2> void Sensors::WriteGraphVector(const char* filename, const char* first_name, const char* second_name, size_t offset_1, size_t offset_2, std::vector<std::shared_ptr<Measurement>>& vec)
-{
-    std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
-    out << html_page_1;
-
-    for(const auto& it : vec)
-    {
-        out << fmt::format("'{}',", it->time);
-    }
-    out << "], datasets: [{\nlabel: '" << first_name << "',\n";
-    out << html_page_2;
-    for(const auto& it : vec)
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        out << val << ",";
-    }
-    out << "\n],\nyAxisID: 'y-axis-1',\n}, {\nlabel: '" << second_name << "',\n";
-
-    out << html_page_3;
-    for(const auto& it : vec)
-    {
-        T2 val = GetValueFromDequeue<T2>(it, offset_2);
-        out << val << ",";
-    }
-    out << html_page_4;
-    out.close();
-}
-#endif
