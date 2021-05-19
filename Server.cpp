@@ -107,6 +107,7 @@ void Server::Init(void)
     if(!CreateAcceptor(tcp_port))
     {
         DBG("createAcceptor fail!");
+        return;
     }
     t = new std::thread(&Server::StartAsync, this);
 }

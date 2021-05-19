@@ -415,9 +415,14 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			wxString str = m_StyledTextCtrl->GetText();
 			std::string input(str.mb_str());
 			std::string output;
-			boost::replace_all(input, "\r\n", "");
-			boost::replace_all(input, "\t", "");
-			StructParser::Get()->ParseStructure(input, output);
+			try
+			{
+				StructParser::Get()->ParseStructure(input, output);
+			}
+			catch(std::exception& e)
+			{
+				LOGMSG(critical, "Exception {}", e.what());
+			}
 
 			wxString wxout(output);
 			m_Output->Clear();
