@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "PrintScreenSaver.h"
 #include "PathSeparator.h"
+#include "DirectoryBackup.h"
 
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -13,6 +14,8 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include <array>
 
 inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
@@ -189,19 +192,6 @@ void Settings::Init(void)
     {
         CustomMacro::Get()->use_per_app_macro = (bool)std::stoi(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data()) != 0;
         CustomMacro::Get()->advanced_key_binding = (bool)std::stoi(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data()) != 0;
-
-        //CustomMacro::Get()->macro_names.push_back("null");
-
-#if 0
-        size_t counter = 1;  /* load macro names */
-        auto& macro_config = pt.get_child("Macro_Config");
-        while(macro_config.find("Macro" + std::to_string(counter)) != macro_config.not_found())
-        {
-            std::string val = macro_config.find("Macro" + std::to_string(counter))->second.data();
-            CustomMacro::Get()->macro_names.push_back(std::move(val));
-            counter++;
-        }
-#endif
        
         std::unique_ptr<MacroContainer> p = std::make_unique<MacroContainer>();
         macro_section.clear();
@@ -235,17 +225,40 @@ void Settings::Init(void)
         }
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
         Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
+        PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
         PathSeparator::Get()->replace_key = pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data();
 
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
+
+        DirectoryBackup::Get()->backup_time_format = pt.get_child("BackupSettings").find("BackupFileFormat")->second.data();
+        DirectoryBackup::Get()->backup_key = pt.get_child("BackupSettings").find("BackupKey")->second.data();
+
+        /* load backup configs */
+        size_t counter_ = 1;
+        size_t cnt_ = 0;
+        while((cnt_ = pt.count("Backup_" + std::to_string(counter_))) == 1)
+        {
+            std::string key = "Backup_" + std::to_string(counter_);
+
+            std::filesystem::path from = pt.get_child(key).find("From")->second.data();
+            
+            std::vector<std::filesystem::path> to;
+            boost::split(to, pt.get_child(key).find("To")->second.data(), boost::is_any_of("|"));
+           
+            std::vector<std::string> ignore_list;
+            boost::split(ignore_list, pt.get_child(key).find("Ignore")->second.data(), boost::is_any_of("|"));
+            int max_backups = std::stoi(pt.get_child(key).find("MaxBackups")->second.data());
+            BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups);
+            
+            counter_++;
+            DirectoryBackup::Get()->backups.push_back(b);
+        }
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &e)
     {
         LOGMSG(error, "exception: {}", e.what());
     }
-
-
 }

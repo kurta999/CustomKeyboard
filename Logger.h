@@ -102,6 +102,14 @@ private:
         snprintf(__debug_format_str, sizeof(__debug_format_str), str, __VA_ARGS__); \
         OutputDebugStringA(__debug_format_str); \
     }
+
+#define DBGW(str, ...) \
+    {\
+        wchar_t __debug_format_str[128]; \
+        wsprintfW(__debug_format_str, str, __VA_ARGS__); \
+        OutputDebugStringW(__debug_format_str); \
+    }
 #else
 #define DBG(str, ...) 
+#define DBGW(str, ...) 
 #endif

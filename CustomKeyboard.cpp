@@ -19,6 +19,7 @@
 #include "Sensors.h"
 #include "StructParser.h"
 #include "PrintScreenSaver.h"
+#include "DirectoryBackup.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -35,6 +36,7 @@ bool MyApp::OnInit()
     Database::Get()->Init();
     StructParser::Get()->Init();
     PrintScreenSaver::Get()->Init();
+    DirectoryBackup::Get()->Init();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");

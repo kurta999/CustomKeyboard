@@ -7,6 +7,8 @@
 #include <wx/combobox.h>
 #include <wx/stc/stc.h>
 
+#include <mutex>
+
 class MainPanel : public wxPanel
 {
 public:
@@ -102,6 +104,8 @@ public:
 	void OnTimer(wxTimerEvent& event);
 
 	void SetIconTooltip(const wxString& str);
+	void ShowNotificaiton(const wxString& title, const wxString& message, int timeout = 3);
+
 	MainPanel* main_panel;
 	GraphPanel* graph_panel;
 	EscaperPanel* escape_panel;
@@ -109,6 +113,8 @@ public:
 	ParserPanel* parser_panel;
 	LogPanel* log_panel;
 	wxAuiNotebook* ctrl;
+	std::mutex mtx;
+	std::tuple<int, int64_t, size_t> backup_result;
 
 	wxDECLARE_EVENT_TABLE();
 private:

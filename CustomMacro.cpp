@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "PrintScreenSaver.h"
 #include "PathSeparator.h"
+#include "DirectoryBackup.h"
 
 #include <string>
 #include <bitset>
@@ -79,6 +80,8 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
                 PrintScreenSaver::Get()->SaveScreenshot();
             if(PathSeparator::Get()->replace_key == pressed_keys)
                 PathSeparator::Get()->ReplaceClipboard();
+            if(DirectoryBackup::Get()->backup_key == pressed_keys)
+                DirectoryBackup::Get()->BackupFiles();
 
             if(use_per_app_macro)
             {

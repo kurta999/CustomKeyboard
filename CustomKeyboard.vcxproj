@@ -168,6 +168,7 @@
     <ClInclude Include="CustomKeyboard.h" />
     <ClInclude Include="CustomMacro.h" />
     <ClInclude Include="Database.h" />
+    <ClInclude Include="DirectoryBackup.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="libs\fmt\chrono.h" />
     <ClInclude Include="libs\fmt\color.h" />
@@ -202,6 +203,7 @@
     <ClCompile Include="CustomKeyboard.cpp" />
     <ClCompile Include="CustomMacro.cpp" />
     <ClCompile Include="Database.cpp" />
+    <ClCompile Include="DirectoryBackup.cpp" />
     <ClCompile Include="libs\fmt\format.cc" />
     <ClCompile Include="libs\fmt\os.cc" />
     <ClCompile Include="libs\lodepng\lodepng.cpp">

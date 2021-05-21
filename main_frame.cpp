@@ -23,6 +23,8 @@
 #include "wx/treectrl.h"
 #include <wx/dirctrl.h>
 #include <wx/xml/xml.h>
+#include "wx/notifmsg.h"
+#include "wx/generic/notifmsg.h"
 #include<boost/algorithm/string.hpp>
 
 #include "Notification.h"
@@ -104,6 +106,30 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			}
 		}
 	}
+
+	mtx.lock();
+	if(std::get<0>(backup_result) != 0)
+	{
+		switch(std::get<0>(backup_result))
+		{
+			case 1:
+			{
+				int64_t time_elapsed = std::get<0>(backup_result);
+				size_t file_count = std::get<1>(backup_result);
+				ShowNotificaiton("Backup complete", wxString::Format("Backed up %d files in %.3fms", file_count, (double)time_elapsed / 1000000.0));
+				std::get<0>(backup_result) = 0;
+				break;
+			}
+			case 2:
+			{
+				int64_t time_elapsed = std::get<0>(backup_result);
+				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0));
+				std::get<0>(backup_result) = 0;
+				break;
+			}
+		}
+	}
+	mtx.unlock();
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
@@ -112,6 +138,12 @@ void MyFrame::SetIconTooltip(const wxString &str)
 	{
 		wxLogError("Could not set icon.");
 	}
+}
+
+void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout)
+{
+	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, wxICON_INFORMATION);
+	m_notif->Show(timeout);
 }
 
 MyFrame::MyFrame(const wxString& title)
@@ -167,6 +199,7 @@ MyFrame::MyFrame(const wxString& title)
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
+	backup_result = std::make_tuple(0, 0, 0);
 }
 
 MainPanel::MainPanel(wxFrame* parent)
