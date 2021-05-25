@@ -1,5 +1,4 @@
-#ifndef NOTIFICATIONICON_H
-#define NOTIFICATIONICON_H
+#pragma once
 
 #include <wx/taskbar.h>
 
@@ -17,15 +16,19 @@ public:
 	void SetMainFrame(MyFrame* frame);
 
 	void OnLeftDoubleClick(wxTaskBarIconEvent& event);
+	void OnReload(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	virtual wxMenu* CreatePopupMenu();
+
+	enum ID
+	{
+		Exit = 0,
+		ReloadConfig
+	};
 protected:
-	static const int PopupExitID;
 
 	MyFrame* mainFrame;
 private:
 	DECLARE_EVENT_TABLE()
 
 };
-
-#endif

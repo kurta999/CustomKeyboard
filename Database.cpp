@@ -58,6 +58,7 @@ void Database::Init()
 
     std::string elapsed_str = fmt::format("Executing 7 query took {:.6f} ms\n", (double)dif / 1000000.0);
     LOGMSG(notification, elapsed_str.c_str());
+    sqlite3_close(db);
 }
 
 void Database::InsertMeasurement(std::shared_ptr<Measurement> &m)

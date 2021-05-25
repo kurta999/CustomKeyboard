@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <boost/core/noncopyable.hpp>
 
 const std::unordered_map < std::string, size_t> types =
 {
@@ -23,7 +24,7 @@ const std::unordered_map < std::string, size_t> types =
 	{"double", sizeof(double)},
 };
 
-class ClassBase
+class ClassBase : private boost::noncopyable
 {
 public:
 	ClassBase()
@@ -35,6 +36,7 @@ public:
 	{
 
 	}
+	
 public:
 	std::string type_name; /* TODO: improve this in the future, it's waste of memory */
 	bool is_pointer = false;
@@ -48,6 +50,10 @@ class ClassElement : public ClassBase
 public:
 	ClassElement(std::string&& type_name_, bool is_pointer_, size_t array_size_, std::string&& name_, std::string&& desc_) :
 		ClassBase(std::move(type_name_), is_pointer_, array_size_, std::move(name_), std::move(desc_))
+	{
+
+	}
+	~ClassElement()
 	{
 
 	}
@@ -102,7 +108,7 @@ public:
 	~ClassContainer()
 	{
 		/*
-		for(auto* i : elems)
+		for(auto i : elems)
 		{
 			delete *elems;
 		}

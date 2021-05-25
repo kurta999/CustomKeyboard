@@ -28,7 +28,6 @@ bool MyApp::OnInit()
     if (!wxApp::OnInit())
         return false;
 
-    Logger::Get()->Init();
     Settings::Get()->Init();
     CustomMacro::Get()->Init();
     Server::Get()->Init();
@@ -43,5 +42,19 @@ bool MyApp::OnInit()
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     frame->Show(true);
     SetTopWindow(frame);
+    return true;
+}
+
+int MyApp::OnExit()
+{
+    Logger::CSingleton::Destroy();
+    Settings::CSingleton::Destroy();
+    CustomMacro::CSingleton::Destroy();
+    Server::CSingleton::Destroy();
+    Sensors::CSingleton::Destroy();
+    Database::CSingleton::Destroy();
+    StructParser::CSingleton::Destroy();
+    PrintScreenSaver::CSingleton::Destroy();
+    DirectoryBackup::CSingleton::Destroy();
     return true;
 }

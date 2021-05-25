@@ -160,13 +160,13 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     }
 }
 
-void Settings::Init(void)
+void Settings::LoadFile(void)
 {
     FILE* file = nullptr;
-    if (!std::filesystem::exists("settings.ini"))
+    if(!std::filesystem::exists("settings.ini"))
     {
         file = fopen("settings.ini", "w");
-        if (file == nullptr)
+        if(file == nullptr)
         {
             throw("Shit happend! Press any key to close the application.");
             return;
@@ -178,7 +178,7 @@ void Settings::Init(void)
         file = nullptr;
     }
 
-    boost::property_tree::ptree pt;   /*  KEY_SEQ[CTRL+RSHIFT+A] KEY_SEQ[TAB] KEY_TYPE[Src\Teszt mappa] KEY_SEQ[ESC]  */
+    boost::property_tree::ptree pt;
     try
     {
         boost::property_tree::ini_parser::read_ini("settings.ini", pt);
@@ -190,9 +190,10 @@ void Settings::Init(void)
 
     try
     {
-        CustomMacro::Get()->use_per_app_macro = (bool)std::stoi(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data()) != 0;
-        CustomMacro::Get()->advanced_key_binding = (bool)std::stoi(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data()) != 0;
-       
+        CustomMacro::Get()->use_per_app_macro = static_cast<bool>(std::stoi(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data())) != 0;
+        CustomMacro::Get()->advanced_key_binding = static_cast<bool>(std::stoi(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data())) != 0;
+
+        CustomMacro::Get()->macros.clear();
         std::unique_ptr<MacroContainer> p = std::make_unique<MacroContainer>();
         macro_section.clear();
         auto& global_child = pt.get_child("Keys_Global");
@@ -224,7 +225,9 @@ void Settings::Init(void)
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
-        Server::Get()->tcp_port = (uint16_t)std::stoi(pt.get_child("Config").find("TCP_Port")->second.data());
+        Server::Get()->tcp_port = static_cast<uint16_t>(std::stoi(pt.get_child("Config").find("TCP_Port")->second.data()));
+        minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("Config").find("MinimizeOnExit")->second.data()) != 0);
+        default_page = static_cast<uint8_t>(std::stoi(pt.get_child("Config").find("DefaultPage")->second.data()));
         PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
@@ -237,6 +240,7 @@ void Settings::Init(void)
         DirectoryBackup::Get()->backup_key = pt.get_child("BackupSettings").find("BackupKey")->second.data();
 
         /* load backup configs */
+        DirectoryBackup::Get()->backups.clear();
         size_t counter_ = 1;
         size_t cnt_ = 0;
         while((cnt_ = pt.count("Backup_" + std::to_string(counter_))) == 1)
@@ -244,21 +248,29 @@ void Settings::Init(void)
             std::string key = "Backup_" + std::to_string(counter_);
 
             std::filesystem::path from = pt.get_child(key).find("From")->second.data();
-            
+
             std::vector<std::filesystem::path> to;
             boost::split(to, pt.get_child(key).find("To")->second.data(), boost::is_any_of("|"));
-           
+
             std::vector<std::string> ignore_list;
             boost::split(ignore_list, pt.get_child(key).find("Ignore")->second.data(), boost::is_any_of("|"));
             int max_backups = std::stoi(pt.get_child(key).find("MaxBackups")->second.data());
             BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups);
-            
+
             counter_++;
             DirectoryBackup::Get()->backups.push_back(b);
         }
+
+        if(default_page > 5)
+            default_page = 5;
     }
-    catch (boost::property_tree::ini_parser::ini_parser_error &e)
+    catch(boost::property_tree::ini_parser::ini_parser_error& e)
     {
         LOGMSG(error, "exception: {}", e.what());
     }
+}
+
+void Settings::Init(void)
+{
+    LoadFile();
 }

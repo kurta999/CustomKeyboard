@@ -14,7 +14,7 @@ public:
     {
 
     }
-
+    ~BackupEntry() = default;
 
     bool IsInIgnoreList(std::string&& p)
     {
@@ -41,6 +41,7 @@ class DirectoryBackup : public CSingleton < DirectoryBackup >
 public:
     friend class Settings;
     DirectoryBackup() = default;
+    ~DirectoryBackup() = default;
     void Init(void);
     void BackupFiles();
 

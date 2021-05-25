@@ -57,8 +57,8 @@ class Logger : public CSingleton < Logger >
 {
     friend class CSingleton < Logger >;
 public:
-    Logger() = default;
-    void Init(void);
+    Logger();
+    ~Logger();
 
     template<typename... Args>
     void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)

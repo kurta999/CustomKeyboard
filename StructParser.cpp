@@ -454,13 +454,13 @@ void StructParser::Init()
 
 void StructParser::DoCleanup()
 {
-	/*
-	for(auto* i : classes)
+	
+	for(auto i : classes)
 	{
 		delete i;
 	}
-	*/
 	classes.clear();
+	definitions.clear();
 }
 
 void StructParser::TrimStructure(std::string& str_in, std::string& str_out)

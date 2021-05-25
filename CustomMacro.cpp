@@ -77,11 +77,20 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             }
 
             if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
+            {
                 PrintScreenSaver::Get()->SaveScreenshot();
+                return;
+            }
             if(PathSeparator::Get()->replace_key == pressed_keys)
+            {
                 PathSeparator::Get()->ReplaceClipboard();
+                return;
+            }
             if(DirectoryBackup::Get()->backup_key == pressed_keys)
+            {
                 DirectoryBackup::Get()->BackupFiles();
+                return;
+            }
 
             if(use_per_app_macro)
             {
