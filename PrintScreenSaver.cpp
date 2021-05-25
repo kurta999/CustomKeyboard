@@ -26,8 +26,10 @@ void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
     strncat(buf, ".png", 4);
 }
 
-void PrintScreenSaver::SaveScreenshot()
+void PrintScreenSaver::DoSave()
 {
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+
     OpenClipboard(NULL);
     HGLOBAL ClipboardDataHandle = (HGLOBAL)GetClipboardData(CF_DIB);
     if(!ClipboardDataHandle)
@@ -72,7 +74,7 @@ void PrintScreenSaver::SaveScreenshot()
     std::vector<unsigned char> clipboard_bmp;
     std::vector<unsigned char> bmp_to_encode;
     std::copy((char*)(&BitmapFileHeader), (char*)(&BitmapFileHeader) + sizeof(BITMAPFILEHEADER), std::back_inserter(clipboard_bmp));
-    std::copy((char*)(BitmapInfoHeader), (char*)(BitmapInfoHeader) + ClipboardDataSize, std::back_inserter(clipboard_bmp));
+    std::copy((char*)(BitmapInfoHeader), (char*)(BitmapInfoHeader)+ClipboardDataSize, std::back_inserter(clipboard_bmp));
 
     unsigned w_, h_;
     unsigned error = decodeBMP(bmp_to_encode, w_, h_, clipboard_bmp);
@@ -80,7 +82,24 @@ void PrintScreenSaver::SaveScreenshot()
 
     std::string save_path = screenshot_path.string() + "\\" + buf;
     lodepng::save_file(png, save_path.c_str());
+
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
     LOGMSG(notification, "Image saved to {}", save_path);
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->mtx.lock();
+    frame->backup_result = std::make_tuple(2, dif, 0);
+    frame->mtx.unlock();
+}
+
+void PrintScreenSaver::SaveScreenshot()
+{
+    if(screenshot_future.valid())
+        screenshot_future.get();
+
+    screenshot_future = std::async(&PrintScreenSaver::DoSave, this);
 }
 
 // Returns the offset, in bytes, from the start of the BITMAPINFO, to the start of the pixel data array, for a packed DIB.

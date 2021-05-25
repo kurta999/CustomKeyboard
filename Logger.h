@@ -57,8 +57,8 @@ class Logger : public CSingleton < Logger >
 {
     friend class CSingleton < Logger >;
 public:
-    Logger() = default;
-    void Init(void);
+    Logger();
+    ~Logger();
 
     template<typename... Args>
     void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
@@ -102,6 +102,14 @@ private:
         snprintf(__debug_format_str, sizeof(__debug_format_str), str, __VA_ARGS__); \
         OutputDebugStringA(__debug_format_str); \
     }
+
+#define DBGW(str, ...) \
+    {\
+        wchar_t __debug_format_str[128]; \
+        wsprintfW(__debug_format_str, str, __VA_ARGS__); \
+        OutputDebugStringW(__debug_format_str); \
+    }
 #else
 #define DBG(str, ...) 
+#define DBGW(str, ...) 
 #endif

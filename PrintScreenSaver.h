@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <string.h>
 #include <Windows.h>
+#include <future>
 
 constexpr size_t max_timestamp_len = 80;
 
@@ -19,6 +20,9 @@ public:
     std::filesystem::path screenshot_path;
     std::string screenshot_key;
 private:
+    void DoSave();
+    std::future<void> screenshot_future;
+
     void FormatTimestamp(char* buf, uint8_t len);
     INT GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader);
     unsigned decodeBMP(std::vector<unsigned char>& image, unsigned& w, unsigned& h, const std::vector<unsigned char>& bmp);

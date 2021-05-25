@@ -1,6 +1,13 @@
 #include "Logger.h"
+#include <assert.h>
 
-void Logger::Init(void)
+Logger::Logger()
 {
 	fLog = fopen("logfile.txt", "w");
+	assert(fLog);
+}
+
+Logger::~Logger()
+{
+	fclose(fLog);
 }

@@ -19,6 +19,8 @@ class Database : public CSingleton < Database >
 
 public:
     Database() = default;
+    ~Database() = default;
+
     void Init(void);
     void InsertMeasurement(std::shared_ptr<Measurement>& m);
 

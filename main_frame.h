@@ -6,6 +6,9 @@
 #include <wx/button.h>
 #include <wx/combobox.h>
 #include <wx/stc/stc.h>
+#include <wx/filepicker.h>
+
+#include <mutex>
 
 class MainPanel : public wxPanel
 {
@@ -62,6 +65,8 @@ class ParserPanel : public wxPanel
 {
 public:
 	ParserPanel(wxFrame* parent);
+	void OnFileDrop(wxDropFilesEvent& event);
+	void OnFileSelected(wxFileDirPickerEvent& event);
 
 	wxCheckBox* m_IsModbus = nullptr;
 	wxComboBox* m_PointerSize = nullptr;
@@ -69,6 +74,9 @@ public:
 	wxStyledTextCtrl* m_StyledTextCtrl = nullptr;
 	wxTextCtrl* m_Output = nullptr;
 	wxButton* m_OkButton = nullptr;
+	wxFilePickerCtrl* m_FilePicker;
+
+	wxString path;
 private:
 	wxDECLARE_EVENT_TABLE();
 };
@@ -102,6 +110,8 @@ public:
 	void OnTimer(wxTimerEvent& event);
 
 	void SetIconTooltip(const wxString& str);
+	void ShowNotificaiton(const wxString& title, const wxString& message, int timeout = 3);
+
 	MainPanel* main_panel;
 	GraphPanel* graph_panel;
 	EscaperPanel* escape_panel;
@@ -109,6 +119,8 @@ public:
 	ParserPanel* parser_panel;
 	LogPanel* log_panel;
 	wxAuiNotebook* ctrl;
+	std::mutex mtx;
+	std::tuple<int, int64_t, size_t> backup_result;
 
 	wxDECLARE_EVENT_TABLE();
 private:

@@ -19,6 +19,7 @@
 #include "Sensors.h"
 #include "StructParser.h"
 #include "PrintScreenSaver.h"
+#include "DirectoryBackup.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -27,7 +28,6 @@ bool MyApp::OnInit()
     if (!wxApp::OnInit())
         return false;
 
-    Logger::Get()->Init();
     Settings::Get()->Init();
     CustomMacro::Get()->Init();
     Server::Get()->Init();
@@ -35,11 +35,26 @@ bool MyApp::OnInit()
     Database::Get()->Init();
     StructParser::Get()->Init();
     PrintScreenSaver::Get()->Init();
+    DirectoryBackup::Get()->Init();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     frame->Show(true);
     SetTopWindow(frame);
+    return true;
+}
+
+int MyApp::OnExit()
+{
+    Logger::CSingleton::Destroy();
+    Settings::CSingleton::Destroy();
+    CustomMacro::CSingleton::Destroy();
+    Server::CSingleton::Destroy();
+    Sensors::CSingleton::Destroy();
+    Database::CSingleton::Destroy();
+    StructParser::CSingleton::Destroy();
+    PrintScreenSaver::CSingleton::Destroy();
+    DirectoryBackup::CSingleton::Destroy();
     return true;
 }

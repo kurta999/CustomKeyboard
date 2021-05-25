@@ -23,6 +23,10 @@
 #include "wx/treectrl.h"
 #include <wx/dirctrl.h>
 #include <wx/xml/xml.h>
+#include "wx/notifmsg.h"
+#include "wx/generic/notifmsg.h"
+#include <wx/filepicker.h>
+
 #include<boost/algorithm/string.hpp>
 
 #include "Notification.h"
@@ -39,6 +43,7 @@ enum
 	ID_Hello = 1,
 	ID_Quit,
 	ID_UpdateMousePosText,
+	ID_FilePicker,
 };
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
@@ -59,6 +64,7 @@ wxBEGIN_EVENT_TABLE(MacroPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(ParserPanel, wxPanel)
+EVT_FILEPICKER_CHANGED(ID_FilePicker, ParserPanel::OnFileSelected)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
@@ -75,7 +81,10 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 
 void MyFrame::OnClose(wxCloseEvent& event)
 {
-	ExitProcess(0);
+	if(Settings::Get()->minimize_on_exit)
+		Hide();
+	else
+		wxExit();
 }
 
 void MyFrame::OnTimer(wxTimerEvent& event)
@@ -104,6 +113,30 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			}
 		}
 	}
+
+	mtx.lock();
+	if(std::get<0>(backup_result) != 0)
+	{
+		switch(std::get<0>(backup_result))
+		{
+			case 1:
+			{
+				int64_t time_elapsed = std::get<0>(backup_result);
+				size_t file_count = std::get<1>(backup_result);
+				ShowNotificaiton("Backup complete", wxString::Format("Backed up %d files in %.3fms", file_count, (double)time_elapsed / 1000000.0));
+				std::get<0>(backup_result) = 0;
+				break;
+			}
+			case 2:
+			{
+				int64_t time_elapsed = std::get<0>(backup_result);
+				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0));
+				std::get<0>(backup_result) = 0;
+				break;
+			}
+		}
+	}
+	mtx.unlock();
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
@@ -112,6 +145,16 @@ void MyFrame::SetIconTooltip(const wxString &str)
 	{
 		wxLogError("Could not set icon.");
 	}
+}
+
+void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout)
+{
+	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, wxICON_INFORMATION);
+	m_notif->Show(timeout);
+	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, [this](wxCommandEvent& event)
+		{
+			DBG("click");
+		});
 }
 
 MyFrame::MyFrame(const wxString& title)
@@ -162,11 +205,13 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(parser_panel, "Sturct Parser", false);
 	ctrl->AddPage(log_panel, "Log", false);
 	ctrl->Thaw();
-	ctrl->SetSelection(4);
+
+	ctrl->SetSelection(Settings::Get()->default_page);
 
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
+	backup_result = std::make_tuple(0, 0, 0);
 }
 
 MainPanel::MainPanel(wxFrame* parent)
@@ -340,6 +385,10 @@ ParserPanel::ParserPanel(wxFrame* parent)
 	fgSizer1->Add(m_StructurePadding, 0, wxALL, 5);
 	WX_SIZERPADDING(fgSizer1);
 
+	fgSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select a file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Generate!"), wxDefaultPosition, wxDefaultSize, 0) , 0, wxALL, 5);
+	m_FilePicker = new wxFilePickerCtrl(this, ID_FilePicker, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE);
+	fgSizer1->Add(m_FilePicker, 0, wxALL, 5);
+
 	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(320, 320), 0, wxEmptyString);
 
 	m_StyledTextCtrl->SetUseTabs(true);
@@ -391,6 +440,8 @@ ParserPanel::ParserPanel(wxFrame* parent)
 	// wxSTC_C_WORD items.
 	m_StyledTextCtrl->SetKeyWords(0, wxT("return int float double char this new delete goto for while do if else uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t"));
 	fgSizer1->Add(m_StyledTextCtrl);
+	m_StyledTextCtrl->DragAcceptFiles(true);
+	m_StyledTextCtrl->Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(ParserPanel::OnFileDrop), NULL, this);
 
 	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(320, 320), wxTE_MULTILINE | wxTE_READONLY);
 	fgSizer1->Add(m_Output, 0, wxALL, 5);
@@ -430,6 +481,20 @@ ParserPanel::ParserPanel(wxFrame* parent)
 		});
 }
 
+void ParserPanel::OnFileDrop(wxDropFilesEvent& event)
+{
+	if(event.GetNumberOfFiles() > 0)
+	{
+		wxString* dropped = event.GetFiles();
+		path = *dropped;
+	}
+}
+
+void ParserPanel::OnFileSelected(wxFileDirPickerEvent& event)
+{
+	path = event.GetPath();
+}
+
 LogPanel::LogPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
@@ -457,5 +522,4 @@ LogPanel::LogPanel(wxFrame* parent)
 		{
 			m_Log->Clear();
 		});
-
 }
