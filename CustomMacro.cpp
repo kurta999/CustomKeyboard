@@ -62,17 +62,16 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
                 pressed_keys += "RGUI";
             else if(k->rctrl)
                 pressed_keys += "RCTRL";
-            
-            for(auto& i : hid_scan_codes)
-            {
-                /* only supporting 1 addon key (for now?), it should be more than enough - possible to bind more than 700 macros - PER APPLICATION! */
-                if(i.second == k->keys[0])
+           
+            for(int i = 0; i != 1; i++) // TODO: sizeof(k->keys) / sizeof(k->keys[0])
+            {   /* only supporting 1 addon key (for now?), it should be more than enough - possible to bind more than 700 macros - PER APPLICATION! */
+                auto key_str = hid_scan_codes.find(k->keys[i]);
+                if(key_str != hid_scan_codes.end())
                 {
                     if(!pressed_keys.empty() && pressed_keys[pressed_keys.length() - 1] != '+')
                         pressed_keys += '+';
 
-                    pressed_keys += i.first;
-                    break;
+                    pressed_keys += key_str->second;
                 }
             }
 
