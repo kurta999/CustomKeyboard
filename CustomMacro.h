@@ -84,7 +84,7 @@ public:
         seq = std::move(keys);
     }
 
-    void DoWrite()
+    void DoWrite() override
     {
         for(size_t i = 0; i < seq.length(); i++)
         {
@@ -102,7 +102,7 @@ public:
     {
         seq = std::move(keys);
     }
-    void DoWrite()
+    void DoWrite() override
     {
         for(size_t i = 0; i < seq.size(); i++)
             PressReleaseKey(seq[i]);
@@ -125,7 +125,7 @@ public:
         //delay = ;
     }
 
-    void DoWrite()
+    void DoWrite() override
     {
         if(std::holds_alternative<uint32_t>(delay))
             std::this_thread::sleep_for(std::chrono::milliseconds(std::get<uint32_t>(delay)));
@@ -152,7 +152,7 @@ public:
         memcpy(&pos, pos_, sizeof(pos));
     }
 
-    void DoWrite()
+    void DoWrite() override
     {
         POINT to_screen;
         HWND hwnd = GetForegroundWindow();
@@ -173,7 +173,7 @@ public:
     MouseClick(uint16_t key_) : key(key_)
     {}
 
-    void DoWrite()
+    void DoWrite() override
     {
         PressReleaseMouse(key);
     }
