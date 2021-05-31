@@ -52,5 +52,3 @@ private:
     std::future<void> backup_future;
     std::string backup_time_format;
 };
-
-std::time_t GetFileWriteTime(const std::filesystem::path& filename);

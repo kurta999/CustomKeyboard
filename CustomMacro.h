@@ -213,7 +213,6 @@ public:
 private:
 };
 
-//class Settings;
 class CustomMacro : public CSingleton < CustomMacro >
 {
     friend class CSingleton < CustomMacro >;
@@ -225,6 +224,9 @@ public:
 
 private:
     friend class Settings;
+    friend class MinerWatchdog;
+
+    void PressKey(std::string key);
     void UartDataReceived(const char* data, unsigned int len);
     void UartReceiveThread(void);
 
@@ -316,6 +318,7 @@ private:
             {"RIGHT",       0xE04D},
             {"UP",          0xE048},
             {"DOWN",        0xE050},
+            {"AFTERBURNER", 0xFFFE},
         };
 
         auto it = scan_codes.find(str);

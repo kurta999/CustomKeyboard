@@ -6,6 +6,7 @@
 #include "PrintScreenSaver.h"
 #include "PathSeparator.h"
 #include "DirectoryBackup.h"
+#include "MinerWatchdog.h"
 
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -263,6 +264,15 @@ void Settings::LoadFile(void)
 
         if(default_page > 5)
             default_page = 5;
+
+        MinerWatchdog::Get()->miner_dir = std::move(pt.get_child("Miner").find("MinerDirectory")->second.data());
+        MinerWatchdog::Get()->miner_params = std::move(pt.get_child("Miner").find("MinerParameters")->second.data());
+        if(!pt.get_child("Miner").find("PreStartupMacro")->second.data().empty())
+        {
+            std::unique_ptr<MacroContainer> p2 = std::make_unique<MacroContainer>();
+            std::string& str = pt.get_child("Miner").find("PreStartupMacro")->second.data();
+            ParseMacroKeys(counter, "AFTERBURNER", str, p2);
+        }
     }
     catch(boost::property_tree::ini_parser::ini_parser_error& e)
     {

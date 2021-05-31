@@ -20,6 +20,7 @@
 #include "StructParser.h"
 #include "PrintScreenSaver.h"
 #include "DirectoryBackup.h"
+#include "MinerWatchdog.h"
 
 IMPLEMENT_APP(MyApp)
 
@@ -56,5 +57,6 @@ int MyApp::OnExit()
     StructParser::CSingleton::Destroy();
     PrintScreenSaver::CSingleton::Destroy();
     DirectoryBackup::CSingleton::Destroy();
+    MinerWatchdog::CSingleton::Destroy();
     return true;
 }

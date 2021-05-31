@@ -108,6 +108,7 @@ public:
 	void OnHelp(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnTimer(wxTimerEvent& event);
+	void OnOverlockErrorCheck(wxTimerEvent& event);
 
 	void SetIconTooltip(const wxString& str);
 	void ShowNotificaiton(const wxString& title, const wxString& message, int timeout = 3);
@@ -128,4 +129,5 @@ private:
 	NotificationIcon* notification;
 	wxAuiManager m_mgr;
 	wxTimer* m_timer;
+	wxTimer* m_octimer;
 };

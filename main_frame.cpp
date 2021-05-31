@@ -31,6 +31,7 @@
 
 #include "Notification.h"
 #include "StructParser.h"
+#include "MinerWatchdog.h"
 
 #include <boost/algorithm/string.hpp>
 #include <assert.h>
@@ -43,6 +44,7 @@ enum
 	ID_Hello = 1,
 	ID_Quit,
 	ID_UpdateMousePosText,
+	ID_OCTimer,
 	ID_FilePicker,
 };
 
@@ -89,6 +91,7 @@ void MyFrame::OnClose(wxCloseEvent& event)
 
 void MyFrame::OnTimer(wxTimerEvent& event)
 {
+	MinerWatchdog::Get()->CheckProcessRunning();
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
 	if(sel == 3 && foreground)
@@ -138,6 +141,12 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 	}
 	mtx.unlock();
 }
+
+void MyFrame::OnOverlockErrorCheck(wxTimerEvent& event)
+{
+	MinerWatchdog::Get()->CheckOverclockErrors();
+}
+
 
 void MyFrame::SetIconTooltip(const wxString &str)
 {
@@ -211,6 +220,9 @@ MyFrame::MyFrame(const wxString& title)
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
+	m_octimer = new wxTimer(this, ID_OCTimer);
+	Connect(m_octimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnOverlockErrorCheck), NULL, this);
+	m_octimer->Start(3000, false);
 	backup_result = std::make_tuple(0, 0, 0);
 }
 
@@ -464,20 +476,37 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			int struct_padding = m_StructurePadding->GetValue();
 
 			wxString str = m_StyledTextCtrl->GetText();
-			std::string input(str.mb_str());
+
+			std::string input;
+			if(!path.empty())
+			{
+				std::ifstream f(path.ToStdString(), std::ios::in | std::ios::binary);
+				if(f.is_open())
+				{
+					input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
+					f.close();
+				}
+			}
+			else
+			{
+				input = str.mb_str();
+			}
+
 			std::string output;
 			try
 			{
-				StructParser::Get()->ParseStructure(input, output);
+				StructParser::Get()->ParseStructure(input, output, struct_padding);
 			}
 			catch(std::exception& e)
 			{
-				LOGMSG(critical, "Exception {}", e.what());
+				LOGMSG(critical, "Exception {}\r\n", e.what());
 			}
 
 			wxString wxout(output);
 			m_Output->Clear();
 			m_Output->SetLabelText(wxout);
+			m_OkButton->SetForegroundColour(*wxBLACK);
+			path.Clear();
 		});
 }
 
@@ -487,12 +516,14 @@ void ParserPanel::OnFileDrop(wxDropFilesEvent& event)
 	{
 		wxString* dropped = event.GetFiles();
 		path = *dropped;
+		m_OkButton->SetForegroundColour(*wxRED);
 	}
 }
 
 void ParserPanel::OnFileSelected(wxFileDirPickerEvent& event)
 {
 	path = event.GetPath();
+	m_OkButton->SetForegroundColour(*wxRED);
 }
 
 LogPanel::LogPanel(wxFrame* parent)

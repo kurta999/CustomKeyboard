@@ -187,6 +187,7 @@
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="main_frame.h" />
+    <ClInclude Include="MinerWatchdog.h" />
     <ClInclude Include="PathSeparator.h" />
     <ClInclude Include="PrintScreenSaver.h" />
     <ClInclude Include="Sensors.h" />
@@ -219,6 +220,7 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
     </ClCompile>
     <ClCompile Include="main_frame.cpp" />
+    <ClCompile Include="MinerWatchdog.cpp" />
     <ClCompile Include="PathSeparator.cpp" />
     <ClCompile Include="PrintScreenSaver.cpp" />
     <ClCompile Include="Sensors.cpp" />

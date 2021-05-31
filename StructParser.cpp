@@ -89,7 +89,7 @@ bool IsValidVariableType(std::string& type)
 	return ret;
 }
 
-bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, ClassContainer* c)
+bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, std::shared_ptr<ClassContainer>& c)
 {
 	std::string str_in = str_input;// str_input.substr(line_counter, str_input.length() - line_counter);
 	boost::trim_left(str_in);
@@ -108,8 +108,8 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, Cl
 	std::string var_name = str_in.substr(last_space_pos + 1, semicolon_pos - last_space_pos - 1);
 	bool is_pointer = var_type.find("*", 0) != std::string::npos || var_name.find("*", 0) != std::string::npos;
 
-	ClassContainer* c_exist = IsClassAlreadyExists(var_type);
-	if(!IsValidVariableType(var_type) && !c_exist && !is_pointer)
+	std::optional<std::shared_ptr<ClassContainer>> c_exist = IsClassAlreadyExists(var_type);
+	if(!IsValidVariableType(var_type) && c_exist == std::nullopt && !is_pointer)
 	{
 		LOGMSG(error, "Invalid type: {}", var_type);
 		return false;
@@ -151,14 +151,13 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, Cl
 		line_counter = semicolon_pos + 1;
 	}
 
-	if(c_exist)
+	if(c_exist != std::nullopt)
 	{
-		c->members.insert(c->members.begin(), c_exist->members.begin(), c_exist->members.end());
+		c->members.insert(c->members.begin(), c_exist->get()->members.begin(), c_exist->get()->members.end());
 	}
 	else
 	{
-		ClassElement* e = new ClassElement(std::move(var_type), is_pointer, array_size, std::move(var_name), std::move(var_comment));
-		c->members.push_back(e);
+		c->members.push_back(std::make_shared<ClassElement>(std::move(var_type), is_pointer, array_size, std::move(var_name), std::move(var_comment)));
 	}
 
 	DBG("\n");
@@ -191,7 +190,7 @@ size_t FindStructEnd(std::string str_in, size_t& input_len)
 	return ret;
 }
 
-void StructParser::GenerateOffsets(std::string& output, ClassContainer* c, ClassElement* e, size_t& offset)
+void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset)
 {
 	size_t elem_size = e->GetSize();
 	size_t real_size = elem_size + ((c->packing - (elem_size & (c->packing - 1))) & (c->packing - 1));
@@ -203,7 +202,7 @@ void StructParser::GenerateOffsets(std::string& output, ClassContainer* c, Class
 	offset += real_size;
 }
 
-void StructParser::ParseStructure(std::string& input, std::string& output)
+void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing)
 {
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	std::string str_in;
@@ -231,7 +230,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 	}
 	TrimStructure(input, str_in);  /* trim structure to be able to parser it */
 
-	size_t packing = 1;
+	size_t packing = default_packing;
 	size_t struct_start;
 	size_t push_start = 1;
 	size_t pop_end = 0;
@@ -242,9 +241,9 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 	int position = 0;
 	int in_struct = 0;
 	//ClassContainer* p;
-	ClassContainer* old = nullptr;
+	std::shared_ptr<ClassContainer> old = nullptr;
 
-	std::stack<ClassContainer*> pointer_stack;
+	std::stack< std::shared_ptr<ClassContainer>> pointer_stack;
 
 	int try_parse_element = 0;
 	int parse_ok = 0;
@@ -271,13 +270,13 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 			}
 			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack()"), "#pragma pack()"))  /* end */
 			{
-				packing = 1;
+				packing = default_packing;
 				size_t pos = str_in.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
 			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack(pop)"), "#pragma pack(pop)"))  /* end */
 			{
-				packing = 1;
+				packing = default_packing;
 				size_t pos = str_in.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
@@ -301,7 +300,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 				continue;
 			}
 
-			ClassContainer* c = pointer_stack.top();
+			std::shared_ptr<ClassContainer> c = pointer_stack.top();
 			parse_ok = ParseElement(str_in, input_len, c);
 			if(!parse_ok)
 				try_parse_element = 0;
@@ -310,7 +309,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 
 		else if(str_in[input_len] == '}')
 		{
-			ClassContainer* c = pointer_stack.top();
+			std::shared_ptr<ClassContainer> c = pointer_stack.top();
 			if(str_in[input_len + 1] != ';')  /* structure has a name */
 			{
 				size_t pos = str_in.find(";", input_len);
@@ -333,7 +332,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 				classes.push_back(c);
 			else
 			{
-				ClassContainer* prev = pointer_stack.top();
+				std::shared_ptr<ClassContainer> prev = pointer_stack.top();
 				prev->members.push_back(c);
 			}
 			continue;
@@ -344,7 +343,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 			try_parse_element = 1;
 			DBG("struct found %d\n", struct_start);
 			
-			ClassContainer* c = new ClassContainer("", packing);
+			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
 			in_struct++;
 			pointer_stack.push(c);
 
@@ -355,13 +354,13 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 	}
 	// std::vector<std::variant<ClassElement*, ClassContainer*>> members;
 
-	std::stack<ClassContainer*> out_stack;
+	std::stack<std::shared_ptr<ClassContainer>> out_stack;
 	for(auto& c : classes)
 	{
 		output += ":: " + c->type_name + " ::" + "\r\n\r\n";
 
 		size_t offset = 0;
-		ClassContainer* p = c;
+		std::shared_ptr<ClassContainer> p = c;
 		out_stack.push(p);
 		while(p != nullptr)
 		{ 
@@ -369,19 +368,18 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 			auto m = p->members.begin();
 			while(m != p->members.end())
 			{
-				if(std::holds_alternative<ClassElement*>(*m))
+				if(std::holds_alternative<std::shared_ptr<ClassElement>>(*m))
 				{
-					GenerateOffsets(output, c, std::get<ClassElement*>(*m), offset);
-					//++m;
+					GenerateOffsets(output, c, std::get< std::shared_ptr<ClassElement>>(*m), offset);
 					m = p->members.erase(m);
 				}
-				else if(std::holds_alternative<ClassContainer*>(*m))
+				else if(std::holds_alternative< std::shared_ptr<ClassContainer>>(*m))
 				{
-					if(p == std::get<ClassContainer*>(*m))
+					if(p == std::get< std::shared_ptr<ClassContainer>>(*m))
 						DBG("already set\n");
 
-					ClassContainer* p_old = p;
-					p = std::get<ClassContainer*>(*m);
+					std::shared_ptr<ClassContainer> p_old = p;
+					p = std::get<std::shared_ptr<ClassContainer>>(*m);
 					out_stack.push(p);
 					was_container = 1;
 					m = p_old->members.erase(m);
@@ -391,7 +389,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 
 			if(!was_container)
 			{
-				ClassContainer* c = out_stack.top();
+				std::shared_ptr<ClassContainer> c = out_stack.top();
 				out_stack.pop();
 				if(out_stack.empty())
 					p = nullptr;
@@ -405,7 +403,6 @@ void StructParser::ParseStructure(std::string& input, std::string& output)
 
 		output += fmt::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
 	}
-
 
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
@@ -424,26 +421,21 @@ void StructParser::Init()
 	static_assert(sizeof(uint64_t) == 8 && sizeof(int64_t) == 8 && sizeof(double) == 8, "Invalid uint64_t, int64_t or double size");
 
 #ifdef TESTING_PARSER
-	std::string in_str;
 	std::string out_str;
-	
-	std::ifstream in("struct_in.txt", std::ios::in | std::ios::binary);
-	if(in)
+	std::ifstream f("struct_in.txt", std::ios::in | std::ios::binary);
+	if(f.is_open())
 	{
-		in.seekg(0, std::ios::end);
-		in_str.resize(in.tellg());
-		in.seekg(0, std::ios::beg);
-		in.read(&in_str[0], in_str.size());
-		in.close();
-	}
-	try
-	{
-		ParseStructure(in_str, out_str);
-	}
-	catch(std::exception& e)
-	{
-		DBG(e.what());
-		DBG("\n\n");
+		std::string in_str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+		try
+		{
+			ParseStructure(in_str, out_str);
+		}
+		catch(std::exception& e)
+		{
+			DBG(e.what());
+			DBG("\n\n");
+		}
+		f.close();
 	}
 	
 	std::ofstream out("struct_out.txt", std::ofstream::binary);
@@ -454,11 +446,6 @@ void StructParser::Init()
 
 void StructParser::DoCleanup()
 {
-	
-	for(auto i : classes)
-	{
-		delete i;
-	}
 	classes.clear();
 	definitions.clear();
 }

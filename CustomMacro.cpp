@@ -14,6 +14,62 @@
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 
+void CustomMacro::PressKey(std::string key)
+{
+    if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
+    {
+        PrintScreenSaver::Get()->SaveScreenshot();
+        return;
+    }
+    if(PathSeparator::Get()->replace_key == pressed_keys)
+    {
+        PathSeparator::Get()->ReplaceClipboard();
+        return;
+    }
+    if(DirectoryBackup::Get()->backup_key == pressed_keys)
+    {
+        DirectoryBackup::Get()->BackupFiles();
+        return;
+    }
+
+    if(use_per_app_macro)
+    {
+        HWND foreground = GetForegroundWindow();
+        if(foreground)
+        {
+            char window_title[256];
+            GetWindowTextA(foreground, window_title, 256);
+            DBG("Focus: %s\n", window_title);
+            for(auto& m : macros)
+            {
+                if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)
+                {
+                    const auto it = m->key_vec.find(pressed_keys);
+                    if(it != m->key_vec.end())
+                    {
+                        for(const auto& i : it->second)
+                        {
+                            i->DoWrite();
+                        }
+                    }
+                    return; /* Exit from loop */
+                }
+            }
+        }
+    }
+    else
+    {
+        const auto it = macros[0]->key_vec.find(pressed_keys);
+        if(it != macros[0]->key_vec.end())
+        {
+            for(const auto& i : it->second)
+            {
+                i->DoWrite();
+            }
+        }
+    }
+}
+
 void CustomMacro::UartDataReceived(const char* data, unsigned int len)
 {
     KeyData_t* k = (KeyData_t*)data;
@@ -74,59 +130,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
                     pressed_keys += key_str->second;
                 }
             }
-
-            if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
-            {
-                PrintScreenSaver::Get()->SaveScreenshot();
-                return;
-            }
-            if(PathSeparator::Get()->replace_key == pressed_keys)
-            {
-                PathSeparator::Get()->ReplaceClipboard();
-                return;
-            }
-            if(DirectoryBackup::Get()->backup_key == pressed_keys)
-            {
-                DirectoryBackup::Get()->BackupFiles();
-                return;
-            }
-
-            if(use_per_app_macro)
-            {
-                HWND foreground = GetForegroundWindow();
-                if(foreground)
-                {
-                    char window_title[256];
-                    GetWindowTextA(foreground, window_title, 256);
-                    DBG("Focus: %s\n", window_title);
-                    for(auto& m : macros)
-                    {
-                        if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)
-                        {
-                            const auto it = m->key_vec.find(pressed_keys);
-                            if(it != m->key_vec.end())
-                            {
-                                for(const auto& i : it->second)
-                                {
-                                    i->DoWrite();
-                                }
-                            }
-                            return; /* Exit from loop */
-                        }
-                    }
-                }
-            }
-            else
-            {
-                const auto it = macros[0]->key_vec.find(pressed_keys);
-                if(it != macros[0]->key_vec.end())
-                {
-                    for(const auto& i : it->second)
-                    {
-                        i->DoWrite();
-                    }
-                }
-            }
+            PressKey(pressed_keys);
         }
     }
 }
@@ -151,7 +155,7 @@ void CustomMacro::UartReceiveThread(void)
                 LOGMSG(error, "Serial port unexpectedly closed");
                 break;
             }
-            std::this_thread::sleep_for(1ms);
+            std::this_thread::sleep_for(1000ms);
         }
         serial.close();
     }

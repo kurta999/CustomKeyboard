@@ -7,6 +7,8 @@
 #include <vector>
 #include <variant>
 #include <boost/core/noncopyable.hpp>
+#include <memory>
+#include <optional>
 
 const std::unordered_map < std::string, size_t> types =
 {
@@ -36,7 +38,11 @@ public:
 	{
 
 	}
-	
+	~ClassBase()
+	{
+
+	}
+
 public:
 	std::string type_name; /* TODO: improve this in the future, it's waste of memory */
 	bool is_pointer = false;
@@ -107,21 +113,13 @@ public:
 
 	~ClassContainer()
 	{
-		/*
-		for(auto i : elems)
-		{
-			delete *elems;
-		}
-		*/
+
 	}
 
-	std::vector<std::variant<ClassElement*, ClassContainer*>> members;
+	std::vector<std::variant<std::shared_ptr<ClassElement>, std::shared_ptr<ClassContainer>>> members;
 	uint8_t type = 0; /* 0 = elemes, 1 = class */
 	size_t packing = 0;
-	//std::vector<ClassElement*> elems;
-	ClassContainer* prev = nullptr;
-	ClassContainer* next = nullptr;
-	std::vector<ClassContainer*> classes;
+	std::vector<std::shared_ptr<ClassContainer>> classes;
 };
 
 class StructParser : public CSingleton < StructParser >
@@ -129,30 +127,30 @@ class StructParser : public CSingleton < StructParser >
     friend class CSingleton < StructParser >;
 public:
     void Init();
-	void ParseStructure(std::string& input, std::string& output);
+	void ParseStructure(std::string& input, std::string& output, uint32_t default_packing = 1);
 
 private:
 	size_t FindPragmaPack(std::string& input, size_t from, size_t& push_start);
 	size_t FindPragmaPop(std::string& input, size_t from, size_t to);
 	size_t FindPacking(std::string& input, size_t from, size_t& push_start, size_t& pop_end);
 
-	bool ParseElement(std::string& str_in, size_t& line_counter, ClassContainer* c);
-	void GenerateOffsets(std::string& output, ClassContainer* c, ClassElement* e, size_t& offset);
+	bool ParseElement(std::string& str_input, size_t& line_counter, std::shared_ptr<ClassContainer>& c);
+	void GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset);
 
 	void DoCleanup();
 	void TrimStructure(std::string& str_in, std::string& str_out);
 	
 	std::unordered_map<std::string, int32_t> definitions;
-	std::vector<ClassContainer*> classes;  /* all classes in a container */
+	std::vector<std::shared_ptr<ClassContainer>> classes;  /* all classes in a container */
 
-	ClassContainer* IsClassAlreadyExists(std::string& class_name)
+	std::optional<std::shared_ptr<ClassContainer>> IsClassAlreadyExists(std::string& class_name)
 	{
-		for(auto& i : classes)
+		for(auto &i : classes)
 		{
 			if(i->type_name == class_name)
 				return i;
 		}
-		return NULL;
+		return std::nullopt;
 	}
 };
 
