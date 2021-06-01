@@ -163,20 +163,9 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
 void Settings::LoadFile(void)
 {
-    FILE* file = nullptr;
     if(!std::filesystem::exists("settings.ini"))
     {
-        file = fopen("settings.ini", "w");
-        if(file == nullptr)
-        {
-            throw("Shit happend! Press any key to close the application.");
-            return;
-        }
-        fputs("# Settings ini file. Write here the keyboard input keys and the desired outuput. Example:\n", file);
-        fputs("# a = Long string which you don't have to type\n# b = uint8_t\n# c = long string\n# This character is only for comments, don't use it afterwards!\n", file);
-        fputs("[Keys]\n", file);
-        fclose(file);
-        file = nullptr;
+        WriteDefaultIniFile();
     }
 
     boost::property_tree::ptree pt;
@@ -283,4 +272,64 @@ void Settings::LoadFile(void)
 void Settings::Init(void)
 {
     LoadFile();
+}
+
+void Settings::WriteDefaultIniFile()
+{
+    FILE* file = fopen("settings.ini", "w");
+    assert(file);
+    fputs("# Possible macro keywords:\n", file);
+    fputs("# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n", file);
+    fputs("# KEY_SEQ[CTRL+C] = Press all given keys after each other and release it when each was pressed - ideal for key shortcats\n", file);
+    fputs("# DELAY[time in ms] = Waits for given milliseconds\n", file);
+    fputs("# DELAY[min ms - max ms] = Waits randomly between min ms and max ms\n", file);
+    fputs("\n", file);
+    fputs("[Macro_Config]\n", file);
+    fputs("# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n", file);
+    fputs("UsePerApplicationMacros = 1 \n", file);
+    fputs("\n", file);
+    fputs("# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n", file);
+    fputs("UseAdvancedKeyBinding = 1\n", file);
+    fputs("\n", file);
+    fputs("[Keys_Global]\n", file);
+    fputs("NUM_0 = KEY_SEQ[A+B+C]\n", file);
+    fputs("NUM_1 = KEY_TYPE[global macro 1]\n", file);
+    fputs("NUM_2 = KEY_TYPE[uint8_t]\n", file);
+    fputs("NUM_3 = KEY_TYPE[uint16_t]\n", file);
+    fputs("\n", file);
+    fputs("[Keys_Macro1]\n", file);
+    fputs("AppName = Visual Studio\n", file);
+    fputs("RSHIFT+NUM_1 = KEY_TYPE[+]\n", file);
+    fputs("NUM_3 = KEY_SEQ[LCTRL+RSHIFT+A] DELAY[5000] KEY_SEQ[TAB] KEY_TYPE[Src/Teszt mappa] KEY_SEQ[LSHIFT+TAB] KEY_TYPE[fos szöveg amit ide írok] DELAY[2000] KEY_SEQ[ESC]\n", file);
+    fputs("\n", file);
+    fputs("[Config]\n", file);
+    fputs("COM = 5 # Com port for UART where data received from STM32\n", file);
+    fputs("TCP_Port = 2005 # TCP Port for receiving measurements from sensors\n", file);
+    fputs("MinimizeOnExit = 0\n", file);
+    fputs("DefaultPage = 4\n", file);
+    fputs("\n", file);
+    fputs("[Screenshot]\n", file);
+    fputs("ScreenshotKey = F12\n", file);
+    fputs("ScreenshotDateFormat = %Y.%m.%d %H.%M.%S\n", file);
+    fputs("ScreenshotPath = Screenshots\n", file);
+    fputs("\n", file);
+    fputs("[PathSeparator]\n", file);
+    fputs("ReplacePathSeparatorKey = F11\n", file);
+    fputs("\n", file);
+    fputs("[BackupSettings]\n", file);
+    fputs("BackupKey = F10\n", file);
+    fputs("BackupFileFormat = _%Y_%m_%d %H_%M_%S\n", file);
+    fputs("\n", file);
+    fputs("[Backup_1]\n", file);
+    fputs("From = C:\\Users\\Ati\\Desktop\\folder_from_backup\n", file);
+    fputs("To = C:\\Users\\Ati\\Desktop\\folder_where_to_backup|F:\\Backup\\folder_where_to_backup\n", file);
+    fputs("Ignore = git/COMMIT_EDITMSG|.git|.vs|Debug|Release|Screenshots|x64|Graphs/Line Chart|Graphs/Temperature.html|Graphs/Humidity.html|Graphs/CO2.html|Graphs/Lux.html|Graphs/VOC.html|Graphs/CCT.html|Graphs/PM10.html|Graphs/PM25.html\n", file);
+    fputs("MaxBackups = 5\n", file);
+    fputs("\n", file);
+    fputs("[Miner]\n", file);
+    fputs("MinerDirectory = C:\\Users\\Ati\\Desktop\\bin\\n", file);
+    fputs("MinerParameters = miner params here\n", file);
+    fputs("PreStartupMacro = macaro for lowering & restoring OC while generating DAG file\n", file);
+    fclose(file);
+    file = nullptr;
 }

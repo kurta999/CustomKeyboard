@@ -18,6 +18,7 @@ public:
     uint8_t default_page;
 
 private:
+    void WriteDefaultIniFile();
     void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c);
     std::string macro_section;
 };
