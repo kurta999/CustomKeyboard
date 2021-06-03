@@ -47,7 +47,7 @@ void MinerWatchdog::CheckProcessRunning()
         if(!CreateProcessA(std::string(miner_dir + "ethminer.exe").c_str(), const_cast<char*>(miner_params.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
         {
             LOGMSG(error, "CreateProcess failed, error code: {}\n", GetLastError());
-            throw 1;
+            throw std::runtime_error(fmt::format("CreateProcess returned NULL"));
         }
 
         DBG("ok");

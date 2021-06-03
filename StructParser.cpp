@@ -129,7 +129,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 			if(it != definitions.end())
 				array_size = it->second;
 			else
-				throw fmt::format("Invalid definition {}", sub);
+				throw std::runtime_error(fmt::format("Invalid definition {}", sub));
 		}
 		DBG("Array size: %d\n", array_size);
 	}

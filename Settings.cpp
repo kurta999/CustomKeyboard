@@ -173,7 +173,7 @@ void Settings::LoadFile(void)
     {
         boost::property_tree::ini_parser::read_ini("settings.ini", pt);
     }
-    catch(std::exception& e)
+    catch(boost::property_tree::ptree_error& e)
     {
         LOGMSG(error, "exception: {}", e.what());
     }
@@ -263,7 +263,7 @@ void Settings::LoadFile(void)
             ParseMacroKeys(counter, "AFTERBURNER", str, p2);
         }
     }
-    catch(boost::property_tree::ini_parser::ini_parser_error& e)
+    catch(boost::property_tree::ptree_error& e)
     {
         LOGMSG(error, "exception: {}", e.what());
     }

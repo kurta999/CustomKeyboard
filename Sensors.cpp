@@ -155,9 +155,9 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
         out << out_str;
         out.close();
     }
-    catch(std::exception& ex)
+    catch(std::exception& e)
     {
-        DBG("%s", ex.what());
+        DBG("%s", e.what());
     }
 }
 
@@ -168,7 +168,7 @@ void Sensors::Init()
 
     std::ifstream t("Graphs/template.html", std::ifstream::binary);
     if(!t.is_open())
-        throw fmt::format("Missing template.html");
+        throw std::runtime_error(fmt::format("Missing template.html"));
 
     t.seekg(0, std::ios::end);
     size_t size = t.tellg();
