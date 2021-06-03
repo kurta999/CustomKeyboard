@@ -20,66 +20,12 @@ size_t ClassElement::pointer_size = 4;
 #include <fstream>
 #endif
 
-
-size_t StructParser::FindPragmaPack(std::string& input, size_t from, size_t& push_start)
-{
-	size_t packing = 1;
-	size_t pos1 = input.find("#pragma pack(push, ", from);
-	size_t pos2 = input.find("#pragma pack(", from);
-	if(pos1 != std::string::npos && pos2 != std::string::npos)
-	{
-		if(pos1 <= pos2 && input[pos1 + 1] == 'p')
-		{
-			packing = std::stoi(&input[pos1 + std::char_traits<char>::length("#pragma pack(push, ")]);
-			push_start = pos1;
-		}
-		else
-		{
-			packing = std::stoi(&input[pos2 + std::char_traits<char>::length("#pragma pack(")]);
-			push_start = pos2;
-		}
-	}
-	return packing;
-}
-
-size_t StructParser::FindPragmaPop(std::string& input, size_t from, size_t to)
-{
-	size_t packing = 1;
-	size_t pos = input.find("#pragma pack()", from);
-	if(pos != std::string::npos)
-	{
-
-	}
-	else
-	{
-		pos = input.find("#pragma pack(pop, ", from);
-	}
-	return pos;
-}
-
-size_t StructParser::FindPacking(std::string& input, size_t from, size_t& push_start, size_t& pop_end)
-{
-	size_t pack = FindPragmaPack(input, from, push_start);
-	pop_end = FindPragmaPop(input, from, 0);
-	if(pop_end <= push_start)
-	{
-		LOGMSG(error, "Invalid packing format, pop is before push.");
-		pack = 1;
-	}
-	return pack;
-}
-
 size_t FindEndOfHeader(std::string& input)
 {
 	size_t pos_pack = input.find("#pragma pack", 0);
 	size_t pos_struct = input.find("typedef struct", 0);
 	size_t min_pos = std::min(pos_pack, pos_struct);
 	return min_pos;
-}
-
-bool is_number(const std::string& s)
-{
-	return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
 
 bool IsValidVariableType(std::string& type)
@@ -121,7 +67,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	if(array_pos != std::string::npos)
 	{
 		std::string sub = var_name.substr(array_pos + 1, array_pos2 - array_pos - 1);
-		if(is_number(sub))
+		if(utils::is_number(sub))
 			array_size = std::stol(sub);
 		else
 		{
@@ -164,23 +110,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	return true;
 }
 
-namespace utils
-{
-	size_t find_until(std::string& str, std::string& substr, size_t offset)
-	{
-		size_t ret = str.find(substr, offset);
-		if(ret != std::string::npos && ret > offset)
-			ret = std::string::npos;
-		return ret;
-	}
-}
-/*
-size_t FindStructHeader(std::string str_in, size_t offset)
-{
-	size_t struct_begin = 
-	return ret;
-}
-*/
+
 size_t FindStructEnd(std::string str_in, size_t& input_len)
 {
 	bool ret = false;
@@ -202,7 +132,7 @@ void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassCon
 	offset += real_size;
 }
 
-void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing)
+void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing, size_t ptr_size)
 {
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	std::string str_in;
@@ -230,35 +160,17 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 	}
 	TrimStructure(input, str_in);  /* trim structure to be able to parser it */
 
+	ClassElement::pointer_size = ptr_size;
 	size_t packing = default_packing;
 	size_t struct_start;
 	size_t push_start = 1;
-	size_t pop_end = 0;
-	size_t found_packing = FindPacking(str_in, 0, push_start, pop_end);
 	size_t input_len = 0;
-
-
-	int position = 0;
-	int in_struct = 0;
-	//ClassContainer* p;
 	std::shared_ptr<ClassContainer> old = nullptr;
+	std::stack<std::shared_ptr<ClassContainer>> pointer_stack;
 
-	std::stack< std::shared_ptr<ClassContainer>> pointer_stack;
-
-	int try_parse_element = 0;
-	int parse_ok = 0;
+	bool try_parse_element = 0;
 	while(input_len < str_in.length() - 1)
 	{
-#if 0
-		size_t struct_start = 0;
-		if(struct_start > push_start) /* struct_end < pop_end */ 
-			packing = found_packing;
-		else
-			packing = 1;
-
-		if(struct_start > pop_end)  /* Update packing information when whe left last pragma pop in current structure*/
-			found_packing = FindPacking(input, struct_start, push_start, pop_end);
-#endif
 		if(str_in[input_len] == '#')
 		{
 			try_parse_element = 0;
@@ -301,7 +213,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 
 			std::shared_ptr<ClassContainer> c = pointer_stack.top();
-			parse_ok = ParseElement(str_in, input_len, c);
+			bool parse_ok = ParseElement(str_in, input_len, c);
 			if(!parse_ok)
 				try_parse_element = 0;
 			continue;
@@ -344,7 +256,6 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			DBG("struct found %d\n", struct_start);
 			
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
-			in_struct++;
 			pointer_stack.push(c);
 
 			input_len += ((struct_start - input_len)) + strlen("struct");
@@ -352,7 +263,6 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		
 		input_len++;
 	}
-	// std::vector<std::variant<ClassElement*, ClassContainer*>> members;
 
 	std::stack<std::shared_ptr<ClassContainer>> out_stack;
 	for(auto& c : classes)
@@ -501,5 +411,13 @@ void StructParser::TrimStructure(std::string& str_in, std::string& str_out)
 				i += 2;
 			}
 		}
+	}
+}
+
+namespace utils
+{
+	bool is_number(const std::string& s)
+	{
+		return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 	}
 }

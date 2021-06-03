@@ -127,13 +127,9 @@ class StructParser : public CSingleton < StructParser >
     friend class CSingleton < StructParser >;
 public:
     void Init();
-	void ParseStructure(std::string& input, std::string& output, uint32_t default_packing = 1);
+	void ParseStructure(std::string& input, std::string& output, uint32_t default_packing = 1, size_t ptr_size = 4);
 
 private:
-	size_t FindPragmaPack(std::string& input, size_t from, size_t& push_start);
-	size_t FindPragmaPop(std::string& input, size_t from, size_t to);
-	size_t FindPacking(std::string& input, size_t from, size_t& push_start, size_t& pop_end);
-
 	bool ParseElement(std::string& str_input, size_t& line_counter, std::shared_ptr<ClassContainer>& c);
 	void GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset);
 
@@ -154,3 +150,7 @@ private:
 	}
 };
 
+namespace utils
+{
+	bool is_number(const std::string& s);
+}

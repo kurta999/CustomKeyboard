@@ -37,49 +37,55 @@ void MinerWatchdog::DeleteHandles()
 
 void MinerWatchdog::CheckProcessRunning()
 {
-    BOOL ok = TRUE;
-    bool ret = utils::IsProcessRunning(L"ethminer.exe");
-    if(!ret)
+    if(!miner_dir.empty())
     {
-        DeleteHandles();
-
-        remove(std::string(miner_dir + "log.txt").c_str());
-        if(!CreateProcessA(std::string(miner_dir + "ethminer.exe").c_str(), const_cast<char*>(miner_params.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+        BOOL ok = TRUE;
+        bool ret = utils::IsProcessRunning(L"ethminer.exe");
+        if(!ret)
         {
-            LOGMSG(error, "CreateProcess failed, error code: {}\n", GetLastError());
-            throw std::runtime_error(fmt::format("CreateProcess returned NULL"));
+            DeleteHandles();
+
+            remove(std::string(miner_dir + "log.txt").c_str());
+            if(!CreateProcessA(std::string(miner_dir + "ethminer.exe").c_str(), const_cast<char*>(miner_params.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+            {
+                LOGMSG(error, "CreateProcess failed, error code: {}\n", GetLastError());
+                throw std::runtime_error(fmt::format("CreateProcess returned NULL"));
+            }
+
+            DBG("ok");
+
+            //CustomMacro::Get()->PressKey(std::string("AFTERBURNER"));
         }
-
-        DBG("ok");
-
-        //CustomMacro::Get()->PressKey(std::string("AFTERBURNER"));
     }
 }
 
 void MinerWatchdog::CheckOverclockErrors()
 {
-    std::stringstream ss;
-    std::ifstream f(std::string(miner_dir + "log.txt"), std::ios::in | std::ios::binary);
-    if(f.is_open())
+    if(!miner_dir.empty())
     {
-        ss << f.rdbuf();
-        f.close();
-
-        std::string const& s = ss.str();
-        if(s.size() % sizeof(wchar_t) != 0)
+        std::stringstream ss;
+        std::ifstream f(std::string(miner_dir + "log.txt"), std::ios::in | std::ios::binary);
+        if(f.is_open())
         {
-            std::cerr << "file not the right size\n";
-            return;
-        }
-        std::wstring ws;
-        ws.resize(s.size() / sizeof(wchar_t));
-        std::memcpy(&ws[0], s.c_str(), s.size());
+            ss << f.rdbuf();
+            f.close();
 
-        std::vector<std::string> result;
-        boost::algorithm::find_all(result, ws, "block");
-        if(result.size() > 10)
-        {
-            utils::KillProcessByName(L"ethimer.exe");
+            std::string const& s = ss.str();
+            if(s.size() % sizeof(wchar_t) != 0)
+            {
+                std::cerr << "file not the right size\n";
+                return;
+            }
+            std::wstring ws;
+            ws.resize(s.size() / sizeof(wchar_t));
+            std::memcpy(&ws[0], s.c_str(), s.size());
+
+            std::vector<std::string> result;
+            boost::algorithm::find_all(result, ws, "block");
+            if(result.size() > 10)
+            {
+                utils::KillProcessByName(L"ethimer.exe");
+            }
         }
     }
 }

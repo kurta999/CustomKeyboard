@@ -93,5 +93,7 @@ void DirectoryBackup::Init()
 
 void DirectoryBackup::BackupFiles()
 {
+	if(backup_future.valid())
+		backup_future.get();
 	backup_future = std::async(&DirectoryBackup::DoBackup, this);
 }

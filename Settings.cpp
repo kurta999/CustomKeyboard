@@ -254,13 +254,21 @@ void Settings::LoadFile(void)
         if(default_page > 5)
             default_page = 5;
 
-        MinerWatchdog::Get()->miner_dir = std::move(pt.get_child("Miner").find("MinerDirectory")->second.data());
-        MinerWatchdog::Get()->miner_params = std::move(pt.get_child("Miner").find("MinerParameters")->second.data());
-        if(!pt.get_child("Miner").find("PreStartupMacro")->second.data().empty())
+        if(std::stoi(pt.get_child("Miner").find("Enable")->second.data()) != 0)
         {
-            std::unique_ptr<MacroContainer> p2 = std::make_unique<MacroContainer>();
-            std::string& str = pt.get_child("Miner").find("PreStartupMacro")->second.data();
-            ParseMacroKeys(counter, "AFTERBURNER", str, p2);
+            MinerWatchdog::Get()->miner_dir = std::move(pt.get_child("Miner").find("MinerDirectory")->second.data());
+            MinerWatchdog::Get()->miner_params = std::move(pt.get_child("Miner").find("MinerParameters")->second.data());
+            if(!pt.get_child("Miner").find("PreStartupMacro")->second.data().empty())
+            {
+                std::unique_ptr<MacroContainer> p2 = std::make_unique<MacroContainer>();
+                std::string& str = pt.get_child("Miner").find("PreStartupMacro")->second.data();
+                ParseMacroKeys(counter, "AFTERBURNER", str, p2);
+            }
+        }
+        else
+        {
+            MinerWatchdog::Get()->miner_dir.clear();
+            MinerWatchdog::Get()->miner_params.clear();
         }
     }
     catch(boost::property_tree::ptree_error& e)

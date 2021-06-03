@@ -472,7 +472,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 
 			assert(m_PointerSize->GetSelection() < 4);
 
-			int pointer_size = pointer_sizes[m_PointerSize->GetSelection()];
+			size_t pointer_size = pointer_sizes[m_PointerSize->GetSelection()];
 			int struct_padding = m_StructurePadding->GetValue();
 
 			wxString str = m_StyledTextCtrl->GetText();
@@ -495,7 +495,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			std::string output;
 			try
 			{
-				StructParser::Get()->ParseStructure(input, output, struct_padding);
+				StructParser::Get()->ParseStructure(input, output, struct_padding, pointer_size);
 			}
 			catch(std::exception& e)
 			{
