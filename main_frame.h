@@ -93,7 +93,7 @@ private:
 };
 
 
-class NotificationIcon;
+class TrayIcon;
 
 class MyFrame : public wxFrame
 {
@@ -126,7 +126,7 @@ public:
 	wxDECLARE_EVENT_TABLE();
 private:
 	wxIcon applicationIcon;
-	NotificationIcon* notification;
+	TrayIcon* tray;
 	wxAuiManager m_mgr;
 	wxTimer* m_timer;
 	wxTimer* m_octimer;

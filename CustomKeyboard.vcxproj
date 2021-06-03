@@ -191,7 +191,7 @@
     <ClInclude Include="PathSeparator.h" />
     <ClInclude Include="PrintScreenSaver.h" />
     <ClInclude Include="Sensors.h" />
-    <ClInclude Include="Notification.h" />
+    <ClInclude Include="TrayIcon.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Session.h" />
@@ -224,7 +224,7 @@
     <ClCompile Include="PathSeparator.cpp" />
     <ClCompile Include="PrintScreenSaver.cpp" />
     <ClCompile Include="Sensors.cpp" />
-    <ClCompile Include="Notification.cpp" />
+    <ClCompile Include="TrayIcon.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Settings.cpp" />

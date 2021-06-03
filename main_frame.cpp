@@ -29,7 +29,7 @@
 
 #include<boost/algorithm/string.hpp>
 
-#include "Notification.h"
+#include "TrayIcon.h"
 #include "StructParser.h"
 #include "MinerWatchdog.h"
 
@@ -150,7 +150,7 @@ void MyFrame::OnOverlockErrorCheck(wxTimerEvent& event)
 
 void MyFrame::SetIconTooltip(const wxString &str)
 {
-	if(!notification->SetIcon(wxIcon(wxT("aaaa")), str))
+	if(!tray->SetIcon(wxIcon(wxT("aaaa")), str))
 	{
 		wxLogError("Could not set icon.");
 	}
@@ -170,8 +170,8 @@ MyFrame::MyFrame(const wxString& title)
 	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition,
 		wxSize(WINDOW_SIZE_X, WINDOW_SIZE_Y))
 {
-	notification = new NotificationIcon();
-	notification->SetMainFrame(this);
+	tray = new TrayIcon();
+	tray->SetMainFrame(this);
 	SetIconTooltip(wxT("No measurements"));
 	
 	m_mgr.SetManagedWindow(this);

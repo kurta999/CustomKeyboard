@@ -335,6 +335,7 @@ void Settings::WriteDefaultIniFile()
     fputs("MaxBackups = 5\n", file);
     fputs("\n", file);
     fputs("[Miner]\n", file);
+    fputs("Enable = 1\n", file);
     fputs("MinerDirectory = C:\\Users\\Ati\\Desktop\\bin\\n", file);
     fputs("MinerParameters = miner params here\n", file);
     fputs("PreStartupMacro = macaro for lowering & restoring OC while generating DAG file\n", file);
