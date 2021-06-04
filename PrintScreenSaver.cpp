@@ -52,6 +52,7 @@ void PrintScreenSaver::DoSave()
     BitmapFileHeader.bfType = 0x4D42;
     BitmapFileHeader.bfSize = (DWORD)TotalBitmapFileSize; // Will fail if bitmap size is nonstandard >4GB
     BitmapFileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + PixelDataOffset;
+    CloseClipboard();
 
     char buf[max_timestamp_len];
     FormatTimestamp(buf, max_timestamp_len);

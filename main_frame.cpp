@@ -27,7 +27,7 @@
 #include "wx/generic/notifmsg.h"
 #include <wx/filepicker.h>
 
-#include<boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "TrayIcon.h"
 #include "StructParser.h"
@@ -36,12 +36,15 @@
 #include <boost/algorithm/string.hpp>
 #include <assert.h>
 
+#include <shellapi.h>
+
 constexpr int WINDOW_SIZE_X = 800;
 constexpr int WINDOW_SIZE_Y = 600;
 
 enum
 {
-	ID_Hello = 1,
+	ID_Help = 1,
+	ID_About,
 	ID_Quit,
 	ID_UpdateMousePosText,
 	ID_OCTimer,
@@ -49,7 +52,8 @@ enum
 };
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_MENU(ID_Hello, MyFrame::OnHelp)
+EVT_MENU(ID_Help, MyFrame::OnHelp)
+EVT_MENU(ID_About, MyFrame::OnAbout)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -79,6 +83,32 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 {
 	wxMessageBox("This is a simple program which made for improving my coding experience.\n\
 		Feel free to re(use) it in any way what you want.", "Help");
+}
+
+void MyFrame::OnAbout(wxCommandEvent& event)
+{
+	wxMessageBox("CustomKeyboard\n\n\
+MIT License\n\
+\n\
+Copyright (c) 2021 kurta999\n\
+\n\
+Permission is hereby granted, free of charge, to any person obtaining a copy\n\
+of this software and associated documentation files (the \"Software\"), to deal\n\
+in the Software without restriction, including without limitation the rights\n\
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\
+copies of the Software, and to permit persons to whom the Software is\n\
+furnished to do so, subject to the following conditions:\n\
+\n\
+The above copyright notice and this permission notice shall be included in all\n\
+copies or substantial portions of the Software.\n\
+\n\
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\
+SOFTWARE.", "OK");
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
@@ -116,30 +146,7 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			}
 		}
 	}
-
-	mtx.lock();
-	if(std::get<0>(backup_result) != 0)
-	{
-		switch(std::get<0>(backup_result))
-		{
-			case 1:
-			{
-				int64_t time_elapsed = std::get<0>(backup_result);
-				size_t file_count = std::get<1>(backup_result);
-				ShowNotificaiton("Backup complete", wxString::Format("Backed up %d files in %.3fms", file_count, (double)time_elapsed / 1000000.0));
-				std::get<0>(backup_result) = 0;
-				break;
-			}
-			case 2:
-			{
-				int64_t time_elapsed = std::get<0>(backup_result);
-				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0));
-				std::get<0>(backup_result) = 0;
-				break;
-			}
-		}
-	}
-	mtx.unlock();
+	HandleNotifications();
 }
 
 void MyFrame::OnOverlockErrorCheck(wxTimerEvent& event)
@@ -147,23 +154,12 @@ void MyFrame::OnOverlockErrorCheck(wxTimerEvent& event)
 	MinerWatchdog::Get()->CheckOverclockErrors();
 }
 
-
 void MyFrame::SetIconTooltip(const wxString &str)
 {
 	if(!tray->SetIcon(wxIcon(wxT("aaaa")), str))
 	{
 		wxLogError("Could not set icon.");
 	}
-}
-
-void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout)
-{
-	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, wxICON_INFORMATION);
-	m_notif->Show(timeout);
-	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, [this](wxCommandEvent& event)
-		{
-			DBG("click");
-		});
 }
 
 MyFrame::MyFrame(const wxString& title)
@@ -177,7 +173,8 @@ MyFrame::MyFrame(const wxString& title)
 	m_mgr.SetManagedWindow(this);
 
 	wxMenu* menuFile = new wxMenu;
-	menuFile->Append(ID_Hello, "&Read help\tCtrl-H", "Read description about this program");
+	menuFile->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program");
+	menuFile->Append(ID_About, "&About", "Read license");
 	menuFile->Append(wxID_EXIT);
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(wxID_ABOUT);
@@ -553,4 +550,46 @@ LogPanel::LogPanel(wxFrame* parent)
 		{
 			m_Log->Clear();
 		});
+}
+
+void MyFrame::HandleNotifications()
+{
+	mtx.lock();
+	if(std::get<0>(backup_result) != 0)
+	{
+		switch(std::get<0>(backup_result))
+		{
+		case 1:
+		{
+			int64_t time_elapsed = std::get<1>(backup_result);
+			size_t file_count = std::get<2>(backup_result);
+			ShowNotificaiton("Backup complete", wxString::Format("Backed up %d files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 3000, [this](wxCommandEvent& event)
+				{
+
+				});
+			break;
+		}
+		case 2:
+		{
+			int64_t time_elapsed = std::get<1>(backup_result);
+			ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 3000, [this](wxCommandEvent& event)
+				{
+					char work_dir[256];
+					GetCurrentDirectoryA(sizeof(work_dir), work_dir);
+					strncat(work_dir, "\\Screenshots", 12);
+					ShellExecuteA(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
+				});
+			std::get<0>(backup_result) = 0;
+			break;
+		}
+		}
+	}
+	mtx.unlock();
+}
+
+template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr)
+{
+	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, wxICON_INFORMATION);
+	m_notif->Show(timeout);
+	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, fptr);
 }

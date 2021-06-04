@@ -106,12 +106,12 @@ public:
 	}
 
 	void OnHelp(wxCommandEvent& event);
+	void OnAbout(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnOverlockErrorCheck(wxTimerEvent& event);
 
 	void SetIconTooltip(const wxString& str);
-	void ShowNotificaiton(const wxString& title, const wxString& message, int timeout = 3);
 
 	MainPanel* main_panel;
 	GraphPanel* graph_panel;
@@ -125,6 +125,9 @@ public:
 
 	wxDECLARE_EVENT_TABLE();
 private:
+	void HandleNotifications();
+	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr);
+
 	wxIcon applicationIcon;
 	TrayIcon* tray;
 	wxAuiManager m_mgr;
