@@ -20,7 +20,7 @@ bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, cha
 bool Database::Open(void)
 {
     rc = sqlite3_open("test.db", &db);  /* Open database */
-    if(!rc)
+    if(rc != SQLITE_OK)
         LOGMSG(error, "Can't open database: {}", sqlite3_errmsg(db));
     return rc == 0;
 }
