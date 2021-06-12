@@ -217,6 +217,7 @@ void Settings::LoadFile(void)
         CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
         Server::Get()->tcp_port = static_cast<uint16_t>(std::stoi(pt.get_child("Config").find("TCP_Port")->second.data()));
         minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("Config").find("MinimizeOnExit")->second.data()) != 0);
+        minimize_on_startup = static_cast<bool>(std::stoi(pt.get_child("Config").find("MinimizeOnStartup")->second.data()) != 0);
         default_page = static_cast<uint8_t>(std::stoi(pt.get_child("Config").find("DefaultPage")->second.data()));
         PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
@@ -314,6 +315,7 @@ void Settings::WriteDefaultIniFile()
     fputs("COM = 5 # Com port for UART where data received from STM32\n", file);
     fputs("TCP_Port = 2005 # TCP Port for receiving measurements from sensors\n", file);
     fputs("MinimizeOnExit = 0\n", file);
+    fputs("MinimizeOnStartup = 0\n", file);
     fputs("DefaultPage = 4\n", file);
     fputs("\n", file);
     fputs("[Screenshot]\n", file);

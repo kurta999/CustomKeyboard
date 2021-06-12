@@ -15,6 +15,7 @@ public:
     void Init(void);
     void LoadFile();
     bool minimize_on_exit;
+    bool minimize_on_startup;
     uint8_t default_page;
 
 private:

@@ -41,7 +41,6 @@ bool MyApp::OnInit()
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
-    frame->Show(true);
     SetTopWindow(frame);
     return true;
 }

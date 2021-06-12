@@ -213,6 +213,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->Thaw();
 
 	ctrl->SetSelection(Settings::Get()->default_page);
+	Show(!Settings::Get()->minimize_on_startup);
 
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
