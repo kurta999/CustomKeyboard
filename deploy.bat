@@ -22,7 +22,7 @@ ECHO 4.) Export x64 Release
 ECHO 5.) Build x86 Debug
 ECHO 6.) Build x86 Release
 ECHO 7.) Build x64 Debug
-ECHO 8.) Build x64 Debug
+ECHO 8.) Build x64 Release
 
 SET /P UserInput=Enter your choice 
 SET /A TestVal="%UserInput%"*1
@@ -39,34 +39,34 @@ IF %TestVal%==%UserInput% (
 	ECHO Debug x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 2 (
-	copy /y Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y Debug\wxbase315u_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315u_vc_custom.dll
-    copy /y Debug\wxmsw315u_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_custom.dll
-    copy /y Debug\wxmsw315u_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_custom.dll
-    copy /y Debug\wxmsw315u_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_custom.dll
+	copy /y Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
+    copy /y Release\wxbase315u_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315u_vc_custom.dll
+    copy /y Release\wxmsw315u_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_custom.dll
+    copy /y Release\wxmsw315u_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_custom.dll
+    copy /y Release\wxmsw315u_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Release x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 3 (
-	copy /y Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y Debug\wxbase315ud_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315ud_vc_x64_custom.dll
-    copy /y Debug\wxmsw315ud_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_aui_vc_x64_custom.dll
-    copy /y Debug\wxmsw315ud_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_core_vc_x64_custom.dll
-    copy /y Debug\wxmsw315ud_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_stc_vc_x64_custom.dll
+	copy /y x64\Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
+    copy /y x64\Debug\wxbase315ud_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315ud_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw315ud_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_aui_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw315ud_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_core_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw315ud_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_stc_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Debug x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
    ) ELSE IF %TestVal% == 4 (
-	copy /y Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y Debug\wxbase315u_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315u_vc_x64_custom.dll
-    copy /y Debug\wxmsw315u_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_x64_custom.dll
-    copy /y Debug\wxmsw315u_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_x64_custom.dll
-    copy /y Debug\wxmsw315u_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_x64_custom.dll
+	copy /y x64\Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
+    copy /y x64\Release\wxbase315u_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase315u_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw315u_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw315u_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw315u_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
-	ECHO Debug x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
+	ECHO Release x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 5 (
 	CD /D %MSBUILD_LOC%
