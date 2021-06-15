@@ -17,12 +17,14 @@ void PathSeparator::ReplaceClipboard()
 			HGLOBAL clipbuffer;
 			EmptyClipboard();
 			clipbuffer = GlobalAlloc(GMEM_DDESHARE, input.length() + 1);
-			char* buffer = static_cast<char*>(GlobalLock(clipbuffer));
-			if(buffer)
-				strncpy(buffer, input.c_str(), input.length() + 1);
-
-			GlobalUnlock(clipbuffer);
-			SetClipboardData(CF_TEXT, clipbuffer);
+			if(clipbuffer)
+			{
+				char* buffer = static_cast<char*>(GlobalLock(clipbuffer));
+				if(buffer)
+					strncpy(buffer, input.c_str(), input.length() + 1);
+				GlobalUnlock(clipbuffer);
+				SetClipboardData(CF_TEXT, clipbuffer);
+			}
 		}
 		CloseClipboard();
 	}

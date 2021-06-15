@@ -85,6 +85,7 @@ public:
         {
             std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}:{} - {}] {}", *current_tm, filename, line, function, formatted_msg);
             fwrite(str_file.c_str(), 1, str_file.length(), fLog);
+            fwrite("\n", 1, 1, fLog);
             fflush(fLog);
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -110,6 +111,6 @@ private:
         OutputDebugStringW(__debug_format_str); \
     }
 #else
-#define DBG(str, ...) 
-#define DBGW(str, ...) 
+#define DBG(str, ...)
+#define DBGW(str, ...)
 #endif

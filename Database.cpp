@@ -1,8 +1,10 @@
 #include "Database.h"
 #include "Sensors.h"
 #include "boost/lexical_cast.hpp"
+#include <memory>
 
-int constexpr one_week_seconds = 60 * 60 * 24 * 7;
+int constexpr one_day_seconds = 60 * 60 * 24;
+int constexpr one_week_seconds = one_day_seconds * 7;
 
 bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, char**))
 {
@@ -36,33 +38,49 @@ void Database::SendQuery(std::string&& query, void(Database::*execute_function)(
     }
 }
 
-void Database::Init()
+void Database::DoGenerateGraphs()
 {
     bool is_open = Open();
     if(!is_open)
         return;
     
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    for(int i = 0; i != std::size(Sensors::Get()->last_day); i++)
+    {
+        Sensors::Get()->last_day[i].clear();
+        Sensors::Get()->last_week[i].clear();
+    }
     SendQuery(fmt::format("SELECT* FROM(SELECT rowid, sensor_id, temp, hum, co2, voc, pm25, pm10, lux, cct, strftime('%H:%M:%S', time, 'unixepoch') as date_time FROM data ORDER BY rowid DESC LIMIT {}) ORDER BY rowid ASC", MAX_MEAS_QUEUE), &Database::Query_Latest, 0);
-    SendQuery(fmt::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- 3600)) GROUP BY grp", MAX_MEAS_QUEUE), &Database::Query_MeasFromPast, 1);
-    SendQuery(fmt::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_week_seconds), &Database::Query_MeasFromPast, 2);
+    SendQuery(fmt::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_day_seconds), &Database::Query_MeasFromPast, 1);
+    SendQuery(fmt::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%d. %H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_week_seconds), &Database::Query_MeasFromPast, 2);
 
-    SendQuery(fmt::format("SELECT MAX(temp), MAX(hum), MAX(co2), MAX(voc), MAX(pm25), MAX(pm10), MAX(lux), MAX(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- 3600)) GROUP BY grp", MAX_MEAS_QUEUE), &Database::Query_MeasFromPast, 3);
+    SendQuery(fmt::format("SELECT MAX(temp), MAX(hum), MAX(co2), MAX(voc), MAX(pm25), MAX(pm10), MAX(lux), MAX(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_day_seconds), &Database::Query_MeasFromPast, 3);
     SendQuery(fmt::format("SELECT MAX(temp), MAX(hum), MAX(co2), MAX(voc), MAX(pm25), MAX(pm10), MAX(lux), MAX(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_week_seconds), &Database::Query_MeasFromPast, 4);
 
-    SendQuery(fmt::format("SELECT MIN(temp), MIN(hum), MIN(co2), MIN(voc), MIN(pm25), MIN(pm10), MIN(lux), MIN(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- 3600)) GROUP BY grp", MAX_MEAS_QUEUE), &Database::Query_MeasFromPast, 5);
+    SendQuery(fmt::format("SELECT MIN(temp), MIN(hum), MIN(co2), MIN(voc), MIN(pm25), MIN(pm10), MIN(lux), MIN(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_day_seconds), &Database::Query_MeasFromPast, 5);
     SendQuery(fmt::format("SELECT MIN(temp), MIN(hum), MIN(co2), MIN(voc), MIN(pm25), MIN(pm10), MIN(lux), MIN(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, one_week_seconds), &Database::Query_MeasFromPast, 6);
     Sensors::Get()->WriteGraphs();
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-    std::string elapsed_str = fmt::format("Executing 7 query took {:.6f} ms\n", (double)dif / 1000000.0);
+    std::string elapsed_str = fmt::format("Executing 7 query took {:.6f} ms", (double)dif / 1000000.0);
     LOGMSG(notification, elapsed_str.c_str());
     sqlite3_close(db);
+    time(&last_db_update);
 }
 
-void Database::InsertMeasurement(std::shared_ptr<Measurement> &m)
+void Database::GenerateGraphs()
 {
+    if(graph_future.valid())
+        graph_future.get();
+    graph_future = std::async(&Database::DoGenerateGraphs, this);
+}
+
+void Database::InsertMeasurement(std::unique_ptr<Measurement> &m)
+{
+    if(graph_future.valid())  /* wait for generating to complete to avoid data races */
+        graph_future.get();
+
     bool is_open = Open();
     if(is_open)
     {
@@ -111,8 +129,8 @@ void Database::Query_Latest(sqlite3_stmt* stmt, std::any param)
         int cct = sqlite3_column_int(stmt, 9);
         std::string time = std::string((const char*)sqlite3_column_text(stmt, 10));
 
-        std::shared_ptr<Measurement> m = std::make_shared<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time));
-        Sensors::Get()->AddMeasurement(m);
+        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time));
+        Sensors::Get()->AddMeasurement(std::move(m));
     }
 }
 
@@ -143,7 +161,7 @@ void Database::Query_MeasFromPast(sqlite3_stmt* stmt, std::any param)
         int cct = sqlite3_column_int(stmt, 7);
         std::string time = std::string((const char*)sqlite3_column_text(stmt, 8));
 
-        std::shared_ptr<Measurement> m = std::make_shared<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time));
+        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time));
         switch(type)
         {
             case 1:

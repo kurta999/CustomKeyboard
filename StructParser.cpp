@@ -57,7 +57,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	std::optional<std::shared_ptr<ClassContainer>> c_exist = IsClassAlreadyExists(var_type);
 	if(!IsValidVariableType(var_type) && c_exist == std::nullopt && !is_pointer)
 	{
-		LOGMSG(error, "Invalid type: {}", var_type);
+		//LOGMSG(error, "Invalid type: {}", var_type);
 		return false;
 	}
 
@@ -77,7 +77,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 			else
 				throw std::runtime_error(fmt::format("Invalid definition {}", sub));
 		}
-		DBG("Array size: %d\n", array_size);
+		DBG("Array size: %zu\n", array_size);
 	}
 
 	size_t doxygen_style_comment_start = str_in.find_first_of("/**<", semicolon_pos);
@@ -253,7 +253,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		if((struct_start = str_in.find("struct{", input_len)) != std::string::npos && !try_parse_element)
 		{
 			try_parse_element = 1;
-			DBG("struct found %d\n", struct_start);
+			DBG("struct found %zu\n", struct_start);
 			
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
 			pointer_stack.push(c);
@@ -286,7 +286,9 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 				else if(std::holds_alternative< std::shared_ptr<ClassContainer>>(*m))
 				{
 					if(p == std::get< std::shared_ptr<ClassContainer>>(*m))
+					{
 						DBG("already set\n");
+					}
 
 					std::shared_ptr<ClassContainer> p_old = p;
 					p = std::get<std::shared_ptr<ClassContainer>>(*m);
@@ -383,7 +385,7 @@ void StructParser::TrimStructure(std::string& str_in, std::string& str_out)
 
 			if(x > 1)
 			{
-				DBG("spaces: %d\n", x);
+				DBG("spaces: %zu\n", x);
 				i += (x - 1);
 			}
 			str_out.append(" ");

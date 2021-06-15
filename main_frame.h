@@ -16,6 +16,7 @@ public:
 	MainPanel(wxFrame* parent);
 
 	wxButton* m_RefreshButton = nullptr;
+	wxButton* m_GenerateGraphs = nullptr;
 	wxStaticText* m_textTemp;
 	wxStaticText* m_textHum;
 	wxStaticText* m_textCO2;
@@ -24,6 +25,7 @@ public:
 	wxStaticText* m_textPM10;
 	wxStaticText* m_textLux;
 	wxStaticText* m_textCCT;
+	wxStaticText* m_textTime;
 private:
 
 	wxDECLARE_EVENT_TABLE();
@@ -107,6 +109,7 @@ public:
 
 	void OnHelp(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
+	void OnQuit(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnOverlockErrorCheck(wxTimerEvent& event);

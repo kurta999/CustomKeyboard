@@ -72,15 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Platform)\$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Platform)\$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -88,7 +92,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\libs\wxCharts\include;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -111,7 +115,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\utils\wxCharts\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -133,7 +137,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\utils\wxCharts\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_76_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -151,17 +155,24 @@
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_x64_dll;C:\Program Files\boost\boost_1_76_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_core.lib;wxmsw31u_aui.lib;wxmsw31u_stc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll;C:\wxWidgets-3.1.5\lib\vc_x64_lib;C:\Program Files\boost\boost_1_76_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_x64_lib</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CSingleton.h" />
@@ -209,12 +220,16 @@
     <ClCompile Include="libs\fmt\os.cc" />
     <ClCompile Include="libs\lodepng\lodepng.cpp">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="libs\sqlite\shell.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="libs\sqlite\sqlite3.c">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>

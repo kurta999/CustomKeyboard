@@ -5,6 +5,7 @@
 #include <queue>
 #include <fstream>
 #include <iterator>
+#include <memory>
 
 #include <fmt/format.h>
 
@@ -21,11 +22,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
         time(&current_time);
         current_tm = localtime(&current_time);
         
-        std::shared_ptr<Measurement> m = std::make_shared<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(fmt::format("{:%H:%M:%S}", *current_tm)));
-        Database::Get()->InsertMeasurement(m);
-        AddMeasurement(m);
-        WriteGraphs();
-
+        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(fmt::format("{:%H:%M:%S}", *current_tm)));
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
         {
@@ -37,8 +34,16 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
             frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), m->pm10));
             frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), m->lux));
             frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), m->cct));
+            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), fmt::format("{:%Y.%m.%d %H:%M:%S}", *current_tm)));
             frame->SetIconTooltip(wxString::Format(wxT("T: %.2f, H: %.2f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
         }
+
+        Database::Get()->InsertMeasurement(m);
+        AddMeasurement(std::move(m));
+        if(current_time - Database::Get()->last_db_update > 10 * 60)  /* 10 minutes */
+            Database::Get()->GenerateGraphs();
+        else
+            WriteGraphs();
     }
     else
     {
@@ -46,9 +51,9 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     }
 }
 
-template<typename T> T GetValueFromDequeue(std::shared_ptr<Measurement> meas, int offset)
+template<typename T> T GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset)
 {
-    T retval = *(T*)((DWORD)meas.get() + (char)offset);
+    T retval = *(T*)(((char*)meas.get() + (char)offset));
     return retval;
 }
 
@@ -66,6 +71,7 @@ void Sensors::WriteGraphs()
 
 template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
 {
+    std::scoped_lock lock(mtx);
     std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
    
     std::string labels_time_last;
@@ -74,6 +80,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     std::string data_day[3];
     std::string labels_time_week[3];
     std::string data_week[3];
+    
     for(const auto& it : last_meas)
     {
         labels_time_last += "'" + it->time + "',";
@@ -138,7 +145,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
         T1 val = GetValueFromDequeue<T1>(it, offset_1);
         data_week[2] += std::to_string(val) + ",";
     }
-
+    
     try
     {
         std::string out_str = std::move(fmt::format(template_str, min_val, max_val,

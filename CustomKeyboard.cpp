@@ -33,10 +33,10 @@ bool MyApp::OnInit()
     CustomMacro::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
-    Database::Get()->Init();
     StructParser::Get()->Init();
     PrintScreenSaver::Get()->Init();
     DirectoryBackup::Get()->Init();
+    Database::Get()->GenerateGraphs();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");

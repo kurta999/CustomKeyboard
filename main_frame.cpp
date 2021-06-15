@@ -54,6 +54,7 @@ enum
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 EVT_MENU(ID_Help, MyFrame::OnHelp)
 EVT_MENU(ID_About, MyFrame::OnAbout)
+EVT_MENU(ID_Quit, MyFrame::OnQuit)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -109,6 +110,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\
 SOFTWARE.", "OK");
+}
+
+void MyFrame::OnQuit(wxCommandEvent& event)
+{
+	wxExit();
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
@@ -173,26 +179,18 @@ MyFrame::MyFrame(const wxString& title)
 	m_mgr.SetManagedWindow(this);
 
 	wxMenu* menuFile = new wxMenu;
-	menuFile->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program");
-	menuFile->Append(ID_About, "&About", "Read license");
-	menuFile->Append(wxID_EXIT);
+	menuFile->Append(ID_Quit, "E&xit\tCtrl-E");
 	wxMenu* menuHelp = new wxMenu;
-	menuHelp->Append(wxID_ABOUT);
+	menuHelp->Append(ID_About, "&About\tCtrl-A", "Read license");
+	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program");
 	wxMenuBar* menuBar = new wxMenuBar;
 	menuBar->Append(menuFile, "&File");
+	menuBar->Append(menuHelp, "&Help");
 	SetMenuBar(menuBar);
-	
-	wxMenu* menu = new wxMenu;
 
-	menu->AppendSeparator();
-	menu->Append(ID_Quit, _("E&xit"));
-
-	wxMenuBar* menuBar_ = new wxMenuBar;
-	menuBar_->Append(menu, _("&File"));
-
-	SetMenuBar(menuBar);
 	CreateStatusBar();
-	SetStatusText("Welcome in CustomKeyboard");
+	wxString platform = (sizeof(void*) == 4 ? "x86" : "x64");
+	SetStatusText("CustomKeyboard " + platform);
 
 	main_panel = new MainPanel(this);
 	graph_panel = new GraphPanel(this);
@@ -233,11 +231,19 @@ MainPanel::MainPanel(wxFrame* parent)
 	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
 	m_RefreshButton->SetToolTip("Request new measurements");
 	bSizer1->Add(m_RefreshButton, 0, wxALL, 5);
-	
 	m_RefreshButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
 		});
+
+	m_GenerateGraphs = new wxButton(this, wxID_ANY, wxT("Generate graphs"), wxDefaultPosition, wxDefaultSize, 0);
+	m_GenerateGraphs->SetToolTip("Generate graphs from SQLite database");
+	bSizer1->Add(m_GenerateGraphs, 0, wxALL, 5);
+	m_GenerateGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
+		});
+
 
 #define ADD_MEASUREMENT_TEXT(var_name, name) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
@@ -254,6 +260,7 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_MEASUREMENT_TEXT(m_textPM10, "PM10: N/A");
 	ADD_MEASUREMENT_TEXT(m_textLux, "Lux: N/A");
 	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT: N/A");
+	ADD_MEASUREMENT_TEXT(m_textTime, "Time: N/A");
 
 	this->SetSizer(bSizer1);
 }
@@ -497,7 +504,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			}
 			catch(std::exception& e)
 			{
-				LOGMSG(critical, "Exception {}\r\n", e.what());
+				LOGMSG(critical, "Exception {}", e.what());
 			}
 
 			wxString wxout(output);
