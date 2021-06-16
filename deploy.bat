@@ -82,7 +82,7 @@ IF %TestVal%==%UserInput% (
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 8 (
 	CD /D %MSBUILD_LOC%
-	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Debug;Platform=x64
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x64
 	goto INFINITY_LOOP
   ) ELSE (
     ECHO Exiting...
