@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-
 class Session : public std::enable_shared_from_this<Session>
 {
 	friend class Server;

@@ -38,11 +38,7 @@ void Session::HandleRead(const boost::system::error_code& error, std::size_t byt
 	{
 		receivedData[bytesTransferred] = 0;
 		Sensors::Get()->ProcessIncommingData(receivedData, sessionSocket.remote_endpoint().address().to_string().c_str());
-		sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)),
-			boost::bind(&Session::HandleRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-		//SendAsync(receivedData);
-		//DBG(receivedData);
-		//DBG("\n");
+		StopAsync();
 	}
 }
 
@@ -100,19 +96,17 @@ void Session::StartAsync()
 		StopAsync();
 		return;
 	}
-	/* for some reason the debugger freeze here.. I have no ide why */
-	//sessionAddress = remoteEndpoint.address().to_string(); 
-	//sessionPort = remoteEndpoint.port();
-	/*
-	for(std::set<SharedSession>::iterator c = core->getServer()->sessions.begin(); c != core->getServer()->sessions.end(); ++c)
+	sessionAddress = remoteEndpoint.address().to_string(); 
+	sessionPort = remoteEndpoint.port();
+	
+	for(const auto &c : Server::Get()->sessions)
 	{
-		if(boost::algorithm::equals((*c)->sessionAddress, sessionAddress))
+		if(boost::algorithm::equals(c->sessionAddress, sessionAddress))
 		{
-			stopAsync();
+			Server::Get()->sessions.erase(c);
 			return;
 		}
 	}
-	*/
 	
 	sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)), 
 		boost::bind(&Session::HandleRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));

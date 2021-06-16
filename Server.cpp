@@ -54,9 +54,9 @@ void Server::StopAsync()
         acceptor->close();
         acceptor.reset();
         
-        for(std::set<SharedSession>::iterator c = sessions.begin(); c != sessions.end(); ++c)
+        for(const auto& c : sessions)
         {
-            (*c)->StopAsync();
+            c->StopAsync();
         }
         sessions.clear();
     }
