@@ -23,22 +23,25 @@ class Server : public CSingleton < Server >
 
 public:
     Server() = default;
+    ~Server()
+    {
+        StopAsync();
+    }
+
     void Init(void);
     void StartAsync();
-    void StopAsync();
 
     bool CreateAcceptor(unsigned short port);
     void BroadcastMessage(const std::string& msg);
-
     
 private:
     friend class Settings;
-    uint16_t tcp_port = 0;
 
+    void StopAsync();
     void HandleAccept(const boost::system::error_code& error, SharedSession session);
-
     void StartAccept();
 
+    uint16_t tcp_port = 0;
     std::set<SharedSession> sessions;
     std::thread *t = nullptr;
     SharedAcceptor acceptor;

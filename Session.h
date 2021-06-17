@@ -23,7 +23,6 @@ public:
 	void HandleTransferTimer(const boost::system::error_code& error);
 	void HandleWrite(const boost::system::error_code& error);
 
-	boost::asio::deadline_timer heartbeatTimer;
 	std::vector<std::string> messageTokens;
 	std::queue<std::string> pendingMessages;
 	char receivedData[256];

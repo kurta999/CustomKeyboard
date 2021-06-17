@@ -26,7 +26,7 @@ std::mutex mutex;
 #include "Sensors.h"
 #include "Server.h"
 
-Session::Session(boost::asio::io_service& io_service) : heartbeatTimer(io_service), sessionSocket(io_service)
+Session::Session(boost::asio::io_service& io_service) : sessionSocket(io_service)
 {
 
 }
