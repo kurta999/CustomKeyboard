@@ -262,6 +262,14 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT: N/A");
 	ADD_MEASUREMENT_TEXT(m_textTime, "Time: N/A");
 
+	m_OpenGraphs = new wxButton(this, wxID_ANY, wxT("Open graphs"), wxDefaultPosition, wxDefaultSize, 0);
+	m_OpenGraphs->SetToolTip("Open graphs file in browser");
+	bSizer1->Add(m_OpenGraphs, 0, wxALL, 5);
+	m_OpenGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			ShellExecute(NULL, L"open", L"Graphs\\Temperature.html", NULL, NULL, SW_SHOWNORMAL);
+		});
+
 	this->SetSizer(bSizer1);
 }
 

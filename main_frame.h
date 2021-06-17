@@ -26,6 +26,7 @@ public:
 	wxStaticText* m_textLux;
 	wxStaticText* m_textCCT;
 	wxStaticText* m_textTime;
+	wxButton* m_OpenGraphs = nullptr;
 private:
 
 	wxDECLARE_EVENT_TABLE();
