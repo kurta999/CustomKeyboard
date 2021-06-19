@@ -11,6 +11,7 @@ set /p COMMIT_ID=<%PROJECT_NAME%
 git symbolic-ref --short HEAD >%PROJECT_NAME%
 set /p BRANCH_NAME=<%PROJECT_NAME%
 set "basedir=%cd%"
+del %PROJECT_NAME%
 
 :INFINITY_LOOP
 cd %basedir%
