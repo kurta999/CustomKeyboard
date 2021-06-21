@@ -258,7 +258,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
 			pointer_stack.push(c);
 
-			input_len += ((struct_start - input_len)) + strlen("struct");
+			input_len += ((struct_start - input_len)) + std::char_traits<char>::length("struct");
 		}
 		
 		input_len++;

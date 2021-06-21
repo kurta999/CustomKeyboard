@@ -5,6 +5,7 @@
 
 int constexpr one_day_seconds = 60 * 60 * 24;
 int constexpr one_week_seconds = one_day_seconds * 7;
+constexpr const char* db_name = "meas_data.db";
 
 bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, char**))
 {
@@ -21,7 +22,7 @@ bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, cha
 
 bool Database::Open(void)
 {
-    rc = sqlite3_open("test.db", &db);  /* Open database */
+    rc = sqlite3_open(db_name, &db);
     if(rc != SQLITE_OK)
         LOGMSG(error, "Can't open database: {}", sqlite3_errmsg(db));
     return rc == 0;

@@ -82,21 +82,7 @@ private:
 
 };
 
-
 bool IsValidVariableType(std::string& type);
-
-
-/*
-Vector3
-FirstStructure_t
-- Vector3
-SecondStructure_t
-
-EmbeddedStruct
-- FirstStructure_t
-+++ Vector3
-- SecondStructure_t
- */
 
 class ClassContainer : public ClassBase /* holds a class and expands the further ones when a duplicated one found */
 {
