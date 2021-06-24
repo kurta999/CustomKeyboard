@@ -24,6 +24,7 @@ ECHO 5.) Build x86 Debug
 ECHO 6.) Build x86 Release
 ECHO 7.) Build x64 Debug
 ECHO 8.) Build x64 Release
+ECHO 9.) Create symlinks for debug & release builds
 
 SET /P UserInput=Enter your choice 
 SET /A TestVal="%UserInput%"*1
@@ -84,6 +85,13 @@ IF %TestVal%==%UserInput% (
   ) ELSE IF %TestVal% == 8 (
 	CD /D %MSBUILD_LOC%
 	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x64
+	goto INFINITY_LOOP
+  ) ELSE IF %TestVal% == 9 (
+	mklink "Debug\settings.ini" "%basedir%/settings.ini"
+	mklink "Release\settings.ini" "%basedir%/settings.ini"
+	mklink "x64\Debug\settings.ini" "%basedir%/settings.ini"
+	mklink "x64\Release\settings.ini" "%basedir%/settings.ini"
+	ECHO Links created
 	goto INFINITY_LOOP
   ) ELSE (
     ECHO Exiting...
