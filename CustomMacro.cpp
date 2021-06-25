@@ -137,7 +137,10 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
 
 void CustomMacro::Init(void)
 {
-    std::thread(&CustomMacro::UartReceiveThread, this).detach();
+    if(is_enabled)
+    {
+        t = new std::thread(&CustomMacro::UartReceiveThread, this);
+    }
 }
 
 void CustomMacro::UartReceiveThread(void)

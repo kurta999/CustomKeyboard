@@ -7,6 +7,7 @@
 #include "PathSeparator.h"
 #include "DirectoryBackup.h"
 #include "MinerWatchdog.h"
+#include "Database.h"
 
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -214,11 +215,13 @@ void Settings::LoadFile(void)
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
-        CustomMacro::Get()->com_port = std::stoi(pt.get_child("Config").find("COM")->second.data());
-        Server::Get()->tcp_port = static_cast<uint16_t>(std::stoi(pt.get_child("Config").find("TCP_Port")->second.data()));
-        minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("Config").find("MinimizeOnExit")->second.data()) != 0);
-        minimize_on_startup = static_cast<bool>(std::stoi(pt.get_child("Config").find("MinimizeOnStartup")->second.data()) != 0);
-        default_page = static_cast<uint8_t>(std::stoi(pt.get_child("Config").find("DefaultPage")->second.data()));
+        CustomMacro::Get()->is_enabled = std::stoi(pt.get_child("COM_Backend").find("Enable")->second.data());
+        CustomMacro::Get()->com_port = std::stoi(pt.get_child("COM_Backend").find("COM")->second.data());
+        Server::Get()->is_enabled = static_cast<uint16_t>(std::stoi(pt.get_child("TCP_Backend").find("Enable")->second.data()));
+        Server::Get()->tcp_port = static_cast<uint16_t>(std::stoi(pt.get_child("TCP_Backend").find("TCP_Port")->second.data()));
+        minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnExit")->second.data()) != 0);
+        minimize_on_startup = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnStartup")->second.data()) != 0);
+        default_page = static_cast<uint8_t>(std::stoi(pt.get_child("App").find("DefaultPage")->second.data()));
         PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
@@ -271,6 +274,11 @@ void Settings::LoadFile(void)
             MinerWatchdog::Get()->miner_dir.clear();
             MinerWatchdog::Get()->miner_params.clear();
         }
+
+        uint32_t val1 = static_cast<uint32_t>(std::stoi(pt.get_child("Graph").find("Graph1HoursBack")->second.data()));
+        Database::Get()->SetGraphHours(0, val1);
+        uint32_t val2 = static_cast<uint32_t>(std::stoi(pt.get_child("Graph").find("Graph2HoursBack")->second.data()));
+        Database::Get()->SetGraphHours(1, val2);
     }
     catch(boost::property_tree::ptree_error& e)
     {
@@ -311,9 +319,15 @@ void Settings::WriteDefaultIniFile()
     fputs("RSHIFT+NUM_1 = KEY_TYPE[+]\n", file);
     fputs("NUM_3 = KEY_SEQ[LCTRL+RSHIFT+A] DELAY[5000] KEY_SEQ[TAB] KEY_TYPE[Src/Teszt mappa] KEY_SEQ[LSHIFT+TAB] KEY_TYPE[fos szöveg amit ide írok] DELAY[2000] KEY_SEQ[ESC]\n", file);
     fputs("\n", file);
-    fputs("[Config]\n", file);
-    fputs("COM = 5 # Com port for UART where data received from STM32\n", file);
+    fputs("[TCP_Backend]\n", file);
+    fputs("Enable=1\n", file);
     fputs("TCP_Port = 2005 # TCP Port for receiving measurements from sensors\n", file);
+    fputs("\n", file);
+    fputs("[COM_Backend]\n", file);
+    fputs("Enable=1\n", file);
+    fputs("COM = 5 # Com port for UART where data received from STM32\n", file);
+    fputs("\n", file);
+    fputs("[App]\n", file);
     fputs("MinimizeOnExit = 0\n", file);
     fputs("MinimizeOnStartup = 0\n", file);
     fputs("DefaultPage = 4\n", file);
@@ -341,6 +355,10 @@ void Settings::WriteDefaultIniFile()
     fputs("MinerDirectory = C:\\Users\\Ati\\Desktop\\bin\\n", file);
     fputs("MinerParameters = miner params here\n", file);
     fputs("PreStartupMacro = macaro for lowering & restoring OC while generating DAG file\n", file);
+    fputs("\n", file);
+    fputs("[Graph]\n", file);
+    fputs("Graph1HoursBack = 24 # One day\n", file);
+    fputs("Graph2HoursBack = 168 # One week\n", file);
     fclose(file);
     file = nullptr;
 }

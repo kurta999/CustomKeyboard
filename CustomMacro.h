@@ -219,7 +219,11 @@ class CustomMacro : public CSingleton < CustomMacro >
 
 public:
     CustomMacro() = default;
-    //~CustomMacro() = delete;
+    ~CustomMacro()
+    {
+        if(t)
+            TerminateThread(t->native_handle(), 0);
+    }
     void Init(void);
 
 private:
@@ -231,10 +235,12 @@ private:
     void UartReceiveThread(void);
 
     std::vector<std::unique_ptr<MacroContainer>> macros;
+    uint8_t is_enabled;
     uint16_t com_port = 2005;
     bool use_per_app_macro;
     bool advanced_key_binding;
     std::string pressed_keys;
+    std::thread* t = nullptr;
 
     uint16_t GetKeyScanCode(std::string& str)
     {

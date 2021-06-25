@@ -27,6 +27,8 @@ public:
 	wxStaticText* m_textCCT;
 	wxStaticText* m_textTime;
 	wxButton* m_OpenGraphs = nullptr;
+	wxSpinCtrl* m_GraphStartHours1;
+	wxSpinCtrl* m_GraphStartHours2;
 private:
 
 	wxDECLARE_EVENT_TABLE();

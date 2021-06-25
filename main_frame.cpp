@@ -32,6 +32,8 @@
 #include "TrayIcon.h"
 #include "StructParser.h"
 #include "MinerWatchdog.h"
+#include "Database.h"
+#include "commitid.h"
 
 #include <boost/algorithm/string.hpp>
 #include <assert.h>
@@ -88,8 +90,9 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
-	wxMessageBox("CustomKeyboard\n\n\
-MIT License\n\
+	wxString platform = (sizeof(void*) == 4 ? " x86" : " x64");
+	wxMessageBox(wxString("CustomKeyboard") + platform + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
+"MIT License\n\
 \n\
 Copyright (c) 2021 kurta999\n\
 \n\
@@ -166,6 +169,7 @@ void MyFrame::SetIconTooltip(const wxString &str)
 	{
 		wxLogError("Could not set icon.");
 	}
+	SetIcon(wxICON(aaaa));
 }
 
 MyFrame::MyFrame(const wxString& title)
@@ -190,7 +194,7 @@ MyFrame::MyFrame(const wxString& title)
 
 	CreateStatusBar();
 	wxString platform = (sizeof(void*) == 4 ? "x86" : "x64");
-	SetStatusText("CustomKeyboard " + platform);
+	SetStatusText("CustomKeyboard " + platform + COMMIT_TAG);
 
 	main_panel = new MainPanel(this);
 	graph_panel = new GraphPanel(this);
@@ -241,7 +245,9 @@ MainPanel::MainPanel(wxFrame* parent)
 	bSizer1->Add(m_GenerateGraphs, 0, wxALL, 5);
 	m_GenerateGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
+			Database::Get()->SetGraphHours(0, (uint32_t)m_GraphStartHours1->GetValue());
+			Database::Get()->SetGraphHours(1, (uint32_t)m_GraphStartHours2->GetValue());
+			Database::Get()->GenerateGraphs();
 		});
 
 
@@ -269,6 +275,15 @@ MainPanel::MainPanel(wxFrame* parent)
 		{
 			ShellExecute(NULL, L"open", L"Graphs\\Temperature.html", NULL, NULL, SW_SHOWNORMAL);
 		});
+
+	m_GraphStartHours1 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 7*24);
+	m_GraphStartHours1->SetToolTip("Sets how many hours before current time the first graph should start");
+	m_GraphStartHours1->SetValue(Database::Get()->GetGraphHours(0));
+	bSizer1->Add(m_GraphStartHours1, 0, wxALL, 5);
+	m_GraphStartHours2 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 365*24);
+	m_GraphStartHours2->SetToolTip("Sets how many hours before current time the second graph should start");
+	m_GraphStartHours2->SetValue(Database::Get()->GetGraphHours(1));
+	bSizer1->Add(m_GraphStartHours2, 0, wxALL, 5);
 
 	this->SetSizer(bSizer1);
 }

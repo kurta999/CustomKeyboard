@@ -41,6 +41,7 @@ private:
     void HandleAccept(const boost::system::error_code& error, SharedSession session);
     void StartAccept();
 
+    uint8_t is_enabled;
     uint16_t tcp_port = 0;
     std::set<SharedSession> sessions;
     std::thread *t = nullptr;

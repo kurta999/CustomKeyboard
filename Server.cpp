@@ -49,18 +49,22 @@ void Server::StartAsync()
 
 void Server::StopAsync()
 {
-    if(acceptor)
+    if(is_enabled)
     {
-        acceptor->close();
-        acceptor.reset();
-        
-        for(const auto& c : sessions)
+        if(acceptor)
         {
-            c->StopAsync();
+            acceptor->close();
+            acceptor.reset();
+
+            for(const auto& c : sessions)
+            {
+                c->StopAsync();
+            }
+            sessions.clear();
         }
-        sessions.clear();
+        io_service.stop();
+        TerminateThread(t->native_handle(), 0);
     }
-    io_service.stop();
 }
 
 bool Server::CreateAcceptor(unsigned short port)
@@ -103,19 +107,26 @@ bool Server::CreateAcceptor(unsigned short port)
 
 void Server::Init(void)
 {
-    std::scoped_lock lock(mutex);
-    if(!CreateAcceptor(tcp_port))
+    if(is_enabled)
     {
-        DBG("createAcceptor fail!");
-        return;
+        std::scoped_lock lock(mutex);
+        if(!CreateAcceptor(tcp_port))
+        {
+            DBG("createAcceptor fail!");
+            return;
+        }
+        t = new std::thread(&Server::StartAsync, this);
     }
-    t = new std::thread(&Server::StartAsync, this);
 }
 
 void Server::BroadcastMessage(const std::string& msg)
 {
-    for(auto& i : sessions)
+    if(is_enabled)
     {
-        i->SendAsync(msg);
+        std::scoped_lock lock(mutex);
+        for(auto& i : sessions)
+        {
+            i->SendAsync(msg);
+        }
     }
 }
