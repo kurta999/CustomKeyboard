@@ -91,7 +91,7 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
 	wxString platform = (sizeof(void*) == 4 ? " x86" : " x64");
-	wxMessageBox(wxString("CustomKeyboard") + platform + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
+	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
 Copyright (c) 2021 kurta999\n\
@@ -194,7 +194,7 @@ MyFrame::MyFrame(const wxString& title)
 
 	CreateStatusBar();
 	wxString platform = (sizeof(void*) == 4 ? "x86" : "x64");
-	SetStatusText("CustomKeyboard " + platform + COMMIT_TAG);
+	SetStatusText("CustomKeyboard " + platform + " v" + COMMIT_TAG);
 
 	main_panel = new MainPanel(this);
 	graph_panel = new GraphPanel(this);
