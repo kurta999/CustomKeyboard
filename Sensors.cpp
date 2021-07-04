@@ -1,5 +1,5 @@
 #include "Sensors.h"
-#include "main_frame.h"
+#include "gui/main_frame.h"
 #include "Database.h"
 
 #include <queue>

@@ -186,12 +186,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="commitid.h" />
-    <ClInclude Include="CSingleton.h" />
     <ClInclude Include="CustomKeyboard.h" />
     <ClInclude Include="CustomMacro.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DirectoryBackup.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="gui\Editor.h" />
+    <ClInclude Include="gui\EscaperPanel.h" />
+    <ClInclude Include="gui\gui_id.h" />
+    <ClInclude Include="gui\LogPanel.h" />
+    <ClInclude Include="gui\MainPanel.h" />
+    <ClInclude Include="gui\main_frame.h" />
+    <ClInclude Include="gui\ParserPanel.h" />
+    <ClInclude Include="gui\TrayIcon.h" />
     <ClInclude Include="libs\fmt\chrono.h" />
     <ClInclude Include="libs\fmt\color.h" />
     <ClInclude Include="libs\fmt\compile.h" />
@@ -208,12 +215,10 @@
     <ClInclude Include="libs\sqlite\sqlite3.h" />
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="Logger.h" />
-    <ClInclude Include="main_frame.h" />
     <ClInclude Include="MinerWatchdog.h" />
     <ClInclude Include="PathSeparator.h" />
     <ClInclude Include="PrintScreenSaver.h" />
     <ClInclude Include="Sensors.h" />
-    <ClInclude Include="TrayIcon.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Session.h" />
@@ -221,12 +226,21 @@
     <ClInclude Include="StructParser.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="utils\AsyncSerial.h" />
+    <ClInclude Include="GuiEditor.h" />
+    <ClInclude Include="utils\CSingleton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomKeyboard.cpp" />
     <ClCompile Include="CustomMacro.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DirectoryBackup.cpp" />
+    <ClCompile Include="gui\Editor.cpp" />
+    <ClCompile Include="gui\EscaperPanel.cpp" />
+    <ClCompile Include="gui\LogPanel.cpp" />
+    <ClCompile Include="gui\MainPanel.cpp" />
+    <ClCompile Include="gui\main_frame.cpp" />
+    <ClCompile Include="gui\ParserPanel.cpp" />
+    <ClCompile Include="gui\TrayIcon.cpp" />
     <ClCompile Include="libs\fmt\format.cc" />
     <ClCompile Include="libs\fmt\os.cc" />
     <ClCompile Include="libs\lodepng\lodepng.cpp">
@@ -245,17 +259,16 @@
     <ClCompile Include="Logger.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
     </ClCompile>
-    <ClCompile Include="main_frame.cpp" />
     <ClCompile Include="MinerWatchdog.cpp" />
     <ClCompile Include="PathSeparator.cpp" />
     <ClCompile Include="PrintScreenSaver.cpp" />
     <ClCompile Include="Sensors.cpp" />
-    <ClCompile Include="TrayIcon.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="StructParser.cpp" />
     <ClCompile Include="utils\AsyncSerial.cpp" />
+    <ClCompile Include="GuiEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc" />
