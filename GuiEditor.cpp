@@ -279,6 +279,33 @@ void GuiEditor::OnKeyDown(int keycode)
 					case 13:
 						GuiEditor::Get()->AddWidget<wxToggleButton>(panel, wxID_ANY, wxT("Toggle me!"), wxPoint(170, 785), wxSize(25, 25), 0);
 						break;
+					case 14:
+						GuiEditor::Get()->AddWidget<wxSearchCtrl>(panel, wxID_ANY, wxEmptyString, wxPoint(0, 70), wxDefaultSize, 0);
+						break;
+					case 15:
+						GuiEditor::Get()->AddWidget<wxFontPickerCtrl>(panel, wxID_ANY, wxNullFont, wxPoint(0, 70), wxDefaultSize, wxFNTP_DEFAULT_STYLE);
+						break;
+					case 16:
+						GuiEditor::Get()->AddWidget<wxFilePickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxPoint(0, 70), wxDefaultSize, wxFLP_DEFAULT_STYLE);
+						break;
+					case 17:
+						GuiEditor::Get()->AddWidget<wxDirPickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a folder"), wxPoint(0, 70), wxDefaultSize, wxDIRP_DEFAULT_STYLE);
+						break;
+					case 18:
+						GuiEditor::Get()->AddWidget<wxDatePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxDP_DEFAULT);
+						break;
+					case 19:
+						GuiEditor::Get()->AddWidget<wxTimePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxTP_DEFAULT);
+						break;
+					case 20:
+						GuiEditor::Get()->AddWidget<wxCalendarCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxCAL_SHOW_HOLIDAYS);
+						break;
+					case 21:
+						GuiEditor::Get()->AddWidget<wxGenericDirCtrl>(panel, wxID_ANY, wxEmptyString, wxPoint(0, 70), wxDefaultSize, wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER, wxEmptyString, 0);
+						break;
+					case 22:
+						GuiEditor::Get()->AddWidget<wxSpinButton>(panel, wxID_ANY, wxPoint(0, 70), wxDefaultSize, 0);
+						break;
 				}
 			}
 			break;
@@ -550,6 +577,46 @@ void GuiEditor::DuplicateWidget()
 		{
 			wxSearchCtrl* t = dynamic_cast<wxSearchCtrl*>(x->first);
 			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetLabelText(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxFontPickerCtrl*).hash_code())
+		{
+			wxFontPickerCtrl* t = dynamic_cast<wxFontPickerCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetFont(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxFilePickerCtrl*).hash_code())
+		{
+			wxFilePickerCtrl* t = dynamic_cast<wxFilePickerCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxDirPickerCtrl*).hash_code())
+		{
+			wxDirPickerCtrl* t = dynamic_cast<wxDirPickerCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, wxEmptyString, wxT("Select a file"), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxDatePickerCtrl*).hash_code())
+		{
+			wxDatePickerCtrl* t = dynamic_cast<wxDatePickerCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetValue(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxTimePickerCtrl*).hash_code())
+		{
+			wxTimePickerCtrl* t = dynamic_cast<wxTimePickerCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetValue(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxCalendarCtrl*).hash_code())
+		{
+			wxCalendarCtrl* t = dynamic_cast<wxCalendarCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetDate(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxGenericDirCtrl*).hash_code())
+		{
+			wxGenericDirCtrl* t = dynamic_cast<wxGenericDirCtrl*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, wxEmptyString, t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
+		}
+		else if(x->second->type == typeid(wxSpinButton*).hash_code())
+		{
+			wxSpinButton* t = dynamic_cast<wxSpinButton*>(x->first);
+			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag(), t->GetName());
 		}
 	}
 }
@@ -933,7 +1000,19 @@ void GuiEditor::AddFontAndColor(wxString& wxstr, void* widget, Widget* obj)
 	}
 	wxstr += "\n";
 }
+/*
+#include "utils/magic_enum.hpp"
 
+template <class T> wxString GetNameFromEnum(T to_get)
+{
+	char ret[128];
+	auto color_name = magic_enum::enum_name(to_get);
+	memcpy(ret, color_name.data(), color_name.length());
+	ret[color_name.length()] = 0;
+	wxString str(ret);
+	return str;
+}
+*/
 void GuiEditor::GenerateCode(wxString& str)
 {
 #define FLAG(val) val##_style_values, val##_style_flags, WXSIZEOF(val##_style_flags)
@@ -948,6 +1027,15 @@ void GuiEditor::GenerateCode(wxString& str)
 			str += wxString::Format("%s = new wxButton(this, wxID_ANY, wxT(\"%s\"), wxPoint(%d, %d), wxSize(%d, %d), %s);\n",
 				x.second->name, t->GetLabelText(), t->GetPosition().x, t->GetPosition().y, t->GetSize().x, t->GetSize().y, flagsStr);
 			AddFontAndColor(str, x.first, x.second);
+			/*
+			wxString wxstr;
+			wxFont font = t->GetFont();
+			wxString strFontPointSize;
+			wxFontWeight a = font.GetWeight();
+			wxstr += wxString::Format("a->SetFont( wxFont(%s, %s, %s, ));\n",
+				GetNameFromEnum<wxFontFamily>(font.GetFamily()), GetNameFromEnum<wxFontStyle>(font.GetStyle()),
+				GetNameFromEnum<wxFontWeight>(font.GetWeight()));
+			DBG("a");*/
 		}
 		else if(x.second->type == typeid(wxComboBox*).hash_code())
 		{
