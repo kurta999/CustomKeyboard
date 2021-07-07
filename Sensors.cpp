@@ -164,7 +164,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     }
     catch(std::exception& e)
     {
-        DBG("%s", e.what());
+        LOGMSG(critical, "Exception %s", e.what());
     }
 }
 
