@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 
 #include "CustomKeyboard.h"
-#include "main_frame.h"
+#include "gui/main_frame.h"
 #include <wx/wxprec.h>
 #include <wx/gbsizer.h>
 #include <wx/grid.h>

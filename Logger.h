@@ -30,7 +30,7 @@
 #include <wx/calctrl.h>
 #include <wx/treectrl.h>
 */
-#include "main_frame.h"
+#include "gui/main_frame.h"
 #include "CustomKeyboard.h"
 #include <ctime>
 #include <filesystem>

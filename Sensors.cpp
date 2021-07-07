@@ -1,5 +1,5 @@
 #include "Sensors.h"
-#include "main_frame.h"
+#include "gui/main_frame.h"
 #include "Database.h"
 
 #include <queue>
@@ -164,7 +164,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     }
     catch(std::exception& e)
     {
-        DBG("%s", e.what());
+        LOGMSG(critical, "Exception %s", e.what());
     }
 }
 

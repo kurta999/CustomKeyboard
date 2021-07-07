@@ -103,7 +103,6 @@ public:
 	}
 
 	std::vector<std::variant<std::shared_ptr<ClassElement>, std::shared_ptr<ClassContainer>>> members;
-	uint8_t type = 0; /* 0 = elemes, 1 = class */
 	size_t packing = 0;
 	std::vector<std::shared_ptr<ClassContainer>> classes;
 };

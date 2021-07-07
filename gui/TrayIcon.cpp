@@ -5,8 +5,8 @@
 
 #include <array>
 #include <variant>
-#include "CustomMacro.h"
-#include "Settings.h"
+#include "../CustomMacro.h"
+#include "../Settings.h"
 
 BEGIN_EVENT_TABLE(TrayIcon, wxTaskBarIcon)
 EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)

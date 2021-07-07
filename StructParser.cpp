@@ -162,7 +162,6 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 
 	ClassElement::pointer_size = ptr_size;
 	size_t packing = default_packing;
-	size_t struct_start;
 	size_t push_start = 1;
 	size_t input_len = 0;
 	std::shared_ptr<ClassContainer> old = nullptr;
@@ -250,7 +249,9 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			continue;
 		}
 
-		if((struct_start = str_in.find("struct{", input_len)) != std::string::npos && !try_parse_element)
+		size_t struct_start = str_in.find("struct{", input_len);
+		size_t union_start = str_in.find("union{", input_len);
+		if(struct_start < union_start && struct_start != std::string::npos && !try_parse_element)
 		{
 			try_parse_element = 1;
 			DBG("struct found %zu\n", struct_start);
@@ -259,6 +260,20 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			pointer_stack.push(c);
 
 			input_len += ((struct_start - input_len)) + std::char_traits<char>::length("struct");
+		}
+		else if(union_start < struct_start && union_start != std::string::npos && !try_parse_element)
+		{
+			classes.clear();
+			wxMessageBox("Please remove the union part from the code.", "Union support is not implemented yet!");
+			break;
+
+			try_parse_element = 1;
+			DBG("union found %zu\n", union_start);
+			
+			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
+			pointer_stack.push(c);
+
+			input_len += ((union_start - input_len)) + std::char_traits<char>::length("union");
 		}
 		
 		input_len++;
@@ -344,8 +359,7 @@ void StructParser::Init()
 		}
 		catch(std::exception& e)
 		{
-			DBG(e.what());
-			DBG("\n\n");
+			LOGMSG(critical, "Exception %s", e.what());
 		}
 		f.close();
 	}
