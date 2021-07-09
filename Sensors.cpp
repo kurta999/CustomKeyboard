@@ -26,16 +26,16 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
         {
-            frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.2f"), m->temp));
-            frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.2f"), m->hum));
+            frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.1f"), m->temp));
+            frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.1f"), m->hum));
             frame->main_panel->m_textCO2->SetLabelText(wxString::Format(wxT("CO2: %i"), m->co2));
             frame->main_panel->m_textVOC->SetLabelText(wxString::Format(wxT("VOC: %i"), m->voc));
-            frame->main_panel->m_textPM25->SetLabelText(wxString::Format(wxT("PM25: %i"), m->pm25));
+            frame->main_panel->m_textPM25->SetLabelText(wxString::Format(wxT("PM2.5: %i"), m->pm25));
             frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), m->pm10));
             frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), m->lux));
             frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), m->cct));
             frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), fmt::format("{:%Y.%m.%d %H:%M:%S}", *current_tm)));
-            frame->SetIconTooltip(wxString::Format(wxT("T: %.2f, H: %.2f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
+            frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
         }
 
         Database::Get()->InsertMeasurement(m);
