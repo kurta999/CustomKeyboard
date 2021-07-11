@@ -8,7 +8,7 @@ LogPanel::LogPanel(wxFrame* parent)
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer(wxVERTICAL);
 
-	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(600, 400), 0, 0, wxLB_EXTENDED | wxLB_HSCROLL | wxLB_NEEDED_SB);
+	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(600, 400), 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
 	m_Log->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& event)
 		{
 			wxClipboard* clip = new wxClipboard();
