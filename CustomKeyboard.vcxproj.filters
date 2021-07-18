@@ -37,6 +37,9 @@
     <Filter Include="Header Files\gui">
       <UniqueIdentifier>{3363a75f-de1b-4e74-a09a-a1371011e66d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\enumser">
+      <UniqueIdentifier>{d5edb721-26b3-48dd-9bd3-a42ff132cae0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -168,6 +171,12 @@
     <ClInclude Include="gui\main_frame.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+    <ClInclude Include="libs\enumser\enumser.h">
+      <Filter>libs\enumser</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\Configuration.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomKeyboard.cpp">
@@ -249,6 +258,12 @@
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="gui\Editor.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\enumser\enumser.cpp">
+      <Filter>libs\enumser</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\Configuration.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
   </ItemGroup>

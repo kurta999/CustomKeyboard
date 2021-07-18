@@ -191,6 +191,7 @@
     <ClInclude Include="Database.h" />
     <ClInclude Include="DirectoryBackup.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="gui\Configuration.h" />
     <ClInclude Include="gui\Editor.h" />
     <ClInclude Include="gui\EscaperPanel.h" />
     <ClInclude Include="gui\gui_id.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="gui\main_frame.h" />
     <ClInclude Include="gui\ParserPanel.h" />
     <ClInclude Include="gui\TrayIcon.h" />
+    <ClInclude Include="libs\enumser\enumser.h" />
     <ClInclude Include="libs\fmt\chrono.h" />
     <ClInclude Include="libs\fmt\color.h" />
     <ClInclude Include="libs\fmt\compile.h" />
@@ -234,6 +236,7 @@
     <ClCompile Include="CustomMacro.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DirectoryBackup.cpp" />
+    <ClCompile Include="gui\Configuration.cpp" />
     <ClCompile Include="gui\Editor.cpp" />
     <ClCompile Include="gui\EscaperPanel.cpp" />
     <ClCompile Include="gui\LogPanel.cpp" />
@@ -241,6 +244,7 @@
     <ClCompile Include="gui\main_frame.cpp" />
     <ClCompile Include="gui\ParserPanel.cpp" />
     <ClCompile Include="gui\TrayIcon.cpp" />
+    <ClCompile Include="libs\enumser\enumser.cpp" />
     <ClCompile Include="libs\fmt\format.cc" />
     <ClCompile Include="libs\fmt\os.cc" />
     <ClCompile Include="libs\lodepng\lodepng.cpp">

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Editor.h"
+#include "gui_id.h"
 
 #include "../GuiEditor.h"
 #include "../Logger.h"
@@ -30,7 +31,7 @@ EditorPanel::EditorPanel(wxWindow* parent)
 {
 	wxSize client_size = GetClientSize();
 
-	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), parent->GetParent()->GetSize(), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(WINDOW_SIZE_X, WINDOW_SIZE_Y), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	gui_editor = new GuiEditorMain(m_notebook);
 	gui_cpp = new GuiEditorCpp(m_notebook);
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(EditorPanel::Changeing), NULL, this);

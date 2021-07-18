@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <variant>
+#include <array>
 
 #include "Logger.h"
 #include <thread>
@@ -181,23 +182,6 @@ private:
     uint16_t key;
 };
 
-
-class BindedKey
-{
-public:
-    BindedKey() = default;
-
-    enum class BindType
-    {
-        Press,
-        Release
-    };
-
-
-    std::vector<uint8_t> keys;
-    BindType type = BindType::Press;
-};
-
 /* each given macro per-app get's a macro container */
 class MacroContainer
 {
@@ -209,6 +193,7 @@ public:
         //key_vec.push_back(p);
     }
     std::map<std::string, std::vector<std::unique_ptr<KeyClass>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
+    std::map<std::string, std::string> bind_name;  /* [Key code] = bind name text */
     std::string name;
 private:
 };
@@ -225,6 +210,10 @@ public:
             TerminateThread(t->native_handle(), 0);
     }
     void Init(void);
+    std::vector<std::unique_ptr<MacroContainer>>& GetMacros()
+    {
+        return macros;
+    }
 
 private:
     friend class Settings;

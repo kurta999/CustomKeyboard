@@ -5,6 +5,7 @@
 #include "ParserPanel.h"
 #include "LogPanel.h"
 #include "Editor.h"
+#include "Configuration.h"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -54,6 +55,7 @@ public:
 	void SetIconTooltip(const wxString& str);
 
 	MainPanel* main_panel;
+	ConfigurationPanel* config_panel;
 	EditorPanel* editor_panel;
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;

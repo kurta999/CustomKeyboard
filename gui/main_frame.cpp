@@ -42,9 +42,6 @@
 
 #include <shellapi.h>
 
-constexpr int WINDOW_SIZE_X = 800;
-constexpr int WINDOW_SIZE_Y = 600;
-
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 EVT_MENU(ID_Help, MyFrame::OnHelp)
 EVT_MENU(ID_About, MyFrame::OnAbout)
@@ -62,12 +59,14 @@ wxEND_EVENT_TABLE()
 wxBEGIN_EVENT_TABLE(EditorPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
+wxBEGIN_EVENT_TABLE(ConfigurationPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(MacroPanel, wxPanel)
 wxEND_EVENT_TABLE()
-
 
 wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
 wxEND_EVENT_TABLE()
@@ -132,7 +131,6 @@ void MyFrame::OnSaveAs(wxCommandEvent& event)
 {
 	GuiEditor::Get()->OnSaveAs();
 }
-
 
 void MyFrame::OnDestroyAll(wxCommandEvent& event)
 {
@@ -221,8 +219,10 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	ctrl->Freeze();
 	ctrl->AddPage(main_panel, "Main page", false);
+	config_panel = new ConfigurationPanel(this);
+	ctrl->AddPage(config_panel, "Config page", false);
 	editor_panel = new EditorPanel(ctrl);
-	ctrl->AddPage(editor_panel, "Editor page", false);
+	ctrl->AddPage(editor_panel, "wxEditor page", false);
 	ctrl->AddPage(escape_panel, "C StrEscape", false);
 	ctrl->AddPage(macro_panel, "Custom Macro", false);
 	ctrl->AddPage(parser_panel, "Sturct Parser", false);

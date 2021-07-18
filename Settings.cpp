@@ -29,13 +29,14 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 {
     enum ConfigTypes : uint8_t
     {
-        KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK
+        BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK, MAX
     };
 
-    constexpr size_t MAX_ITEMS = 5;
-    constexpr const char* start_str_arr[MAX_ITEMS] = { "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
-    constexpr const char start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]), std::char_traits<char>::length(start_str_arr[1]), 
-        std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), std::char_traits<char>::length(start_str_arr[4]) };
+    constexpr size_t MAX_ITEMS = MAX;
+    constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
+    constexpr const char start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
+        std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
+        std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -43,7 +44,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     while(pos < str.length() - 1)
     {
         size_t first_end = str.find("]", pos + 1);
-        size_t first_pos[5];
+        size_t first_pos[MAX_ITEMS];
         for(int i = 0; i != MAX_ITEMS; ++i)
         {
             first_pos[i] = str.substr(0, first_end).find(start_str_arr[i], pos - 1);
@@ -68,6 +69,14 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
         switch(input_type)
         {
+            case ConfigTypes::BIND_NAME:
+            {
+                pos = first_end;
+                
+                c->bind_name[key_code] = extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
+                DBG("Bind name: %s\n", c->bind_name[key_code].c_str());
+                break;
+            }
             case ConfigTypes::KEY_SEQ:
             {
                 pos = first_end;
@@ -193,6 +202,7 @@ void Settings::LoadFile(void)
             std::string& str = key.second.data();
             ParseMacroKeys(0, key.first, str, p);
         }
+        p->name = "Global";
         CustomMacro::Get()->macros.push_back(std::move(p));
 
         /* load per-application macros */

@@ -1,5 +1,8 @@
 #pragma once
 
+constexpr int WINDOW_SIZE_X = 800;
+constexpr int WINDOW_SIZE_Y = 600;
+
 enum
 {
 	ID_Help = 1,
@@ -9,4 +12,5 @@ enum
 	ID_OCTimer,
 	ID_FilePicker,
 	ID_DestroyAll,
+	ID_AppBindList
 };
