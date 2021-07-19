@@ -1,10 +1,4 @@
-#include "ParserPanel.h"
-
-#include "gui_id.h"
-#include "../StructParser.h"
-#include "../Logger.h"
-
-#include <fstream>
+#include "pch.h"
 
 #define WX_SIZERPADDING(sizer) \
 	sizer->Add(new wxStaticText(this, wxID_ANY, ""), 0, wxALL, 5);

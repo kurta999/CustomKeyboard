@@ -1,14 +1,4 @@
-#include "Configuration.h"
-#include "gui_id.h"
-
-#include "../Logger.h"
-#include "../CustomMacro.h"
-
-#include <wx/aui/aui.h>
-#include <wx/statline.h>
-
-#include <enumser/enumser.h>
-
+#include "pch.h"
 
 wxBEGIN_EVENT_TABLE(ComTcpPanel, wxPanel)
 

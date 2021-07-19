@@ -1,7 +1,4 @@
-#include "EscaperPanel.h"
-
-#include <boost/algorithm/string.hpp>
-#include <wx/clipbrd.h>
+#include "pch.h"
 
 EscaperPanel::EscaperPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)

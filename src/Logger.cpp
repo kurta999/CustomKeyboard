@@ -1,5 +1,4 @@
-#include "Logger.h"
-#include <assert.h>
+#include "pch.h"
 
 Logger::Logger()
 {

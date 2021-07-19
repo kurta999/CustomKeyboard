@@ -1,13 +1,4 @@
-#include "PrintScreenSaver.h"
-#include "Logger.h"
-
-#include <Windows.h>
-#include <fstream>
-#include <lodepng/lodepng.h>
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <iterator>
+#include "pch.h"
 
 //#define SAVE_BMP_TOO
 

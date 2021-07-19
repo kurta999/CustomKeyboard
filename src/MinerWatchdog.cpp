@@ -1,15 +1,4 @@
-#include "MinerWatchdog.h"
-
-#include "Logger.h"
-
-#include <thread>
-#include <array>
-#include <iostream>
-#include <fstream>
-#include <codecvt>
-#include <boost/algorithm/string.hpp>
-
-#include "CustomMacro.h"
+#include "pch.h"
 
 MinerWatchdog::MinerWatchdog()
 {
@@ -25,6 +14,7 @@ MinerWatchdog::~MinerWatchdog()
 
 void MinerWatchdog::DeleteHandles()
 {
+    DBG("test");
     if(pi.hProcess != NULL)
     {
         CloseHandle(pi.hProcess);

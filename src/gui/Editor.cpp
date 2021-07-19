@@ -1,12 +1,4 @@
-#pragma once
-
-#include "Editor.h"
-#include "gui_id.h"
-
-#include "../GuiEditor.h"
-#include "../Logger.h"
-
-#include <wx/aui/aui.h>
+#include "pch.h"
 
 wxBEGIN_EVENT_TABLE(GuiEditorMain, wxPanel)
 EVT_MOTION(GuiEditorMain::OnMouseMotion)

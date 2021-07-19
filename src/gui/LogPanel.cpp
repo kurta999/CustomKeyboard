@@ -1,6 +1,4 @@
-#include "LogPanel.h"
-
-#include <wx/clipbrd.h>
+#include "pch.h"
 
 LogPanel::LogPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)

@@ -1,46 +1,5 @@
-#include <boost/asio.hpp>
-
-#include "../Server.h"
-
-#include "main_frame.h"
-#include <wx/valnum.h>
-#include <wx/spinctrl.h>
-#include <wx/statline.h>
-#include <wx/richtooltip.h>
-#include <wx/clipbrd.h>
-#include <wx/richmsgdlg.h>
-#include <wx/aui/aui.h>
-#include <wx/filepicker.h>
-#include <wx/tglbtn.h>
-#include <wx/socket.h>
-#include <any>
-#include <wx/aui/aui.h>
-#include <wx/dataview.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/aui/aui.h>
-#include "wx/treelist.h"
-#include "wx/treectrl.h"
-#include <wx/dirctrl.h>
-#include <wx/xml/xml.h>
-#include "wx/notifmsg.h"
-#include "wx/generic/notifmsg.h"
-#include <wx/filepicker.h>
-
-#include <boost/algorithm/string.hpp>
-
-#include "TrayIcon.h"
-#include "../StructParser.h"
-#include "../MinerWatchdog.h"
-#include "../Database.h"
-#include "../GuiEditor.h"
+#include "pch.h"
 #include "../commitid.h"
-#include "gui_id.h"
-
-#include <boost/algorithm/string.hpp>
-#include <assert.h>
-
-#include <shellapi.h>
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 EVT_MENU(ID_Help, MyFrame::OnHelp)
@@ -256,7 +215,6 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
 	*/
 }
-
 
 void MyFrame::HandleNotifications()
 {

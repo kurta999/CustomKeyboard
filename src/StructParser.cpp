@@ -1,15 +1,4 @@
-#include "StructParser.h"
-#include "Logger.h"
-
-#include <unordered_map>
-#include <string>
-#include <vector>
-#include <variant>
-#include <stack>
-
-#include <boost/algorithm/string.hpp>
-
-#include <fmt/format.h>
+#include "pch.h"
 
 size_t ClassElement::pointer_size = 4;
 

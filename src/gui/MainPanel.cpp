@@ -1,11 +1,4 @@
-#include <boost/asio.hpp>
-
-#include "MainPanel.h"
-
-#include "../Database.h"
-#include "../Server.h"
-
-#include <shellapi.h>
+#include "pch.h"
 
 MainPanel::MainPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)

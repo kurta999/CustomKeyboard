@@ -1,12 +1,4 @@
-#include "TrayIcon.h"
-#include "main_frame.h"
-
-#include <wx/menu.h>
-
-#include <array>
-#include <variant>
-#include "../CustomMacro.h"
-#include "../Settings.h"
+#include "pch.h"
 
 BEGIN_EVENT_TABLE(TrayIcon, wxTaskBarIcon)
 EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)

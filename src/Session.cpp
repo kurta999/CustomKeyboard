@@ -1,30 +1,6 @@
-#include "Session.h"
-#include "Sensors.h"
-
-#include <boost/asio.hpp>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/array.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
-#include <boost/unordered_map.hpp>
-
-#include <fstream>
-#include <map>
-#include <queue>
-#include <set>
-#include <string>
-#include <vector>
+#include "pch.h"
 
 std::mutex mutex;
-
-#include "Logger.h"
-#include "Sensors.h"
-#include "Server.h"
 
 Session::Session(boost::asio::io_service& io_service) : sessionSocket(io_service)
 {

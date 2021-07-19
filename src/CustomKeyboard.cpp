@@ -1,26 +1,4 @@
-#include <boost/asio.hpp>
-
-#include "CustomKeyboard.h"
-#include "gui/main_frame.h"
-#include <wx/wxprec.h>
-#include <wx/gbsizer.h>
-#include <wx/grid.h>
-#include <string>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-#include "wx/taskbar.h"
-
-#include "CustomMacro.h"
-#include "Logger.h"
-#include "Settings.h"
-#include "Server.h"
-#include "Database.h"
-#include "Sensors.h"
-#include "StructParser.h"
-#include "PrintScreenSaver.h"
-#include "DirectoryBackup.h"
-#include "MinerWatchdog.h"
+#include "pch.h"
 
 IMPLEMENT_APP(MyApp)
 

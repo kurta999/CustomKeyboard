@@ -1,24 +1,4 @@
-#include <boost/asio.hpp>
-
-#include "Settings.h"
-#include "Server.h"
-#include "Logger.h"
-#include "PrintScreenSaver.h"
-#include "PathSeparator.h"
-#include "DirectoryBackup.h"
-#include "MinerWatchdog.h"
-#include "Database.h"
-
-#include <filesystem>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <cstdint>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-#include <boost/optional.hpp>
-#include <boost/algorithm/string.hpp>
-
-#include <array>
+#include "pch.h"
 
 inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
 {

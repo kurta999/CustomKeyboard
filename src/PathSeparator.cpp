@@ -1,8 +1,4 @@
-#include "PathSeparator.h"
-
-#include <boost/algorithm/string.hpp>
-#include <wx/clipbrd.h>
-#include <Windows.h>
+#include "pch.h"
 
 void PathSeparator::ReplaceClipboard()
 {

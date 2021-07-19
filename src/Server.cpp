@@ -1,22 +1,7 @@
-#include <boost/asio.hpp>
-
-#include "Server.h"
-#include "Logger.h"
-
-#include <iostream>
-#include <memory>
-#include <utility>
-#include <boost/program_options.hpp>
-
-#include <deque>
-
-#include "Database.h"
+#include "pch.h"
 
 using boost::asio::ip::tcp;
 using namespace std::chrono_literals;
-
-#include "Session.h"
-#include <boost/thread.hpp>
 
 extern std::mutex mutex;
 

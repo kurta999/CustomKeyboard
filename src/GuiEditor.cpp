@@ -1,21 +1,5 @@
-#include "GuiEditor.h"
-#include "Logger.h"
+#include "pch.h"
 
-#include <wx/statline.h>
-#include <wx/tglbtn.h>
-#include <wx/filepicker.h>
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
-#include <wx/timectrl.h>
-#include <wx/calctrl.h>
-#include <wx/srchctrl.h>
-#include <wx/fontpicker.h>
-#include <wx/dirctrl.h>
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-
-#include <fstream>
 
 const wxString choices[] = { "wxButton", "wxComboBox", "wxChoise", "wxListBox", "wxCheckBox", "wxRadioButton", "wxStaticLine", "wxSlider", "wxGauge", "wxText",
 "wxSpinControl" , "wxSpinCtrlDouble" , "wxTextControl" , "wxToggleButton" , "wxSearchCtrl" , "wxColorPicker" , "wxFontPicker" , "wxFilePicker" , "wxDirPicker" , "wxDatePicker",

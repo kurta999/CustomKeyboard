@@ -1,15 +1,6 @@
+
+#include "pch.h"
 #include "utils/AsyncSerial.h"
-
-#include "CustomMacro.h"
-#include "Logger.h"
-#include "PrintScreenSaver.h"
-#include "PathSeparator.h"
-#include "DirectoryBackup.h"
-
-#include <string>
-#include <bitset>
-#include <boost/algorithm/string.hpp>
-#include <boost/crc.hpp>
 
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;

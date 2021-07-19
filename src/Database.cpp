@@ -1,7 +1,4 @@
-#include "Database.h"
-#include "Sensors.h"
-#include "boost/lexical_cast.hpp"
-#include <memory>
+#include "pch.h"
 
 constexpr const char* db_name = "meas_data.db";
 

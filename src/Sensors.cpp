@@ -1,13 +1,4 @@
-#include "Sensors.h"
-#include "gui/main_frame.h"
-#include "Database.h"
-
-#include <queue>
-#include <fstream>
-#include <iterator>
-#include <memory>
-
-#include <fmt/format.h>
+#include "pch.h"
 
 void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 {

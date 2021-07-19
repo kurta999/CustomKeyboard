@@ -1,16 +1,5 @@
-#include "DirectoryBackup.h"
-#include "Logger.h"
+#include "pch.h"
 
-#include <iostream>
-#include <chrono>
-#include <iomanip>
-#include <fstream>
-#include <filesystem>
-#include <unordered_set>
-#include <algorithm>
-#include <future> 
-#include <tuple>
-#include <set>
 
 void DirectoryBackup::DoBackup()
 {
