@@ -68,7 +68,7 @@
 #include <wx/srchctrl.h>
 #include <wx/fontpicker.h>
 #include <wx/dirctrl.h>
-
+#include <wx/artprov.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/crc.hpp>

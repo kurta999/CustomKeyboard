@@ -151,14 +151,14 @@ MyFrame::MyFrame(const wxString& title)
 	m_mgr.SetManagedWindow(this);
 
 	wxMenu* menuFile = new wxMenu;
-	menuFile->Append(ID_Quit, "E&xit\tCtrl-E");
-	menuFile->Append(wxID_OPEN, "&Open file\tCtrl-O", "Open file");
-	menuFile->Append(wxID_SAVE, "&Save file\tCtrl-S", "Save file");
-	menuFile->Append(wxID_SAVEAS, "&Save file As\tCtrl-S", "Save file As other");
-	menuFile->Append(ID_DestroyAll, "&Destroy all widgets\tCtrl-W", "Destroy all widgets");
+	menuFile->Append(ID_Quit, "E&xit\tCtrl-E", "Close program")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuFile->Append(wxID_OPEN, "&Open file\tCtrl-O", "Open file")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuFile->Append(wxID_SAVE, "&Save file\tCtrl-S", "Save file")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuFile->Append(wxID_SAVEAS, "&Save file As\tCtrl-S", "Save file As other")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuFile->Append(ID_DestroyAll, "&Destroy all widgets\tCtrl-W", "Destroy all widgets")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuHelp = new wxMenu;
-	menuHelp->Append(ID_About, "&About\tCtrl-A", "Read license");
-	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program");
+	menuHelp->Append(ID_About, "&About\tCtrl-A", "Read license")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenuBar* menuBar = new wxMenuBar;
 	menuBar->Append(menuFile, "&File");
 	menuBar->Append(menuHelp, "&Help");
@@ -177,15 +177,15 @@ MyFrame::MyFrame(const wxString& title)
 	wxSize client_size = GetClientSize();
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	ctrl->Freeze();
-	ctrl->AddPage(main_panel, "Main page", false);
+	ctrl->AddPage(main_panel, "Main page", false, wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	config_panel = new ConfigurationPanel(this);
-	ctrl->AddPage(config_panel, "Config page", false);
+	ctrl->AddPage(config_panel, "Config page", false, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	editor_panel = new EditorPanel(ctrl);
-	ctrl->AddPage(editor_panel, "wxEditor page", false);
-	ctrl->AddPage(escape_panel, "C StrEscape", false);
-	ctrl->AddPage(macro_panel, "Custom Macro", false);
-	ctrl->AddPage(parser_panel, "Sturct Parser", false);
-	ctrl->AddPage(log_panel, "Log", false);
+	ctrl->AddPage(editor_panel, "wxEditor page", false, wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(macro_panel, "Custom Macro", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 
 	ctrl->SetSelection(Settings::Get()->default_page);

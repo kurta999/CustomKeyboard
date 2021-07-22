@@ -27,8 +27,8 @@ EditorPanel::EditorPanel(wxWindow* parent)
 	gui_editor = new GuiEditorMain(m_notebook);
 	gui_cpp = new GuiEditorCpp(m_notebook);
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(EditorPanel::Changeing), NULL, this);
-	m_notebook->AddPage(gui_editor, "Editor", false, 0);
-	m_notebook->AddPage(gui_cpp, "C++ Code", false, 0);
+	m_notebook->AddPage(gui_editor, "Editor", false, wxArtProvider::GetBitmap(wxART_PLUS, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	m_notebook->AddPage(gui_cpp, "C++ Code", false, wxArtProvider::GetBitmap(wxART_PRINT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 
 	GuiEditor::Get()->Init(gui_editor);
 }
