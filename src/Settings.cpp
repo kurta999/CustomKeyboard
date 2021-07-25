@@ -70,6 +70,10 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                     DBG("Token: %s\n", beg->c_str());
                     std::string key_code = *beg;
                     uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
+                    if(key == 0xFFFF)
+                    {
+                        LOGMSG(error, "Invalid key found in settings.ini: {}", key_code);
+                    }
                     keys.push_back(key);
                 }
 
@@ -134,7 +138,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                     mouse_button = MOUSEEVENTF_LEFTDOWN;
                 if(sequence == "R" || sequence == "RIGHT")
                     mouse_button = MOUSEEVENTF_RIGHTDOWN;
-                if(sequence == "M" || sequence == "RIGHT")
+                if(sequence == "M" || sequence == "MIDDLE")
                     mouse_button = MOUSEEVENTF_MIDDLEDOWN;
                 if(mouse_button != 0xFFFF)
                     c->key_vec[key_code].push_back(std::make_unique<MouseClick>(mouse_button));

@@ -12,5 +12,6 @@ enum
 	ID_OCTimer,
 	ID_FilePicker,
 	ID_DestroyAll,
-	ID_AppBindList
+	ID_AppBindListMain,
+	ID_MacroDetails,
 };
