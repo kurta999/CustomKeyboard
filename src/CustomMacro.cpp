@@ -126,7 +126,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
     }
 }
 
-void CustomMacro::Init(void)
+void CustomMacro::Init()
 {
     if(is_enabled)
     {
@@ -134,7 +134,7 @@ void CustomMacro::Init(void)
     }
 }
 
-void CustomMacro::UartReceiveThread(void)
+void CustomMacro::UartReceiveThread()
 {
     try
     {
@@ -157,6 +157,112 @@ void CustomMacro::UartReceiveThread(void)
     {
         LOGMSG(error, "Exception {}", e.what());
     }
+}
+
+void CustomMacro::GenerateReadableTextFromMap(std::unique_ptr<KeyClass>& key, bool is_ini_names, std::function<void(std::string& str, std::string* macro_typename)> callback)
+{
+    std::string out;
+    KeyClass* k = key.get();
+    std::string* name = NULL; /* TODO: replace this with smart pointer or take care of free */
+    if(dynamic_cast<KeyText*>(k))
+    {
+        KeyText* t = dynamic_cast<KeyText*>(k);
+        if(is_ini_names)
+            out += fmt::format(" KEY_TYPE[{}]", t->GetString());
+        else
+        {
+            out += t->GetString();
+            name = new std::string("TEXT");
+        }
+    }
+    else if(dynamic_cast<KeyCombination*>(k))
+    {
+        KeyCombination* t = dynamic_cast<KeyCombination*>(k);
+        std::vector<uint16_t>& vec = t->GetVec();
+        std::string text;
+        for(auto& i : vec)
+        {
+            text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
+        }
+        if(text[text.length() - 1] == '+')
+            text.erase(text.length() - 1, text.length());
+
+        if(is_ini_names)
+            out += fmt::format(" KEY_SEQ[{}]", text);
+        else
+        {
+            out += text;
+            name = new std::string("SEQUENCE");
+        }
+    }
+    else if(dynamic_cast<KeyDelay*>(k))
+    {
+        KeyDelay* t = dynamic_cast<KeyDelay*>(k);
+        std::variant<uint32_t, std::array<uint32_t, 2>>& d = t->GetDelay();
+
+        if(std::holds_alternative<uint32_t>(d))
+        {
+            if(is_ini_names)
+                out += fmt::format(" DELAY[{}]", std::get<uint32_t>(d));
+            else
+            {
+                out += boost::lexical_cast<std::string>(std::get<uint32_t>(d));
+                name = new std::string("DELAY");
+            }
+        }
+        else
+        {
+            std::array<uint32_t, 2> delays = std::get<std::array<uint32_t, 2>>(d);
+            if(is_ini_names)
+                out += fmt::format(" DELAY[{} - {}]", delays[0], delays[1]);
+            else
+            {
+                out += boost::lexical_cast<std::string>(delays[0]) + " - " + boost::lexical_cast<std::string>(delays[1]);
+                name = new std::string("DELAY RANDOM");
+            }
+        }
+    }
+    else if(dynamic_cast<MouseMovement*>(k))
+    {
+        MouseMovement* t = dynamic_cast<MouseMovement*>(k);
+        if(is_ini_names)
+            out += fmt::format(" MOUSE_MOVE[{}, {}]", t->GetPos().x, t->GetPos().y);
+        else
+        {
+            out += fmt::format("{}, {}", t->GetPos().x, t->GetPos().y);
+            name = new std::string("MOUSE MOVE");
+        }
+    }
+    else if(dynamic_cast<MouseClick*>(k))
+    {
+        MouseClick* t = dynamic_cast<MouseClick*>(k);
+        std::string text;
+        uint16_t key = t->GetKey();
+        switch(key)
+        {
+        case MOUSEEVENTF_LEFTDOWN:
+            text = "LEFT";
+            break;
+        case MOUSEEVENTF_RIGHTDOWN:
+            text = "RIGHT";
+            break;
+        case MOUSEEVENTF_MIDDLEDOWN:
+            text = "MIDDLE";
+            break;
+        default:
+            assert(0);
+        }
+
+        if(is_ini_names)
+            out += fmt::format(" MOUSE_CLICK[{}]", text);
+        else
+        {
+            out += text;
+            name = new std::string("MOUSE CLICK");
+        }
+    }
+    if(!out.empty())
+        callback(out, name);
 }
 
 const std::unordered_map<std::string, int> CustomMacro::scan_codes = 

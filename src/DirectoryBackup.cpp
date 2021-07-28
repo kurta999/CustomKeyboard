@@ -3,7 +3,7 @@
 
 void DirectoryBackup::DoBackup()
 {
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 	size_t file_count = 0;
 
 	for(auto& b : backups)
@@ -66,7 +66,7 @@ void DirectoryBackup::DoBackup()
 		}
 	}
 	DBG("completed\n");
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
 	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));

@@ -28,12 +28,14 @@ public:
         StopAsync();
     }
 
-    void Init(void);
+    void Init();
     void StartAsync();
 
     bool CreateAcceptor(unsigned short port);
     void BroadcastMessage(const std::string& msg);
     
+    bool is_enabled;
+    uint16_t tcp_port = 0;
 private:
     friend class Settings;
 
@@ -41,8 +43,6 @@ private:
     void HandleAccept(const boost::system::error_code& error, SharedSession session);
     void StartAccept();
 
-    uint8_t is_enabled;
-    uint16_t tcp_port = 0;
     std::set<SharedSession> sessions;
     std::thread *t = nullptr;
     SharedAcceptor acceptor;

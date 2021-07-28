@@ -1,7 +1,12 @@
 #include "pch.h"
 
-wxBEGIN_EVENT_TABLE(TestMessageBoxDialog, wxDialog)
-EVT_BUTTON(wxID_APPLY, TestMessageBoxDialog::OnApply)
+wxBEGIN_EVENT_TABLE(MacroEditBoxDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, MacroEditBoxDialog::OnApply)
+//EVT_BUTTON(wxID_CLOSE, TestMessageBoxDialog::OnClose)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(MacroAddBoxDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, MacroAddBoxDialog::OnApply)
 //EVT_BUTTON(wxID_CLOSE, TestMessageBoxDialog::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -17,7 +22,43 @@ EVT_TREELIST_ITEM_CONTEXT_MENU(ID_MacroDetails, KeybrdPanel::OnItemContextMenu_D
 EVT_TREELIST_ITEM_ACTIVATED(ID_MacroDetails, KeybrdPanel::OnItemActivated)
 wxEND_EVENT_TABLE()
 
-TestMessageBoxDialog::TestMessageBoxDialog(wxWindow* parent)
+MacroAddBoxDialog::MacroAddBoxDialog(wxWindow* parent)
+	: wxDialog(parent, wxID_ANY, "Message Box Test Dialog", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
+
+	// this sizer allows to configure the messages shown in the message box
+	wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Add new macro");
+
+	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro Key:"));
+	m_macroKey = new wxTextCtrl(this, wxID_ANY, "a", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	wxArrayString a;
+	auto& map = CustomMacro::Get()->GetHidScanCodeMap();
+	for(auto& i : map)
+	{
+		a.Add(i.first);
+	}
+	m_macroKey->AutoComplete(a);
+	sizerMsgs->Add(m_macroKey, wxSizerFlags(1).Expand().Border(wxBOTTOM));
+
+	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro Name:"));
+	m_macroName = new wxTextCtrl(this, wxID_ANY, "a", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	sizerMsgs->Add(m_macroName, wxSizerFlags(1).Expand().Border(wxBOTTOM));
+	sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
+
+	// miscellaneous other stuff
+	wxSizer* const sizerFlags = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Note:");
+	sizerFlags->Add(new wxStaticText(this, wxID_ANY, "Press SCROLL LOCK to get mouse coordinates relative to the active window"), wxSizerFlags().Border());
+	sizerTop->Add(sizerFlags, wxSizerFlags().Expand().Border());
+
+	// finally buttons to show the resulting message box and close this dialog
+	sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
+
+	SetSizerAndFit(sizerTop);
+	CentreOnScreen();
+}
+
+MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	: wxDialog(parent, wxID_ANY, "Message Box Test Dialog", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
@@ -45,13 +86,52 @@ TestMessageBoxDialog::TestMessageBoxDialog(wxWindow* parent)
 	CentreOnScreen();
 }
 
-void TestMessageBoxDialog::ShowDialog(const wxString& str, uint8_t macro_type)
+void MacroEditBoxDialog::ShowDialog(const wxString& str, uint8_t macro_type)
 {
 	m_radioBox1->SetSelection(macro_type);
 	m_textMsg->SetLabel(str);
 	m_IsApplyClicked = false;
 	ShowModal();
 	DBG("isapply: %d", IsApplyClicked());
+}
+
+void MacroAddBoxDialog::ShowDialog(const wxString& macro_key, const wxString& macro_name)
+{
+	m_macroKey->SetLabel(macro_key);
+	m_macroName->SetLabel(macro_name);
+	m_IsApplyClicked = false;
+	ShowModal();
+	DBG("isapply: %d", IsApplyClicked());
+}
+
+void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
+{
+	int sel = event.GetSelection();
+	if(sel == 0)
+	{
+		int sel = 0;
+		wxArrayString array_serials;
+		CEnumerateSerial::CPortAndNamesArray ports;
+		CEnumerateSerial::UsingSetupAPI1(ports);
+
+		for(auto& i : ports)
+		{
+			array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
+			if(CustomMacro::Get()->com_port == i.first)
+				sel = array_serials.GetCount() - 1;
+		}
+
+		comtcp_panel->m_IsCom->SetValue(CustomMacro::Get()->is_enabled);
+
+		comtcp_panel->m_serial->Clear();
+		comtcp_panel->m_serial->Insert(array_serials, WXSIZEOF(array_serials));
+		comtcp_panel->m_serial->SetSelection(sel);
+		comtcp_panel->m_IsTcp->SetValue(Server::Get()->is_enabled);
+		comtcp_panel->m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
+		comtcp_panel->m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
+		comtcp_panel->m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
+		comtcp_panel->m_DefaultPage->SetValue(Settings::Get()->default_page);
+	}
 }
 
 ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
@@ -65,32 +145,14 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	m_notebook->AddPage(comtcp_panel, "Main settings", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(keybrd_panel, "Macro settings", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->SetSelection(1);
+	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
 }
-
-/*
-* 
-* [TCP_Backend]
-Enable=0
-TCP_Port = 2005 # TCP Port for receiving measurements from sensors
-
-[COM_Backend]
-Enable=0
-COM = 5 # Com port for UART where data received from STM32
-
-[App]
-MinimizeOnExit = 0
-MinimizeOnStartup = 0
-DefaultPage = 1*/
 
 ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
 	wxArrayString array_serials;
-	CEnumerateSerial::CPortAndNamesArray ports;
-	CEnumerateSerial::UsingSetupAPI1(ports);
-	for(auto& i : ports)
-		array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
-
+	array_serials.Add("Select a serial port from list below");
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	m_IsTcp = new wxCheckBox(this, wxID_ANY, wxT("Enable TCP?"), wxDefaultPosition, wxDefaultSize, 0);
@@ -98,7 +160,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
-	m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
+	m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
 	bSizer1->Add(m_TcpPortSpin, 0, wxALL, 5);
 	
 	bSizer1->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxEXPAND | wxALL, 5);
@@ -124,7 +186,39 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	m_DefaultPage = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
 	bSizer1->Add(m_DefaultPage, 0, wxALL, 5);
 	
+	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
+	bSizer1->Add(m_Ok, 0, wxALL, 5);
+	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			wxString com_str = m_serial->GetStringSelection();
+			CustomMacro::Get()->is_enabled = m_IsCom->IsChecked();
+			if(m_serial->GetSelection() > 0)
+				CustomMacro::Get()->com_port = atoi(&com_str.c_str().AsChar()[2]);
+			Server::Get()->is_enabled = m_IsTcp->IsChecked();
+			Server::Get()->tcp_port = m_TcpPortSpin->GetValue();
+			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
+			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
+			Settings::Get()->default_page = m_DefaultPage->GetValue();
+
+		});
 	SetSizer(bSizer1);
+}
+
+void KeybrdPanel::UpdateMainTree()
+{
+	tree->DeleteAllItems();
+	wxTreeListItem root = tree->GetRootItem();
+	for(auto& m : CustomMacro::Get()->GetMacros())
+	{
+		wxTreeListItem item = tree->AppendItem(root, m->name.c_str());
+		for(auto& b : m->bind_name)
+		{
+			DBG("bind name: %s\n", b.second.c_str());
+			wxTreeListItem bind_item = tree->AppendItem(item, b.second.c_str());
+			tree->SetItemText(bind_item, 1, b.first.c_str());
+		}
+		tree->Expand(item);
+	}
 }
 
 void KeybrdPanel::UpdateDetailsTree()  // TODO: this is waste of resources, save or pass iterator instead of looping
@@ -141,77 +235,15 @@ void KeybrdPanel::UpdateDetailsTree()  // TODO: this is waste of resources, save
 			for(auto& x : i->key_vec[child_sel_str.ToStdString()])
 			{
 				KeyClass* p = x.get();
-				if(dynamic_cast<KeyText*>(p))
-				{
-					wxTreeListItem item;
-					KeyText* t = dynamic_cast<KeyText*>(p);
-					item = tree_details->AppendItem(root2, "TEXT", -1, -1, new wxIntClientData(cnt++));
-					tree_details->SetItemText(item, 1, t->GetString());
-
-					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(tree_details->GetItemData(item));
-					DBG("data: %d\n", dret->GetValue());
-				}
-				else if(dynamic_cast<KeyCombination*>(p))
-				{
-					KeyCombination* t = dynamic_cast<KeyCombination*>(p);
-					std::vector<uint16_t>& vec = t->GetVec();
-					std::string text;
-					for(auto& i : vec)
+				std::string key;
+				CustomMacro::Get()->GenerateReadableTextFromMap(x, false,
+					[this, &key, &root2, &cnt](std::string& macro_str, std::string* macro_typename) mutable  -> void
 					{
-						text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
-					}
-					if(text[text.length() - 1] == '+')
-						text.erase(text.length() - 1, text.length());
-
-					wxTreeListItem item = tree_details->AppendItem(root2, "SEQUENCE", -1, -1, new wxIntClientData(cnt++));
-					tree_details->SetItemText(item, 1, text);
-				}
-				else if(dynamic_cast<KeyDelay*>(p))
-				{
-					KeyDelay* t = dynamic_cast<KeyDelay*>(p);
-					std::variant<uint32_t, std::array<uint32_t, 2>>& d = t->GetDelay();
-
-					if(std::holds_alternative<uint32_t>(d))
-					{
-						wxTreeListItem item = tree_details->AppendItem(root2, "DELAY", -1, -1, new wxIntClientData(cnt++));
-						tree_details->SetItemText(item, 1, boost::lexical_cast<std::string>(std::get<uint32_t>(d)));
-					}
-					else
-					{
-						wxTreeListItem item = tree_details->AppendItem(root2, "DELAY RANDOM", -1, -1, new wxIntClientData(cnt++));
-						std::array<uint32_t, 2> delays = std::get<std::array<uint32_t, 2>>(d);
-						tree_details->SetItemText(item, 1, boost::lexical_cast<std::string>(delays[0]) + " - " + boost::lexical_cast<std::string>(delays[1]));
-					}
-				}
-				else if(dynamic_cast<MouseMovement*>(p))
-				{
-					MouseMovement* t = dynamic_cast<MouseMovement*>(p);
-					wxTreeListItem item = tree_details->AppendItem(root2, "MOUSE MOVE", -1, -1, new wxIntClientData(cnt++));
-					tree_details->SetItemText(item, 1, fmt::format("{}, {}", t->GetPos().x, t->GetPos().y));
-				}
-				else if(dynamic_cast<MouseClick*>(p))
-				{
-					MouseClick* t = dynamic_cast<MouseClick*>(p);
-					wxTreeListItem item = tree_details->AppendItem(root2, "MOUSE CLICK", -1, -1, new wxIntClientData(cnt++));
-
-					std::string text;
-					uint16_t key = t->GetKey();
-					switch(key)
-					{
-					case MOUSEEVENTF_LEFTDOWN:
-						text = "LEFT";
-						break;
-					case MOUSEEVENTF_RIGHTDOWN:
-						text = "RIGHT";
-						break;
-					case MOUSEEVENTF_MIDDLEDOWN:
-						text = "MIDDLE";
-						break;
-					default:
-						assert(0);
-					}
-					tree_details->SetItemText(item, 1, text);
-				}
+						wxTreeListItem item;
+						item = tree_details->AppendItem(root2, *macro_typename, -1, -1, new wxIntClientData(cnt++));
+						tree_details->SetItemText(item, 1, macro_str);
+						key += macro_str;
+					});
 			}
 			break;
 		}
@@ -253,12 +285,117 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 	wxMenu menu;
 	menu.Append(Id_AddNew, "&Add new (below)");
 	menu.Append(Id_Delete, "&Delete");
-	menu.AppendSeparator();
-	menu.Append(Id_MoveUp, "Move up");
-	menu.Append(Id_MoveDown, "Move down");
+	//menu.AppendSeparator();
+	//menu.Append(Id_MoveUp, "Move up");
+	//menu.Append(Id_MoveDown, "Move down");
 
 	const wxTreeListItem item = event.GetItem();
-	tree->GetPopupMenuSelectionFromUser(menu);
+	int ret = tree->GetPopupMenuSelectionFromUser(menu);
+	switch(ret)
+	{
+		case 0:
+		{
+			wxTreeListItem root = tree->GetItemParent(item);
+			wxTreeListItem root2 = tree->GetItemParent(root);
+			wxString root_str = tree->GetItemText(item, 0);
+			wxString parent_str = tree->GetItemText(root, 0);
+			wxString item_str = tree->GetItemText(item, 1);
+
+			if(root2 == NULL) /* clicked on one of the root items */
+			{
+				wxTextEntryDialog d(this, "Type new application macro name", "Caption");
+				int ret = d.ShowModal();
+				if(ret == 5100)
+				{
+					auto& m = CustomMacro::Get()->GetMacros();
+
+					// std::vector<std::unique_ptr<MacroContainer>>
+
+					std::vector<std::unique_ptr<MacroContainer>>::const_iterator i;
+					for(i = m.begin(); i != m.end(); i++)
+					{
+						if(i->get()->name == root_str)
+						{
+							break;
+						}
+					}
+					m.insert(i + 1, std::make_unique<MacroContainer>(d.GetValue().ToStdString()));
+				}
+				DBG("ret: %d\n", ret);  // 5100 - ok, 5101 - cancel
+				UpdateMainTree();
+			}
+			else
+			{
+				add_dlg->ShowDialog("Add new macro", "name");
+
+				std::string macro_key = add_dlg->GetMacroKey().ToStdString();
+				std::string macro_name = add_dlg->GetMacroName().ToStdString();
+				if(!add_dlg->IsApplyClicked()) return;
+
+				if(CustomMacro::Get()->GetKeyScanCode(macro_key) == 0xFFFF)
+					DBG("err");
+				auto& m = CustomMacro::Get()->GetMacros();
+				
+				for(auto& i : m)
+				{
+					if(i->name == parent_str)
+					{
+						if(i->key_vec.find(macro_key) != i->key_vec.end())
+							DBG("err");
+
+						auto pp = std::make_unique<MacroContainer>();
+						i->bind_name[macro_key] = std::move(macro_name);
+						UpdateMainTree();
+						break;
+					}
+				}
+
+			}
+			break;
+		}
+		case 1:
+		{
+			wxMessageDialog dialog(this, "Are you sure want to delete selected macro?", "Deleting macro", wxCENTER | wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+			int ret = dialog.ShowModal();
+			switch(ret)
+			{
+				case 5103:  /* Yes */
+				{
+					auto& m = CustomMacro::Get()->GetMacros();
+					wxTreeListItem root = tree->GetItemParent(item);
+					wxTreeListItem root2 = tree->GetItemParent(root);
+					wxString root_str = tree->GetItemText(item, 0);
+
+					if(root2 == NULL) /* clicked on one of the root items */
+					{
+						m.erase(std::remove_if(m.begin(), m.end(), [&root_str](std::unique_ptr<MacroContainer>& x) { return x->name == root_str; }));
+					}
+					else
+					{
+						wxString root_str = tree->GetItemText(root, 0);
+						wxString key_str = tree->GetItemText(item, 1);
+						for(auto& i : m)
+						{
+							if(i->name == root_str)
+							{
+								std::string str = key_str.ToStdString();
+								i->key_vec.erase(str);
+								i->bind_name.erase(str);
+								break;
+							}
+						}
+					}
+					UpdateMainTree();
+					break;
+				}
+				case 5104:  /* No */
+				{
+					break;
+				}
+			}
+			break;
+		}
+	}
 }
 
 void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& event)
@@ -268,7 +405,7 @@ void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& event)
 
 void KeybrdPanel::ShowAddDialog()
 {
-	dlg->ShowDialog("Write macro text here", 0);
+	edit_dlg->ShowDialog("Write macro text here", 0);
 }
 
 void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
@@ -295,7 +432,7 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 			sel = 3;
 		else if(type_str == "MOUSE CLICK")
 			sel = 4;
-		dlg->ShowDialog(item_str, sel);
+		edit_dlg->ShowDialog(item_str, sel);
 	}
 }
 
@@ -315,8 +452,8 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uin
 	//KeyClass* p = x.at(id).get();
 	DBG("aa ");
 
-	uint8_t edit_sel = dlg->GetType();
-	std::string edit_str = dlg->GetText().ToStdString();
+	uint8_t edit_sel = edit_dlg->GetType();
+	std::string edit_str = edit_dlg->GetText().ToStdString();
 
 	switch(edit_sel)
 	{
@@ -362,7 +499,6 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uin
 		}
 		case 2:
 		{
-			uint32_t min_delay, max_delay;
 			size_t separator_pos = edit_str.find("-");
 			if(separator_pos != std::string::npos)
 			{
@@ -413,7 +549,7 @@ void KeybrdPanel::OnItemActivated(wxTreeListEvent& evt)
 			uint16_t id = dret->GetValue();
 
 			ShowEditDialog(item);
-			if(!dlg->IsApplyClicked()) return;
+			if(!edit_dlg->IsApplyClicked()) return;
 
 			ManipulateMacro(x, id, false);
 			UpdateDetailsTree();
@@ -422,7 +558,14 @@ void KeybrdPanel::OnItemActivated(wxTreeListEvent& evt)
 	}
 }
 
-void TestMessageBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+void MacroEditBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+{
+	DBG("apply");
+	Close();
+	m_IsApplyClicked = true;
+}
+
+void MacroAddBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
 	DBG("apply");
 	Close();
@@ -438,26 +581,13 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	tree = new wxTreeListCtrl(this, ID_AppBindListMain, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
 	tree->AppendColumn("App name", tree->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree->AppendColumn("Key bindings", tree->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
-	
-	wxTreeListItem root = tree->GetRootItem();
-	for(auto& m : CustomMacro::Get()->GetMacros())
-	{
-		wxTreeListItem item = tree->AppendItem(root, m->name.c_str()); 
-		for(auto& b : m->bind_name)
-		{
-			DBG("bind name: %s\n", b.second.c_str());
-			wxTreeListItem bind_item = tree->AppendItem(item, b.second.c_str());
-			tree->SetItemText(bind_item, 1, b.first.c_str());
-		}
-		tree->Expand(item);
-	}
-	
+	UpdateMainTree();
+
 	bSizer1->Add(tree, wxSizerFlags(2).Left());
 	
 	tree_details = new wxTreeListCtrl(this, ID_MacroDetails, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
 	tree_details->AppendColumn("Action type", tree_details->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree_details->AppendColumn("Parameters", tree_details->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
-
 	bSizer1->Add(tree_details, wxSizerFlags(2).Top());
 
 	wxBoxSizer* vertical_sizer = new wxBoxSizer(wxVERTICAL);
@@ -484,7 +614,7 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 					}
 					
 					ShowAddDialog();
-					if(!dlg->IsApplyClicked()) return;
+					if(!edit_dlg->IsApplyClicked()) return;
 
 					ManipulateMacro(x, id, true);
 					UpdateDetailsTree();
@@ -602,7 +732,8 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	vertical_sizer->Add(btn_down);
 	bSizer1->Add(vertical_sizer);
 
-	dlg = new TestMessageBoxDialog(this);
+	edit_dlg = new MacroEditBoxDialog(this);
+	add_dlg = new MacroAddBoxDialog(this);
 	SetSizer(bSizer1);
 	Show();
 }

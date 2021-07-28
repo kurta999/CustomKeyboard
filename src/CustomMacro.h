@@ -41,7 +41,7 @@ public:
     KeyClass() {}
     virtual ~KeyClass() {}
     KeyClass(const KeyClass&) {}
-    virtual void DoWrite(void) { };
+    virtual void DoWrite() { };
     virtual KeyClass* Clone() = 0;
 
 public:
@@ -262,10 +262,10 @@ class MacroContainer
 {
 public:
     MacroContainer() = default;
-    template <class T>
-    MacroContainer(std::string& name, T* p)
+    MacroContainer(std::string&& _name)
     {
         //key_vec.push_back(p);
+        name = std::move(_name);
     }
     std::map<std::string, std::vector<std::unique_ptr<KeyClass>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
     std::map<std::string, std::string> bind_name;  /* [Key code] = bind name text */
@@ -284,7 +284,7 @@ public:
         if(t)
             TerminateThread(t->native_handle(), 0);
     }
-    void Init(void);
+    void Init();
     std::vector<std::unique_ptr<MacroContainer>>& GetMacros()
     {
         return macros;
@@ -313,19 +313,27 @@ public:
         return ret;
     }
 
+    const std::unordered_map<std::string, int>& GetHidScanCodeMap()
+    {
+        return scan_codes;
+    }
+
+    void GenerateReadableTextFromMap(std::unique_ptr<KeyClass>& key, bool is_ini_names, std::function<void(std::string& str, std::string* macro_typename)> callback);
+
+    bool is_enabled;
+    uint16_t com_port = 2005;
+    bool use_per_app_macro;
+    bool advanced_key_binding;
+
 private:
     friend class Settings;
     friend class MinerWatchdog;
 
     void PressKey(std::string key);
     void UartDataReceived(const char* data, unsigned int len);
-    void UartReceiveThread(void);
+    void UartReceiveThread();
 
     std::vector<std::unique_ptr<MacroContainer>> macros;
-    uint8_t is_enabled;
-    uint16_t com_port = 2005;
-    bool use_per_app_macro;
-    bool advanced_key_binding;
     std::string pressed_keys;
     std::thread* t = nullptr;
     static const std::unordered_map<std::string, int> scan_codes;

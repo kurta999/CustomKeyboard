@@ -123,7 +123,7 @@ void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassCon
 
 void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing, size_t ptr_size)
 {
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 	std::string str_in;
 	std::string header;
 
@@ -320,7 +320,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		output += fmt::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
 	}
 
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
 	std::string elapsed_str = fmt::format("{} structure has been parsed in {:.6f} ms", classes.size(), (double)dif / 1000000.0);

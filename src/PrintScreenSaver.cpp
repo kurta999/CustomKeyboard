@@ -19,7 +19,7 @@ void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
 
 void PrintScreenSaver::DoSave()
 {
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
     OpenClipboard(NULL);
     HGLOBAL ClipboardDataHandle = (HGLOBAL)GetClipboardData(CF_DIB);
@@ -75,7 +75,7 @@ void PrintScreenSaver::DoSave()
     std::string save_path = screenshot_path.string() + "\\" + buf;
     lodepng::save_file(png, save_path.c_str());
 
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
     LOGMSG(notification, "Image saved to {}", save_path);

@@ -15,7 +15,7 @@ bool Database::ExecuteQuery(char* query, int (*callback)(void*, int, char**, cha
     return true;
 }
 
-bool Database::Open(void)
+bool Database::Open()
 {
     rc = sqlite3_open(db_name, &db);
     if(rc != SQLITE_OK)
@@ -40,7 +40,7 @@ void Database::DoGenerateGraphs()
     if(!is_open)
         return;
     
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     for(int i = 0; i != std::size(Sensors::Get()->last_day); i++)
     {
         Sensors::Get()->last_day[i].clear();
@@ -56,7 +56,7 @@ void Database::DoGenerateGraphs()
     SendQuery(fmt::format("SELECT MIN(temp), MIN(hum), MIN(co2), MIN(voc), MIN(pm25), MIN(pm10), MIN(lux), MIN(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, graphs_hours_1 * 3600), &Database::Query_MeasFromPast, 5);
     SendQuery(fmt::format("SELECT MIN(temp), MIN(hum), MIN(co2), MIN(voc), MIN(pm25), MIN(pm10), MIN(lux), MIN(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, graphs_hours_2 * 3600), &Database::Query_MeasFromPast, 6);
     Sensors::Get()->WriteGraphs();
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
     std::string elapsed_str = fmt::format("Executing 7 query took {:.6f} ms", (double)dif / 1000000.0);

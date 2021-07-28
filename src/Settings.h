@@ -12,8 +12,9 @@ public:
     Settings() = default;
     ~Settings() = default;
 
-    void Init(void);
+    void Init();
     void LoadFile();
+    void SaveFile();
     bool minimize_on_exit;
     bool minimize_on_startup;
     uint8_t default_page;

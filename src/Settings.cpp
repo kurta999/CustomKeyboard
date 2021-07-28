@@ -155,7 +155,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     }
 }
 
-void Settings::LoadFile(void)
+void Settings::LoadFile()
 {
     if(!std::filesystem::exists("settings.ini"))
     {
@@ -280,9 +280,113 @@ void Settings::LoadFile(void)
     }
 }
 
-void Settings::Init(void)
+void Settings::SaveFile() /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
+{
+    std::ofstream out("settings2.ini", std::ofstream::binary);
+    out << "# Possible macro keywords: \n";
+    out << "# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n";
+    out << "# KEY_SEQ[CTRL+C] = Press all given keys after each other and release it when each was pressed - ideal for key shortcats\n";
+    out << "# DELAY[time in ms] = Waits for given milliseconds\n";
+    out << "# DELAY[min ms - max ms] = Waits randomly between min ms and max ms\n";
+    out << "\n";
+    out << "[Macro_Config]\n";
+    out << "# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n";
+    out << "UsePerApplicationMacros = " << CustomMacro::Get()->use_per_app_macro << "\n";
+    out << "\n";
+    out << "# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n";
+    out << "UseAdvancedKeyBinding = " << CustomMacro::Get()->advanced_key_binding << "\n";
+
+    int cnt = 0;
+    std::string key;
+    auto& m = CustomMacro::Get()->GetMacros();
+    for(auto& i : m)
+    {
+        if(!cnt)
+            out << "\n[Keys_Global]\n";
+        else
+        {
+            out << fmt::format("\n[Keys_Macro{}]\n", cnt);
+            out << fmt::format("AppName = {}\n", i->name);
+        }
+        cnt++;
+        for(auto& x : i->key_vec)
+        {
+            key = fmt::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
+
+            /* TODO: replace this with function pointers & lambdas and move it to it's class - CustomMacro */
+            for(auto& k : x.second)
+            {
+                KeyClass* p = k.get();
+                CustomMacro::Get()->GenerateReadableTextFromMap(k, true,
+                    [this, &key](std::string& macro_str, std::string* macro_typename) mutable  -> void
+                    {
+                        key += macro_str;
+                    });
+            }
+            out << key << '\n';
+            key.clear();
+        }
+    }
+    out << "\n";
+    out << "[TCP_Backend]\n";
+    out << "Enable = " << Server::Get()->is_enabled << "\n";
+    out << "TCP_Port = " << Server::Get()->tcp_port << " # TCP Port for receiving measurements from sensors\n";
+    out << "\n";
+    out << "[COM_Backend]\n";
+    out << "Enable = " << CustomMacro::Get()->is_enabled << "\n";
+    out << "COM = " << CustomMacro::Get()->com_port << " # Com port for UART where data received from STM32\n";
+    out << "\n";
+    out << "[App]\n";
+    out << "MinimizeOnExit = " << minimize_on_exit << "\n";
+    out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
+    out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
+    out << "\n";
+    out << "[Screenshot]\n";
+    out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";
+    out << "ScreenshotDateFormat = " << PrintScreenSaver::Get()->timestamp_format << "\n";
+    out << "ScreenshotPath = " << PrintScreenSaver::Get()->screenshot_path << "\n";
+    out << "\n";
+    out << "[PathSeparator]\n";
+    out << "ReplacePathSeparatorKey = " << PathSeparator::Get()->replace_key << "\n";
+    out << "\n";
+    out << "[BackupSettings]\n";
+    out << "BackupKey = " << DirectoryBackup::Get()->backup_key << "\n";
+    out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
+    cnt = 0;
+    for(auto& i : DirectoryBackup::Get()->backups)
+    {
+        out << fmt::format("\n[Backup_{}]\n", cnt++);
+        out << "From = " << i->from << '\n';
+        key.clear();
+        for(auto& x : i->to)
+        {
+            key += x.generic_u8string() + '|';
+        }
+        if(key[key.length() - 1] == '|')
+            key.erase(key.length() - 1, key.length());
+        out << "To = " << key << '\n';
+        key.clear();
+        for(auto& x : i->ignore_list)
+        {
+            key += x + '|';
+        }
+        if(key[key.length() - 1] == '|')
+            key.erase(key.length() - 1, key.length());
+        out << "Ignore = " << key << '\n';
+        out << "MaxBackups = " << i->max_backups << '\n';
+    }
+    out << "\n";
+    out << "[Graph]\n";
+    out << "Graph1HoursBack = " << Database::Get()->GetGraphHours(0) << " # One day\n";
+    out << "Graph2HoursBack = " << Database::Get()->GetGraphHours(1) << " # One week\n";
+    out.close();
+}
+//constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
+void Settings::Init()
 {
     LoadFile();
+    SaveFile();
+    DBG("a");
 }
 
 void Settings::WriteDefaultIniFile()
@@ -297,7 +401,7 @@ void Settings::WriteDefaultIniFile()
     fputs("\n", file);
     fputs("[Macro_Config]\n", file);
     fputs("# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n", file);
-    fputs("UsePerApplicationMacros = 1 \n", file);
+    fputs("UsePerApplicationMacros = 1\n", file);
     fputs("\n", file);
     fputs("# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n", file);
     fputs("UseAdvancedKeyBinding = 1\n", file);

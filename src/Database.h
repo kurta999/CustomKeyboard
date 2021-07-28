@@ -22,8 +22,8 @@ public:
     Database() = default;
     ~Database() = default;
 
-    void DoGenerateGraphs(void);
-    void GenerateGraphs(void);
+    void DoGenerateGraphs();
+    void GenerateGraphs();
     void InsertMeasurement(std::unique_ptr<Measurement>& m);
     void SetGraphHours(uint8_t id, uint32_t val)
     {
@@ -44,7 +44,7 @@ private:
     void SendQuery(std::string&& query, void(Database::* execute_function)(sqlite3_stmt* stmt, std::any param), std::any params);
 
     bool ExecuteQuery(char* query, int (*callback)(void*, int, char**, char**) = NULL);
-    bool Open(void);
+    bool Open();
 
     void Query_Latest(sqlite3_stmt* stmt, std::any params);
     void Query_MeasFromPast(sqlite3_stmt* stmt, std::any params);

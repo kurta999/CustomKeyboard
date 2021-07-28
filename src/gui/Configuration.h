@@ -17,10 +17,31 @@ private:
 	T value;
 };
 
-class TestMessageBoxDialog : public wxDialog
+class MacroAddBoxDialog : public wxDialog
 {
 public:
-	TestMessageBoxDialog(wxWindow* parent);
+	MacroAddBoxDialog(wxWindow* parent);
+
+	void ShowDialog(const wxString& macro_key, const wxString& macro_name);
+	wxString GetMacroName() { return m_macroName->GetValue(); }
+	wxString GetMacroKey() { return m_macroKey->GetValue(); }
+	bool IsApplyClicked() { return m_IsApplyClicked; }
+protected:
+	void OnApply(wxCommandEvent& event);
+private:
+	wxTextCtrl* m_macroName;
+	wxTextCtrl* m_macroKey;
+	wxStaticText* m_labelResult;
+	bool m_IsApplyClicked;
+
+	wxDECLARE_EVENT_TABLE();
+	wxDECLARE_NO_COPY_CLASS(MacroAddBoxDialog);
+};
+
+class MacroEditBoxDialog : public wxDialog
+{
+public:
+	MacroEditBoxDialog(wxWindow* parent);
 
 	void ShowDialog(const wxString& str, uint8_t macro_type);
 	uint8_t GetType() { return m_radioBox1->GetSelection(); }
@@ -35,15 +56,13 @@ private:
 	bool m_IsApplyClicked;
 
 	wxDECLARE_EVENT_TABLE();
-	wxDECLARE_NO_COPY_CLASS(TestMessageBoxDialog);
+	wxDECLARE_NO_COPY_CLASS(MacroEditBoxDialog);
 };
 
 class ComTcpPanel : public wxPanel
 {
 public:
 	ComTcpPanel(wxWindow* parent);
-
-private:
 	wxCheckBox* m_IsTcp;
 	wxSpinCtrl* m_TcpPortSpin;
 	wxCheckBox* m_IsCom;
@@ -51,6 +70,9 @@ private:
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
 	wxSpinCtrl* m_DefaultPage;
+
+private:
+	wxButton* m_Ok;
 
 	wxDECLARE_EVENT_TABLE();
 };
@@ -70,6 +92,7 @@ public:
 private:
 	void ShowAddDialog();
 	void ShowEditDialog(wxTreeListItem item);
+	void UpdateMainTree();
 	void UpdateDetailsTree();
 	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
 	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
@@ -81,7 +104,8 @@ private:
 	wxBitmapButton* btn_delete;
 	wxBitmapButton* btn_up;
 	wxBitmapButton* btn_down;
-	TestMessageBoxDialog* dlg;
+	MacroEditBoxDialog* edit_dlg;
+	MacroAddBoxDialog* add_dlg;
 
 	wxString root_sel_str;
 	wxString child_sel_str;
@@ -92,6 +116,7 @@ class ConfigurationPanel : public wxPanel
 {
 public:
 	ConfigurationPanel(wxWindow* parent);
+	void Changeing(wxAuiNotebookEvent& event);
 
 	ComTcpPanel* comtcp_panel;
 	KeybrdPanel* keybrd_panel;
