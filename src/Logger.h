@@ -64,7 +64,7 @@ public:
     void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
     {
         std::string str;
-        std::string formatted_msg = fmt::format(msg, std::forward<Args>(args)...);
+        std::string formatted_msg = (sizeof...(args) != 0) ? fmt::format(msg, std::forward<Args>(args)...) : msg;
         time_t current_time;
         tm* current_tm;
         time(&current_time);

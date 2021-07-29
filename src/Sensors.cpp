@@ -140,15 +140,15 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     try
     {
         std::string out_str = std::move(fmt::format(template_str, min_val, max_val,
-            labels_time_last, "Latest " + std::string(name) + " readings", "window.chartColors.orange", "window.chartColors.red", data_latest,
+            labels_time_last, "Latest " + std::string(name) + " readings", "window.chartColors.orange", "window.chartColors.orange", data_latest,
             labels_time_day[0],
-            std::string(name) + " (Avg)", "window.chartColors.red", "window.chartColors.red", data_day[0],
-            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.red", data_day[1],
-            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.red", data_day[2],
+            std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_day[0],
+            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_day[1],
+            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_day[2],
             labels_time_week[0],
-            std::string(name) + " (Avg)", "window.chartColors.red", "window.chartColors.red", data_week[0],
-            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.red", data_week[1],
-            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.red", data_week[2],
+            std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_week[0],
+            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_week[1],
+            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_week[2],
             "Last " + std::to_string(MAX_MEAS_QUEUE) + " measurements", "Last Day", "Last Week"));
         out << out_str;
         out.close();

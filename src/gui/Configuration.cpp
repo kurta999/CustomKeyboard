@@ -221,7 +221,7 @@ void KeybrdPanel::UpdateMainTree()
 	}
 }
 
-void KeybrdPanel::UpdateDetailsTree()  // TODO: this is waste of resources, save or pass iterator instead of looping
+void KeybrdPanel::UpdateDetailsTree()
 {
 	tree_details->DeleteAllItems();
 	wxTreeListItem root2 = tree_details->GetRootItem();
@@ -308,8 +308,6 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 				if(ret == 5100)
 				{
 					auto& m = CustomMacro::Get()->GetMacros();
-
-					// std::vector<std::unique_ptr<MacroContainer>>
 
 					std::vector<std::unique_ptr<MacroContainer>>::const_iterator i;
 					for(i = m.begin(); i != m.end(); i++)
@@ -438,7 +436,7 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 
 void KeybrdPanel::DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id)
 {
-	KeyClass* p = x[id].get();
+	KeyClass* p = x[id].get(); /* TODO: use smart pointers here! */
 	//std::unique_ptr<KeyClass> = std::make_unique(&p);
 
 	//KeyClass* p2 = new KeyClass(p);
