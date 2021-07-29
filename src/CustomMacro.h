@@ -320,10 +320,10 @@ public:
 
     void GenerateReadableTextFromMap(std::unique_ptr<KeyClass>& key, bool is_ini_names, std::function<void(std::string& str, std::string* macro_typename)> callback);
 
-    bool is_enabled;
+    bool is_enabled = true;
     uint16_t com_port = 2005;
-    bool use_per_app_macro;
-    bool advanced_key_binding;
+    bool use_per_app_macro = true;
+    bool advanced_key_binding = true;
 
 private:
     friend class Settings;

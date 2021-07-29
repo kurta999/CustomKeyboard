@@ -14,13 +14,12 @@ public:
 
     void Init();
     void LoadFile();
-    void SaveFile();
-    bool minimize_on_exit;
-    bool minimize_on_startup;
-    uint8_t default_page;
+    void SaveFile(bool write_default_macros);
+    bool minimize_on_exit = false;
+    bool minimize_on_startup = false;
+    uint8_t default_page = 1;
 
 private:
-    void WriteDefaultIniFile();
     void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c);
     std::string macro_section;
 };

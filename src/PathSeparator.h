@@ -11,7 +11,7 @@ public:
     PathSeparator() = default;
     void ReplaceClipboard();
 
-    std::string replace_key;
+    std::string replace_key = "F11";
 
 private:
     void ReplaceString(std::string& str);

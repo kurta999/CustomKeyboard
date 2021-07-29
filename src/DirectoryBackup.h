@@ -45,10 +45,10 @@ public:
     void Init(void);
     void BackupFiles();
 
-    std::string backup_key;
+    std::string backup_key = "F10";
 private:
     std::vector< BackupEntry*> backups;
     void DoBackup();
     std::future<void> backup_future;
-    std::string backup_time_format;
+    std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";
 };

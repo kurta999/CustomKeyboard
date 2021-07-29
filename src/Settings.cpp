@@ -159,7 +159,7 @@ void Settings::LoadFile()
 {
     if(!std::filesystem::exists("settings.ini"))
     {
-        WriteDefaultIniFile();
+        SaveFile(true);
     }
 
     boost::property_tree::ptree pt;
@@ -280,9 +280,9 @@ void Settings::LoadFile()
     }
 }
 
-void Settings::SaveFile() /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
+void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
-    std::ofstream out("settings2.ini", std::ofstream::binary);
+    std::ofstream out("settings.ini", std::ofstream::binary);
     out << "# Possible macro keywords: \n";
     out << "# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n";
     out << "# KEY_SEQ[CTRL+C] = Press all given keys after each other and release it when each was pressed - ideal for key shortcats\n";
@@ -295,38 +295,53 @@ void Settings::SaveFile() /* tried boost::ptree ini writer but it doesn't suppor
     out << "\n";
     out << "# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n";
     out << "UseAdvancedKeyBinding = " << CustomMacro::Get()->advanced_key_binding << "\n";
+    out << "\n";
 
-    int cnt = 0;
-    std::string key;
-    auto& m = CustomMacro::Get()->GetMacros();
-    for(auto& i : m)
+    if(!write_default_macros)  /* True if settings.ini file doesn't exists - write a few macro lines here as example */
     {
-        if(!cnt)
-            out << "\n[Keys_Global]\n";
-        else
+        int cnt = 0;
+        std::string key;
+        auto& m = CustomMacro::Get()->GetMacros();
+        for(auto& i : m)
         {
-            out << fmt::format("\n[Keys_Macro{}]\n", cnt);
-            out << fmt::format("AppName = {}\n", i->name);
-        }
-        cnt++;
-        for(auto& x : i->key_vec)
-        {
-            key = fmt::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
-
-            /* TODO: replace this with function pointers & lambdas and move it to it's class - CustomMacro */
-            for(auto& k : x.second)
+            if(!cnt)
+                out << "[Keys_Global]\n";
+            else
             {
-                KeyClass* p = k.get();
-                CustomMacro::Get()->GenerateReadableTextFromMap(k, true,
-                    [this, &key](std::string& macro_str, std::string* macro_typename) mutable  -> void
-                    {
-                        key += macro_str;
-                    });
+                out << fmt::format("\n[Keys_Macro{}]\n", cnt);
+                out << fmt::format("AppName = {}\n", i->name);
             }
-            out << key << '\n';
-            key.clear();
+            cnt++;
+            for(auto& x : i->key_vec)
+            {
+                key = fmt::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
+
+                /* TODO: replace this with function pointers & lambdas and move it to it's class - CustomMacro */
+                for(auto& k : x.second)
+                {
+                    KeyClass* p = k.get();
+                    CustomMacro::Get()->GenerateReadableTextFromMap(k, true,
+                        [this, &key](std::string& macro_str, std::string* macro_typename) mutable  -> void
+                        {
+                            key += macro_str;
+                        });
+                }
+                out << key << '\n';
+                key.clear();
+            }
         }
     }
+    else
+    {
+        out << "[Keys_Global]\n";
+        out << "NUM_0 = KEY_SEQ[A+B+C]\n";
+        out << "NUM_1 = KEY_TYPE[global macro 1]\n";
+        out << "\n";
+        out << "[Keys_Macro1]\n";
+        out << "AppName = Notepad\n";
+        out << "NUM_1 = KEY_TYPE[test string from CustomKeyboard.exe] DELAY[100] KEY_TYPE[Closing window...] DELAY[100 - 3000] KEY_SEQ[ALT+F4]\n";
+    }
+
     out << "\n";
     out << "[TCP_Backend]\n";
     out << "Enable = " << Server::Get()->is_enabled << "\n";
@@ -352,28 +367,40 @@ void Settings::SaveFile() /* tried boost::ptree ini writer but it doesn't suppor
     out << "[BackupSettings]\n";
     out << "BackupKey = " << DirectoryBackup::Get()->backup_key << "\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
-    cnt = 0;
-    for(auto& i : DirectoryBackup::Get()->backups)
+    if(!write_default_macros)
     {
-        out << fmt::format("\n[Backup_{}]\n", cnt++);
-        out << "From = " << i->from << '\n';
-        key.clear();
-        for(auto& x : i->to)
+        int cnt = 0;
+        std::string key;
+        for(auto& i : DirectoryBackup::Get()->backups)
         {
-            key += x.generic_u8string() + '|';
+            out << fmt::format("\n[Backup_{}]\n", cnt++);
+            out << "From = " << i->from << '\n';
+            key.clear();
+            for(auto& x : i->to)
+            {
+                key += x.generic_u8string() + '|';
+            }
+            if(key[key.length() - 1] == '|')
+                key.erase(key.length() - 1, key.length());
+            out << "To = " << key << '\n';
+            key.clear();
+            for(auto& x : i->ignore_list)
+            {
+                key += x + '|';
+            }
+            if(key[key.length() - 1] == '|')
+                key.erase(key.length() - 1, key.length());
+            out << "Ignore = " << key << '\n';
+            out << "MaxBackups = " << i->max_backups << '\n';
         }
-        if(key[key.length() - 1] == '|')
-            key.erase(key.length() - 1, key.length());
-        out << "To = " << key << '\n';
-        key.clear();
-        for(auto& x : i->ignore_list)
-        {
-            key += x + '|';
-        }
-        if(key[key.length() - 1] == '|')
-            key.erase(key.length() - 1, key.length());
-        out << "Ignore = " << key << '\n';
-        out << "MaxBackups = " << i->max_backups << '\n';
+    }
+    else
+    {
+        out << "\n[Backup_1]\n";
+        out << "From = C:\\Users\\Ati\\Desktop\\folder_from_backup\n";
+        out << "To = C:\\Users\\Ati\\Desktop\\folder_where_to_backup|F:\\Backup\\folder_where_to_backup\n";
+        out << "Ignore = git/COMMIT_EDITMSG|.git|.vs|Debug|Release|Screenshots|x64|Graphs/Line Chart|Graphs/Temperature.html|Graphs/Humidity.html|Graphs/CO2.html|Graphs/Lux.html|Graphs/VOC.html|Graphs/CCT.html|Graphs/PM10.html|Graphs/PM25.html\n";
+        out << "MaxBackups = 5\n";
     }
     out << "\n";
     out << "[Graph]\n";
@@ -381,82 +408,8 @@ void Settings::SaveFile() /* tried boost::ptree ini writer but it doesn't suppor
     out << "Graph2HoursBack = " << Database::Get()->GetGraphHours(1) << " # One week\n";
     out.close();
 }
-//constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
+
 void Settings::Init()
 {
     LoadFile();
-    SaveFile();
-    DBG("a");
-}
-
-void Settings::WriteDefaultIniFile()
-{
-    FILE* file = fopen("settings.ini", "w");
-    assert(file);
-    fputs("# Possible macro keywords:\n", file);
-    fputs("# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n", file);
-    fputs("# KEY_SEQ[CTRL+C] = Press all given keys after each other and release it when each was pressed - ideal for key shortcats\n", file);
-    fputs("# DELAY[time in ms] = Waits for given milliseconds\n", file);
-    fputs("# DELAY[min ms - max ms] = Waits randomly between min ms and max ms\n", file);
-    fputs("\n", file);
-    fputs("[Macro_Config]\n", file);
-    fputs("# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n", file);
-    fputs("UsePerApplicationMacros = 1\n", file);
-    fputs("\n", file);
-    fputs("# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n", file);
-    fputs("UseAdvancedKeyBinding = 1\n", file);
-    fputs("\n", file);
-    fputs("[Keys_Global]\n", file);
-    fputs("NUM_0 = KEY_SEQ[A+B+C]\n", file);
-    fputs("NUM_1 = KEY_TYPE[global macro 1]\n", file);
-    fputs("NUM_2 = KEY_TYPE[uint8_t]\n", file);
-    fputs("NUM_3 = KEY_TYPE[uint16_t]\n", file);
-    fputs("\n", file);
-    fputs("[Keys_Macro1]\n", file);
-    fputs("AppName = Visual Studio\n", file);
-    fputs("RSHIFT+NUM_1 = KEY_TYPE[+]\n", file);
-    fputs("NUM_3 = KEY_SEQ[LCTRL+RSHIFT+A] DELAY[5000] KEY_SEQ[TAB] KEY_TYPE[Src/Teszt mappa] KEY_SEQ[LSHIFT+TAB] KEY_TYPE[fos szöveg amit ide írok] DELAY[2000] KEY_SEQ[ESC]\n", file);
-    fputs("\n", file);
-    fputs("[TCP_Backend]\n", file);
-    fputs("Enable=1\n", file);
-    fputs("TCP_Port = 2005 # TCP Port for receiving measurements from sensors\n", file);
-    fputs("\n", file);
-    fputs("[COM_Backend]\n", file);
-    fputs("Enable=1\n", file);
-    fputs("COM = 5 # Com port for UART where data received from STM32\n", file);
-    fputs("\n", file);
-    fputs("[App]\n", file);
-    fputs("MinimizeOnExit = 0\n", file);
-    fputs("MinimizeOnStartup = 0\n", file);
-    fputs("DefaultPage = 4\n", file);
-    fputs("\n", file);
-    fputs("[Screenshot]\n", file);
-    fputs("ScreenshotKey = F12\n", file);
-    fputs("ScreenshotDateFormat = %Y.%m.%d %H.%M.%S\n", file);
-    fputs("ScreenshotPath = Screenshots\n", file);
-    fputs("\n", file);
-    fputs("[PathSeparator]\n", file);
-    fputs("ReplacePathSeparatorKey = F11\n", file);
-    fputs("\n", file);
-    fputs("[BackupSettings]\n", file);
-    fputs("BackupKey = F10\n", file);
-    fputs("BackupFileFormat = _%Y_%m_%d %H_%M_%S\n", file);
-    fputs("\n", file);
-    fputs("[Backup_1]\n", file);
-    fputs("From = C:\\Users\\Ati\\Desktop\\folder_from_backup\n", file);
-    fputs("To = C:\\Users\\Ati\\Desktop\\folder_where_to_backup|F:\\Backup\\folder_where_to_backup\n", file);
-    fputs("Ignore = git/COMMIT_EDITMSG|.git|.vs|Debug|Release|Screenshots|x64|Graphs/Line Chart|Graphs/Temperature.html|Graphs/Humidity.html|Graphs/CO2.html|Graphs/Lux.html|Graphs/VOC.html|Graphs/CCT.html|Graphs/PM10.html|Graphs/PM25.html\n", file);
-    fputs("MaxBackups = 5\n", file);
-    fputs("\n", file);
-    fputs("[Miner]\n", file);
-    fputs("Enable = 1\n", file);
-    fputs("MinerDirectory = C:\\Users\\Ati\\Desktop\\bin\\n", file);
-    fputs("MinerParameters = miner params here\n", file);
-    fputs("PreStartupMacro = macaro for lowering & restoring OC while generating DAG file\n", file);
-    fputs("\n", file);
-    fputs("[Graph]\n", file);
-    fputs("Graph1HoursBack = 24 # One day\n", file);
-    fputs("Graph2HoursBack = 168 # One week\n", file);
-    fclose(file);
-    file = nullptr;
 }

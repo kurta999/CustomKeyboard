@@ -34,8 +34,8 @@ public:
     bool CreateAcceptor(unsigned short port);
     void BroadcastMessage(const std::string& msg);
     
-    bool is_enabled;
-    uint16_t tcp_port = 0;
+    bool is_enabled = true;
+    uint16_t tcp_port = 2005;
 private:
     friend class Settings;
 

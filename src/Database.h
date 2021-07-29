@@ -53,6 +53,6 @@ private:
     int rc;
     char* sql;
     std::future<void> graph_future;
-    uint32_t graphs_hours_1;
-    uint32_t graphs_hours_2;
+    uint32_t graphs_hours_1 = 24;  /* One day */
+    uint32_t graphs_hours_2 = 168;  /* One week */
 };

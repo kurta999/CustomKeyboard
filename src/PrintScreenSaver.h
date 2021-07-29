@@ -16,9 +16,9 @@ public:
     void Init();
     void SaveScreenshot();
 
-    std::string timestamp_format;
-    std::filesystem::path screenshot_path;
-    std::string screenshot_key;
+    std::string timestamp_format = "%Y.%m.%d %H.%M.%S";
+    std::filesystem::path screenshot_path = "Screenshots";
+    std::string screenshot_key = "F12";
 private:
     void DoSave();
     std::future<void> screenshot_future;
