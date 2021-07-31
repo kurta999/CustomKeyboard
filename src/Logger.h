@@ -91,9 +91,22 @@ public:
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
             frame->log_panel->m_Log->Append(wxString(str));
+        else
+            preinit_entries.Add(str);
+    }
+
+    void AppendPreinitedEntries()
+    {
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        if(frame)
+        {
+            frame->log_panel->m_Log->Append(preinit_entries);
+            preinit_entries.Clear();
+        }
     }
 private:
     FILE* fLog = nullptr;
+    wxArrayString preinit_entries;
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

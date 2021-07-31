@@ -173,6 +173,7 @@ MyFrame::MyFrame(const wxString& title)
 	macro_panel = new MacroPanel(this);
 	parser_panel = new ParserPanel(this);
 	log_panel = new LogPanel(this);
+	Logger::Get()->AppendPreinitedEntries();
 
 	wxSize client_size = GetClientSize();
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
