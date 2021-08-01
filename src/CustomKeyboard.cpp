@@ -37,3 +37,19 @@ int MyApp::OnExit()
     MinerWatchdog::CSingleton::Destroy();
     return true;
 }
+
+void MyApp::OnUnhandledException()
+{
+    try
+    {
+        throw;
+    }
+    catch(std::exception& e)
+    {
+        MessageBoxA(NULL, e.what(), "std::exception caught", MB_OK);
+    }
+    catch(...)
+    {
+        MessageBoxA(NULL, "Unknown exception", "exception caught", MB_OK);
+    }
+}
