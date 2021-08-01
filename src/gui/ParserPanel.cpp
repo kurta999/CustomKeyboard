@@ -10,8 +10,7 @@ wxEND_EVENT_TABLE()
 ParserPanel::ParserPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxFlexGridSizer* fgSizer1;
-	fgSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	wxFlexGridSizer* fgSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	fgSizer1->SetFlexibleDirection(wxBOTH);
 	fgSizer1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 

@@ -52,40 +52,20 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case ConfigTypes::BIND_NAME:
             {
                 pos = first_end;
-                
                 c->bind_name[key_code] = extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
-                DBG("Bind name: %s\n", c->bind_name[key_code].c_str());
                 break;
             }
             case ConfigTypes::KEY_SEQ:
             {
                 pos = first_end;
-                std::vector<uint16_t> keys;
-                std::string sequence = extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
-
-                boost::char_separator<char> sep(seq_separator);
-                boost::tokenizer< boost::char_separator<char> > tok(sequence, sep);
-                for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
-                {
-                    DBG("Token: %s\n", beg->c_str());
-                    std::string key_code = *beg;
-                    uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
-                    if(key == 0xFFFF)
-                    {
-                        LOGMSG(error, "Invalid key found in settings.ini: {}", key_code);
-                    }
-                    keys.push_back(key);
-                }
-
-                c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(keys)));
+                std::string &&sequence = extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
+                c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
                 break;
             }
             case ConfigTypes::KEY_TYPE:
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
-
-                DBG("Text Token: %s\n", sequence.c_str());
                 c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
                 break;
             }
@@ -93,21 +73,13 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
-
-                size_t separator_pos = sequence.find("-");
-                if(separator_pos != std::string::npos)
+                try
                 {
-                    uint32_t delay_start = static_cast<uint32_t>(std::stoi(sequence));
-                    uint32_t delay_end = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
-                    DBG("Random Delay range: %d, %d\n", delay_start, delay_end);
-
-                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay_start, delay_end));
+                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
                 }
-                else
+                catch(std::exception& e)
                 {
-                    uint32_t delay = static_cast<uint32_t>(std::stoi(sequence));
-                    DBG("Delay: %d\n", delay);
-                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(delay));
+                    LOGMSG(critical, "Invalid argument for DELAY: {} ({})", sequence, e.what());
                 }
                 break;
             }
@@ -115,16 +87,13 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
-
-                size_t separator_pos = sequence.find(",");
-                if(separator_pos != std::string::npos)
+                try
                 {
-                    POINT pos;
-                    pos.x = static_cast<long>(std::stoi(sequence));
-                    pos.y = static_cast<uint32_t>(std::stoi(&sequence[separator_pos + 1]));
-                    DBG("Mouse Movement: %d, %d\n", pos.x, pos.y);
-
-                    c->key_vec[key_code].push_back(std::make_unique<MouseMovement>((LPPOINT*)&pos));
+                    c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOGMSG(critical, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
                 }
                 break;
             }
@@ -132,18 +101,14 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);
-
-                uint16_t mouse_button = 0xFFFF;
-                if(sequence == "L" || sequence == "LEFT")
-                    mouse_button = MOUSEEVENTF_LEFTDOWN;
-                if(sequence == "R" || sequence == "RIGHT")
-                    mouse_button = MOUSEEVENTF_RIGHTDOWN;
-                if(sequence == "M" || sequence == "MIDDLE")
-                    mouse_button = MOUSEEVENTF_MIDDLEDOWN;
-                if(mouse_button != 0xFFFF)
-                    c->key_vec[key_code].push_back(std::make_unique<MouseClick>(mouse_button));
-                else
-                    LOGMSG(error, "Invalid mouse button name format!");
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOGMSG(critical, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
+                }
                 break;
             }
             default:
@@ -316,15 +281,17 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             {
                 key = fmt::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
 
-                /* TODO: replace this with function pointers & lambdas and move it to it's class - CustomMacro */
                 for(auto& k : x.second)
                 {
                     KeyClass* p = k.get();
+                    key += p->GenerateText(true);
+                    /*
                     CustomMacro::Get()->GenerateReadableTextFromMap(k, true,
                         [this, &key](std::string& macro_str, std::string* macro_typename) mutable  -> void
                         {
                             key += macro_str;
                         });
+                        */
                 }
                 out << key << '\n';
                 key.clear();
@@ -359,7 +326,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";
     out << "ScreenshotDateFormat = " << PrintScreenSaver::Get()->timestamp_format << "\n";
-    out << "ScreenshotPath = " << PrintScreenSaver::Get()->screenshot_path << "\n";
+    out << "ScreenshotPath = " << PrintScreenSaver::Get()->screenshot_path.generic_u8string() << "\n";
     out << "\n";
     out << "[PathSeparator]\n";
     out << "ReplacePathSeparatorKey = " << PathSeparator::Get()->replace_key << "\n";
@@ -369,12 +336,12 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
     if(!write_default_macros)
     {
-        int cnt = 0;
+        int cnt = 1;
         std::string key;
         for(auto& i : DirectoryBackup::Get()->backups)
         {
             out << fmt::format("\n[Backup_{}]\n", cnt++);
-            out << "From = " << i->from << '\n';
+            out << "From = " << i->from.generic_u8string() << '\n';
             key.clear();
             for(auto& x : i->to)
             {

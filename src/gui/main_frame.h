@@ -54,13 +54,13 @@ public:
 
 	void SetIconTooltip(const wxString& str);
 
-	MainPanel* main_panel;
+	MainPanel* main_panel = nullptr;
 	ConfigurationPanel* config_panel;
 	EditorPanel* editor_panel;
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;
 	ParserPanel* parser_panel;
-	LogPanel* log_panel;
+	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl;
 	std::mutex mtx;
 	std::tuple<int, int64_t, size_t> backup_result;

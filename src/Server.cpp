@@ -47,8 +47,8 @@ void Server::StopAsync()
             }
             sessions.clear();
         }
-        io_service.stop();
-        TerminateThread(t->native_handle(), 0);
+        //io_service.stop();
+        //TerminateThread(t->native_handle(), 0);
     }
 }
 

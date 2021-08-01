@@ -93,9 +93,11 @@ private:
 	void ShowAddDialog();
 	void ShowEditDialog(wxTreeListItem item);
 	void UpdateMainTree();
-	void UpdateDetailsTree();
+	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
 	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
 	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
+
+	std::vector<std::unique_ptr<KeyClass>>* GetKeyClassByItem(wxTreeListItem item, uint16_t& id);
 
 	wxTreeListCtrl* tree;
 	wxTreeListCtrl* tree_details;
@@ -104,6 +106,7 @@ private:
 	wxBitmapButton* btn_delete;
 	wxBitmapButton* btn_up;
 	wxBitmapButton* btn_down;
+	wxButton* m_Ok;
 	MacroEditBoxDialog* edit_dlg;
 	MacroAddBoxDialog* add_dlg;
 

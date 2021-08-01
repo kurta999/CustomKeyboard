@@ -39,6 +39,8 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
 	wxString platform = (sizeof(void*) == 4 ? " x86" : " x64");
+	std::string fmt_version = std::to_string(FMT_VERSION);
+	std::string wxwidgets_version = fmt::format("{}.{}.{}", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER);
 	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
@@ -60,7 +62,12 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\
-SOFTWARE.", "OK");
+SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
+"SQLite: " + SQLITE_VERSION + "\n" +
+"wxWidgets: " + wxwidgets_version + "\n" +
+"boost: " + BOOST_LIB_VERSION + "\n" +
+"lodepng: " + LODEPNG_VERSION_STRING + "\n" +
+"fmt: " + fmt_version + "\n", "OK");
 }
 
 void MyFrame::OnQuit(wxCommandEvent& event)
@@ -101,7 +108,7 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 	MinerWatchdog::Get()->CheckProcessRunning();
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
-	if(sel == 3 && foreground)
+	if(sel == 4 && foreground)
 	{
 		POINT p;
 		if(::GetCursorPos(&p))
@@ -204,8 +211,7 @@ MyFrame::MyFrame(const wxString& title)
 MacroPanel::MacroPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 	
 	m_MousePos = new wxStaticText(this, wxID_ANY, "Pos: 0,0");
 	bSizer1->Add(m_MousePos);

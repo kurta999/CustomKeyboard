@@ -17,6 +17,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/tokenizer.hpp>
 
 #pragma pack(push, 1)
 typedef struct
@@ -41,7 +42,9 @@ public:
     KeyClass() {}
     virtual ~KeyClass() {}
     KeyClass(const KeyClass&) {}
-    virtual void DoWrite() { };
+    virtual void DoWrite() = 0;
+    virtual std::string GenerateText(bool is_ini_format) = 0;
+    virtual const char* GetName() = 0;
     virtual KeyClass* Clone() = 0;
 
 public:
@@ -87,7 +90,7 @@ public:
     KeyText(std::string&& keys)
     {
         seq = std::move(keys);
-    }
+    }  
     KeyText(const KeyText& from)
     {
         seq = from.seq;
@@ -106,12 +109,20 @@ public:
         }
     }
 
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string &&ret = is_ini_format ? fmt::format(" KEY_TYPE[{}]", seq) : seq;
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
     std::string& GetString()
     {
         return seq;
     }
 private:
     std::string seq; /* virtual key codes to press and release*/
+    static const char* name;
 };
 
 class KeyCombination final : public KeyClass
@@ -120,7 +131,8 @@ public:
     KeyCombination(std::vector<uint16_t>&& keys)
     {
         seq = std::move(keys);
-    }
+    }    
+    KeyCombination(const std::string&& str);
     KeyCombination(const KeyCombination& from)
     {
         seq = from.seq;
@@ -139,12 +151,16 @@ public:
             PressReleaseKey(seq[i], false);
     }
 
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name; }
+
     std::vector<uint16_t>& GetVec()
     {
         return seq;
     }
 private:
     std::vector<uint16_t> seq; /* scan codes to press and release*/
+    static const char* name;
 };
 
 class KeyDelay final : public KeyClass
@@ -158,6 +174,7 @@ public:
     {
         //delay = ;
     }
+    KeyDelay(const std::string&& str);
     KeyDelay(const KeyDelay& from)
     {
         delay = from.delay;
@@ -183,6 +200,9 @@ public:
         }
     }
 
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name_delay; }
+
     std::variant<uint32_t, std::array<uint32_t, 2>>& GetDelay()
     {
         return delay;
@@ -190,6 +210,8 @@ public:
 private:
     std::variant<uint32_t, std::array<uint32_t, 2>> delay;
     boost::mt19937 gen;
+    static const char* name_delay;
+    static const char* name_random;
 };
 
 class MouseMovement final : public KeyClass
@@ -203,6 +225,7 @@ public:
     {
         memcpy(&pos, &from.pos, sizeof(pos));
     }
+    MouseMovement(const std::string&& str);
     virtual ~MouseMovement() { }
     MouseMovement* Clone() override
     {
@@ -220,13 +243,21 @@ public:
         ShowCursor(TRUE);
     }
 
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{}, {}]",  pos.x, pos.y) : fmt::format("{}, {}", pos.x, pos.y);
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
     POINT& GetPos()
     {
         return pos;
     }
 
 private:
-    POINT pos;
+    POINT pos = {};
+    static const char* name;
 };
 
 class MouseClick final : public KeyClass
@@ -238,6 +269,7 @@ public:
     {
         key = from.key;
     }
+    MouseClick(const std::string&& str);
     virtual ~MouseClick() { }
     MouseClick* Clone() override
     {
@@ -249,12 +281,35 @@ public:
         PressReleaseMouse(key);
     }
 
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string text;
+        switch(key)
+        {
+            case MOUSEEVENTF_LEFTDOWN:
+                text = "LEFT";
+                break;
+            case MOUSEEVENTF_RIGHTDOWN:
+                text = "RIGHT";
+                break;
+            case MOUSEEVENTF_MIDDLEDOWN:
+                text = "MIDDLE";
+                break;
+            default:
+                assert(0);
+        }
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_CLICK[{}]", text) : text;
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
     uint16_t GetKey()
     {
         return key;
     }
 private:
     uint16_t key;
+    static const char* name;
 };
 
 /* each given macro per-app get's a macro container */
@@ -276,6 +331,7 @@ private:
 class CustomMacro : public CSingleton < CustomMacro >
 {
     friend class CSingleton < CustomMacro >;
+    friend class KeyCombination;
 
 public:
     CustomMacro() = default;
@@ -317,8 +373,6 @@ public:
     {
         return scan_codes;
     }
-
-    void GenerateReadableTextFromMap(std::unique_ptr<KeyClass>& key, bool is_ini_names, std::function<void(std::string& str, std::string* macro_typename)> callback);
 
     bool is_enabled = true;
     uint16_t com_port = 2005;

@@ -2,12 +2,10 @@
 
 wxBEGIN_EVENT_TABLE(MacroEditBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroEditBoxDialog::OnApply)
-//EVT_BUTTON(wxID_CLOSE, TestMessageBoxDialog::OnClose)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(MacroAddBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroAddBoxDialog::OnApply)
-//EVT_BUTTON(wxID_CLOSE, TestMessageBoxDialog::OnClose)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(ComTcpPanel, wxPanel)
@@ -71,6 +69,13 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	sizerMsgs->Add(m_radioBox1, wxSizerFlags().Left());
 	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro text:"));
 	m_textMsg = new wxTextCtrl(this, wxID_ANY, "a", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	wxArrayString a;
+	auto& map = CustomMacro::Get()->GetHidScanCodeMap();
+	for(auto& i : map)
+	{
+		a.Add(i.first);
+	}
+	m_textMsg->AutoComplete(a);
 	sizerMsgs->Add(m_textMsg, wxSizerFlags(1).Expand().Border(wxBOTTOM));
 	sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
 
@@ -187,6 +192,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	bSizer1->Add(m_DefaultPage, 0, wxALL, 5);
 	
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
+	m_Ok->SetToolTip("Save all settings to settings.ini file");
 	bSizer1->Add(m_Ok, 0, wxALL, 5);
 	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
@@ -221,12 +227,11 @@ void KeybrdPanel::UpdateMainTree()
 	}
 }
 
-void KeybrdPanel::UpdateDetailsTree()
+void KeybrdPanel::UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr)
 {
 	tree_details->DeleteAllItems();
 	wxTreeListItem root2 = tree_details->GetRootItem();
 	uint16_t cnt = 0;
-	std::unique_ptr<MacroContainer> ptr;
 	auto& m = CustomMacro::Get()->GetMacros();
 	for(auto& i : m)
 	{
@@ -235,15 +240,11 @@ void KeybrdPanel::UpdateDetailsTree()
 			for(auto& x : i->key_vec[child_sel_str.ToStdString()])
 			{
 				KeyClass* p = x.get();
-				std::string key;
-				CustomMacro::Get()->GenerateReadableTextFromMap(x, false,
-					[this, &key, &root2, &cnt](std::string& macro_str, std::string* macro_typename) mutable  -> void
-					{
-						wxTreeListItem item;
-						item = tree_details->AppendItem(root2, *macro_typename, -1, -1, new wxIntClientData(cnt++));
-						tree_details->SetItemText(item, 1, macro_str);
-						key += macro_str;
-					});
+				wxTreeListItem item = tree_details->AppendItem(root2, p->GetName(), -1, -1, new wxIntClientData(cnt++));
+				std::string str = p->GenerateText(false);
+				tree_details->SetItemText(item, 1, str);
+				if(ptr && x == *ptr)
+					tree_details->Select(item);
 			}
 			break;
 		}
@@ -273,85 +274,81 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 {
 	enum
 	{
-		Id_AddNew,
+		Id_AddNewApplication,
+		Id_AddNewMacroKey,
 		Id_Delete,
-		Id_MoveUp,
-		Id_MoveDown,
 	};
 
-	auto a = wxWindow::FindFocus();
-	bool b = wxWindow::HasFocus();
-
 	wxMenu menu;
-	menu.Append(Id_AddNew, "&Add new (below)");
+	menu.Append(Id_AddNewApplication, "&Add new application (below)");
+	menu.Append(Id_AddNewMacroKey, "&Add new macro key (below");
 	menu.Append(Id_Delete, "&Delete");
-	//menu.AppendSeparator();
-	//menu.Append(Id_MoveUp, "Move up");
-	//menu.Append(Id_MoveDown, "Move down");
 
 	const wxTreeListItem item = event.GetItem();
+	wxTreeListItem root = tree->GetItemParent(item);
+	if(root == NULL) return;
+	wxTreeListItem root2 = tree->GetItemParent(root);
+
+	wxTreeListItem child = tree->GetFirstChild(item);
+	menu.Enable(Id_AddNewApplication, !(child == 0));
+
 	int ret = tree->GetPopupMenuSelectionFromUser(menu);
 	switch(ret)
 	{
-		case 0:
+		case Id_AddNewApplication:
 		{
-			wxTreeListItem root = tree->GetItemParent(item);
-			wxTreeListItem root2 = tree->GetItemParent(root);
 			wxString root_str = tree->GetItemText(item, 0);
-			wxString parent_str = tree->GetItemText(root, 0);
 			wxString item_str = tree->GetItemText(item, 1);
 
-			if(root2 == NULL) /* clicked on one of the root items */
+			wxTextEntryDialog d(this, "Type new application macro name", "Caption");
+			int ret = d.ShowModal();
+			if(ret == 5100)
 			{
-				wxTextEntryDialog d(this, "Type new application macro name", "Caption");
-				int ret = d.ShowModal();
-				if(ret == 5100)
-				{
-					auto& m = CustomMacro::Get()->GetMacros();
-
-					std::vector<std::unique_ptr<MacroContainer>>::const_iterator i;
-					for(i = m.begin(); i != m.end(); i++)
-					{
-						if(i->get()->name == root_str)
-						{
-							break;
-						}
-					}
-					m.insert(i + 1, std::make_unique<MacroContainer>(d.GetValue().ToStdString()));
-				}
-				DBG("ret: %d\n", ret);  // 5100 - ok, 5101 - cancel
-				UpdateMainTree();
-			}
-			else
-			{
-				add_dlg->ShowDialog("Add new macro", "name");
-
-				std::string macro_key = add_dlg->GetMacroKey().ToStdString();
-				std::string macro_name = add_dlg->GetMacroName().ToStdString();
-				if(!add_dlg->IsApplyClicked()) return;
-
-				if(CustomMacro::Get()->GetKeyScanCode(macro_key) == 0xFFFF)
-					DBG("err");
 				auto& m = CustomMacro::Get()->GetMacros();
-				
-				for(auto& i : m)
-				{
-					if(i->name == parent_str)
-					{
-						if(i->key_vec.find(macro_key) != i->key_vec.end())
-							DBG("err");
 
-						auto pp = std::make_unique<MacroContainer>();
-						i->bind_name[macro_key] = std::move(macro_name);
-						UpdateMainTree();
+				std::vector<std::unique_ptr<MacroContainer>>::const_iterator i;
+				for(i = m.begin(); i != m.end(); i++)
+				{
+					if(i->get()->name == root_str)
+					{
 						break;
 					}
 				}
+				m.insert(i + 1, std::make_unique<MacroContainer>(d.GetValue().ToStdString()));
+			}
+			DBG("ret: %d\n", ret);  // 5100 - ok, 5101 - cancel
+			UpdateMainTree();
+			break;
+		}
+		case Id_AddNewMacroKey:
+		{
+			wxString parent_str = tree->GetItemText(item, 0);
+			add_dlg->ShowDialog("Add new macro", "name");
 
+			std::string macro_key = add_dlg->GetMacroKey().ToStdString();
+			std::string macro_name = add_dlg->GetMacroName().ToStdString();
+			if(!add_dlg->IsApplyClicked()) return;
+
+			if(CustomMacro::Get()->GetKeyScanCode(macro_key) == 0xFFFF)
+				DBG("err");
+			auto& m = CustomMacro::Get()->GetMacros();
+				
+			for(auto& i : m)
+			{
+				if(i->name == parent_str)
+				{
+					if(i->key_vec.find(macro_key) != i->key_vec.end())
+						DBG("err");
+
+					auto pp = std::make_unique<MacroContainer>();
+					i->bind_name[macro_key] = std::move(macro_name);
+					UpdateMainTree();
+					break;
+				}
 			}
 			break;
 		}
-		case 1:
+		case Id_Delete:
 		{
 			wxMessageDialog dialog(this, "Are you sure want to delete selected macro?", "Deleting macro", wxCENTER | wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
 			int ret = dialog.ShowModal();
@@ -437,19 +434,24 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 void KeybrdPanel::DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id)
 {
 	KeyClass* p = x[id].get(); /* TODO: use smart pointers here! */
-	//std::unique_ptr<KeyClass> = std::make_unique(&p);
-
-	//KeyClass* p2 = new KeyClass(p);
-
 	KeyClass* c(p->Clone());
 	x.insert(x.begin() + ++id, std::unique_ptr<KeyClass>(c));
 }
 
+template <typename T> void AddOrModifyMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add, std::string&& source_string)
+{
+	auto tmp = std::make_unique<T>(std::move(source_string));
+	if(id >= x.size())
+		x.push_back(std::move(tmp));
+	else
+		if(add)
+			x.insert(x.begin() + ++id, std::move(tmp));
+		else
+			x[id] = std::move(tmp);
+}
+
 void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add)
 {
-	//KeyClass* p = x.at(id).get();
-	DBG("aa ");
-
 	uint8_t edit_sel = edit_dlg->GetType();
 	std::string edit_str = edit_dlg->GetText().ToStdString();
 
@@ -457,76 +459,48 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uin
 	{
 		case 0:
 		{
-			std::vector<uint16_t> keys;
-			boost::char_separator<char> sep("+");
-			boost::tokenizer< boost::char_separator<char> > tok(edit_str, sep);
-			for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
-			{
-				DBG("Token: %s\n", beg->c_str());
-				std::string key_code = *beg;
-
-				uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
-				if(key == 0xFFFF)
-				{
-					LOGMSG(error, "Invalid key found in settings.ini: {}", key_code);
-				}
-				keys.push_back(key);
-			}
-
-			auto tmp = std::make_unique<KeyCombination>(std::move(keys));
-			if(id >= x.size())
-				x.push_back(std::move(tmp));
-			else
-				if(add)
-					x.insert(x.begin() + ++id, std::move(tmp));
-				else
-					x[id] = std::move(tmp);
+			AddOrModifyMacro<KeyCombination>(x, id, add, std::move(edit_str));
 			break;
 		}
 		case 1:
 		{
-			auto tmp = std::make_unique<KeyText>(std::move(edit_str));
-			if(id >= x.size())
-				x.push_back(std::move(tmp));
-			else
-				if(add)
-					x.insert(x.begin() + ++id, std::move(tmp));
-				else
-					x[id] = std::move(tmp);
+			AddOrModifyMacro<KeyText>(x, id, add, std::move(edit_str));
 			break;
 		}
 		case 2:
 		{
-			size_t separator_pos = edit_str.find("-");
-			if(separator_pos != std::string::npos)
+			try
 			{
-				uint32_t min_delay = static_cast<uint32_t>(std::stoi(edit_str));
-				uint32_t max_delay = static_cast<uint32_t>(std::stoi(&edit_str[separator_pos + 1]));
-
-				x[id] = std::make_unique<KeyDelay>(min_delay, max_delay);
+				AddOrModifyMacro<KeyDelay>(x, id, add, std::move(edit_str));
 			}
-			else
-				x[id] = std::make_unique<KeyDelay>(boost::lexical_cast<uint32_t>(edit_str));
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
 			break;
 		}
 		case 3:
 		{
-			POINT pos;
-			if(sscanf(edit_str.c_str(), "%ld%*c%ld", &pos.x, &pos.y) == 2)
-				x[id] = std::make_unique<MouseMovement>((LPPOINT*)&pos);
+			try
+			{
+				AddOrModifyMacro<MouseMovement>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
 			break;
 		}
 		case 4:
 		{
-			uint16_t mouse_button = 0xFFFF;
-			if(edit_str == "L" || edit_str == "LEFT")
-				mouse_button = MOUSEEVENTF_LEFTDOWN;
-			if(edit_str == "R" || edit_str == "RIGHT")
-				mouse_button = MOUSEEVENTF_RIGHTDOWN;
-			if(edit_str == "M" || edit_str == "MIDDLE")
-				mouse_button = MOUSEEVENTF_MIDDLEDOWN;
-			if(mouse_button != 0xFFFF)
-				x[id] = std::make_unique<MouseClick>(mouse_button);
+			try
+			{
+				AddOrModifyMacro<MouseClick>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
 			break;
 		}
 	}
@@ -582,7 +556,7 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	UpdateMainTree();
 
 	bSizer1->Add(tree, wxSizerFlags(2).Left());
-	
+
 	tree_details = new wxTreeListCtrl(this, ID_MacroDetails, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
 	tree_details->AppendColumn("Action type", tree_details->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree_details->AppendColumn("Parameters", tree_details->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
@@ -594,13 +568,13 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	btn_add->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			wxTreeListItem item = tree_details->GetSelection();
-
 			auto& m = CustomMacro::Get()->GetMacros();
 			for(auto& i : m)
 			{
 				if(i->name == root_sel_str.ToStdString())
 				{
 					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
+					std::unique_ptr<KeyClass>* ptr = nullptr;
 					uint16_t id = std::numeric_limits<uint16_t>::max();
 					bool push_back = true;
 					if(item)  // if selected item exists and not root element
@@ -610,12 +584,13 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 						id = dret->GetValue();
 						push_back = false;
 					}
-					
+
 					ShowAddDialog();
 					if(!edit_dlg->IsApplyClicked()) return;
 
 					ManipulateMacro(x, id, true);
-					UpdateDetailsTree();
+					ptr = id >= x.size() ? &x[x.size() - 1] : &x[id + 1];
+					UpdateDetailsTree(ptr);
 					break;
 				}
 			}
@@ -625,46 +600,24 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	btn_copy->SetToolTip("Copy selected macro below selected one");
 	btn_copy->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			wxTreeListItem item = tree_details->GetSelection();
-			if(item == NULL) return;
-
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
+			uint16_t id;
+			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
+			if(x)
 			{
-				if(i->name == root_sel_str.ToStdString())
-				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-					wxClientData* itemdata = tree_details->GetItemData(item);
-					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-					uint16_t id = dret->GetValue();
-
-					DuplicateMacro(x, id);
-					UpdateDetailsTree();
-					break;
-				}
+				DuplicateMacro(*x, id);
+				UpdateDetailsTree();
 			}
-
 		});
 
 	btn_delete = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_DEL_BOOKMARK, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_delete->SetToolTip("Delete selected macro");
 	btn_delete->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			wxTreeListItem item = tree_details->GetSelection();
-			if(item.GetID() == NULL) return;
-
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
+			uint16_t id;
+			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
+			if(x)
 			{
-				if(i->name == root_sel_str.ToStdString())
-				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-
-					wxClientData* itemdata = tree_details->GetItemData(item);
-					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-					uint16_t id = dret->GetValue();
-					x.erase(x.begin() + id);
-				}
+				x->erase(x->begin() + id);
 			}
 			UpdateDetailsTree();
 		});
@@ -673,54 +626,53 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	btn_up->SetToolTip("Move up selected macro");
 	btn_up->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			wxTreeListItem item = tree_details->GetSelection();
-			if(item.GetID() == NULL) return;
-
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
+			uint16_t id;
+			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
+			if(x)
 			{
-				if(i->name == root_sel_str.ToStdString())
+				std::unique_ptr<KeyClass>* ptr;
+				if((*x)[id] == x->front())
 				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-
-					wxClientData* itemdata = tree_details->GetItemData(item);
-					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-					uint16_t id = dret->GetValue();
-					
-					if(x[id] == x.front())
-						std::rotate(x.begin(), x.begin() + 1, x.end());
-					else
-						std::swap(x[id], x[id - 1]);
+					std::rotate(x->begin(), x->begin() + 1, x->end());
+					ptr = &x->back();
 				}
+				else
+				{
+					std::swap((*x)[id], (*x)[id - 1]);
+					ptr = &(*x)[id - 1];
+				}
+				UpdateDetailsTree(ptr);
 			}
-			UpdateDetailsTree();
 		});
-	
+
 	btn_down = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_down->SetToolTip("Move down selected macro");
 	btn_down->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			wxTreeListItem item = tree_details->GetSelection();
-			if(item.GetID() == NULL) return;
-
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
+			uint16_t id;
+			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
+			if(x)
 			{
-				if(i->name == root_sel_str.ToStdString())
+				std::unique_ptr<KeyClass>* ptr;
+				if((*x)[id] == x->back())
 				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-
-					wxClientData* itemdata = tree_details->GetItemData(item);
-					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-					uint16_t id = dret->GetValue();
-
-					if(x[id] == x.back())
-						std::rotate(x.rbegin(), x.rbegin() + 1, x.rend());
-					else
-						std::swap(x[id], x[id + 1]);
+					std::rotate(x->rbegin(), x->rbegin() + 1, x->rend());
+					ptr = &x->front();
 				}
+				else
+				{
+					std::swap((*x)[id], (*x)[id + 1]);
+					ptr = &(*x)[id + 1];
+				}
+				UpdateDetailsTree(ptr);
 			}
-			UpdateDetailsTree();
+		});
+
+	m_Ok = new wxButton(this, wxID_ANY, "Save", wxPoint(tree->GetSize().x + 20, tree->GetSize().y + 20), wxDefaultSize);
+	m_Ok->SetToolTip("Save all settings to settings.ini file");
+	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			Settings::Get()->SaveFile(false);
 		});
 
 	vertical_sizer->Add(btn_add);
@@ -736,3 +688,24 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	Show();
 }
 
+std::vector<std::unique_ptr<KeyClass>>* KeybrdPanel::GetKeyClassByItem(wxTreeListItem item, uint16_t& id)
+{
+	std::vector<std::unique_ptr<KeyClass>>* ret = nullptr;
+	if(item.GetID() != NULL)
+	{
+		auto& m = CustomMacro::Get()->GetMacros();
+		for(auto& i : m)
+		{
+			if(i->name == root_sel_str.ToStdString())
+			{
+				std::vector<std::unique_ptr<KeyClass>>* x = &i->key_vec[child_sel_str.ToStdString()];
+
+				wxClientData* itemdata = tree_details->GetItemData(item);
+				wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+				id = dret->GetValue();
+				ret = x;
+			}
+		}
+	}
+	return ret;
+}

@@ -3,8 +3,7 @@
 EscaperPanel::EscaperPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	m_IsEscapePercent = new wxCheckBox(this, wxID_ANY, wxT("Escape %?"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer1->Add(m_IsEscapePercent, 0, wxALL, 5);

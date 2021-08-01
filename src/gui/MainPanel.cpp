@@ -3,8 +3,7 @@
 MainPanel::MainPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
 	m_RefreshButton->SetToolTip("Request new measurements");
