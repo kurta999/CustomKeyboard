@@ -217,6 +217,7 @@
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\GuiEditor.h" />
     <ClInclude Include="src\gui\Configuration.h" />
+    <ClInclude Include="src\gui\ConfigurationBackup.h" />
     <ClInclude Include="src\gui\Editor.h" />
     <ClInclude Include="src\gui\EscaperPanel.h" />
     <ClInclude Include="src\gui\gui_id.h" />
@@ -227,7 +228,6 @@
     <ClInclude Include="src\gui\pch.h" />
     <ClInclude Include="src\gui\TrayIcon.h" />
     <ClInclude Include="src\Logger.h" />
-    <ClInclude Include="src\MinerWatchdog.h" />
     <ClInclude Include="src\PathSeparator.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\PrintScreenSaver.h" />
@@ -291,6 +291,7 @@
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
     <ClCompile Include="src\gui\Configuration.cpp" />
+    <ClCompile Include="src\gui\ConfigurationBackup.cpp" />
     <ClCompile Include="src\gui\Editor.cpp" />
     <ClCompile Include="src\gui\EscaperPanel.cpp" />
     <ClCompile Include="src\gui\LogPanel.cpp" />
@@ -299,7 +300,6 @@
     <ClCompile Include="src\gui\ParserPanel.cpp" />
     <ClCompile Include="src\gui\TrayIcon.cpp" />
     <ClCompile Include="src\Logger.cpp" />
-    <ClCompile Include="src\MinerWatchdog.cpp" />
     <ClCompile Include="src\PathSeparator.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

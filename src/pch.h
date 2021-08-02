@@ -17,7 +17,6 @@
 #include "CustomMacro.h"
 #include "GuiEditor.h"
 #include "StructParser.h"
-#include "MinerWatchdog.h"
 #include "Database.h"
 #include "GuiEditor.h"
 #include "Settings.h"

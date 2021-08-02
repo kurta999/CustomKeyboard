@@ -34,7 +34,6 @@ int MyApp::OnExit()
     StructParser::CSingleton::Destroy();
     PrintScreenSaver::CSingleton::Destroy();
     DirectoryBackup::CSingleton::Destroy();
-    MinerWatchdog::CSingleton::Destroy();
     return true;
 }
 

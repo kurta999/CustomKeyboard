@@ -74,5 +74,4 @@ private:
 	TrayIcon* tray;
 	wxAuiManager m_mgr;
 	wxTimer* m_timer;
-	wxTimer* m_octimer;
 };

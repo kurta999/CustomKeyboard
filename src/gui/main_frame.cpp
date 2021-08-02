@@ -105,7 +105,6 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 
 void MyFrame::OnTimer(wxTimerEvent& event)
 {
-	MinerWatchdog::Get()->CheckProcessRunning();
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
 	if(sel == 4 && foreground)
@@ -131,11 +130,6 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 		}
 	}
 	HandleNotifications();
-}
-
-void MyFrame::OnOverlockErrorCheck(wxTimerEvent& event)
-{
-	MinerWatchdog::Get()->CheckOverclockErrors();
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
@@ -202,9 +196,6 @@ MyFrame::MyFrame(const wxString& title)
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
-	m_octimer = new wxTimer(this, ID_OCTimer);
-	Connect(m_octimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnOverlockErrorCheck), NULL, this);
-	m_octimer->Start(3000, false);
 	backup_result = std::make_tuple(0, 0, 0);
 }
 

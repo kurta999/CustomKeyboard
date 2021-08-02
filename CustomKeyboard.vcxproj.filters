@@ -141,9 +141,6 @@
     <ClInclude Include="src\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\MinerWatchdog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\PathSeparator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -181,6 +178,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\pch.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\ConfigurationBackup.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -248,9 +248,6 @@
     <ClCompile Include="src\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MinerWatchdog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\PathSeparator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -274,6 +271,9 @@
     </ClCompile>
     <ClCompile Include="src\pch.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\ConfigurationBackup.cpp">
+      <Filter>Source Files\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
