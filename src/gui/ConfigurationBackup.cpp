@@ -46,6 +46,7 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 				itemdata = tree->GetItemData(item);
 			wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
 			uint16_t id = dret->GetValue();
+			delete DirectoryBackup::Get()->backups[id];
 			DirectoryBackup::Get()->backups.erase(DirectoryBackup::Get()->backups.begin() + id);
 			UpdateMainTree();
 			break;

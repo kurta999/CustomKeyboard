@@ -16,7 +16,7 @@
 #include <wx/filepicker.h>
 
 #include <mutex>
-
+#include <deque>
 
 class MacroPanel : public wxPanel
 {
@@ -30,6 +30,12 @@ private:
 
 
 class TrayIcon;
+
+enum Msg : uint8_t
+{
+	ScreenshotSaved = 0,
+	BackupCompleted,
+};
 
 class MyFrame : public wxFrame
 {
@@ -63,7 +69,7 @@ public:
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl;
 	std::mutex mtx;
-	std::tuple<int, int64_t, size_t> backup_result;
+	std::deque<std::vector<std::any>> pending_msgs;
 
 	wxDECLARE_EVENT_TABLE();
 private:

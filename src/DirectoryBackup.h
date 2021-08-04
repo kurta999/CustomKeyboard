@@ -44,11 +44,13 @@ public:
     ~DirectoryBackup() = default;
     void Init(void);
     void BackupFiles();
+    void BackupFile(int id);
 
     std::string backup_key = "F10";
     std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";
     std::vector< BackupEntry*> backups;
 private:
-    void DoBackup();
+    void DoBackups();
+    void DoBackup(BackupEntry* backup);
     std::future<void> backup_future;
 };

@@ -196,7 +196,6 @@ MyFrame::MyFrame(const wxString& title)
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
 	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
 	m_timer->Start(100, false);
-	backup_result = std::make_tuple(0, 0, 0);
 }
 
 MacroPanel::MacroPanel(wxFrame* parent)
@@ -216,37 +215,39 @@ MacroPanel::MacroPanel(wxFrame* parent)
 
 void MyFrame::HandleNotifications()
 {
-	mtx.lock();
-	if(std::get<0>(backup_result) != 0)
+	std::lock_guard<std::mutex> lock(mtx);
+	if(pending_msgs.size() > 0)
 	{
-		switch(std::get<0>(backup_result))
+		std::vector<std::any> ret = pending_msgs.front();
+		switch(std::any_cast<uint8_t>(ret[0]))
 		{
-		case 1:
-		{
-			int64_t time_elapsed = std::get<1>(backup_result);
-			size_t file_count = std::get<2>(backup_result);
-			ShowNotificaiton("Backup complete", wxString::Format("Backed up %d files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 3, [this](wxCommandEvent& event)
-				{
-
-				});
-			break;
+			case 0:
+			{
+				int64_t time_elapsed = std::any_cast<int64_t>(ret[1]);
+				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 3, [this](wxCommandEvent& event)
+					{
+						char work_dir[256];
+						GetCurrentDirectoryA(sizeof(work_dir), work_dir);
+						strncat(work_dir, "\\Screenshots", 12);
+						ShellExecuteA(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
+					});
+				break;
+			}
+			case 1:
+			{
+				int64_t time_elapsed = std::any_cast<int64_t>(ret[1]);
+				size_t file_count = std::any_cast<size_t>(ret[2]);
+				uint8_t backup_id = std::any_cast<size_t>(ret[2]);
+				std::filesystem::path* p = std::any_cast<std::filesystem::path*>(ret[3]);
+				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 3, [this, p](wxCommandEvent& event)
+					{
+						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+					});
+				break;
+			}
 		}
-		case 2:
-		{
-			int64_t time_elapsed = std::get<1>(backup_result);
-			ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 3, [this](wxCommandEvent& event)
-				{
-					char work_dir[256];
-					GetCurrentDirectoryA(sizeof(work_dir), work_dir);
-					strncat(work_dir, "\\Screenshots", 12);
-					ShellExecuteA(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
-				});
-			std::get<0>(backup_result) = 0;
-			break;
-		}
-		}
+		pending_msgs.pop_front();
 	}
-	mtx.unlock();
 }
 
 template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr)
