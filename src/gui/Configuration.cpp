@@ -126,6 +126,8 @@ void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 				sel = array_serials.GetCount() - 1;
 		}
 
+		comtcp_panel->m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
+		comtcp_panel->m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
 		comtcp_panel->m_IsCom->SetValue(CustomMacro::Get()->is_enabled);
 
 		comtcp_panel->m_serial->Clear();
@@ -136,6 +138,11 @@ void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 		comtcp_panel->m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
 		comtcp_panel->m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
 		comtcp_panel->m_DefaultPage->SetValue(Settings::Get()->default_page);
+		comtcp_panel->m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
+		comtcp_panel->m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);
+		comtcp_panel->m_ScreenshotPath->SetValue(PrintScreenSaver::Get()->screenshot_path.generic_u8string());
+		comtcp_panel->m_BackupKey->SetValue(DirectoryBackup::Get()->backup_key);
+		comtcp_panel->m_BackupDateFmt->SetValue(DirectoryBackup::Get()->backup_time_format);
 	}
 }
 
@@ -147,9 +154,11 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(WINDOW_SIZE_X - 50, WINDOW_SIZE_Y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	comtcp_panel = new ComTcpPanel(m_notebook);
 	keybrd_panel = new KeybrdPanel(m_notebook);
+	backup_panel = new BackupPanel(m_notebook);
 	m_notebook->AddPage(comtcp_panel, "Main settings", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(keybrd_panel, "Macro settings", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	m_notebook->SetSelection(1);
+	m_notebook->AddPage(backup_panel, "Backup settings", false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	m_notebook->SetSelection(2);
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
 }
 
@@ -159,43 +168,79 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	wxArrayString array_serials;
 	array_serials.Add("Select a serial port from list below");
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
+	wxSizer* const sizer_box_tcp = new wxStaticBoxSizer(wxHORIZONTAL, this, "&TCP Settings");
 
 	m_IsTcp = new wxCheckBox(this, wxID_ANY, wxT("Enable TCP?"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_IsTcp, 0, wxALL, 5);
+	sizer_box_tcp->Add(m_IsTcp, 0, wxALL, 5);
 
-	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+	sizer_box_tcp->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
 	m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
-	bSizer1->Add(m_TcpPortSpin, 0, wxALL, 5);
-	
-	bSizer1->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxEXPAND | wxALL, 5);
+	sizer_box_tcp->Add(m_TcpPortSpin, 0, wxALL, 5);
+	bSizer1->Add(sizer_box_tcp);
 
+	wxSizer* const sizer_box_com = new wxStaticBoxSizer(wxHORIZONTAL, this, "&COM Settings");
+	wxBoxSizer* com_vert_1 = new wxBoxSizer(wxVERTICAL);
+	m_IsPerAppMacro = new wxCheckBox(this, wxID_ANY, wxT("Use per-application macros?"), wxDefaultPosition, wxDefaultSize, 0);
+	com_vert_1->Add(m_IsPerAppMacro, 0, wxALL, 5);
+	m_IsAdvancedMacro = new wxCheckBox(this, wxID_ANY, wxT("Use advanced macros?"), wxDefaultPosition, wxDefaultSize, 0);
+	com_vert_1->Add(m_IsAdvancedMacro, 0, wxALL, 5);
+	sizer_box_com->Add(com_vert_1, 0, wxEXPAND | wxALL, 5);
+
+	wxBoxSizer* com_vert_2 = new wxBoxSizer(wxVERTICAL);
 	m_IsCom = new wxCheckBox(this, wxID_ANY, wxT("Enable COM?"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_IsCom, 0, wxALL, 5);
+	com_vert_2->Add(m_IsCom, 0, wxEXPAND | wxALL, 5);
 
-	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("COM port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+	com_vert_2->Add(new wxStaticText(this, wxID_ANY, wxT("COM port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
 	m_serial = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_serials);
-	bSizer1->Add(m_serial);
+	com_vert_2->Add(m_serial);
+	sizer_box_com->Add(com_vert_2);
+	bSizer1->Add(sizer_box_com);
 
-	bSizer1->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxEXPAND | wxALL, 5);
-
+	wxSizer* const sizer_box_app = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Application settings");
 	m_IsMinimizeOnExit = new wxCheckBox(this, wxID_ANY, wxT("Minimize on exit?"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_IsMinimizeOnExit, 0, wxALL, 5);
+	sizer_box_app->Add(m_IsMinimizeOnExit, 0, wxALL, 5);
 
 	m_IsMinimizeOnStartup = new wxCheckBox(this, wxID_ANY, wxT("Minimize on startup?"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_IsMinimizeOnStartup, 0, wxALL, 5);
+	sizer_box_app->Add(m_IsMinimizeOnStartup, 0, wxALL, 5);
 
-	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+	sizer_box_app->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
 	m_DefaultPage = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
-	bSizer1->Add(m_DefaultPage, 0, wxALL, 5);
-	
+	sizer_box_app->Add(m_DefaultPage, 0, wxALL, 5);
+	bSizer1->Add(sizer_box_app);
+
+	wxSizer* const sizer_box_screenshot = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Screenshot Settings");
+	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_ScreenshotKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_screenshot->Add(m_ScreenshotKey);
+
+	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Time format:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_ScreenshotDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_screenshot->Add(m_ScreenshotDateFmt);
+
+	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Path:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_ScreenshotPath = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_screenshot->Add(m_ScreenshotPath);
+	bSizer1->Add(sizer_box_screenshot);
+
+	wxSizer* const backup_box_screenshot = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
+	backup_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_BackupKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	backup_box_screenshot->Add(m_BackupKey);
+	backup_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
+	m_BackupDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	backup_box_screenshot->Add(m_BackupDateFmt);
+	bSizer1->Add(backup_box_screenshot);
+
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
 	m_Ok->SetToolTip("Save all settings to settings.ini file");
 	bSizer1->Add(m_Ok, 0, wxALL, 5);
 	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
+			CustomMacro::Get()->use_per_app_macro = m_IsPerAppMacro->IsChecked();
+			CustomMacro::Get()->advanced_key_binding = m_IsAdvancedMacro->IsChecked();
 			wxString com_str = m_serial->GetStringSelection();
 			CustomMacro::Get()->is_enabled = m_IsCom->IsChecked();
 			if(m_serial->GetSelection() > 0)
@@ -205,7 +250,12 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
 			Settings::Get()->default_page = m_DefaultPage->GetValue();
-
+			PrintScreenSaver::Get()->screenshot_key = m_ScreenshotKey->GetValue(); /* in case of invalid key screenshot saving never will be triggered - nothing special.. using it for disabling */
+			PrintScreenSaver::Get()->timestamp_format = m_ScreenshotDateFmt->GetValue();
+			PrintScreenSaver::Get()->screenshot_path = m_ScreenshotPath->GetValue().ToStdString();
+			DirectoryBackup::Get()->backup_key = m_BackupKey->GetValue().ToStdString();
+			DirectoryBackup::Get()->backup_time_format = m_BackupDateFmt->GetValue().ToStdString();
+			Settings::Get()->SaveFile(false);
 		});
 	SetSizer(bSizer1);
 }

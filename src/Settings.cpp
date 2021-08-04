@@ -224,7 +224,11 @@ void Settings::LoadFile()
     }
     catch(boost::property_tree::ptree_error& e)
     {
-        LOGMSG(error, "exception: {}", e.what());
+        LOGMSG(error, "Exception: {}", e.what());
+    }
+    catch(std::exception& e)
+    {
+        LOGMSG(critical, "Exception %s", e.what());
     }
 }
 

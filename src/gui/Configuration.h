@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ConfigurationBackup.h"
 #include <wx/wx.h>
 #include <wx/aui/aui.h>
 #include <wx/stc/stc.h>
@@ -65,11 +66,18 @@ public:
 	ComTcpPanel(wxWindow* parent);
 	wxCheckBox* m_IsTcp;
 	wxSpinCtrl* m_TcpPortSpin;
+	wxCheckBox* m_IsPerAppMacro;
+	wxCheckBox* m_IsAdvancedMacro;
 	wxCheckBox* m_IsCom;
 	wxComboBox* m_serial;
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
 	wxSpinCtrl* m_DefaultPage;
+	wxTextCtrl* m_ScreenshotKey;
+	wxTextCtrl* m_ScreenshotDateFmt;
+	wxTextCtrl* m_ScreenshotPath;
+	wxTextCtrl* m_BackupKey;
+	wxTextCtrl* m_BackupDateFmt;
 
 private:
 	wxButton* m_Ok;
@@ -123,6 +131,7 @@ public:
 
 	ComTcpPanel* comtcp_panel;
 	KeybrdPanel* keybrd_panel;
+	BackupPanel* backup_panel;
 
 private:
 	wxDECLARE_EVENT_TABLE();

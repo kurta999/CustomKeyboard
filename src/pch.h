@@ -4,6 +4,7 @@
 #include <urlmon.h>
 
 #include "gui/Configuration.h"
+#include "gui/ConfigurationBackup.h"
 #include "gui/gui_id.h"
 #include "gui/Editor.h"
 #include "gui/EscaperPanel.h"

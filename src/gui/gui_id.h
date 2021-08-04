@@ -14,4 +14,5 @@ enum
 	ID_DestroyAll,
 	ID_AppBindListMain,
 	ID_MacroDetails,
+	ID_BackupPanel,
 };

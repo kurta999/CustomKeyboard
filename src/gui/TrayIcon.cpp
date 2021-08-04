@@ -42,6 +42,11 @@ wxMenu* TrayIcon::CreatePopupMenu()
 {
 	wxMenu* popup = new wxMenu;
 
+	for(auto& i : DirectoryBackup::Get()->backups)
+	{
+		popup->Append(wxID_ANY, i->from.filename().generic_string());
+	}
+	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"));
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::Exit, wxT("E&xit"));
