@@ -35,6 +35,10 @@ enum Msg : uint8_t
 {
 	ScreenshotSaved = 0,
 	BackupCompleted,
+	PathSeparatorsReplaced,
+	LinkMark,
+	SymlinkCreated,
+	HardlinkCreated,
 };
 
 class MyFrame : public wxFrame

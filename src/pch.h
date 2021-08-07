@@ -27,6 +27,7 @@
 #include "PrintScreenSaver.h"
 #include "PathSeparator.h"
 #include "Session.h"
+#include "SymlinkCreator.h"
 
 #include <wx/aui/aui.h>
 #include <wx/statline.h>
@@ -83,6 +84,9 @@
 
 #include <assert.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <exdisp.h>
+#include <shlwapi.h>
 
 #include <any>
 #include <iostream>

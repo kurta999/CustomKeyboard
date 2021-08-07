@@ -185,6 +185,11 @@ void Settings::LoadFile()
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
         PathSeparator::Get()->replace_key = pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data();
+        
+        SymlinkCreator::Get()->is_enabled = static_cast<bool>(std::stoi(pt.get_child("SymlinkCreator").find("Enable")->second.data()) != 0);
+        SymlinkCreator::Get()->mark_key = pt.get_child("SymlinkCreator").find("MarkKey")->second.data();
+        SymlinkCreator::Get()->place_symlink_key = pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data();
+        SymlinkCreator::Get()->place_hardlink_key = pt.get_child("SymlinkCreator").find("PlaceHardlinkKey")->second.data();
 
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
@@ -272,13 +277,6 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
                 {
                     KeyClass* p = k.get();
                     key += p->GenerateText(true);
-                    /*
-                    CustomMacro::Get()->GenerateReadableTextFromMap(k, true,
-                        [this, &key](std::string& macro_str, std::string* macro_typename) mutable  -> void
-                        {
-                            key += macro_str;
-                        });
-                        */
                 }
                 out << key << '\n';
                 key.clear();
@@ -317,6 +315,12 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "\n";
     out << "[PathSeparator]\n";
     out << "ReplacePathSeparatorKey = " << PathSeparator::Get()->replace_key << "\n";
+    out << "\n";
+    out << "[SymlinkCreator]\n";
+    out << "Enable = " << SymlinkCreator::Get()->is_enabled << "\n";
+    out << "MarkKey = " << SymlinkCreator::Get()->mark_key << "\n";
+    out << "PlaceSymlinkKey = " << SymlinkCreator::Get()->place_symlink_key << "\n";
+    out << "PlaceHardlinkKey = " << SymlinkCreator::Get()->place_hardlink_key << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupKey = " << DirectoryBackup::Get()->backup_key << "\n";

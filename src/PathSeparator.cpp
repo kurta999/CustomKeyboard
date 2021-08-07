@@ -20,6 +20,12 @@ void PathSeparator::ReplaceClipboard()
 					strncpy(buffer, input.c_str(), input.length() + 1);
 				GlobalUnlock(clipbuffer);
 				SetClipboardData(CF_TEXT, clipbuffer);
+
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				{
+					std::lock_guard<std::mutex> lock(frame->mtx);
+					frame->pending_msgs.push_back({ (uint8_t)PathSeparatorsReplaced, std::move(input) });
+				}
 			}
 		}
 		CloseClipboard();

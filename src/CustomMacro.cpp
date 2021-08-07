@@ -117,6 +117,8 @@ void CustomMacro::PressKey(std::string key)
         DirectoryBackup::Get()->BackupFiles();
         return;
     }
+    if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
+        return;
 
     if(use_per_app_macro)
     {
@@ -401,8 +403,8 @@ const std::unordered_map<int, std::string> CustomMacro::hid_scan_codes =
         {0x4E, "PAGEDOWN"},
         {0x4F, "RIGHT"},
         {0x50, "LEFT"},
-        {0x51, "UP"},
-        {0x52, "DOWN"},
+        {0x51, "DOWN"},
+        {0x52, "UP"},
         {0x53, "NUM_LOCK"},
         {0x54, "NUM_DIV"},
         {0x55, "NUM_MUL"},

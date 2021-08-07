@@ -219,11 +219,12 @@ void MyFrame::HandleNotifications()
 	if(pending_msgs.size() > 0)
 	{
 		std::vector<std::any> ret = pending_msgs.front();
-		switch(std::any_cast<uint8_t>(ret[0]))
+		uint8_t type = std::any_cast<uint8_t>(ret[0]);
+		switch(type)
 		{
-			case 0:
+			case ScreenshotSaved:
 			{
-				int64_t time_elapsed = std::any_cast<int64_t>(ret[1]);
+				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 3, [this](wxCommandEvent& event)
 					{
 						char work_dir[256];
@@ -233,15 +234,42 @@ void MyFrame::HandleNotifications()
 					});
 				break;
 			}
-			case 1:
+			case PathSeparatorsReplaced:
 			{
-				int64_t time_elapsed = std::any_cast<int64_t>(ret[1]);
-				size_t file_count = std::any_cast<size_t>(ret[2]);
-				uint8_t backup_id = std::any_cast<size_t>(ret[2]);
-				std::filesystem::path* p = std::any_cast<std::filesystem::path*>(ret[3]);
+				std::string path = std::any_cast<decltype(path)>(ret[1]);
+				ShowNotificaiton("Path separator replaced", wxString::Format("New form is in the clipboard:\n%s", path.substr(0, 64)), 3, [this](wxCommandEvent& event)
+					{
+					});
+				break;
+			}
+			case BackupCompleted:
+			{
+				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
+				size_t file_count = std::any_cast<decltype(file_count)>(ret[2]);
+				std::filesystem::path* p = std::any_cast<decltype(p)>(ret[3]);
 				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 3, [this, p](wxCommandEvent& event)
 					{
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+					});
+				break;
+			}	
+			case LinkMark:
+			{
+				uint32_t files_marked = std::any_cast<decltype(files_marked)>(ret[1]);
+				ShowNotificaiton("Selected files have been marked", wxString::Format("%d files has been marked.\n\
+Press KEY %s in destination directory for creating symlinks\nPress KEY %s in destination directory for creating hardlinks\n", 
+					files_marked, SymlinkCreator::Get()->place_symlink_key, SymlinkCreator::Get()->place_hardlink_key), 3, [this](wxCommandEvent& event)
+					{
+					});
+				break;
+			}
+			case SymlinkCreated:
+			case HardlinkCreated:
+			{
+				uint32_t files_marked = std::any_cast<decltype(files_marked)>(ret[1]);
+				ShowNotificaiton(wxString::Format("%s has been created", type == SymlinkCreated ? "Simlinks" : "Hardlinks"),
+					wxString::Format("%d %s has been created succesfully!\n", files_marked, type == SymlinkCreated ? "Simlinks" : "Hardlinks"), 3, [this](wxCommandEvent& event)
+					{
 					});
 				break;
 			}
