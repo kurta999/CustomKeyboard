@@ -4,11 +4,6 @@ size_t ClassElement::pointer_size = 4;
 
 #define TESTING_PARSER 1
 
-#ifdef TESTING_PARSER
-#include <iostream>
-#include <fstream>
-#endif
-
 size_t FindEndOfHeader(std::string& input)
 {
 	size_t pos_pack = input.find("#pragma pack", 0);
@@ -98,7 +93,6 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	DBG("\n");
 	return true;
 }
-
 
 size_t FindStructEnd(std::string str_in, size_t& input_len)
 {
@@ -351,11 +345,11 @@ void StructParser::Init()
 			LOGMSG(critical, "Exception %s", e.what());
 		}
 		f.close();
+
+		std::ofstream out("struct_out.txt", std::ofstream::binary);
+		out << out_str;
+		out.close();
 	}
-	
-	std::ofstream out("struct_out.txt", std::ofstream::binary);
-	out << out_str;
-	out.close();
 #endif
 }
 

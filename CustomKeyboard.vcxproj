@@ -107,6 +107,10 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PreBuildEvent>
+      <Message>Get commitid &amp; tag from latest git commit</Message>
+      <Command>commitid.bat  commitid.h  ./src</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -133,6 +137,10 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PreBuildEvent>
+      <Command>commitid.bat  commitid.h  ./src</Command>
+      <Message>Get commitid &amp; tag from latest git commit</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -186,7 +194,7 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_x64_lib</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
-      <Command>commitid.bat  commitid.h  ./</Command>
+      <Command>commitid.bat  commitid.h  ./src</Command>
     </PreBuildEvent>
     <PreBuildEvent>
       <Message>Get commitid &amp; tag from latest git commit</Message>
