@@ -81,7 +81,7 @@ std::string KeyCombination::GenerateText(bool is_ini_format)
     if(text[text.length() - 1] == '+')
         text.erase(text.length() - 1, text.length());
     std::string&& ret = is_ini_format ? fmt::format(" KEY_SEQ[{}]", text) : text;
-    return text;
+    return ret;
 }
 
 std::string KeyDelay::GenerateText(bool is_ini_format)

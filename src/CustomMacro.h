@@ -375,7 +375,7 @@ public:
     }
 
     bool is_enabled = true;
-    uint16_t com_port = 2005;
+    uint16_t com_port = 5;
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
 

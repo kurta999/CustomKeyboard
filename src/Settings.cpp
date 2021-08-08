@@ -118,6 +118,12 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             }
         }
     }
+
+    if(c->bind_name[key_code].empty())
+    {
+        c->bind_name[key_code] = "Unknown macro"; /* this needed because wxTreeList won't show empty string as row */
+        LOGMSG(warning, "Macro name for key {} missing. Giving it 'Unknown macro', feel free to change it.", key_code);
+    }
 }
 
 void Settings::LoadFile()
@@ -286,12 +292,12 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     else
     {
         out << "[Keys_Global]\n";
-        out << "NUM_0 = KEY_SEQ[A+B+C]\n";
-        out << "NUM_1 = KEY_TYPE[global macro 1]\n";
+        out << "NUM_0 = BIND_NAME[global macro 1] KEY_SEQ[A+B+C]\n";
+        out << "NUM_1 = BIND_NAME[global macro 2] KEY_TYPE[global macro 1]\n";
         out << "\n";
         out << "[Keys_Macro1]\n";
         out << "AppName = Notepad\n";
-        out << "NUM_1 = KEY_TYPE[test string from CustomKeyboard.exe] DELAY[100] KEY_TYPE[Closing window...] DELAY[100 - 3000] KEY_SEQ[ALT+F4]\n";
+        out << "NUM_1 = BIND_NAME[close notepad++] KEY_TYPE[test string from CustomKeyboard.exe] DELAY[100] KEY_TYPE[Closing window...] DELAY[100-3000] KEY_SEQ[LALT+F4] DELAY[100] KEY_SEQ[RIGHT] KEY_SEQ[ENTER]\n";
     }
 
     out << "\n";
