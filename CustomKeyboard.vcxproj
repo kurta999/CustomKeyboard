@@ -217,6 +217,7 @@
     <ClInclude Include="libs\lodepng\lodepng.h" />
     <ClInclude Include="libs\sqlite\sqlite3.h" />
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\commitid.h" />
     <ClInclude Include="src\CustomKeyboard.h" />
     <ClInclude Include="src\CustomMacro.h" />
@@ -236,6 +237,7 @@
     <ClInclude Include="src\gui\pch.h" />
     <ClInclude Include="src\gui\TrayIcon.h" />
     <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\MacroRecorder.h" />
     <ClInclude Include="src\PathSeparator.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\PrintScreenSaver.h" />
@@ -309,6 +311,7 @@
     <ClCompile Include="src\gui\ParserPanel.cpp" />
     <ClCompile Include="src\gui\TrayIcon.cpp" />
     <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\MacroRecorder.cpp" />
     <ClCompile Include="src\PathSeparator.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -335,6 +338,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="CustomKeyboard.ico" />
+    <Image Include="icon.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>

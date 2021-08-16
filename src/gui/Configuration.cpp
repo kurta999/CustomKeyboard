@@ -1,5 +1,9 @@
 #include "pch.h"
 
+wxBEGIN_EVENT_TABLE(MacroRecordBoxDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, MacroRecordBoxDialog::OnApply)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(MacroEditBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroEditBoxDialog::OnApply)
 wxEND_EVENT_TABLE()
@@ -19,6 +23,28 @@ EVT_TREELIST_SELECTION_CHANGED(ID_MacroDetails, KeybrdPanel::OnTreeListChanged_D
 EVT_TREELIST_ITEM_CONTEXT_MENU(ID_MacroDetails, KeybrdPanel::OnItemContextMenu_Details)
 EVT_TREELIST_ITEM_ACTIVATED(ID_MacroDetails, KeybrdPanel::OnItemActivated)
 wxEND_EVENT_TABLE()
+
+MacroRecordBoxDialog::MacroRecordBoxDialog(wxWindow* parent)
+	: wxDialog(parent, wxID_ANY, "Message Box Test Dialog", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
+
+	wxString m_radioBox1Choices[] = { wxT("Keys only"), wxT("Mouse only"), wxT("Mouse and Keys") };
+	m_RecordType = new wxRadioBox(this, wxID_ANY, wxT("Select recording type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(m_radioBox1Choices), m_radioBox1Choices, 1, wxRA_SPECIFY_COLS);
+	m_RecordType->SetSelection(0);
+	sizerTop->Add(m_RecordType, wxSizerFlags(1).Expand().Border());
+
+	// miscellaneous other stuff
+	wxSizer* const sizerFlags = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Note:");
+	sizerFlags->Add(new wxStaticText(this, wxID_ANY, "Delay recording is not implemented between key events"), wxSizerFlags().Border());
+	sizerTop->Add(sizerFlags, wxSizerFlags().Expand().Border());
+
+	// finally buttons to show the resulting message box and close this dialog
+	sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
+
+	SetSizerAndFit(sizerTop);
+	CentreOnScreen();
+}
 
 MacroAddBoxDialog::MacroAddBoxDialog(wxWindow* parent)
 	: wxDialog(parent, wxID_ANY, "Message Box Test Dialog", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -46,7 +72,7 @@ MacroAddBoxDialog::MacroAddBoxDialog(wxWindow* parent)
 
 	// miscellaneous other stuff
 	wxSizer* const sizerFlags = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Note:");
-	sizerFlags->Add(new wxStaticText(this, wxID_ANY, "Press SCROLL LOCK to get mouse coordinates relative to the active window"), wxSizerFlags().Border());
+	sizerFlags->Add(new wxStaticText(this, wxID_ANY, "TODO: add something here"), wxSizerFlags().Border());
 	sizerTop->Add(sizerFlags, wxSizerFlags().Expand().Border());
 
 	// finally buttons to show the resulting message box and close this dialog
@@ -89,6 +115,14 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 
 	SetSizerAndFit(sizerTop);
 	CentreOnScreen();
+}
+
+void MacroRecordBoxDialog::ShowDialog(const wxString& str)
+{
+	m_RecordType->SetSelection(0);
+	m_IsApplyClicked = false;
+	ShowModal();
+	DBG("isapply: %d", IsApplyClicked());
 }
 
 void MacroEditBoxDialog::ShowDialog(const wxString& str, uint8_t macro_type)
@@ -158,7 +192,9 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	m_notebook->AddPage(comtcp_panel, "Main settings", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(keybrd_panel, "Macro settings", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(backup_panel, "Backup settings", false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	m_notebook->SetSelection(2);
+#ifdef DEBUG
+	m_notebook->SetSelection(1);
+#endif
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
 }
 
@@ -331,7 +367,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 
 	wxMenu menu;
 	menu.Append(Id_AddNewApplication, "&Add new application (below)");
-	menu.Append(Id_AddNewMacroKey, "&Add new macro key (below");
+	menu.Append(Id_AddNewMacroKey, "&Add new macro key (below)");
 	menu.Append(Id_Delete, "&Delete");
 
 	const wxTreeListItem item = event.GetItem();
@@ -372,23 +408,31 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 		}
 		case Id_AddNewMacroKey:
 		{
-			wxString parent_str = tree->GetItemText(item, 0);
-			add_dlg->ShowDialog("Add new macro", "name");
+			wxTreeListItem root = tree->GetItemParent(item);
+			wxTreeListItem root2 = tree->GetItemParent(root);
+			wxString item_str = root2 ? tree->GetItemText(root, 0) : tree->GetItemText(item, 0);
+			add_dlg->ShowDialog("NUM_0", "macro name");
 
 			std::string macro_key = add_dlg->GetMacroKey().ToStdString();
 			std::string macro_name = add_dlg->GetMacroName().ToStdString();
 			if(!add_dlg->IsApplyClicked()) return;
 
 			if(CustomMacro::Get()->GetKeyScanCode(macro_key) == 0xFFFF)
-				DBG("err");
+			{
+				wxMessageDialog(this, "Invalid key!", "Error", wxOK).ShowModal();
+				return;
+			}
+
 			auto& m = CustomMacro::Get()->GetMacros();
-				
 			for(auto& i : m)
 			{
-				if(i->name == parent_str)
+				if(i->name == item_str)
 				{
-					if(i->key_vec.find(macro_key) != i->key_vec.end())
-						DBG("err");
+					if(i->key_vec.find(macro_key) != i->key_vec.end()) 
+					{
+						wxMessageDialog(this, "Given key already has a binded macro!", "Error", wxOK).ShowModal();
+						return;
+					}
 
 					auto pp = std::make_unique<MacroContainer>();
 					i->bind_name[macro_key] = std::move(macro_name);
@@ -431,10 +475,6 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 						}
 					}
 					UpdateMainTree();
-					break;
-				}
-				case 5104:  /* No */
-				{
 					break;
 				}
 			}
@@ -580,16 +620,20 @@ void KeybrdPanel::OnItemActivated(wxTreeListEvent& evt)
 	}
 }
 
+void MacroRecordBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+{
+	Close();
+	m_IsApplyClicked = true;
+}
+
 void MacroEditBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
-	DBG("apply");
 	Close();
 	m_IsApplyClicked = true;
 }
 
 void MacroAddBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
-	DBG("apply");
 	Close();
 	m_IsApplyClicked = true;
 }
@@ -597,7 +641,6 @@ void MacroAddBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	// Use wxTreeList as base
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxHORIZONTAL);
 
 	tree = new wxTreeListCtrl(this, ID_AppBindListMain, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
@@ -642,6 +685,73 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 					ptr = id >= x.size() ? &x[x.size() - 1] : &x[id + 1];
 					UpdateDetailsTree(ptr);
 					break;
+				}
+			}
+		});
+
+	btn_record = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(24, 24))));
+	btn_record->SetToolTip("Record macro (keypresses and/or mouse events)");
+	btn_record->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			if(MacroRecorder::Get()->IsRecordingMouse() || MacroRecorder::Get()->IsRecordingKeyboard())
+			{
+				MacroRecorder::Get()->StopRecording();
+				btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(24, 24))));
+				btn_record->SetToolTip("Record macro (keypresses and/or mouse events)");
+
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				{
+					std::lock_guard<std::mutex> lock(frame->mtx);
+					frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStopped });
+				}
+				return;
+			}
+			wxTreeListItem item = tree_details->GetSelection();
+			auto& m = CustomMacro::Get()->GetMacros();
+			for(auto& i : m)
+			{
+				if(i->name == root_sel_str.ToStdString())
+				{
+					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
+					std::unique_ptr<KeyClass>* ptr = nullptr;
+					uint16_t id = std::numeric_limits<uint16_t>::max();
+					bool push_back = true;
+					if(item)  // if selected item exists and not root element
+					{
+						wxClientData* itemdata = tree_details->GetItemData(item);
+						wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+						id = dret->GetValue();
+						push_back = false;
+					}
+					record_dlg->ShowDialog("a");
+					if(!record_dlg->IsApplyClicked()) return;
+
+					uint8_t selection = record_dlg->GetType();
+					CustomMacro::Get()->editing_macro = &x;
+
+					bool kbd = false, mouse = false;
+					switch(selection)
+					{
+						case 0:
+							kbd = true;
+							break;
+						case 1:
+							mouse = true;
+							break;
+						case 2:
+							mouse = true;
+							kbd = true;
+							break;
+					}
+					MacroRecorder::Get()->StartRecording(kbd, mouse);
+					btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(24, 24))));
+					btn_record->SetToolTip("Stop macro recording");
+
+					MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+					{
+						std::lock_guard<std::mutex> lock(frame->mtx);
+						frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStarted });
+					}
 				}
 			}
 		});
@@ -726,12 +836,14 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 		});
 
 	vertical_sizer->Add(btn_add);
+	vertical_sizer->Add(btn_record);
 	vertical_sizer->Add(btn_copy);
 	vertical_sizer->Add(btn_delete);
 	vertical_sizer->Add(btn_up);
 	vertical_sizer->Add(btn_down);
 	bSizer1->Add(vertical_sizer);
 
+	record_dlg = new MacroRecordBoxDialog(this);
 	edit_dlg = new MacroEditBoxDialog(this);
 	add_dlg = new MacroAddBoxDialog(this);
 	SetSizer(bSizer1);

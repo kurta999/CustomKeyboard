@@ -18,6 +18,25 @@ private:
 	T value;
 };
 
+class MacroRecordBoxDialog : public wxDialog
+{
+public:
+	MacroRecordBoxDialog(wxWindow* parent);
+
+	void ShowDialog(const wxString& str);
+	uint8_t GetType() { return m_RecordType->GetSelection(); }
+	bool IsApplyClicked() { return m_IsApplyClicked; }
+protected:
+	void OnApply(wxCommandEvent& event);
+private:
+	wxRadioBox* m_RecordType;
+	wxStaticText* m_labelResult;
+	bool m_IsApplyClicked;
+
+	wxDECLARE_EVENT_TABLE();
+	wxDECLARE_NO_COPY_CLASS(MacroRecordBoxDialog);
+};
+
 class MacroAddBoxDialog : public wxDialog
 {
 public:
@@ -96,12 +115,12 @@ public:
 	void OnItemContextMenu_Main(wxTreeListEvent& event);
 	void OnItemContextMenu_Details(wxTreeListEvent& event);
 	void OnItemActivated(wxTreeListEvent& event);
+	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
 
 private:
 	void ShowAddDialog();
 	void ShowEditDialog(wxTreeListItem item);
 	void UpdateMainTree();
-	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
 	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
 	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
 
@@ -110,11 +129,13 @@ private:
 	wxTreeListCtrl* tree;
 	wxTreeListCtrl* tree_details;
 	wxBitmapButton* btn_add;
+	wxBitmapButton* btn_record;
 	wxBitmapButton* btn_copy;
 	wxBitmapButton* btn_delete;
 	wxBitmapButton* btn_up;
 	wxBitmapButton* btn_down;
 	wxButton* m_Ok;
+	MacroRecordBoxDialog* record_dlg;
 	MacroEditBoxDialog* edit_dlg;
 	MacroAddBoxDialog* add_dlg;
 

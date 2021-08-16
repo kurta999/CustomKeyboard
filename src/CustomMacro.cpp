@@ -1,6 +1,5 @@
 
 #include "pch.h"
-#include "utils/AsyncSerial.h"
 
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
@@ -268,7 +267,7 @@ const std::unordered_map<std::string, int> CustomMacro::scan_codes =
             {"RALT",        0xE038},
             {"LSHIFT",      0x2A},
             {"RSHIFT",      0x36},
-            {"BACKSPACE",   0xE0},
+            {"BACKSPACE",   0xE},
             {"TAB",         0x0F},
             {"ENTER",       0x1C},
             {"ESC",         0x01},

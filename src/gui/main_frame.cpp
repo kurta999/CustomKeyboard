@@ -107,7 +107,7 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 {
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
-	if(sel == 4 && foreground)
+	if((sel == 4 || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
 	{
 		POINT p;
 		if(::GetCursorPos(&p))
@@ -124,6 +124,7 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 					if(GetAsyncKeyState(VK_SCROLL))
 					{
 						LOGMSG(normal, str.ToStdString().c_str());
+						MacroRecorder::Get()->MarkMousePosition((LPPOINT*)&p);
 					}
 				}
 			}
@@ -273,6 +274,23 @@ Press KEY %s in destination directory for creating symlinks\nPress KEY %s in des
 					});
 				break;
 			}
+			case MacroRecordingStarted:
+			{
+				ShowNotificaiton("Macro recording started", wxString::Format("\
+Start typing & pressing key combinations\nFor getting mouse position, press SCROLL LOCK\nClick again on macro recording icon to stop the recording\n\
+Note: Macro recording is in WIP phase, so problems can happen!"), 5, [this](wxCommandEvent& event)
+					{
+					});
+				break;
+			}
+			case MacroRecordingStopped:
+			{
+				ShowNotificaiton("Macro recording stopped", wxString::Format("5 macro has been successfully recorded"), 3, [this](wxCommandEvent& event)
+					{
+					});
+				break;
+			}
+
 		}
 		pending_msgs.pop_front();
 	}

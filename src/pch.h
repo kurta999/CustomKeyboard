@@ -28,6 +28,7 @@
 #include "PathSeparator.h"
 #include "Session.h"
 #include "SymlinkCreator.h"
+#include "MacroRecorder.h"
 
 #include <wx/aui/aui.h>
 #include <wx/statline.h>
@@ -119,5 +120,6 @@
 #include <lodepng/lodepng.h>
 #include <fmt/format.h>
 
+#include "utils/AsyncSerial.h"
 
 #include <Windows.h>

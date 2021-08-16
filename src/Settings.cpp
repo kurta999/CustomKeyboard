@@ -7,12 +7,7 @@ inline std::string extract_string(std::string& str, size_t start, size_t start_e
 
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
-    enum ConfigTypes : uint8_t
-    {
-        BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK, MAX
-    };
-
-    constexpr size_t MAX_ITEMS = MAX;
+    constexpr size_t MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
     constexpr const char start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
@@ -49,27 +44,27 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
         switch(input_type)
         {
-            case ConfigTypes::BIND_NAME:
+            case MacroTypes::BIND_NAME:
             {
                 pos = first_end;
                 c->bind_name[key_code] = extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
                 break;
             }
-            case ConfigTypes::KEY_SEQ:
+            case MacroTypes::KEY_SEQ:
             {
                 pos = first_end;
                 std::string &&sequence = extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
                 break;
             }
-            case ConfigTypes::KEY_TYPE:
+            case MacroTypes::KEY_TYPE:
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
                 break;
             }
-            case ConfigTypes::DELAY:
+            case MacroTypes::DELAY:
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
@@ -83,7 +78,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 break;
             }
-            case ConfigTypes::MOUSE_MOVE:
+            case MacroTypes::MOUSE_MOVE:
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
@@ -97,7 +92,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 break;
             }
-            case ConfigTypes::MOUSE_CLICK:
+            case MacroTypes::MOUSE_CLICK:
             {
                 pos = first_end;
                 std::string sequence = extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);

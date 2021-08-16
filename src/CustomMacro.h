@@ -36,6 +36,11 @@ typedef struct
 } KeyData_t;
 #pragma pack(pop)
 
+enum MacroTypes : uint8_t
+{
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK, MAX
+};
+
 class KeyClass
 {
 public:
@@ -90,7 +95,7 @@ public:
     KeyText(std::string&& keys)
     {
         seq = std::move(keys);
-    }  
+    }
     KeyText(const KeyText& from)
     {
         seq = from.seq;
@@ -341,6 +346,14 @@ public:
             TerminateThread(t->native_handle(), 0);
     }
     void Init();
+    template<typename T> void OnItemRecordingComplete(std::unique_ptr<T>&& val)
+    {
+        editing_macro->push_back(std::move(val));
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        if(frame)
+            frame->config_panel->keybrd_panel->UpdateDetailsTree();
+
+    }
     std::vector<std::unique_ptr<MacroContainer>>& GetMacros()
     {
         return macros;
@@ -378,10 +391,10 @@ public:
     uint16_t com_port = 5;
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
+    std::vector<std::unique_ptr<KeyClass>>* editing_macro;
 
 private:
     friend class Settings;
-    friend class MinerWatchdog;
 
     void PressKey(std::string key);
     void UartDataReceived(const char* data, unsigned int len);

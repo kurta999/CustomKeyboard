@@ -39,6 +39,8 @@ enum Msg : uint8_t
 	LinkMark,
 	SymlinkCreated,
 	HardlinkCreated,
+	MacroRecordingStarted,
+	MacroRecordingStopped,
 };
 
 class MyFrame : public wxFrame

@@ -14,6 +14,7 @@ bool MyApp::OnInit()
     StructParser::Get()->Init();
     PrintScreenSaver::Get()->Init();
     DirectoryBackup::Get()->Init();
+    MacroRecorder::Get()->Init();
 
     if (!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
@@ -34,6 +35,7 @@ int MyApp::OnExit()
     StructParser::CSingleton::Destroy();
     PrintScreenSaver::CSingleton::Destroy();
     DirectoryBackup::CSingleton::Destroy();
+    MacroRecorder::CSingleton::Destroy();
     return true;
 }
 
