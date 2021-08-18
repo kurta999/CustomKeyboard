@@ -116,8 +116,8 @@ public:
 
 	void OnTreeListChanged_Main(wxTreeListEvent& evt);
 	void OnTreeListChanged_Details(wxTreeListEvent& evt);
-	void OnItemContextMenu_Main(wxTreeListEvent& event);
-	void OnItemContextMenu_Details(wxTreeListEvent& event);
+	void OnItemContextMenu_Main(wxTreeListEvent& evt);
+	void OnItemContextMenu_Details(wxTreeListEvent& evt);
 	void OnItemActivated(wxTreeListEvent& event);
 	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
 	void OnKeyDown(wxKeyEvent& evt);

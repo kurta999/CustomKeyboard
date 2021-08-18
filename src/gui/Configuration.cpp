@@ -377,10 +377,10 @@ void KeybrdPanel::OnTreeListChanged_Main(wxTreeListEvent& evt)
 
 void KeybrdPanel::OnTreeListChanged_Details(wxTreeListEvent& evt)
 {
-	/* TODO: implement or remove */
+
 }
 
-void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
+void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 {
 	enum
 	{
@@ -394,7 +394,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 	menu.Append(Id_AddNewMacroKey, "&Add new macro key (below)");
 	menu.Append(Id_Delete, "&Delete");
 
-	const wxTreeListItem item = event.GetItem();
+	const wxTreeListItem item = evt.GetItem();
 	wxTreeListItem root = tree->GetItemParent(item);
 	if(root == NULL) return;
 	wxTreeListItem root2 = tree->GetItemParent(root);
@@ -507,9 +507,56 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
 	}
 }
 
-void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& event)
+void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& evt)
 {
-	DBG("context detail");
+	enum
+	{
+		Id_AddNew,
+		Id_Clone,
+		Id_Delete,
+		Id_MoveUp,
+		Id_MoveDown,
+	};
+
+	wxMenu menu;
+	menu.Append(Id_AddNew, "&Add new macro (below)");
+	menu.Append(Id_Clone, "&Clone (below)");
+	menu.Append(Id_Delete, "&Delete macro(s)");
+	menu.Append(Id_MoveUp, "&Move up");
+	menu.Append(Id_MoveDown, "&Move down");
+
+	const wxTreeListItem item = evt.GetItem();
+	wxTreeListItem root = tree->GetItemParent(item);
+	if(root == NULL) return;
+	int ret = tree->GetPopupMenuSelectionFromUser(menu);
+	switch(ret)
+	{
+		case Id_AddNew:
+		{
+			TreeDetails_AddNewMacro();
+			break;
+		}
+		case Id_Clone:
+		{
+			TreeDetails_CloneMacro();
+			break;
+		}
+		case Id_Delete:
+		{
+			TreeDetails_DeleteSelectedMacros();
+			break;
+		}
+		case Id_MoveUp:
+		{
+			TreeDetails_MoveUpSelectedMacro();
+			break;
+		}
+		case Id_MoveDown:
+		{
+			TreeDetails_MoveDownSelectedMacro();
+			break;
+		}
+	}
 }
 
 void KeybrdPanel::ShowAddDialog()
