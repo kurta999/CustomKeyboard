@@ -178,6 +178,10 @@ void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 		comtcp_panel->m_ScreenshotPath->SetValue(PrintScreenSaver::Get()->screenshot_path.generic_u8string());
 		comtcp_panel->m_BackupKey->SetValue(DirectoryBackup::Get()->backup_key);
 		comtcp_panel->m_BackupDateFmt->SetValue(DirectoryBackup::Get()->backup_time_format);
+		comtcp_panel->m_IsSymlink->SetValue(SymlinkCreator::Get()->is_enabled);
+		comtcp_panel->m_MarkSymlink->SetValue(SymlinkCreator::Get()->mark_key);
+		comtcp_panel->m_CreateSymlink->SetValue(SymlinkCreator::Get()->place_symlink_key);
+		comtcp_panel->m_CreateHardlink->SetValue(SymlinkCreator::Get()->place_hardlink_key);
 	}
 }
 
@@ -262,14 +266,29 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	sizer_box_screenshot->Add(m_ScreenshotPath);
 	bSizer1->Add(sizer_box_screenshot);
 
-	wxSizer* const backup_box_screenshot = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
-	backup_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+	wxSizer* const sizer_box_backup = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
+	sizer_box_backup->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
 	m_BackupKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	backup_box_screenshot->Add(m_BackupKey);
-	backup_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
+	sizer_box_backup->Add(m_BackupKey);
+	sizer_box_backup->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
 	m_BackupDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	backup_box_screenshot->Add(m_BackupDateFmt);
-	bSizer1->Add(backup_box_screenshot);
+	sizer_box_backup->Add(m_BackupDateFmt);
+	bSizer1->Add(sizer_box_backup);
+
+	wxSizer* const sizer_box_symlink = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Sylink creator settings");
+	m_IsSymlink = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+	sizer_box_symlink->Add(m_IsSymlink);
+
+	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Mark key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_MarkSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_symlink->Add(m_MarkSymlink);
+	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Symlink key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_CreateSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_symlink->Add(m_CreateSymlink);
+	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Hardlink key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_CreateHardlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_symlink->Add(m_CreateHardlink);
+	bSizer1->Add(sizer_box_symlink);
 
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
 	m_Ok->SetToolTip("Save all settings to settings.ini file");
@@ -292,6 +311,11 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			PrintScreenSaver::Get()->screenshot_path = m_ScreenshotPath->GetValue().ToStdString();
 			DirectoryBackup::Get()->backup_key = m_BackupKey->GetValue().ToStdString();
 			DirectoryBackup::Get()->backup_time_format = m_BackupDateFmt->GetValue().ToStdString();
+			SymlinkCreator::Get()->is_enabled = m_IsSymlink->IsChecked();
+			SymlinkCreator::Get()->mark_key = m_MarkSymlink->GetValue().ToStdString();
+			SymlinkCreator::Get()->place_symlink_key = m_CreateSymlink->GetValue().ToStdString();
+			SymlinkCreator::Get()->place_hardlink_key = m_CreateHardlink->GetValue().ToStdString();
+
 			Settings::Get()->SaveFile(false);
 		});
 	SetSizer(bSizer1);

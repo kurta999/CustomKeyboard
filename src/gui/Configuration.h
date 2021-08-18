@@ -97,6 +97,10 @@ public:
 	wxTextCtrl* m_ScreenshotPath;
 	wxTextCtrl* m_BackupKey;
 	wxTextCtrl* m_BackupDateFmt;
+	wxCheckBox* m_IsSymlink;
+	wxTextCtrl* m_MarkSymlink;
+	wxTextCtrl* m_CreateSymlink;
+	wxTextCtrl* m_CreateHardlink;
 
 private:
 	wxButton* m_Ok;
