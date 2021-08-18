@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <boost/range/adaptor/reversed.hpp>
 
 wxBEGIN_EVENT_TABLE(MacroRecordBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroRecordBoxDialog::OnApply)
@@ -643,14 +644,14 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 {
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxHORIZONTAL);
 
-	tree = new wxTreeListCtrl(this, ID_AppBindListMain, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
+	tree = new wxTreeListCtrl(this, ID_AppBindListMain, wxDefaultPosition, wxSize(300, 400), wxTL_SINGLE);
 	tree->AppendColumn("App name", tree->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree->AppendColumn("Key bindings", tree->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	UpdateMainTree();
 
 	bSizer1->Add(tree, wxSizerFlags(2).Left());
 
-	tree_details = new wxTreeListCtrl(this, ID_MacroDetails, wxDefaultPosition, wxSize(300, 400), wxTL_DEFAULT_STYLE);
+	tree_details = new wxTreeListCtrl(this, ID_MacroDetails, wxDefaultPosition, wxSize(300, 400), wxTL_MULTIPLE);
 	tree_details->AppendColumn("Action type", tree_details->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree_details->AppendColumn("Parameters", tree_details->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	bSizer1->Add(tree_details, wxSizerFlags(2).Top());
@@ -773,12 +774,34 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	btn_delete->SetToolTip("Delete selected macro");
 	btn_delete->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			uint16_t id;
-			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
-			if(x)
+			std::set<KeyClass*> items_to_delete;
+			wxTreeListItems items;
+			tree_details->GetSelections(items);
+			std::vector<int> to_erase;
+			for(auto& x : items)
 			{
-				x->erase(x->begin() + id);
+				wxClientData* itemdata = tree_details->GetItemData(x);
+				wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+				uint16_t id = dret->GetValue();
+
+				to_erase.push_back(id);
 			}
+
+			std::sort(to_erase.begin(), to_erase.end());
+			auto& m = CustomMacro::Get()->GetMacros();
+			for(auto& i : m)
+			{
+				if(i->name == root_sel_str.ToStdString())
+				{
+					std::vector<std::unique_ptr<KeyClass>>& c = i->key_vec[child_sel_str.ToStdString()];
+					for(auto& j : boost::adaptors::reverse(to_erase))
+					{
+						c.erase(c.begin() + j);
+					}
+					break;
+				}
+			}
+		
 			UpdateDetailsTree();
 		});
 
