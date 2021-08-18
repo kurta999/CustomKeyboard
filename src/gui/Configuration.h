@@ -120,6 +120,7 @@ public:
 	void OnItemContextMenu_Details(wxTreeListEvent& event);
 	void OnItemActivated(wxTreeListEvent& event);
 	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
+	void OnKeyDown(wxKeyEvent& evt);
 
 private:
 	void ShowAddDialog();
@@ -127,6 +128,13 @@ private:
 	void UpdateMainTree();
 	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
 	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
+
+	void TreeDetails_DeleteSelectedMacros();
+	void TreeDetails_AddNewMacro();
+	void TreeDetails_CloneMacro();
+	void TreeDetails_MoveUpSelectedMacro();
+	void TreeDetails_MoveDownSelectedMacro();
+	void TreeDetails_StartRecording();
 
 	std::vector<std::unique_ptr<KeyClass>>* GetKeyClassByItem(wxTreeListItem item, uint16_t& id);
 

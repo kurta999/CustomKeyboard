@@ -82,6 +82,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 #include <assert.h>
 #include <shellapi.h>

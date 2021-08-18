@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <boost/range/adaptor/reversed.hpp>
 
 wxBEGIN_EVENT_TABLE(MacroRecordBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroRecordBoxDialog::OnApply)
@@ -378,7 +377,7 @@ void KeybrdPanel::OnTreeListChanged_Main(wxTreeListEvent& evt)
 
 void KeybrdPanel::OnTreeListChanged_Details(wxTreeListEvent& evt)
 {
-
+	/* TODO: implement or remove */
 }
 
 void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& event)
@@ -663,6 +662,303 @@ void MacroAddBoxDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 	m_IsApplyClicked = true;
 }
 
+void KeybrdPanel::OnKeyDown(wxKeyEvent& evt)
+{
+	if(evt.ControlDown())
+	{
+		switch(evt.GetKeyCode())
+		{
+			case 'A':
+			{
+				wxWindow* focus = wxWindow::FindFocus();
+				if(focus == tree->GetView())
+					tree->SelectAll();
+				if(focus == tree_details->GetView())
+					tree_details->SelectAll();
+				break;
+			}
+			case WXK_UP:
+			{
+				TreeDetails_MoveUpSelectedMacro();
+				break;
+			}
+			case WXK_DOWN:
+			{
+				TreeDetails_MoveDownSelectedMacro();
+				break;
+			}
+		}
+	}
+	else
+	{
+		switch(evt.GetKeyCode())
+		{
+			case 127: /* DELETE */
+			{
+				TreeDetails_DeleteSelectedMacros();
+				break;
+			}
+			case 'A':
+			{
+				TreeDetails_AddNewMacro();
+				break;
+			}	
+			case 'C':
+			case 'D':
+			{
+				TreeDetails_CloneMacro();
+				break;
+			}
+		}
+	}
+	//DBG("Key: %d\n", evt.GetKeyCode());
+	evt.Skip();
+}
+
+void KeybrdPanel::TreeDetails_DeleteSelectedMacros()
+{
+	std::set<KeyClass*> items_to_delete;
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		std::vector<int> to_erase;
+		for(auto& x : items)
+		{
+			wxClientData* itemdata = tree_details->GetItemData(x);
+			wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+			uint16_t id = dret->GetValue();
+
+			to_erase.push_back(id);
+		}
+
+		std::sort(to_erase.begin(), to_erase.end());
+		auto& m = CustomMacro::Get()->GetMacros();
+		for(auto& i : m)
+		{
+			if(i->name == root_sel_str.ToStdString())
+			{
+				std::vector<std::unique_ptr<KeyClass>>& c = i->key_vec[child_sel_str.ToStdString()];
+				for(auto& j : boost::adaptors::reverse(to_erase))
+				{
+					c.erase(c.begin() + j);
+				}
+				break;
+			}
+		}
+		UpdateDetailsTree();
+	}
+}
+
+void KeybrdPanel::TreeDetails_AddNewMacro()
+{
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		if(items.size() > 1)
+		{
+			wxMessageDialog(this, "Too much items selected\nSelect only one item", "Error", wxOK).ShowModal();
+			return;
+		}
+
+		wxTreeListItem& item = items[0];
+		auto& m = CustomMacro::Get()->GetMacros();
+		for(auto& i : m)
+		{
+			if(i->name == root_sel_str.ToStdString())
+			{
+				std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
+				std::unique_ptr<KeyClass>* ptr = nullptr;
+				uint16_t id = std::numeric_limits<uint16_t>::max();
+				bool push_back = true;
+				if(item)  // if selected item exists and not root element
+				{
+					wxClientData* itemdata = tree_details->GetItemData(item);
+					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+					id = dret->GetValue();
+					push_back = false;
+				}
+
+				ShowAddDialog();
+				if(!edit_dlg->IsApplyClicked()) return;
+
+				ManipulateMacro(x, id, true);
+				ptr = id >= x.size() ? &x[x.size() - 1] : &x[id + 1];
+				UpdateDetailsTree(ptr);
+				break;
+			}
+		}
+	}
+}
+
+void KeybrdPanel::TreeDetails_CloneMacro()
+{
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		if(items.size() > 1)
+		{
+			wxMessageDialog(this, "Too much items selected\nSelect only one item", "Error", wxOK).ShowModal();
+			return;
+		}
+
+		wxTreeListItem& item = items[0];
+		uint16_t id;
+		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		if(x)
+		{
+			DuplicateMacro(*x, id);
+			UpdateDetailsTree();
+		}
+	}
+}
+
+void KeybrdPanel::TreeDetails_MoveUpSelectedMacro()
+{
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		if(items.size() > 1)
+		{
+			wxMessageDialog(this, "Too much items selected\nSelect only one item", "Error", wxOK).ShowModal();
+			return;
+		}
+
+		wxTreeListItem& item = items[0];
+		uint16_t id;
+		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		if(x)
+		{
+			std::unique_ptr<KeyClass>* ptr;
+			if((*x)[id] == x->front())
+			{
+				std::rotate(x->begin(), x->begin() + 1, x->end());
+				ptr = &x->back();
+			}
+			else
+			{
+				std::swap((*x)[id], (*x)[id - 1]);
+				ptr = &(*x)[id - 1];
+			}
+			UpdateDetailsTree(ptr);
+		}
+	}
+}
+
+void KeybrdPanel::TreeDetails_MoveDownSelectedMacro()
+{
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		if(items.size() > 1)
+		{
+			wxMessageDialog(this, "Too much items selected\nSelect only one item", "Error", wxOK).ShowModal();
+			return;
+		}
+
+		wxTreeListItem& item = items[0];
+		uint16_t id;
+		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		if(x)
+		{
+			std::unique_ptr<KeyClass>* ptr;
+			if((*x)[id] == x->back())
+			{
+				std::rotate(x->rbegin(), x->rbegin() + 1, x->rend());
+				ptr = &x->front();
+			}
+			else
+			{
+				std::swap((*x)[id], (*x)[id + 1]);
+				ptr = &(*x)[id + 1];
+			}
+			UpdateDetailsTree(ptr);
+		}
+	}
+}
+
+void KeybrdPanel::TreeDetails_StartRecording()
+{
+	if(MacroRecorder::Get()->IsRecordingMouse() || MacroRecorder::Get()->IsRecordingKeyboard())
+	{
+		MacroRecorder::Get()->StopRecording();
+		btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(24, 24))));
+		btn_record->SetToolTip("Record macro (keypresses and/or mouse events)");
+		Bind(wxEVT_CHAR_HOOK, &KeybrdPanel::OnKeyDown, this);
+
+		MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+		{
+			std::lock_guard<std::mutex> lock(frame->mtx);
+			frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStopped });
+		}
+		return;
+	}
+	wxTreeListItems items;
+	tree_details->GetSelections(items);
+	if(!items.empty())
+	{
+		if(items.size() > 1)
+		{
+			wxMessageDialog(this, "Too much items selected\nSelect only one item", "Error", wxOK).ShowModal();
+			return;
+		}
+
+		wxTreeListItem& item = items[0];
+		auto& m = CustomMacro::Get()->GetMacros();
+		for(auto& i : m)
+		{
+			if(i->name == root_sel_str.ToStdString())
+			{
+				std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
+				std::unique_ptr<KeyClass>* ptr = nullptr;
+				uint16_t id = std::numeric_limits<uint16_t>::max();
+				bool push_back = true;
+				if(item)  // if selected item exists and not root element
+				{
+					wxClientData* itemdata = tree_details->GetItemData(item);
+					wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
+					id = dret->GetValue();
+					push_back = false;
+				}
+				record_dlg->ShowDialog("a");
+				if(!record_dlg->IsApplyClicked()) return;
+
+				uint8_t selection = record_dlg->GetType();
+				CustomMacro::Get()->editing_macro = &x;
+
+				bool kbd = false, mouse = false;
+				switch(selection)
+				{
+				case 0:
+					kbd = true;
+					break;
+				case 1:
+					mouse = true;
+					break;
+				case 2:
+					mouse = true;
+					kbd = true;
+					break;
+				}
+				MacroRecorder::Get()->StartRecording(kbd, mouse);
+				btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(24, 24))));
+				btn_record->SetToolTip("Stop macro recording");
+				Unbind(wxEVT_CHAR_HOOK, &KeybrdPanel::OnKeyDown, this);
+
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				{
+					std::lock_guard<std::mutex> lock(frame->mtx);
+					frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStarted });
+				}
+			}
+		}
+	}
+}
+
 KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
@@ -680,199 +976,49 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	tree_details->AppendColumn("Parameters", tree_details->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	bSizer1->Add(tree_details, wxSizerFlags(2).Top());
 
+	Bind(wxEVT_CHAR_HOOK, &KeybrdPanel::OnKeyDown, this);
+
 	wxBoxSizer* vertical_sizer = new wxBoxSizer(wxVERTICAL);
 	btn_add = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_add->SetToolTip("Add new macro below selected one");
 	btn_add->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			wxTreeListItem item = tree_details->GetSelection();
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
-			{
-				if(i->name == root_sel_str.ToStdString())
-				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-					std::unique_ptr<KeyClass>* ptr = nullptr;
-					uint16_t id = std::numeric_limits<uint16_t>::max();
-					bool push_back = true;
-					if(item)  // if selected item exists and not root element
-					{
-						wxClientData* itemdata = tree_details->GetItemData(item);
-						wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-						id = dret->GetValue();
-						push_back = false;
-					}
-
-					ShowAddDialog();
-					if(!edit_dlg->IsApplyClicked()) return;
-
-					ManipulateMacro(x, id, true);
-					ptr = id >= x.size() ? &x[x.size() - 1] : &x[id + 1];
-					UpdateDetailsTree(ptr);
-					break;
-				}
-			}
+			TreeDetails_AddNewMacro();
 		});
 
 	btn_record = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_record->SetToolTip("Record macro (keypresses and/or mouse events)");
 	btn_record->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			if(MacroRecorder::Get()->IsRecordingMouse() || MacroRecorder::Get()->IsRecordingKeyboard())
-			{
-				MacroRecorder::Get()->StopRecording();
-				btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(24, 24))));
-				btn_record->SetToolTip("Record macro (keypresses and/or mouse events)");
-
-				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-				{
-					std::lock_guard<std::mutex> lock(frame->mtx);
-					frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStopped });
-				}
-				return;
-			}
-			wxTreeListItem item = tree_details->GetSelection();
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
-			{
-				if(i->name == root_sel_str.ToStdString())
-				{
-					std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-					std::unique_ptr<KeyClass>* ptr = nullptr;
-					uint16_t id = std::numeric_limits<uint16_t>::max();
-					bool push_back = true;
-					if(item)  // if selected item exists and not root element
-					{
-						wxClientData* itemdata = tree_details->GetItemData(item);
-						wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-						id = dret->GetValue();
-						push_back = false;
-					}
-					record_dlg->ShowDialog("a");
-					if(!record_dlg->IsApplyClicked()) return;
-
-					uint8_t selection = record_dlg->GetType();
-					CustomMacro::Get()->editing_macro = &x;
-
-					bool kbd = false, mouse = false;
-					switch(selection)
-					{
-						case 0:
-							kbd = true;
-							break;
-						case 1:
-							mouse = true;
-							break;
-						case 2:
-							mouse = true;
-							kbd = true;
-							break;
-					}
-					MacroRecorder::Get()->StartRecording(kbd, mouse);
-					btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(24, 24))));
-					btn_record->SetToolTip("Stop macro recording");
-
-					MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-					{
-						std::lock_guard<std::mutex> lock(frame->mtx);
-						frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStarted });
-					}
-				}
-			}
+			TreeDetails_StartRecording();
 		});
 
 	btn_copy = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_COPY, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_copy->SetToolTip("Copy selected macro below selected one");
 	btn_copy->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			uint16_t id;
-			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
-			if(x)
-			{
-				DuplicateMacro(*x, id);
-				UpdateDetailsTree();
-			}
+			TreeDetails_CloneMacro();
 		});
 
 	btn_delete = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_DEL_BOOKMARK, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_delete->SetToolTip("Delete selected macro");
 	btn_delete->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			std::set<KeyClass*> items_to_delete;
-			wxTreeListItems items;
-			tree_details->GetSelections(items);
-			std::vector<int> to_erase;
-			for(auto& x : items)
-			{
-				wxClientData* itemdata = tree_details->GetItemData(x);
-				wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
-				uint16_t id = dret->GetValue();
-
-				to_erase.push_back(id);
-			}
-
-			std::sort(to_erase.begin(), to_erase.end());
-			auto& m = CustomMacro::Get()->GetMacros();
-			for(auto& i : m)
-			{
-				if(i->name == root_sel_str.ToStdString())
-				{
-					std::vector<std::unique_ptr<KeyClass>>& c = i->key_vec[child_sel_str.ToStdString()];
-					for(auto& j : boost::adaptors::reverse(to_erase))
-					{
-						c.erase(c.begin() + j);
-					}
-					break;
-				}
-			}
-		
-			UpdateDetailsTree();
+			TreeDetails_DeleteSelectedMacros();
 		});
 
 	btn_up = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_up->SetToolTip("Move up selected macro");
 	btn_up->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			uint16_t id;
-			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
-			if(x)
-			{
-				std::unique_ptr<KeyClass>* ptr;
-				if((*x)[id] == x->front())
-				{
-					std::rotate(x->begin(), x->begin() + 1, x->end());
-					ptr = &x->back();
-				}
-				else
-				{
-					std::swap((*x)[id], (*x)[id - 1]);
-					ptr = &(*x)[id - 1];
-				}
-				UpdateDetailsTree(ptr);
-			}
+			TreeDetails_MoveUpSelectedMacro();
 		});
 
 	btn_down = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, FromDIP(wxSize(24, 24))));
 	btn_down->SetToolTip("Move down selected macro");
 	btn_down->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			uint16_t id;
-			std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(tree_details->GetSelection(), id);
-			if(x)
-			{
-				std::unique_ptr<KeyClass>* ptr;
-				if((*x)[id] == x->back())
-				{
-					std::rotate(x->rbegin(), x->rbegin() + 1, x->rend());
-					ptr = &x->front();
-				}
-				else
-				{
-					std::swap((*x)[id], (*x)[id + 1]);
-					ptr = &(*x)[id + 1];
-				}
-				UpdateDetailsTree(ptr);
-			}
+			TreeDetails_MoveDownSelectedMacro();
 		});
 
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxPoint(tree->GetSize().x + 20, tree->GetSize().y + 20), wxDefaultSize);
