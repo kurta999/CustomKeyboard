@@ -20,11 +20,13 @@ ECHO 1.) Export x86 Debug
 ECHO 2.) Export x86 Release
 ECHO 3.) Export x64 Debug
 ECHO 4.) Export x64 Release
-ECHO 5.) Build x86 Debug
-ECHO 6.) Build x86 Release
-ECHO 7.) Build x64 Debug
-ECHO 8.) Build x64 Release
-ECHO 9.) Create symlinks for debug & release builds
+ECHO 5.) Export x64 Static Release
+ECHO 6.) Build x86 Debug
+ECHO 7.) Build x86 Release
+ECHO 8.) Build x86 Static Release
+ECHO 9.) Build x64 Debug
+ECHO 10.) Build x64 Release
+ECHO 11.) Build x64 Static Release
 
 SET /P UserInput=Enter your choice 
 SET /A TestVal="%UserInput%"*1
@@ -70,28 +72,35 @@ IF %TestVal%==%UserInput% (
 
 	ECHO Release x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
-  ) ELSE IF %TestVal% == 5 (
-	CD /D %MSBUILD_LOC%
-	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Debug;Platform=x86
+   ) ELSE IF %TestVal% == 5 (
+	copy /y x64\Static Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
+    copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
+
+	ECHO Static Release x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 6 (
 	CD /D %MSBUILD_LOC%
-	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x86
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Debug;Platform=x86
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 7 (
 	CD /D %MSBUILD_LOC%
-	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Debug;Platform=x64
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x86
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 8 (
 	CD /D %MSBUILD_LOC%
-	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x64
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration="Static Release";Platform=x86
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 9 (
-	mklink "Debug\settings.ini" "%basedir%/settings.ini"
-	mklink "Release\settings.ini" "%basedir%/settings.ini"
-	mklink "x64\Debug\settings.ini" "%basedir%/settings.ini"
-	mklink "x64\Release\settings.ini" "%basedir%/settings.ini"
-	ECHO Links created
+	CD /D %MSBUILD_LOC%
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Debug;Platform=x64
+	goto INFINITY_LOOP
+  ) ELSE IF %TestVal% == 10 (
+	CD /D %MSBUILD_LOC%
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration=Release;Platform=x64
+	goto INFINITY_LOOP
+  ) ELSE IF %TestVal% == 11 (
+	CD /D %MSBUILD_LOC%
+	msbuild.exe %basedir%/CustomKeyboard.sln /p:configuration="Static Release";Platform=x64
 	goto INFINITY_LOOP
   ) ELSE (
     ECHO Exiting...

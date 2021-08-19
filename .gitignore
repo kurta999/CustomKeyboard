@@ -49,8 +49,9 @@ commitid.h
 /TrueSTUDIO/
 /Screenshots/
 
-#Visual Studio
+# Visual Studio
 .vs/
+Win32/
 x64/
 *.aps
 logfile.txt

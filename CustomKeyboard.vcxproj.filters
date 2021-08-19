@@ -303,6 +303,9 @@
     <Image Include="CustomKeyboard.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
