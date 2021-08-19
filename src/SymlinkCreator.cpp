@@ -37,7 +37,7 @@ void SymlinkCreator::Mark()
 void SymlinkCreator::Place(bool is_symlink)
 {
 	std::wstring dest_path = GetDestinationPathFromFileExplorer();
-	if(!dest_path.empty())
+	if(!dest_path.empty() && !selected_items.empty())
 	{
 		std::filesystem::path dest = dest_path;
 		if(is_symlink)
