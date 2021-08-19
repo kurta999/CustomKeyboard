@@ -103,6 +103,8 @@ public:
 	wxTextCtrl* m_CreateHardlink;
 
 private:
+	void UpdatePanel();
+
 	wxButton* m_Ok;
 
 	wxDECLARE_EVENT_TABLE();

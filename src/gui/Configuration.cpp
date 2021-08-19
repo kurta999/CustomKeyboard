@@ -148,39 +148,7 @@ void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 	int sel = event.GetSelection();
 	if(sel == 0)
 	{
-		int sel = 0;
-		wxArrayString array_serials;
-		CEnumerateSerial::CPortAndNamesArray ports;
-		CEnumerateSerial::UsingSetupAPI1(ports);
-
-		for(auto& i : ports)
-		{
-			array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
-			if(CustomMacro::Get()->com_port == i.first)
-				sel = array_serials.GetCount() - 1;
-		}
-
-		comtcp_panel->m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
-		comtcp_panel->m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
-		comtcp_panel->m_IsCom->SetValue(CustomMacro::Get()->is_enabled);
-
-		comtcp_panel->m_serial->Clear();
-		comtcp_panel->m_serial->Insert(array_serials, WXSIZEOF(array_serials));
-		comtcp_panel->m_serial->SetSelection(sel);
-		comtcp_panel->m_IsTcp->SetValue(Server::Get()->is_enabled);
-		comtcp_panel->m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
-		comtcp_panel->m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
-		comtcp_panel->m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
-		comtcp_panel->m_DefaultPage->SetValue(Settings::Get()->default_page);
-		comtcp_panel->m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
-		comtcp_panel->m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);
-		comtcp_panel->m_ScreenshotPath->SetValue(PrintScreenSaver::Get()->screenshot_path.generic_u8string());
-		comtcp_panel->m_BackupKey->SetValue(DirectoryBackup::Get()->backup_key);
-		comtcp_panel->m_BackupDateFmt->SetValue(DirectoryBackup::Get()->backup_time_format);
-		comtcp_panel->m_IsSymlink->SetValue(SymlinkCreator::Get()->is_enabled);
-		comtcp_panel->m_MarkSymlink->SetValue(SymlinkCreator::Get()->mark_key);
-		comtcp_panel->m_CreateSymlink->SetValue(SymlinkCreator::Get()->place_symlink_key);
-		comtcp_panel->m_CreateHardlink->SetValue(SymlinkCreator::Get()->place_hardlink_key);
+		comtcp_panel->Update();
 	}
 }
 
@@ -289,6 +257,8 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	sizer_box_symlink->Add(m_CreateHardlink);
 	bSizer1->Add(sizer_box_symlink);
 
+	UpdatePanel(); /* update panel for first time, because changeing isn't happen when user clicks to aui and it shows first panel */
+
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
 	m_Ok->SetToolTip("Save all settings to settings.ini file");
 	bSizer1->Add(m_Ok, 0, wxALL, 5);
@@ -318,6 +288,43 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			Settings::Get()->SaveFile(false);
 		});
 	SetSizer(bSizer1);
+}
+
+void ComTcpPanel::UpdatePanel()
+{
+	int sel = 0;
+	wxArrayString array_serials;
+	CEnumerateSerial::CPortAndNamesArray ports;
+	CEnumerateSerial::UsingSetupAPI1(ports);
+
+	for(auto& i : ports)
+	{
+		array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
+		if(CustomMacro::Get()->com_port == i.first)
+			sel = array_serials.GetCount() - 1;
+	}
+
+	m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
+	m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
+	m_IsCom->SetValue(CustomMacro::Get()->is_enabled);
+
+	m_serial->Clear();
+	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
+	m_serial->SetSelection(sel);
+	m_IsTcp->SetValue(Server::Get()->is_enabled);
+	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
+	m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
+	m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
+	m_DefaultPage->SetValue(Settings::Get()->default_page);
+	m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
+	m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);
+	m_ScreenshotPath->SetValue(PrintScreenSaver::Get()->screenshot_path.generic_u8string());
+	m_BackupKey->SetValue(DirectoryBackup::Get()->backup_key);
+	m_BackupDateFmt->SetValue(DirectoryBackup::Get()->backup_time_format);
+	m_IsSymlink->SetValue(SymlinkCreator::Get()->is_enabled);
+	m_MarkSymlink->SetValue(SymlinkCreator::Get()->mark_key);
+	m_CreateSymlink->SetValue(SymlinkCreator::Get()->place_symlink_key);
+	m_CreateHardlink->SetValue(SymlinkCreator::Get()->place_hardlink_key);
 }
 
 void KeybrdPanel::UpdateMainTree()
