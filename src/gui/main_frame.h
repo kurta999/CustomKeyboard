@@ -14,6 +14,7 @@
 #include <wx/combobox.h>
 #include <wx/stc/stc.h>
 #include <wx/filepicker.h>
+#include <wx/progdlg.h>
 
 #include <mutex>
 #include <deque>
@@ -53,17 +54,6 @@ public:
 		m_mgr.UnInit();
 	}
 
-	void OnHelp(wxCommandEvent& event);
-	void OnAbout(wxCommandEvent& event);
-	void OnQuit(wxCommandEvent& event);
-	void OnOpen(wxCommandEvent& event);
-	void OnSave(wxCommandEvent& event);
-	void OnSaveAs(wxCommandEvent& event);
-	void OnDestroyAll(wxCommandEvent& event);
-	void OnClose(wxCloseEvent& event);
-	void OnTimer(wxTimerEvent& event);
-	void OnOverlockErrorCheck(wxTimerEvent& event);
-
 	void SetIconTooltip(const wxString& str);
 
 	MainPanel* main_panel = nullptr;
@@ -76,8 +66,22 @@ public:
 	wxAuiNotebook* ctrl;
 	std::mutex mtx;
 	std::deque<std::vector<std::any>> pending_msgs;
+	wxProgressDialog* backup_prog = NULL;
+	std::atomic<bool> show_backup_dlg;
 
 	wxDECLARE_EVENT_TABLE();
+private:
+	void OnHelp(wxCommandEvent& event);
+	void OnAbout(wxCommandEvent& event);
+	void OnQuit(wxCommandEvent& event);
+	void OnOpen(wxCommandEvent& event);
+	void OnSave(wxCommandEvent& event);
+	void OnSaveAs(wxCommandEvent& event);
+	void OnDestroyAll(wxCommandEvent& event);
+	void OnClose(wxCloseEvent& event);
+	void OnTimer(wxTimerEvent& event);
+	void HandleBackupProgressDialog();
+
 private:
 	void HandleNotifications();
 	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr);

@@ -2,6 +2,8 @@
 
 void DirectoryBackup::DoBackup(BackupEntry* backup)
 {
+	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+	frame->show_backup_dlg = true;
 	size_t file_count = 0;
 	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 	auto folder_name = backup->from.filename();
@@ -63,10 +65,10 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 	
-	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 	{
 		std::lock_guard<std::mutex> lock(frame->mtx);
 		frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, &backup->to[0] });
+		frame->show_backup_dlg = false;
 	}
 }
 

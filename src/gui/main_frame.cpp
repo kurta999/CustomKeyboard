@@ -131,6 +131,34 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 		}
 	}
 	HandleNotifications();
+	HandleBackupProgressDialog();
+}
+
+void MyFrame::HandleBackupProgressDialog()
+{
+	if(show_backup_dlg && backup_prog == NULL)
+	{
+		backup_prog = new wxProgressDialog("Backing up files", 
+			"Please wait while files being backed up\nIt can take a few minutes...Be patient", 100, 0, wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
+		backup_prog->Show();
+	}
+
+	if(backup_prog != NULL)
+	{
+		backup_prog->Pulse();
+		if(backup_prog && backup_prog->WasCancelled())
+		{
+			backup_prog->Destroy();
+			backup_prog = NULL;
+		}
+	}
+
+	if(!show_backup_dlg && backup_prog != NULL)
+	{
+		show_backup_dlg = false;
+		backup_prog->Destroy();
+		backup_prog = NULL;
+	}
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
