@@ -33,7 +33,8 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 			wxString root_str = tree->GetItemText(item, 0);
 			wxString item_str = tree->GetItemText(item, 1);
 
-			BackupEntry* p = new BackupEntry("C:\\folder_non_exists", std::vector<std::filesystem::path>{"C:\\backup"}, std::vector<std::string>({ ".gitignore", ".txt" }), 2);
+			BackupEntry* p = new BackupEntry("C:\\folder_non_exists", std::vector<std::filesystem::path>{"C:\\backup"}, 
+				std::vector<std::string>({ ".gitignore", ".txt" }), 2, 0, 1);
 			DirectoryBackup::Get()->backups.push_back(p);
 
 			UpdateMainTree();
@@ -67,11 +68,11 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 
 		if(type_str == "Source")
 		{
-			wxTextEntryDialog d(this, "Enter text", "Enter source", DirectoryBackup::Get()->backups[id]->from.generic_string(), wxOK | wxCANCEL);
+			wxDirDialog d(this, "Chose source directory", DirectoryBackup::Get()->backups[id]->from.generic_string(), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 			int ret_code = d.ShowModal();
 			if(ret_code == 5100)  /* OK */
 			{
-				std::string str = d.GetValue().ToStdString();
+				std::string str = d.GetPath().ToStdString();
 				if(std::filesystem::exists(str))
 				{
 					DirectoryBackup::Get()->backups[id]->from = str;
@@ -144,6 +145,39 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				}
 			}
 		}
+		else if(type_str == "Calculate hash")
+		{
+			wxTextEntryDialog d(this, "Enter 0 or 1 to toggle hash calculating\nEnabled hash calculation will result in more reliable backup, but takes longer", 
+				"Toggle hash calculating ", std::to_string(DirectoryBackup::Get()->backups[id]->calculate_hash), wxOK | wxCANCEL);
+			d.SetTextValidator(wxFILTER_DIGITS);
+			int ret_code = d.ShowModal();
+			if(ret_code == 5100)  /* OK */
+			{
+				DirectoryBackup::Get()->backups[id]->calculate_hash = static_cast<bool>(std::stoi(d.GetValue().ToStdString()) != 0);
+				UpdateMainTree();
+			}
+		}
+		else if(type_str == "Hash buffer size")
+		{
+			wxTextEntryDialog d(this, "For folders with bigger files raise, for small files leave the default 1 MB.\nIncreasing buffer can result in improved backup performance", 
+				"Hash buffer size ", std::to_string(DirectoryBackup::Get()->backups[id]->hash_buf_size), wxOK | wxCANCEL);
+			d.SetTextValidator(wxFILTER_DIGITS);
+			int ret_code = d.ShowModal();
+			if(ret_code == 5100)  /* OK */
+			{
+				try
+				{
+					size_t max_backups = static_cast<size_t>(std::stoll(d.GetValue().ToStdString()));
+					DirectoryBackup::Get()->backups[id]->hash_buf_size = max_backups;
+					UpdateMainTree();
+				}
+				catch(...)
+				{
+					wxMessageDialog(this, "Given input isn't number", "Error", wxOK).ShowModal();
+				}
+				UpdateMainTree();
+			}
+		}
 	}
 }
 
@@ -172,6 +206,11 @@ void BackupPanel::UpdateMainTree()
 		tree->SetItemText(bind_item, 1, str_ignore);
 		bind_item = tree->AppendItem(item, "Max backups");
 		tree->SetItemText(bind_item, 1, std::to_string(i->max_backups));
+		bind_item = tree->AppendItem(item, "Calculate hash");
+		tree->SetItemText(bind_item, 1, i->calculate_hash ? "Yes" : "No");
+		bind_item = tree->AppendItem(item, "Hash buffer size");
+		tree->SetItemText(bind_item, 1, boost::lexical_cast<std::string>(i->hash_buf_size));
+
 		tree->Expand(item);
 	}
 }

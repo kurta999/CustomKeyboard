@@ -4,6 +4,20 @@
 
 class MyFrame;
 
+class MenuEventFilter : public wxEventFilter  /* without this event filter doing backups from tray is not possible due to dynamic menu ids */
+{
+public:
+	MenuEventFilter()
+	{
+		wxEvtHandler::AddFilter(this);
+	}
+	virtual ~MenuEventFilter()
+	{
+		wxEvtHandler::RemoveFilter(this);
+	}
+	int FilterEvent(wxEvent& event) override;
+};
+
 class TrayIcon : public wxTaskBarIcon
 {
 public:
@@ -25,12 +39,13 @@ public:
 	{
 		Exit = 0,
 		ReloadConfig,
-		DoBackup,
+		DoBackup = 1500,
 	};
+	static int max_backups;
 protected:
-
 	MyFrame* mainFrame;
 private:
-	DECLARE_EVENT_TABLE()
+	MenuEventFilter* filter;
 
+	DECLARE_EVENT_TABLE()
 };

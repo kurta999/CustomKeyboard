@@ -116,11 +116,15 @@
 #include <stack>
 #include <variant>
 
-
 #include <enumser/enumser.h>
 #include <lodepng/lodepng.h>
 #include <fmt/format.h>
 
 #include "utils/AsyncSerial.h"
+
+extern "C"
+{
+	#include "sha256/sha256.h"
+}
 
 #include <Windows.h>

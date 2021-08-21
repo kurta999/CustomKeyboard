@@ -281,6 +281,14 @@ void MyFrame::HandleNotifications()
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
 					});
 				break;
+			}
+			case BackupFailed:
+			{
+				ShowNotificaiton("Backup failed!",
+					wxString::Format("Backup failed due to wrong checksum values\nMake sure that your drive is not damaged\nCheck log file for more info"), 3, [this](wxCommandEvent& event)
+					{
+					});
+				break;
 			}	
 			case LinkMark:
 			{

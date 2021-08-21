@@ -36,6 +36,7 @@ enum Msg : uint8_t
 {
 	ScreenshotSaved = 0,
 	BackupCompleted,
+	BackupFailed,
 	PathSeparatorsReplaced,
 	LinkMark,
 	SymlinkCreated,

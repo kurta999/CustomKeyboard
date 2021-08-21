@@ -9,8 +9,10 @@
 class BackupEntry
 {
 public:
-    BackupEntry(std::filesystem::path&& from_, std::vector<std::filesystem::path>&& to_, std::vector<std::string>&& ignore_list_, int max_backups_) :
-        from(std::move(from_)), to(std::move(to_)), ignore_list(std::move(ignore_list_)), max_backups(max_backups_)
+    BackupEntry(std::filesystem::path&& from_, std::vector<std::filesystem::path>&& to_, std::vector<std::string>&& ignore_list_, int max_backups_,
+        bool calculate_hash_, size_t hash_buf_size_) :
+        from(std::move(from_)), to(std::move(to_)), ignore_list(std::move(ignore_list_)), max_backups(max_backups_), 
+        calculate_hash(calculate_hash_), hash_buf_size(hash_buf_size_)
     {
 
     }
@@ -31,7 +33,9 @@ public:
     std::filesystem::path from;
     std::vector<std::filesystem::path> to;
     std::vector<std::string> ignore_list;
-    int max_backups;
+    int max_backups;  /* max backups for backup rotation in destination folder */
+    bool calculate_hash;
+    size_t hash_buf_size;  /* In megabytes */
 };
 
 class DirectoryBackup : public CSingleton < DirectoryBackup >
@@ -45,6 +49,7 @@ public:
     void Init(void);
     void BackupFiles();
     void BackupFile(int id);
+    bool IsInProgress();
 
     std::string backup_key = "F10";
     std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";

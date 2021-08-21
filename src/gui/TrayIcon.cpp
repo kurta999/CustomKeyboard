@@ -4,8 +4,27 @@ BEGIN_EVENT_TABLE(TrayIcon, wxTaskBarIcon)
 EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)
 EVT_MENU(TrayIcon::ID::ReloadConfig, TrayIcon::OnReload)
 EVT_MENU(TrayIcon::ID::Exit, TrayIcon::OnQuit)
-EVT_MENU(TrayIcon::ID::DoBackup, TrayIcon::OnBackup)
 END_EVENT_TABLE()
+
+int TrayIcon::max_backups = 0;
+
+int MenuEventFilter::FilterEvent(wxEvent& event)
+{
+	const wxEventType t = event.GetEventType();
+	auto obj = event.GetEventObject();
+	if(t == wxEVT_MENU)
+	{
+		const int id = event.GetId();
+		if(id >= TrayIcon::ID::DoBackup && id <= TrayIcon::ID::DoBackup + TrayIcon::max_backups)
+		{
+			int backup_id = id - TrayIcon::ID::DoBackup;
+			DirectoryBackup::Get()->BackupFile(backup_id);
+			return Event_Processed;
+		}
+	}
+	return Event_Skip;  /* Continue processing the event normally as well */
+}
+
 /*
 TrayIcon::TrayIcon(void) : wxTaskBarIcon()
 {	
@@ -13,12 +32,15 @@ TrayIcon::TrayIcon(void) : wxTaskBarIcon()
 }
 */
 
-TrayIcon::~TrayIcon(void) {
+TrayIcon::~TrayIcon(void) 
+{
+	delete filter;
 }
 
 void TrayIcon::SetMainFrame(MyFrame* frame)
 {
 	mainFrame = frame;
+	filter = new MenuEventFilter();
 }
 
 void TrayIcon::OnLeftDoubleClick(wxTaskBarIconEvent& event)
@@ -41,12 +63,13 @@ void TrayIcon::OnLeftDoubleClick(wxTaskBarIconEvent& event)
 
 wxMenu* TrayIcon::CreatePopupMenu()
 {
-	wxMenu* popup = new wxMenu;
-
-	int cnt = 0;
+	wxMenu* popup = new wxMenu;  /* no memory leak here, wxWidgets takes care about it */
+	max_backups = 0;
 	for(auto& i : DirectoryBackup::Get()->backups)
 	{
-		popup->Append(TrayIcon::ID::DoBackup + cnt++, i->from.filename().generic_string());
+		wxMenuItem* item = popup->Append(TrayIcon::ID::DoBackup + max_backups++, i->from.filename().generic_string());
+		if(DirectoryBackup::Get()->IsInProgress())
+			item->Enable(false);
 	}
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"));
@@ -65,10 +88,4 @@ void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))
 	RemoveIcon();
 	if (mainFrame)
 		wxExit();
-}
-
-void TrayIcon::OnBackup(wxCommandEvent& event)
-{
-	int id = event.GetId() - TrayIcon::ID::DoBackup;
-	DirectoryBackup::Get()->BackupFile(id);
 }

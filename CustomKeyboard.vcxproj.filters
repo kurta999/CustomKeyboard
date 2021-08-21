@@ -40,6 +40,9 @@
     <Filter Include="libs\enumser">
       <UniqueIdentifier>{d5edb721-26b3-48dd-9bd3-a42ff132cae0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\sha256">
+      <UniqueIdentifier>{234ba694-100f-4adb-9649-c1f75f35be86}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\fmt\color.h">
@@ -192,6 +195,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libs\sha256\sha256.h">
+      <Filter>libs\sha256</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -289,6 +295,9 @@
     </ClCompile>
     <ClCompile Include="src\MacroRecorder.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\sha256\sha256.c">
+      <Filter>libs\sha256</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

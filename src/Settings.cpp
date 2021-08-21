@@ -214,7 +214,9 @@ void Settings::LoadFile()
             std::vector<std::string> ignore_list;
             boost::split(ignore_list, pt.get_child(key).find("Ignore")->second.data(), boost::is_any_of("|"));
             int max_backups = std::stoi(pt.get_child(key).find("MaxBackups")->second.data());
-            BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups);
+            bool calculate_hash = static_cast<bool>(std::stoi(pt.get_child(key).find("CalculateHash")->second.data()) != 0);
+            size_t buffer_size = static_cast<bool>(std::stoi(pt.get_child(key).find("BufferSize")->second.data()) != 0);
+            BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
 
             counter_++;
             DirectoryBackup::Get()->backups.push_back(b);
@@ -351,6 +353,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
                 key.erase(key.length() - 1, key.length());
             out << "Ignore = " << key << '\n';
             out << "MaxBackups = " << i->max_backups << '\n';
+            out << "CalculateHash = " << i->calculate_hash << '\n';
+            out << "BufferSize = " << i->hash_buf_size << "# Buffer size for file operations - determines how much data is read once, Unit: Megabytes" << '\n';
         }
     }
     else
@@ -360,6 +364,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         out << "To = C:\\Users\\Ati\\Desktop\\folder_where_to_backup|F:\\Backup\\folder_where_to_backup\n";
         out << "Ignore = git/COMMIT_EDITMSG|.git|.vs|Debug|Release|Screenshots|x64|Graphs/Line Chart|Graphs/Temperature.html|Graphs/Humidity.html|Graphs/CO2.html|Graphs/Lux.html|Graphs/VOC.html|Graphs/CCT.html|Graphs/PM10.html|Graphs/PM25.html\n";
         out << "MaxBackups = 5\n";
+        out << "CalculateHash = 1\n";
+        out << "BufferSize = 2\n";
     }
     out << "\n";
     out << "[Graph]\n";
