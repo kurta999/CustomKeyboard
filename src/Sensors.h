@@ -64,4 +64,5 @@ private:
     std::deque<std::unique_ptr<Measurement>> last_meas;
     std::string template_str;
     std::mutex mtx;
+    size_t num_recv_meas = 0;
 };

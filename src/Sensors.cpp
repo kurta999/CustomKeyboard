@@ -25,7 +25,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
             frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), m->pm10));
             frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), m->lux));
             frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), m->cct));
-            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), fmt::format("{:%Y.%m.%d %H:%M:%S}", *current_tm)));
+            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), fmt::format("{:%Y.%m.%d %H:%M:%S} - {}", *current_tm, ++num_recv_meas)));
             frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
         }
 
