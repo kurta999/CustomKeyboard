@@ -39,6 +39,7 @@ enum Msg : uint8_t
 	BackupFailed,
 	PathSeparatorsReplaced,
 	LinkMark,
+	LinkMarkError,
 	SymlinkCreated,
 	HardlinkCreated,
 	MacroRecordingStarted,
@@ -85,7 +86,7 @@ private:
 
 private:
 	void HandleNotifications();
-	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr);
+	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, int flags, T&& fptr);
 
 	wxIcon applicationIcon;
 	TrayIcon* tray;

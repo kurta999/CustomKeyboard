@@ -336,7 +336,7 @@ void KeybrdPanel::UpdateMainTree()
 		wxTreeListItem item = tree->AppendItem(root, m->name.c_str());
 		for(auto& b : m->bind_name)
 		{
-			DBG("bind name: %s\n", b.second.c_str());
+			//DBG("bind name: %s\n", b.second.c_str());
 			wxTreeListItem bind_item = tree->AppendItem(item, b.second.c_str());
 			tree->SetItemText(bind_item, 1, b.first.c_str());
 		}

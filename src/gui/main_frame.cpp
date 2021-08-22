@@ -254,7 +254,8 @@ void MyFrame::HandleNotifications()
 			case ScreenshotSaved:
 			{
 				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
-				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 3, [this](wxCommandEvent& event)
+				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 
+					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
 						char work_dir[256];
 						GetCurrentDirectoryA(sizeof(work_dir), work_dir);
@@ -266,7 +267,8 @@ void MyFrame::HandleNotifications()
 			case PathSeparatorsReplaced:
 			{
 				std::string path = std::any_cast<decltype(path)>(ret[1]);
-				ShowNotificaiton("Path separator replaced", wxString::Format("New form is in the clipboard:\n%s", path.substr(0, 64)), 3, [this](wxCommandEvent& event)
+				ShowNotificaiton("Path separator replaced", wxString::Format("New form is in the clipboard:\n%s", path.substr(0, 64)), 
+					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
 					});
 				break;
@@ -276,7 +278,8 @@ void MyFrame::HandleNotifications()
 				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 				size_t file_count = std::any_cast<decltype(file_count)>(ret[2]);
 				std::filesystem::path* p = std::any_cast<decltype(p)>(ret[3]);
-				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 3, [this, p](wxCommandEvent& event)
+				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 
+					3, wxICON_INFORMATION, [this, p](wxCommandEvent& event)
 					{
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
 					});
@@ -285,7 +288,8 @@ void MyFrame::HandleNotifications()
 			case BackupFailed:
 			{
 				ShowNotificaiton("Backup failed!",
-					wxString::Format("Backup failed due to wrong checksum values\nMake sure that your drive is not damaged\nCheck log file for more info"), 3, [this](wxCommandEvent& event)
+					wxString::Format("Backup failed due to wrong checksum values\nMake sure that your drive is not damaged\nCheck log file for more info"), 
+					3, wxICON_ERROR, [this](wxCommandEvent& event)
 					{
 					});
 				break;
@@ -295,7 +299,16 @@ void MyFrame::HandleNotifications()
 				uint32_t files_marked = std::any_cast<decltype(files_marked)>(ret[1]);
 				ShowNotificaiton("Selected files have been marked", wxString::Format("%d files has been marked.\n\
 Press KEY %s in destination directory for creating symlinks\nPress KEY %s in destination directory for creating hardlinks\n", 
-					files_marked, SymlinkCreator::Get()->place_symlink_key, SymlinkCreator::Get()->place_hardlink_key), 3, [this](wxCommandEvent& event)
+					files_marked, SymlinkCreator::Get()->place_symlink_key, SymlinkCreator::Get()->place_hardlink_key), 
+					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+					{
+					});
+				break;
+			}
+			case LinkMarkError:
+			{
+				ShowNotificaiton("Error with symlink marking", "Error happend while marking source for link creation", 
+					3, wxICON_ERROR, [this](wxCommandEvent& event)
 					{
 					});
 				break;
@@ -305,7 +318,8 @@ Press KEY %s in destination directory for creating symlinks\nPress KEY %s in des
 			{
 				uint32_t files_marked = std::any_cast<decltype(files_marked)>(ret[1]);
 				ShowNotificaiton(wxString::Format("%s has been created", type == SymlinkCreated ? "Simlinks" : "Hardlinks"),
-					wxString::Format("%d %s has been created succesfully!\n", files_marked, type == SymlinkCreated ? "Simlinks" : "Hardlinks"), 3, [this](wxCommandEvent& event)
+					wxString::Format("%d %s has been created succesfully!\n", files_marked, type == SymlinkCreated ? "Simlinks" : "Hardlinks"), 
+					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
 					});
 				break;
@@ -314,14 +328,14 @@ Press KEY %s in destination directory for creating symlinks\nPress KEY %s in des
 			{
 				ShowNotificaiton("Macro recording started", wxString::Format("\
 Start typing & pressing key combinations\nFor getting mouse position, press SCROLL LOCK\nClick again on macro recording icon to stop the recording\n\
-Note: Macro recording is in WIP phase, so problems can happen!"), 5, [this](wxCommandEvent& event)
+Note: Macro recording is in WIP phase, so problems can happen!"), 5, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
 					});
 				break;
 			}
 			case MacroRecordingStopped:
 			{
-				ShowNotificaiton("Macro recording stopped", wxString::Format("5 macro has been successfully recorded"), 3, [this](wxCommandEvent& event)
+				ShowNotificaiton("Macro recording stopped", wxString::Format("5 macro has been successfully recorded"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
 					});
 				break;
@@ -332,9 +346,9 @@ Note: Macro recording is in WIP phase, so problems can happen!"), 5, [this](wxCo
 	}
 }
 
-template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout, T&& fptr)
+template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const wxString& message, int timeout, int flags, T&& fptr)
 {
-	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, wxICON_INFORMATION);
+	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, flags);
 	m_notif->Show(timeout);
 	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, fptr);
 }

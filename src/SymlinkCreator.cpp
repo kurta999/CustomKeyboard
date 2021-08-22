@@ -1,5 +1,9 @@
 #include "pch.h"
 
+#define SAFE_RELEASE(name) \
+	if(name) \
+		name->Release();
+
 bool SymlinkCreator::HandleKeypress(std::string& pressed_keys)
 {
 	bool ret = false;
@@ -30,7 +34,7 @@ void SymlinkCreator::Mark()
 	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 	{
 		std::lock_guard<std::mutex> lock(frame->mtx);
-		frame->pending_msgs.push_back({ (uint8_t)LinkMark, (uint32_t)selected_items.size() });
+		frame->pending_msgs.push_back({ !selected_items.empty() ? (uint8_t)LinkMark : (uint8_t)LinkMarkError, (uint32_t)selected_items.size() });
 	}
 }
 
@@ -45,10 +49,18 @@ void SymlinkCreator::Place(bool is_symlink)
 			for(PWSTR& item : selected_items)
 			{
 				std::filesystem::path dest_with_name = dest_path / std::filesystem::path(item).filename();
-				if(std::filesystem::is_directory(item))
-					std::filesystem::create_directory_symlink(item, dest_with_name);
-				else
-					std::filesystem::create_symlink(item, dest_with_name);
+				try
+				{
+					if(std::filesystem::is_directory(item))
+						std::filesystem::create_directory_symlink(item, dest_with_name);
+					else
+						std::filesystem::create_symlink(item, dest_with_name);
+				}
+				catch(std::filesystem::filesystem_error const& e)
+				{
+					LOGMSG(error, "Exception during creating symlinks: {}", e.what());
+					break;
+				}
 			}
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -122,64 +134,108 @@ IFolderView2* SymlinkCreator::GetFolderView2()
 
 								}
 							}
-							psv->Release();
+							SAFE_RELEASE(psv);
 						}
-						psb->Release();
+						SAFE_RELEASE(psb);
 					}
-					psp->Release();
+					SAFE_RELEASE(psp);
 				}
-				pwba->Release();
+				SAFE_RELEASE(pwba);
 			}
-			pwba->Release();
+			SAFE_RELEASE(pwba);
 		}
-		pdisp->Release();
+		SAFE_RELEASE(pdisp);
 	}
-	psw->Release();
+	SAFE_RELEASE(psw);
 	return pfv;
 }
 
 void SymlinkCreator::GetSelectedItemsFromFileExplorer()
 {
-	/* TODO: add missing ->Release calls */
-	IFolderView2* pfv = GetFolderView2();
-	selected_items.clear();
-
-	IShellItemArray* sia = NULL;
-	if(FAILED(pfv->GetSelection(FALSE, &sia))) return;
-	DWORD	num = 0;
-	if(FAILED(sia->GetCount(&num))) return;
-	for(DWORD i = 0; i < num; i++)
+	IFolderView2* pfv = GetFolderView2();  /* null if clicked on desktop and not in file explorer */
+	if(pfv)
 	{
-		IShellItem* si = NULL;
-		if(FAILED(sia->GetItemAt(i, &si))) return;
+		selected_items.clear();
 
-		PWSTR path = NULL;
-		if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path))) continue;
+		IShellItemArray* sia = NULL;
+		if(FAILED(pfv->GetSelection(FALSE, &sia)))
+		{
+			pfv->Release();
+			return;
+		}
+		DWORD	num = 0;
+		if(FAILED(sia->GetCount(&num)))
+		{
+			pfv->Release();
+			sia->Release();
+			return;
+		}
+		for(DWORD i = 0; i < num; i++)
+		{
+			IShellItem* si = NULL;
+			if(FAILED(sia->GetItemAt(i, &si)))
+			{
+				pfv->Release();
+				sia->Release();
+				return;
+			}
 
-		if(path)
-			selected_items.push_back(path);
+			PWSTR path = NULL;
+			if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+			{
+				pfv->Release();
+				si->Release();
+				continue;
+			}
+
+			if(path)
+				selected_items.push_back(path);
+		}
+		pfv->Release();
 	}
 }
 
 std::wstring SymlinkCreator::GetDestinationPathFromFileExplorer()
 {
-	/* TODO: add missing ->Release calls */
-	IFolderView2* pfv = GetFolderView2();
-
-	IShellItemArray* sia = NULL;
-	if(FAILED(pfv->GetSelection(TRUE, &sia))) return std::wstring{};
-	DWORD	num = 0;
-	if(FAILED(sia->GetCount(&num))) return std::wstring{};
-
-	IShellItem* si = NULL;
-	if(FAILED(sia->GetItemAt(0, &si))) return std::wstring{};
-
-	PWSTR path = NULL;
-	if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path))) return std::wstring{};
-
 	std::wstring ret;
-	if(path)
-		ret = path;
+	IFolderView2* pfv = GetFolderView2();
+	if(pfv)
+	{
+		IShellItemArray* sia = NULL;
+		if(FAILED(pfv->GetSelection(TRUE, &sia)))
+		{
+			pfv->Release();
+			return ret;
+		}
+
+		DWORD num = 0;
+		if(FAILED(sia->GetCount(&num)))
+		{
+			pfv->Release();
+			sia->Release();
+			return ret;
+		}
+
+		IShellItem* si = NULL;
+		if(FAILED(sia->GetItemAt(0, &si)))
+		{
+			pfv->Release();
+			sia->Release();
+			return ret;
+		}
+
+		PWSTR path = NULL;
+		if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+		{
+			pfv->Release();
+			si->Release();
+			return ret;
+		}
+		pfv->Release();
+
+		if(path)
+			ret = path;
+	}
 	return ret;
 }
 
