@@ -234,9 +234,6 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	bSizer1->Add(sizer_box_screenshot);
 
 	wxSizer* const sizer_box_backup = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
-	sizer_box_backup->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_BackupKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_backup->Add(m_BackupKey);
 	sizer_box_backup->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
 	m_BackupDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
 	sizer_box_backup->Add(m_BackupDateFmt);
@@ -278,7 +275,6 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			PrintScreenSaver::Get()->screenshot_key = m_ScreenshotKey->GetValue(); /* in case of invalid key screenshot saving never will be triggered - nothing special.. using it for disabling */
 			PrintScreenSaver::Get()->timestamp_format = m_ScreenshotDateFmt->GetValue();
 			PrintScreenSaver::Get()->screenshot_path = m_ScreenshotPath->GetValue().ToStdString();
-			DirectoryBackup::Get()->backup_key = m_BackupKey->GetValue().ToStdString();
 			DirectoryBackup::Get()->backup_time_format = m_BackupDateFmt->GetValue().ToStdString();
 			SymlinkCreator::Get()->is_enabled = m_IsSymlink->IsChecked();
 			SymlinkCreator::Get()->mark_key = m_MarkSymlink->GetValue().ToStdString();
@@ -319,7 +315,6 @@ void ComTcpPanel::UpdatePanel()
 	m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
 	m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);
 	m_ScreenshotPath->SetValue(PrintScreenSaver::Get()->screenshot_path.generic_u8string());
-	m_BackupKey->SetValue(DirectoryBackup::Get()->backup_key);
 	m_BackupDateFmt->SetValue(DirectoryBackup::Get()->backup_time_format);
 	m_IsSymlink->SetValue(SymlinkCreator::Get()->is_enabled);
 	m_MarkSymlink->SetValue(SymlinkCreator::Get()->mark_key);

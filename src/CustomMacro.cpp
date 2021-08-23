@@ -111,11 +111,6 @@ void CustomMacro::PressKey(std::string key)
         PathSeparator::Get()->ReplaceClipboard();
         return;
     }
-    if(DirectoryBackup::Get()->backup_key == pressed_keys)
-    {
-        DirectoryBackup::Get()->BackupFiles();
-        return;
-    }
     if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
         return;
 

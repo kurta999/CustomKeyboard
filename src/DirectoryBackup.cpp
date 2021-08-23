@@ -140,31 +140,19 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	}
 }
 
-void DirectoryBackup::DoBackups()
-{
-	for(auto& b : backups)
-	{
-		DoBackup(b);
-	}
-}
-
 void DirectoryBackup::Init()
 {
 
 }
 
-void DirectoryBackup::BackupFiles()
-{
-	if(backup_future.valid())
-		backup_future.get();
-	backup_future = std::async(&DirectoryBackup::DoBackups, this);
-}
-
 void DirectoryBackup::BackupFile(int id)
 {
-	if(backup_future.valid())
-		backup_future.get();
-	backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id]);
+	if(id < backups.size())
+	{
+		if(backup_future.valid())
+			backup_future.get();
+		backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id]);
+	}
 }
 
 bool DirectoryBackup::IsInProgress()

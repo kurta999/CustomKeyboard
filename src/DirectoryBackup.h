@@ -47,11 +47,9 @@ public:
     DirectoryBackup() = default;
     ~DirectoryBackup() = default;
     void Init(void);
-    void BackupFiles();
     void BackupFile(int id);
     bool IsInProgress();
 
-    std::string backup_key = "F10";
     std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";
     std::vector< BackupEntry*> backups;
 private:

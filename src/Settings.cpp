@@ -196,7 +196,6 @@ void Settings::LoadFile()
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
 
         DirectoryBackup::Get()->backup_time_format = pt.get_child("BackupSettings").find("BackupFileFormat")->second.data();
-        DirectoryBackup::Get()->backup_key = pt.get_child("BackupSettings").find("BackupKey")->second.data();
 
         /* load backup configs */
         DirectoryBackup::Get()->backups.clear();
@@ -326,7 +325,6 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "PlaceHardlinkKey = " << SymlinkCreator::Get()->place_hardlink_key << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
-    out << "BackupKey = " << DirectoryBackup::Get()->backup_key << "\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
     if(!write_default_macros)
     {
