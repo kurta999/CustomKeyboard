@@ -49,6 +49,7 @@ public:
 	size_t array_size = std::numeric_limits<size_t>::max();  /* std::numeric_limits<size_t>::max() if isn't array */
 	std::string name; /* variable name */
 	std::string desc;  /* documentation */
+	size_t union_size = 0; /* if not 0, this is a member of union */
 };
 
 class ClassElement : public ClassBase
@@ -96,7 +97,6 @@ public:
 	{
 
 	}
-
 	~ClassContainer()
 	{
 
@@ -105,6 +105,7 @@ public:
 	std::vector<std::variant<std::shared_ptr<ClassElement>, std::shared_ptr<ClassContainer>>> members;
 	size_t packing = 0;
 	std::vector<std::shared_ptr<ClassContainer>> classes;
+	bool is_union = false;
 };
 
 class StructParser : public CSingleton < StructParser >

@@ -106,13 +106,19 @@ size_t FindStructEnd(std::string str_in, size_t& input_len)
 void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset)
 {
 	size_t elem_size = e->GetSize();
-	size_t real_size = elem_size + ((c->packing - (elem_size & (c->packing - 1))) & (c->packing - 1));
+	size_t real_size = 0;
+	if(e->union_size == 0)
+		real_size = elem_size + ((c->packing - (elem_size & (c->packing - 1))) & (c->packing - 1));
+	else
+		real_size = e->union_size;
+
 	if(e->desc.empty())
 		output += fmt::format("{} {} [{} - {}]\r\n", e->type_name, e->name, offset, (offset + real_size) - 1);
 	else
 		output += fmt::format("{} {} [{} - {}] /**< {} >\r\n", e->type_name, e->name, offset, (offset + real_size) - 1, e->desc);
 
-	offset += real_size;
+	if(e->union_size == 0)
+		offset += real_size;
 }
 
 void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing, size_t ptr_size)
@@ -218,6 +224,47 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 				DBG("go back 2\n");
 				input_len += 2;
 			}
+
+			if(c->is_union)
+			{
+				DBG("union - %s\n", c->type_name.c_str());
+				size_t offset = 0;
+				std::shared_ptr<ClassContainer> p;
+				size_t biggest_element = 0;					
+				p = c;
+				while(p != nullptr)
+				{
+					auto m = p->members.begin();
+					while(m != p->members.end())
+					{
+						if(std::holds_alternative<std::shared_ptr<ClassElement>>(*m))
+						{
+							std::shared_ptr<ClassElement> e = std::get<std::shared_ptr<ClassElement>>(*m);
+							if(e->GetSize() > biggest_element)
+								biggest_element = e->GetSize();
+							++m;
+						}
+						else if(std::holds_alternative<std::shared_ptr<ClassContainer>>(*m))
+						{
+							classes.clear();
+							wxMessageBox("Please remove the object from union.", "Object support in union is not implemented yet!");
+							break;
+						}
+					}
+
+					m = p->members.begin();
+					while(m != p->members.end())
+					{
+						if(std::holds_alternative<std::shared_ptr<ClassElement>>(*m))
+						{
+							std::shared_ptr<ClassElement> e = std::get<std::shared_ptr<ClassElement>>(*m);
+							e->union_size = biggest_element;
+							++m;
+						}
+					}
+					p = nullptr;
+				}
+			}
 			try_parse_element = 1;
 
 			pointer_stack.pop();
@@ -246,14 +293,11 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		}
 		else if(union_start < struct_start && union_start != std::string::npos && !try_parse_element)
 		{
-			classes.clear();
-			wxMessageBox("Please remove the union part from the code.", "Union support is not implemented yet!");
-			break;
-
 			try_parse_element = 1;
 			DBG("union found %zu\n", union_start);
 			
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
+			c->is_union = 1;
 			pointer_stack.push(c);
 
 			input_len += ((union_start - input_len)) + std::char_traits<char>::length("union");
@@ -278,12 +322,18 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			{
 				if(std::holds_alternative<std::shared_ptr<ClassElement>>(*m))
 				{
-					GenerateOffsets(output, c, std::get< std::shared_ptr<ClassElement>>(*m), offset);
+					std::shared_ptr<ClassElement> e = std::get<std::shared_ptr<ClassElement>>(*m);
+					GenerateOffsets(output, c, e, offset);
 					m = p->members.erase(m);
+					if(p->members.size() == 0)
+					{
+						if(e->union_size != 0)
+							offset += e->union_size;
+					}
 				}
-				else if(std::holds_alternative< std::shared_ptr<ClassContainer>>(*m))
+				else if(std::holds_alternative<std::shared_ptr<ClassContainer>>(*m))
 				{
-					if(p == std::get< std::shared_ptr<ClassContainer>>(*m))
+					if(p == std::get<std::shared_ptr<ClassContainer>>(*m))
 					{
 						DBG("already set\n");
 					}
