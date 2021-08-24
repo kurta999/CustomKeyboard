@@ -15,4 +15,5 @@ enum
 	ID_AppBindListMain,
 	ID_MacroDetails,
 	ID_BackupPanel,
+	ID_EditorPropGrid,
 };

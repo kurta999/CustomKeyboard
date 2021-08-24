@@ -23,7 +23,6 @@ MainPanel::MainPanel(wxFrame* parent)
 			Database::Get()->GenerateGraphs();
 		});
 
-
 #define ADD_MEASUREMENT_TEXT(var_name, html_name, name, tooltip, color) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
 	var_name->Wrap(-1); \

@@ -57,7 +57,7 @@ public:
 		std::string widget_type = typeid_name.substr(pos, pointer - pos - 1);
 
 		name = wxString::Format("%s_%d", widget_type, id);
-		fg_color_changed = bg_color_changed = 0;
+		fg_color_changed = bg_color_changed = font_changed = 0;
 	}
 	~Widget()
 	{
@@ -70,6 +70,7 @@ public:
 	wxString name;
 	uint8_t fg_color_changed;
 	uint8_t bg_color_changed;
+	uint8_t font_changed;
 	wxTreeItemId item_id;
 
 	static std::map<size_t, uint16_t> item_ids;
@@ -84,13 +85,15 @@ class GuiEditor : public CSingleton < GuiEditor >
 	void AddFlags(wxString& wxstr, void* widget, Widget* obj, const long* to_pointer, const wxString* to_pointer_str, const long max_array_size);
 	void AddFontAndColor(wxString& wxstr, void* widget, Widget* obj);
 	void DuplicateWidget();
-
+	void AdjustWidgetPos(wxWindow* window, Widget* widget, int8_t x, int8_t y);
+	void AdjustWidgetSize(wxWindow* window, Widget* widget, int8_t x, int8_t y);
 public:
 	void Init(GuiEditorMain* panel_);
 	void OnClick(void* object);
 	void OnMouseMotion(wxPoint& pos);
 	void OnKeyDown(int keycode);
-	
+	void OnPropertyGridChange(wxPGProperty* prop);
+
 	void OnPaint();
 	void OnOpen();
 	void OnSave();
@@ -108,10 +111,51 @@ public:
 
 	Widget* FindwxText(wxObject* object_to_find = nullptr);
 	void MarkSelectedItem();
+
 private:
+	void AddFlagsToPropgrid();
+
 	GuiEditorMain* panel;
 	std::unordered_map<wxObject*, Widget*> widgets;
 	wxObject* m_SelectedWidget = nullptr;
 	wxString file_path;
 	int m_speed = 1;
+
+	std::map<int, std::string> fontfamily_map =
+	{
+		{wxFONTFAMILY_DEFAULT, "wxFONTFAMILY_DEFAULT"},
+		{wxFONTFAMILY_DECORATIVE, "wxFONTFAMILY_DECORATIVE"},
+		{wxFONTFAMILY_ROMAN, "wxFONTFAMILY_ROMAN"},
+		{wxFONTFAMILY_SCRIPT, "wxFONTFAMILY_SCRIPT"},
+		{wxFONTFAMILY_SWISS, "wxFONTFAMILY_SWISS"},
+		{wxFONTFAMILY_MODERN, "wxFONTFAMILY_MODERN"},
+		{wxFONTFAMILY_MODERN, "wxFONTFAMILY_MODERN"},
+		{wxFONTFAMILY_TELETYPE, "wxFONTFAMILY_TELETYPE"},
+		{wxFONTFAMILY_MAX, "wxFONTFAMILY_MAX"},
+		{wxFONTFAMILY_UNKNOWN, "wxFONTFAMILY_UNKNOWN"},
+	};
+
+	std::map<int, std::string> fontstyle_map =
+	{
+		{wxFONTSTYLE_NORMAL, "wxFONTSTYLE_NORMAL"},
+		{wxFONTSTYLE_ITALIC, "wxFONTSTYLE_ITALIC"},
+		{wxFONTSTYLE_SLANT, "wxFONTSTYLE_SLANT"},
+		{wxFONTSTYLE_MAX, "wxFONTSTYLE_MAX"},
+	};
+
+	std::map<int, std::string> fontweight_map =
+	{
+		{wxFONTWEIGHT_INVALID, "wxFONTWEIGHT_INVALID"},
+		{wxFONTWEIGHT_THIN, "wxFONTWEIGHT_THIN"},
+		{wxFONTWEIGHT_EXTRALIGHT, "wxFONTWEIGHT_EXTRALIGHT"},
+		{wxFONTWEIGHT_LIGHT, "wxFONTWEIGHT_LIGHT"},
+		{wxFONTWEIGHT_NORMAL, "wxFONTWEIGHT_NORMAL"},
+		{wxFONTWEIGHT_MEDIUM, "wxFONTWEIGHT_MEDIUM"},
+		{wxFONTWEIGHT_SEMIBOLD, "wxFONTWEIGHT_SEMIBOLD"},
+		{wxFONTWEIGHT_BOLD, "wxFONTWEIGHT_BOLD"},
+		{wxFONTWEIGHT_EXTRABOLD, "wxFONTWEIGHT_EXTRABOLD"},
+		{wxFONTWEIGHT_HEAVY, "wxFONTWEIGHT_HEAVY"},
+		{wxFONTWEIGHT_EXTRAHEAVY, "wxFONTWEIGHT_EXTRAHEAVY"},
+		{wxFONTWEIGHT_MAX, "wxFONTWEIGHT_MAX"},
+	};
 };

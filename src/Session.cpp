@@ -86,7 +86,7 @@ void Session::StartAsync()
 	
 	sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)), 
 		boost::bind(&Session::HandleRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-	Server::Get()->sessions.insert(shared_from_this());
+	Server::Get()->sessions.emplace(shared_from_this());
 }
 
 void Session::StopAsync()

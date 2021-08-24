@@ -182,6 +182,15 @@ void Settings::LoadFile()
         minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnExit")->second.data()) != 0);
         minimize_on_startup = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnStartup")->second.data()) != 0);
         default_page = static_cast<uint8_t>(std::stoi(pt.get_child("App").find("DefaultPage")->second.data()));
+        remember_window_size = static_cast<uint8_t>(std::stoi(pt.get_child("App").find("RememberWindowSize")->second.data()));
+        if(remember_window_size)
+        {
+            sscanf(pt.get_child("App").find("WindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y);
+            if(window_size.x < WINDOW_SIZE_X)
+                window_size.x = WINDOW_SIZE_X;
+            if(window_size.y < WINDOW_SIZE_Y)
+                window_size.y = WINDOW_SIZE_Y;
+        }
         PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
         PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
@@ -309,6 +318,13 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
     out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
+    out << "RememberWindowSize = " << remember_window_size << "\n";
+    if(remember_window_size)  /* get frame size when click on Save - not on exit, this is not a bug */
+    {
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        window_size = frame->GetSize();
+    }
+    out << "LastWindowSize = " << fmt::format("{}, {}", window_size.x, window_size.y) << "\n";
     out << "\n";
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";

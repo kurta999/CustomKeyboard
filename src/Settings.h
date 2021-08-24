@@ -18,6 +18,8 @@ public:
     bool minimize_on_exit = false;
     bool minimize_on_startup = false;
     uint8_t default_page = 1;
+    bool remember_window_size = false;
+    wxSize window_size = wxSize(WINDOW_SIZE_X, WINDOW_SIZE_Y);
 
 private:
     void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c);

@@ -9,6 +9,7 @@ EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MyFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MyFrame::OnSaveAs)
 EVT_MENU(ID_DestroyAll, MyFrame::OnDestroyAll)
+EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -81,6 +82,24 @@ void MyFrame::OnClose(wxCloseEvent& event)
 		Hide();
 	else
 		wxExit();
+}
+
+void MyFrame::OnSize(wxSizeEvent& event)
+{
+	wxSize a = event.GetSize();
+	if(main_panel)
+	{
+		main_panel->SetSize(a);
+		config_panel->SetSize(a);
+		editor_panel->SetSize(a);
+		editor_panel->m_notebook->SetSize(a);
+		editor_panel->gui_editor->SetSize(a);
+		editor_panel->gui_cpp->SetSize(a);
+		escape_panel->SetSize(a);
+		parser_panel->SetSize(a);
+		log_panel->SetSize(a);
+	}
+	event.Skip(true);
 }
 
 void MyFrame::OnOpen(wxCommandEvent& event)
@@ -171,14 +190,14 @@ void MyFrame::SetIconTooltip(const wxString &str)
 }
 
 MyFrame::MyFrame(const wxString& title)
-	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition,
-		wxSize(WINDOW_SIZE_X, WINDOW_SIZE_Y))
+	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, Settings::Get()->window_size)
 {
 	tray = new TrayIcon();
 	tray->SetMainFrame(this);
 	SetIconTooltip(wxT("No measurements"));
 	
 	m_mgr.SetManagedWindow(this);
+	SetMinSize(wxSize(800, 600));
 
 	wxMenu* menuFile = new wxMenu;
 	menuFile->Append(ID_Quit, "E&xit\tCtrl-E", "Close program")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
@@ -237,9 +256,6 @@ MacroPanel::MacroPanel(wxFrame* parent)
 
 	this->SetSizer(bSizer1);
 	this->Layout();
-	/*
-	this->Bind(wxEVT_CHAR_HOOK, &MyPanel::OnKeyDown, this);
-	*/
 }
 
 void MyFrame::HandleNotifications()
@@ -261,6 +277,14 @@ void MyFrame::HandleNotifications()
 						GetCurrentDirectoryA(sizeof(work_dir), work_dir);
 						strncat(work_dir, "\\Screenshots", 12);
 						ShellExecuteA(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
+					});
+				break;
+			}
+			case StringEscaped:
+			{
+				ShowNotificaiton("String escaped", "String has been escaped and placed to clipboard", 
+					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+					{
 					});
 				break;
 			}

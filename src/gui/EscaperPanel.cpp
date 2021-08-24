@@ -10,7 +10,7 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 	m_IsBackslashAtEnd = new wxCheckBox(this, wxID_ANY, wxT("Add \\ at the end of line?"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer1->Add(m_IsBackslashAtEnd, 0, wxALL, 5);
 
-	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(640, 320), 0, wxEmptyString);
+	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, wxEmptyString);
 	m_StyledTextCtrl->SetUseTabs(true);
 	m_StyledTextCtrl->SetTabWidth(4);
 	m_StyledTextCtrl->SetIndent(4);
@@ -59,7 +59,7 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 	// wxSTC_C_WORD items.
 	m_StyledTextCtrl->SetKeyWords(0, wxT("return int char this new"));
 
-	bSizer1->Add(m_StyledTextCtrl);
+	bSizer1->Add(m_StyledTextCtrl, wxSizerFlags(1).Left().Expand());
 
 	m_OkButton = new wxButton(this, wxID_ANY, wxT("Escape"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer1->Add(m_OkButton, 0, wxALL, 5);
@@ -76,12 +76,16 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 				boost::algorithm::replace_all(str, "%", "%%");
 			if(m_IsBackslashAtEnd->IsChecked())
 			{
-
 				boost::algorithm::replace_all(str, "\x0D\x0A", "\x5C\x0D\x0A");
 			}
 			if(wxTheClipboard->Open())
 			{
 				wxTheClipboard->SetData(new wxTextDataObject(str));
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				{
+					std::lock_guard<std::mutex> lock(frame->mtx);
+					frame->pending_msgs.push_back({ (uint8_t)StringEscaped });
+				}
 				wxTheClipboard->Close();
 			}
 		});

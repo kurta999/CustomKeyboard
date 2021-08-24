@@ -11,6 +11,7 @@ public:
 	ParserPanel(wxFrame* parent);
 	void OnFileDrop(wxDropFilesEvent& event);
 	void OnFileSelected(wxFileDirPickerEvent& event);
+	void OnSize(wxSizeEvent& event);
 
 	wxCheckBox* m_IsModbus = nullptr;
 	wxComboBox* m_PointerSize = nullptr;

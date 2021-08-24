@@ -157,7 +157,7 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 {
 	wxSize client_size = GetClientSize();
 
-	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(WINDOW_SIZE_X - 50, WINDOW_SIZE_Y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	comtcp_panel = new ComTcpPanel(m_notebook);
 	keybrd_panel = new KeybrdPanel(m_notebook);
 	backup_panel = new BackupPanel(m_notebook);
@@ -212,6 +212,9 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 	m_IsMinimizeOnStartup = new wxCheckBox(this, wxID_ANY, wxT("Minimize on startup?"), wxDefaultPosition, wxDefaultSize, 0);
 	sizer_box_app->Add(m_IsMinimizeOnStartup, 0, wxALL, 5);
+
+	m_RememberWindowSize = new wxCheckBox(this, wxID_ANY, wxT("Remember window size?"), wxDefaultPosition, wxDefaultSize, 0);
+	sizer_box_app->Add(m_RememberWindowSize, 0, wxALL, 5);
 
 	sizer_box_app->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
@@ -271,6 +274,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			Server::Get()->tcp_port = m_TcpPortSpin->GetValue();
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
+			Settings::Get()->remember_window_size = m_RememberWindowSize->GetValue();
 			Settings::Get()->default_page = m_DefaultPage->GetValue();
 			PrintScreenSaver::Get()->screenshot_key = m_ScreenshotKey->GetValue(); /* in case of invalid key screenshot saving never will be triggered - nothing special.. using it for disabling */
 			PrintScreenSaver::Get()->timestamp_format = m_ScreenshotDateFmt->GetValue();
@@ -311,6 +315,7 @@ void ComTcpPanel::UpdatePanel()
 	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
 	m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
 	m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
+	m_RememberWindowSize->SetValue(Settings::Get()->remember_window_size);
 	m_DefaultPage->SetValue(Settings::Get()->default_page);
 	m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
 	m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);

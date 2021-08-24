@@ -1,7 +1,8 @@
 #include "pch.h"
 
+/* This is an updated code of my old project called wxCreator - this file doesn't really follow OO principles :) */
 
-const wxString choices[] = { "wxButton", "wxComboBox", "wxChoise", "wxListBox", "wxCheckBox", "wxRadioButton", "wxStaticLine", "wxSlider", "wxGauge", "wxText",
+const wxString choices[] = { "wxButton", "wxComboBox", "wxChoise", "wxListBox", "wxCheckBox", "wxRadioButton", "wxStaticLine", "wxSlider", "wxGauge", "wxStaticText",
 "wxSpinControl" , "wxSpinCtrlDouble" , "wxTextControl" , "wxToggleButton" , "wxSearchCtrl" , "wxColorPicker" , "wxFontPicker" , "wxFilePicker" , "wxDirPicker" , "wxDatePicker",
 "wxTimePicker" , "wxCalendarCtrl" , "wxGenericDirCtrl", "wxSpinButton" };
 
@@ -167,6 +168,7 @@ std::map<size_t, uint16_t> Widget::item_ids;
 void GuiEditor::Init(GuiEditorMain* panel_)
 {
 	panel = panel_;
+	AddFlagsToPropgrid();
 }
 
 void GuiEditor::OnClick(void* object)
@@ -176,6 +178,7 @@ void GuiEditor::OnClick(void* object)
 	{
 		m_SelectedWidget = (wxObject*)object;
 		MarkSelectedItem();
+		panel->UpdatePropgrid({ t->id, &t->name, dynamic_cast<wxWindow*>(m_SelectedWidget) });
 	}
 }
 
@@ -184,7 +187,7 @@ void GuiEditor::OnMouseMotion(wxPoint& pos)
 	Widget* t = FindwxText();
 	if(t != nullptr)
 	{
-		((wxStaticText*)m_SelectedWidget)->SetPosition(pos); /* since there is no reflection, use what works... */
+		dynamic_cast<wxWindow*>(m_SelectedWidget)->SetPosition(pos);
 		MarkSelectedItem();
 	}
 }
@@ -206,95 +209,94 @@ void GuiEditor::OnKeyDown(int keycode)
 			LOGMSG(notification, "Move speed has decresed to {}.\n", m_speed);
 			break;
 		}
-		case 65: /* A */
+		case 'A': /* A */
 		{
-			wxSingleChoiceDialog s(panel, "Add widget", "Add widget 2222", WXSIZEOF(choices), choices);
+			wxSingleChoiceDialog s(panel, "Select widget from list", "Add widget", WXSIZEOF(choices), choices);
 			if(s.ShowModal() == wxID_OK)
 			{
+				wxPoint DefaultPos = wxPoint(0, 20);
 				int sel = s.GetSelection();
-				LOGMSG(notification, "Selected {}", choices[sel]);
-
 				switch(sel)
 				{
 					case 0:
-						GuiEditor::Get()->AddWidget<wxButton>(panel, wxID_ANY, wxT("btn"), wxPoint(0, 20), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxButton>(panel, wxID_ANY, wxT("btn"), DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 1:
-						GuiEditor::Get()->AddWidget<wxComboBox>(panel, wxID_ANY, wxT("combo"), wxPoint(0, 20), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxComboBox>(panel, wxID_ANY, wxT("combo"), DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 2:
 					{
 						wxArrayString m_choiceChoices2;
 						m_choiceChoices2.Add("First");
 						m_choiceChoices2.Add("Second");
-						GuiEditor::Get()->AddWidget<wxChoice>(panel, wxID_ANY, wxPoint(80, 815), wxSize(40, 25), m_choiceChoices2, 0);
+						GuiEditor::Get()->AddWidget<wxChoice>(panel, wxID_ANY, DefaultPos, wxSize(40, 25), m_choiceChoices2, 0);
 						break;
 					}
 					case 3:
-						GuiEditor::Get()->AddWidget<wxListBox>(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxListBox>(panel, wxID_ANY, DefaultPos, wxDefaultSize, 0);
 						break;
 					case 4:
-						GuiEditor::Get()->AddWidget<wxCheckBox>(panel, wxID_ANY, wxT("Check Me!"), wxDefaultPosition, wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxCheckBox>(panel, wxID_ANY, wxT("Check Me!"), DefaultPos, wxDefaultSize, 0);
 						break;
 					case 5:
-						GuiEditor::Get()->AddWidget<wxRadioButton>(panel, wxID_ANY, wxT("RadioBtn"), wxDefaultPosition, wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxRadioButton>(panel, wxID_ANY, wxT("RadioBtn"), DefaultPos, wxDefaultSize, 0);
 						break;
 					case 6:
-						GuiEditor::Get()->AddWidget<wxStaticLine>(panel, wxID_ANY, wxPoint(180, 815), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxStaticLine>(panel, wxID_ANY, DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 7:
-						GuiEditor::Get()->AddWidget<wxSlider>(panel, wxID_ANY, 50, 0, 100, wxPoint(210, 815), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxSlider>(panel, wxID_ANY, 50, 0, 100, DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 8:
-						GuiEditor::Get()->AddWidget<wxGauge>(panel, wxID_ANY, 100, wxPoint(240, 815), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxGauge>(panel, wxID_ANY, 100, DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 9:
-						GuiEditor::Get()->AddWidget<wxStaticText>(panel, wxID_ANY, wxT("wxStaticText"), wxPoint(0, 785), wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxStaticText>(panel, wxID_ANY, wxT("wxStaticText"), DefaultPos, wxDefaultSize, 0);
 						break;
 					case 10:
-						GuiEditor::Get()->AddWidget<wxSpinCtrl>(panel, wxID_ANY, wxEmptyString, wxPoint(76, 785), wxSize(25, 25), wxSP_ARROW_KEYS, 1, 255, 1);
+						GuiEditor::Get()->AddWidget<wxSpinCtrl>(panel, wxID_ANY, wxEmptyString, DefaultPos, wxSize(25, 25), wxSP_ARROW_KEYS, 1, 255, 1);
 						break;
 					case 11:
-						GuiEditor::Get()->AddWidget<wxSpinCtrlDouble>(panel, wxID_ANY, wxEmptyString, wxPoint(0, 70), wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0, 1);
+						GuiEditor::Get()->AddWidget<wxSpinCtrlDouble>(panel, wxID_ANY, wxEmptyString, DefaultPos, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0, 1);
 						break;
 					case 12:
-						GuiEditor::Get()->AddWidget<wxTextCtrl>(panel, wxID_ANY, wxT("wxTextCtrl"), wxPoint(140, 785), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxTextCtrl>(panel, wxID_ANY, wxT("wxTextCtrl"), DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 13:
-						GuiEditor::Get()->AddWidget<wxToggleButton>(panel, wxID_ANY, wxT("Toggle me!"), wxPoint(170, 785), wxSize(25, 25), 0);
+						GuiEditor::Get()->AddWidget<wxToggleButton>(panel, wxID_ANY, wxT("Toggle me!"), DefaultPos, wxSize(25, 25), 0);
 						break;
 					case 14:
-						GuiEditor::Get()->AddWidget<wxSearchCtrl>(panel, wxID_ANY, wxEmptyString, wxPoint(0, 70), wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxSearchCtrl>(panel, wxID_ANY, wxEmptyString, DefaultPos, wxDefaultSize, 0);
 						break;
 					case 15:
-						GuiEditor::Get()->AddWidget<wxFontPickerCtrl>(panel, wxID_ANY, wxNullFont, wxPoint(0, 70), wxDefaultSize, wxFNTP_DEFAULT_STYLE);
+						GuiEditor::Get()->AddWidget<wxFontPickerCtrl>(panel, wxID_ANY, wxNullFont, DefaultPos, wxDefaultSize, wxFNTP_DEFAULT_STYLE);
 						break;
 					case 16:
-						GuiEditor::Get()->AddWidget<wxFilePickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxPoint(0, 70), wxDefaultSize, wxFLP_DEFAULT_STYLE);
+						GuiEditor::Get()->AddWidget<wxFilePickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), DefaultPos, wxDefaultSize, wxFLP_DEFAULT_STYLE);
 						break;
 					case 17:
-						GuiEditor::Get()->AddWidget<wxDirPickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a folder"), wxPoint(0, 70), wxDefaultSize, wxDIRP_DEFAULT_STYLE);
+						GuiEditor::Get()->AddWidget<wxDirPickerCtrl>(panel, wxID_ANY, wxEmptyString, wxT("Select a folder"), DefaultPos, wxDefaultSize, wxDIRP_DEFAULT_STYLE);
 						break;
 					case 18:
-						GuiEditor::Get()->AddWidget<wxDatePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxDP_DEFAULT);
+						GuiEditor::Get()->AddWidget<wxDatePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, DefaultPos, wxDefaultSize, wxDP_DEFAULT);
 						break;
 					case 19:
-						GuiEditor::Get()->AddWidget<wxTimePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxTP_DEFAULT);
+						GuiEditor::Get()->AddWidget<wxTimePickerCtrl>(panel, wxID_ANY, wxDefaultDateTime, DefaultPos, wxDefaultSize, wxTP_DEFAULT);
 						break;
 					case 20:
-						GuiEditor::Get()->AddWidget<wxCalendarCtrl>(panel, wxID_ANY, wxDefaultDateTime, wxPoint(0, 70), wxDefaultSize, wxCAL_SHOW_HOLIDAYS);
+						GuiEditor::Get()->AddWidget<wxCalendarCtrl>(panel, wxID_ANY, wxDefaultDateTime, DefaultPos, wxDefaultSize, wxCAL_SHOW_HOLIDAYS);
 						break;
 					case 21:
-						GuiEditor::Get()->AddWidget<wxGenericDirCtrl>(panel, wxID_ANY, wxEmptyString, wxPoint(0, 70), wxDefaultSize, wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER, wxEmptyString, 0);
+						GuiEditor::Get()->AddWidget<wxGenericDirCtrl>(panel, wxID_ANY, wxEmptyString, DefaultPos, wxDefaultSize, wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER, wxEmptyString, 0);
 						break;
 					case 22:
-						GuiEditor::Get()->AddWidget<wxSpinButton>(panel, wxID_ANY, wxPoint(0, 70), wxDefaultSize, 0);
+						GuiEditor::Get()->AddWidget<wxSpinButton>(panel, wxID_ANY, DefaultPos, wxDefaultSize, 0);
 						break;
 				}
 			}
 			break;
 		}
-		case 68: /* D */
+		case 'D': /* D */
 		{
 			DuplicateWidget();
 			break;
@@ -303,9 +305,9 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
+				wxWindow* w = dynamic_cast<decltype(w)>(m_SelectedWidget);
 				widgets.erase(m_SelectedWidget);
-				text->Destroy();
+				w->Destroy();
 			}
 			break;
 		}
@@ -313,11 +315,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxPoint pos = text->GetPosition();
-				pos.y -= m_speed;
-				text->SetPosition(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), -1);
 			}
 			break;
 		}
@@ -325,11 +323,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxPoint pos = text->GetPosition();
-				pos.y += m_speed;
-				text->SetPosition(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), 1);
 			}
 			break;
 		}
@@ -337,11 +331,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxPoint pos = text->GetPosition();
-				pos.x -= m_speed;
-				text->SetPosition(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, -1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -349,11 +339,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxPoint pos = text->GetPosition();
-				pos.x += m_speed;
-				text->SetPosition(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, 1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -361,11 +347,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxSize pos = text->GetSize();
-				pos.x += m_speed;
-				text->SetSize(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, 1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -373,11 +355,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxSize pos = text->GetSize();
-				pos.y += m_speed;
-				text->SetSize(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), 1);
 			}
 			break;
 		}
@@ -385,11 +363,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxSize pos = text->GetSize();
-				pos.x -= m_speed;
-				text->SetSize(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, -1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -397,15 +371,202 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				wxStaticText* text = reinterpret_cast<wxStaticText*>(m_SelectedWidget);
-				wxSize pos = text->GetSize();
-				pos.y -= m_speed;
-				text->SetSize(std::move(pos));
-				//m_propgrid->Update(std::make_pair((void*)text, t));
+				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), -1);
 			}
 			break;
 		}
 	}
+}
+
+void GuiEditor::OnPropertyGridChange(wxPGProperty* prop)
+{
+	Widget* t = FindwxText();
+	if(prop == panel->m_pgName)
+	{
+		if(t != nullptr)
+		{
+			wxString str;
+			prop->GetValue().Convert(&str);
+			t->name = std::move(str);
+		}
+	}
+	else if(prop == panel->m_pgLabel)
+	{
+		if(t != nullptr)
+		{
+			wxString str;
+			prop->GetValue().Convert(&str);
+			dynamic_cast<wxControl*>(m_SelectedWidget)->SetLabelText(str);
+		}
+	}	
+	else if(prop == panel->m_pgPos)
+	{
+		if(t != nullptr)
+		{
+			int x, y;
+			wxString str;
+			prop->GetValue().Convert(&str);
+			if(sscanf(str.c_str(), "%d,%d", &x, &y) == 2)
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->SetPosition(wxPoint(x, y));
+		}
+	}	
+	else if(prop == panel->m_pgSize)
+	{
+		if(t != nullptr)
+		{
+			int x, y;
+			wxString str;
+			prop->GetValue().Convert(&str);
+			if(sscanf(str.c_str(), "%d,%d", &x, &y) == 2)
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->SetSize(wxSize(x, y));
+		}
+	}
+	else if(prop == panel->m_pgMinSize)
+	{
+		if(t != nullptr)
+		{
+			int x, y;
+			wxString str;
+			prop->GetValue().Convert(&str);
+			if(sscanf(str.c_str(), "%d,%d", &x, &y) == 2)
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->SetMinSize(wxSize(x, y));
+		}
+	}
+	else if(prop == panel->m_pgMaxSize)
+	{
+		if(t != nullptr)
+		{
+			int x, y;
+			wxString str;
+			prop->GetValue().Convert(&str);
+			if(sscanf(str.c_str(), "%d,%d", &x, &y) == 2)
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->SetMaxSize(wxSize(x, y));
+		}
+	}	
+	else if(prop == panel->m_pgForegroundColor)
+	{
+		if(t != nullptr)
+		{
+			wxVariant a = prop->GetValue();
+			wxColour color;
+			color << a;
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->SetForegroundColour(color);
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->Refresh();
+			t->fg_color_changed = 1;
+		}
+	}
+	else if(prop == panel->m_pgBackgroundColor)
+	{
+		if(t != nullptr)
+		{
+			wxVariant a = prop->GetValue();
+			wxColour color;
+			color << a;
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->SetBackgroundColour(color);
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->Refresh();
+			t->bg_color_changed = 1;
+		}
+	}
+	else if(prop == panel->m_pgFont)
+	{
+		if(t != nullptr)
+		{
+			wxVariant a = prop->GetValue();
+			wxFont fnt;
+			fnt << a;
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->SetFont(fnt);
+			t->font_changed = 1;
+		}
+	}
+	else if(prop == panel->m_pgTooltip)
+	{
+		if(t != nullptr)
+		{
+			wxString str;
+			prop->GetValue().Convert(&str);
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->SetToolTip(str);
+		}
+	}	
+	else if(prop == panel->m_pgEnabled)
+	{
+		if(t != nullptr)
+		{
+			bool is_enabled;
+			prop->GetValue().Convert(&is_enabled);
+			dynamic_cast<wxWindow*>(m_SelectedWidget)->Enable(&is_enabled);
+		}
+	}
+	else if(prop == panel->m_pgHidden)
+	{
+		if(t != nullptr)
+		{
+			bool is_hide;
+			prop->GetValue().Convert(&is_hide);
+			if(is_hide)
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->Hide();
+			else
+				dynamic_cast<wxWindow*>(m_SelectedWidget)->Show();
+		}
+	}
+	else if(prop == panel->m_pgButtonStyle)
+	{
+		if(t != nullptr && t->type == typeid(wxButton*).hash_code())
+		{
+			long flags;
+			prop->GetValue().Convert(&flags);
+			wxButton* old = dynamic_cast<wxButton*>(m_SelectedWidget);
+			decltype(old) nw = GuiEditor::Get()->AddWidget<std::decay<decltype(*old)>::type>(panel, wxID_ANY, old->GetLabelText(), old->GetPosition(), old->GetSize(), flags);
+			old->Destroy();
+			auto nodeHandler = widgets.extract(old);
+			nodeHandler.key() = nw;
+			widgets.insert(std::move(nodeHandler));
+			old = nullptr;
+			m_SelectedWidget = nw;
+		}
+	}
+}
+
+void GuiEditor::AddFlagsToPropgrid()
+{
+	wxPGChoices m_combinedFlags;
+	m_combinedFlags.Add(WXSIZEOF(button_style_flags), button_style_flags, button_style_values);
+	panel->m_pgButtonStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("Button flags"), wxPG_LABEL, m_combinedFlags));
+	panel->m_propertyGrid->SetPropertyAttribute("Button flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags2;
+	m_combinedFlags2.Add(WXSIZEOF(slider_style_flags), slider_style_flags, slider_style_values);
+	panel->m_pgSliderStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("Slider flags"), wxPG_LABEL, m_combinedFlags2));
+	panel->m_propertyGrid->SetPropertyAttribute("Slider flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags3;
+	m_combinedFlags3.Add(WXSIZEOF(statictext_style_flags), statictext_style_flags, statictext_style_values);
+	panel->m_pgStaticTextStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("StaticText flags"), wxPG_LABEL, m_combinedFlags3));
+	panel->m_propertyGrid->SetPropertyAttribute("StaticText flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags4;
+	m_combinedFlags4.Add(WXSIZEOF(textctrl_style_flags), textctrl_style_flags, textctrl_style_values);
+	panel->m_pgTextCtrlStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("TextControl flags"), wxPG_LABEL, m_combinedFlags4));
+	panel->m_propertyGrid->SetPropertyAttribute("TextControl flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags5;
+	m_combinedFlags5.Add(WXSIZEOF(combobox_style_flags), combobox_style_flags, combobox_style_values);
+	panel->m_pgComboBoxStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("ComboBox flags"), wxPG_LABEL, m_combinedFlags5));
+	panel->m_propertyGrid->SetPropertyAttribute("ComboBox flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags6;
+	m_combinedFlags6.Add(WXSIZEOF(choice_style_flags), choice_style_flags, choice_style_values);
+	panel->m_pgChoiseStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("Choice flags"), wxPG_LABEL, m_combinedFlags6));
+	panel->m_propertyGrid->SetPropertyAttribute("Choice flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags7;
+	m_combinedFlags7.Add(WXSIZEOF(checkbox_style_flags), checkbox_style_flags, checkbox_style_values);
+	panel->m_pgCheckboxStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("Checkbox flags"), wxPG_LABEL, m_combinedFlags7));
+	panel->m_propertyGrid->SetPropertyAttribute("Checkbox flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
+
+	wxPGChoices m_combinedFlags8;
+	m_combinedFlags8.Add(WXSIZEOF(gauge_style_flags), gauge_style_flags, gauge_style_values);
+	panel->m_pgGaugeStyle = panel->m_propertyGrid->Append(new wxFlagsProperty(wxT("Gauge flags"), wxPG_LABEL, m_combinedFlags8));
+	panel->m_propertyGrid->SetPropertyAttribute("Gauge flags", wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
 }
 
 Widget* GuiEditor::FindwxText(wxObject* object_to_find)
@@ -428,8 +589,8 @@ void GuiEditor::MarkSelectedItem()
 	Widget* t = FindwxText();
 	if(t != nullptr)
 	{
-		wxPoint pos = ((wxStaticText*)m_SelectedWidget)->GetPosition();
-		wxSize size = ((wxStaticText*)m_SelectedWidget)->GetSize();
+		wxPoint pos = dynamic_cast<wxWindow*>(m_SelectedWidget)->GetPosition();
+		wxSize size = dynamic_cast<wxWindow*>(m_SelectedWidget)->GetSize();
 		dc.Clear();
 		dc.SetPen(wxPen(*wxRED, 1));
 		dc.DrawRectangle(pos.x - 1, pos.y - 1, size.x + 2, size.y + 2);
@@ -438,6 +599,12 @@ void GuiEditor::MarkSelectedItem()
 
 void GuiEditor::OnOpen()
 {
+	wxFileDialog openFileDialog(panel, _("Open XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	if(openFileDialog.ShowModal() == wxID_CANCEL)
+		return;
+
+	OnDestroyAll();
+	file_path = openFileDialog.GetPath();
 	LoadWidgets();
 }
 
@@ -472,8 +639,8 @@ void GuiEditor::OnDestroyAll()
 	for(auto x : widgets)
 	{
 		if(!x.first || !x.second) continue;
-		wxStaticText* t = reinterpret_cast<wxStaticText*>(x.first);
-		t->Destroy();
+		wxWindow* w = dynamic_cast<wxStaticText*>(x.first);
+		w->Destroy();
 		delete x.second;
 	}
 	widgets.clear();
@@ -484,7 +651,7 @@ void GuiEditor::DuplicateWidget()
 	auto x = widgets.find(m_SelectedWidget);
 	if(x != widgets.end())
 	{
-		if(x->second->type == typeid(wxButton*).hash_code())
+		if(x->second->type == typeid(wxButton*).hash_code())  /* I know this is against polymorhism in C++, but no time for better one... */
 		{
 			wxButton* t = dynamic_cast<wxButton*>(x->first);
 			GuiEditor::Get()->AddWidget<std::decay<decltype(*t)>::type>(panel, wxID_ANY, t->GetLabelText(), t->GetPosition(), t->GetSize(), t->GetWindowStyleFlag());
@@ -605,16 +772,70 @@ void GuiEditor::DuplicateWidget()
 	}
 }
 
+void GuiEditor::AdjustWidgetPos(wxWindow* window, Widget* widget, int8_t x, int8_t y)
+{
+	wxPoint pos = window->GetPosition();
+	if(x != std::numeric_limits<int8_t>::max())
+	{
+		if(x > 0)
+			pos.x += m_speed;
+		else
+			pos.x -= m_speed;
+	}
+	if(y != std::numeric_limits<int8_t>::max())
+	{
+		if(y > 0)
+			pos.y += m_speed;
+		else
+			pos.y -= m_speed;
+	}
+	
+	window->SetPosition(pos);
+	panel->UpdatePropgrid({ widget->id, &widget->name, window });
+}
+
+void GuiEditor::AdjustWidgetSize(wxWindow* window, Widget* widget, int8_t x, int8_t y)
+{
+	wxSize pos = window->GetSize();
+	if(x != std::numeric_limits<int8_t>::max())
+	{
+		if(x > 0)
+			pos.x += m_speed;
+		else
+			pos.x -= m_speed;
+	}
+	if(y != std::numeric_limits<int8_t>::max())
+	{
+		if(y > 0)
+			pos.y += m_speed;
+		else
+			pos.y -= m_speed;
+	}
+	window->SetSize(pos);
+	panel->UpdatePropgrid({ widget->id, &widget->name, window });
+}
+
 void ParseDefaultWidgetFormat(const boost::property_tree::ptree::value_type& v, wxPoint& pos, wxSize& size, wxSize& min_size, wxSize& max_size,
 	int& fontsize, int& fontfamily, int& fontstyle, int& fontweight, int& is_underlined, char* fontname, uint8_t fg_colors[3], uint8_t bg_colors[3])
 {
-	sscanf(v.second.get<std::string>("<xmlattr>.pos").c_str(), "%d,%d", &pos.x, &pos.y);
-	sscanf(v.second.get<std::string>("<xmlattr>.size").c_str(), "%d,%d", &size.x, &size.y);
-	sscanf(v.second.get<std::string>("<xmlattr>.min_size").c_str(), "%d,%d", &min_size.x, &min_size.y);
-	sscanf(v.second.get<std::string>("<xmlattr>.max_size").c_str(), "%d,%d", &max_size.x, &max_size.y);
-	sscanf(v.second.get<std::string>("<xmlattr>.fg_color").c_str(), "%hhd,%hhd,%hhd", &fg_colors[0], &fg_colors[1], &fg_colors[2]);
-	sscanf(v.second.get<std::string>("<xmlattr>.bg_color").c_str(), "%hhd,%hhd,%hhd", &bg_colors[0], &bg_colors[1], &bg_colors[2]);
-	sscanf(v.second.get<std::string>("<xmlattr>.font").c_str(), "%d,%d,%d,%d,%d,%[^\n]s", &fontsize, &fontfamily, &fontstyle, &fontweight, &is_underlined, fontname);
+	bool err = 0;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.pos").c_str(), "%d,%d", &pos.x, &pos.y) != 2)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.size").c_str(), "%d,%d", &size.x, &size.y) != 2)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.min_size").c_str(), "%d,%d", &min_size.x, &min_size.y) != 2)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.max_size").c_str(), "%d,%d", &max_size.x, &max_size.y) != 2)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.fg_color").c_str(), "%hhd,%hhd,%hhd", &fg_colors[0], &fg_colors[1], &fg_colors[2]) != 3)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.bg_color").c_str(), "%hhd,%hhd,%hhd", &bg_colors[0], &bg_colors[1], &bg_colors[2]) != 3)
+		err = 1;
+	if(sscanf(v.second.get<std::string>("<xmlattr>.font").c_str(), "%d,%d,%d,%d,%d,%[^\n]s", &fontsize, &fontfamily, &fontstyle, &fontweight, &is_underlined, fontname) != 6)
+		err = 1;
+
+	if(err)
+		throw std::invalid_argument("Error while parsing XML file");
 }
 
 template <typename T> void SetDefaultWidgetFormat(T w, std::string&& tooltip, wxPoint& pos, wxSize& size, wxSize& min_size, wxSize& max_size,
@@ -630,21 +851,11 @@ template <typename T> void SetDefaultWidgetFormat(T w, std::string&& tooltip, wx
 
 void GuiEditor::LoadWidgets()
 {
-	const std::string filename = "./wx.xml";
-
-	// Create an empty property tree object
-	using boost::property_tree::ptree;
-	ptree pt;
-
+	const std::string filename = file_path.ToStdString();
+	boost::property_tree::ptree pt;
 	read_xml(filename, pt);
 
-	for(const ptree::value_type& v : pt)
-	{
-		DBG("%s\n", v.first.c_str());
-	}
-	std::cout << std::endl;
-
-	for(const ptree::value_type& v : pt.get_child("wxCreatorXmlFile"))
+	for(const boost::property_tree::ptree::value_type& v : pt.get_child("wxCreatorXmlFile"))
 	{
 		wxPoint pos;
 		wxSize size, min_size, max_size;
@@ -768,7 +979,7 @@ void GuiEditor::SaveWidgets()
 	for(auto& x : widgets)
 	{
 		if(!x.first || !x.second) continue;
-		if(x.second->type == typeid(wxButton*).hash_code())
+		if(x.second->type == typeid(wxButton*).hash_code())  /* I know this is against polymorhism in C++, but no time for better one... */
 		{
 			wxButton* t = dynamic_cast<wxButton*>(x.first);
 			wxFont font = t->GetFont();
@@ -959,50 +1170,43 @@ void GuiEditor::AddFontAndColor(wxString& wxstr, void* widget, Widget* obj)
 		wxstr += wxString::Format("%s->SetBackgroundColour(wxColour(%d, %d, %d));\n",
 			obj->name, t->GetBackgroundColour().Red(), t->GetBackgroundColour().Green(), t->GetBackgroundColour().Blue());
 	wxSize min_size = t->GetMinSize();
-	if(min_size.x != -1 || min_size.y != -1)
+	if((min_size.x != -1 || min_size.y != -1) && t->GetSize() != min_size)
 		wxstr += wxString::Format("%s->SetMinSize(wxPoint(%d, %d));\n", obj->name, min_size.x, min_size.y);
 	wxSize max_size = t->GetMaxSize();
 	if(max_size.x != -1 || max_size.y != -1)
 		wxstr += wxString::Format("%s->SetMaxSize(wxPoint(%d, %d));\n", obj->name, max_size.x, max_size.y);
 	wxFont font = t->GetFont();
-	wxString strFontPointSize;
-	if(font.GetPointSize() != -1)
-		strFontPointSize = wxString::Format("%d", font.GetPointSize());
-	else
-		strFontPointSize = wxString("wxNORMAL_FONT->GetPointSize()");
-	if(font.GetFamily() != wxFONTFAMILY_DEFAULT || !font.GetFaceName().IsEmpty() || font.GetStyle() != wxFONTSTYLE_NORMAL || font.GetWeight() != wxFONTWEIGHT_NORMAL
-		|| font.GetUnderlined())
+	if(obj->font_changed)
 	{
-		/*
-		wxFontWeight a = font.GetWeight();
+		wxString strFontPointSize;
+		if(font.GetPointSize() != -1)
+			strFontPointSize = wxString::Format("%d", font.GetPointSize());
+		else
+			strFontPointSize = wxString("wxNORMAL_FONT->GetPointSize()");
+
+		std::string& fontfamily = fontfamily_map[wxFONTFAMILY_UNKNOWN];
+		if(fontfamily_map.find(font.GetFamily()) != fontfamily_map.end())
+			fontfamily = fontfamily_map[font.GetFamily()];
+		std::string& fontstyle = fontstyle_map[wxFONTSTYLE_MAX];
+		if(fontstyle_map.find(font.GetStyle()) != fontstyle_map.end())
+			fontstyle = fontstyle_map[font.GetStyle()];
+		std::string& fontweight = fontweight_map[wxFONTSTYLE_MAX];
+		if(fontweight_map.find(font.GetWeight()) != fontweight_map.end())
+			fontweight = fontweight_map[font.GetWeight()];
+
 		wxstr += wxString::Format("%s->SetFont( wxFont(%s, %s, %s, %s, %s, wxT(\"%s\")));\n",
-			obj->name, strFontPointSize, GetNameFromEnum<wxFontFamily>(font.GetFamily()), GetNameFromEnum<wxFontStyle>(font.GetStyle()),
-			GetNameFromEnum<wxFontWeight>(a),
-			font.GetUnderlined() ? wxString("true") : wxString("false"), font.GetFaceName());
-		Sleep(10);
-		*/
+			obj->name, strFontPointSize, fontfamily, fontstyle, fontweight, font.GetUnderlined() ? wxString("true") : wxString("false"), font.GetFaceName());
+		DBG("font\n");
 	}
 	wxstr += "\n";
 }
-/*
-#include "utils/magic_enum.hpp"
 
-template <class T> wxString GetNameFromEnum(T to_get)
-{
-	char ret[128];
-	auto color_name = magic_enum::enum_name(to_get);
-	memcpy(ret, color_name.data(), color_name.length());
-	ret[color_name.length()] = 0;
-	wxString str(ret);
-	return str;
-}
-*/
 void GuiEditor::GenerateCode(wxString& str)
 {
 #define FLAG(val) val##_style_values, val##_style_flags, WXSIZEOF(val##_style_flags)
 	for(auto& x : widgets)
 	{
-		if(!x.first || !x.second) continue;
+		//if(!x.first || !x.second) continue;
 		if(x.second->type == typeid(wxButton*).hash_code())
 		{
 			wxButton* t = dynamic_cast<wxButton*>(x.first);
@@ -1011,15 +1215,6 @@ void GuiEditor::GenerateCode(wxString& str)
 			str += wxString::Format("%s = new wxButton(this, wxID_ANY, wxT(\"%s\"), wxPoint(%d, %d), wxSize(%d, %d), %s);\n",
 				x.second->name, t->GetLabelText(), t->GetPosition().x, t->GetPosition().y, t->GetSize().x, t->GetSize().y, flagsStr);
 			AddFontAndColor(str, x.first, x.second);
-			/*
-			wxString wxstr;
-			wxFont font = t->GetFont();
-			wxString strFontPointSize;
-			wxFontWeight a = font.GetWeight();
-			wxstr += wxString::Format("a->SetFont( wxFont(%s, %s, %s, ));\n",
-				GetNameFromEnum<wxFontFamily>(font.GetFamily()), GetNameFromEnum<wxFontStyle>(font.GetStyle()),
-				GetNameFromEnum<wxFontWeight>(font.GetWeight()));
-			DBG("a");*/
 		}
 		else if(x.second->type == typeid(wxComboBox*).hash_code())
 		{
@@ -1028,6 +1223,7 @@ void GuiEditor::GenerateCode(wxString& str)
 			AddFlags(flagsStr, x.first, x.second, FLAG(combobox));
 			str += wxString::Format("%s = new wxComboBox(this, wxID_ANY, wxT(\"%s\"), wxPoint(%d, %d), wxSize(%d, %d), %s);\n",
 				x.second->name, t->GetLabelText(), t->GetPosition().x, t->GetPosition().y, t->GetSize().x, t->GetSize().y, flagsStr);
+			AddFontAndColor(str, x.first, x.second);
 		}
 		else if(x.second->type == typeid(wxChoice*).hash_code())
 		{
@@ -1080,6 +1276,15 @@ void GuiEditor::GenerateCode(wxString& str)
 			AddFlags(flagsStr, x.first, x.second, FLAG(gauge));
 			str += wxString::Format("%s = new wxGauge(this, wxID_ANY, 100, wxPoint(%d, %d), wxSize(%d, %d), %s);\n",
 				x.second->name, t->GetPosition().x, t->GetPosition().y, t->GetSize().x, t->GetSize().y, flagsStr);
+			AddFontAndColor(str, x.first, x.second);
+		}
+		else if(x.second->type == typeid(wxStaticText*).hash_code())
+		{
+			wxStaticText* t = dynamic_cast<wxStaticText*>(x.first);
+			wxString flagsStr;
+			AddFlags(flagsStr, x.first, x.second, FLAG(statictext));
+			str += wxString::Format("%s = new wxStaticText(this, wxID_ANY, %s, wxPoint(%d, %d), wxSize(%d, %d), %s);\n",
+				x.second->name, t->GetLabelText(), t->GetPosition().x, t->GetPosition().y, t->GetSize().x, t->GetSize().y, flagsStr);
 			AddFontAndColor(str, x.first, x.second);
 		}
 		else if(x.second->type == typeid(wxSpinCtrl*).hash_code())

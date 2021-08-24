@@ -4,8 +4,7 @@ LogPanel::LogPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
-
-	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(600, 400), 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
+	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
 	m_Log->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& event)
 		{
 			wxClipboard* clip = new wxClipboard();
@@ -14,9 +13,7 @@ LogPanel::LogPanel(wxFrame* parent)
 			clip->Flush();
 			clip->Close();
 		});
-	bSizer1->Add(m_Log, 0, wxALL, 5);
-	this->SetSizer(bSizer1);
-	this->Layout();
+	bSizer1->Add(m_Log, wxSizerFlags(1).Left().Expand());
 
 	m_ClearButton = new wxButton(this, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0);
 	m_ClearButton->SetToolTip("Clear log box");
@@ -26,4 +23,7 @@ LogPanel::LogPanel(wxFrame* parent)
 		{
 			m_Log->Clear();
 		});
+	this->SetSizerAndFit(bSizer1);
+	this->Layout();
+
 }

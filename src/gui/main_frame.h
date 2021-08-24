@@ -29,7 +29,6 @@ private:
 	wxDECLARE_EVENT_TABLE();
 };
 
-
 class TrayIcon;
 
 enum Msg : uint8_t
@@ -37,6 +36,7 @@ enum Msg : uint8_t
 	ScreenshotSaved = 0,
 	BackupCompleted,
 	BackupFailed,
+	StringEscaped,
 	PathSeparatorsReplaced,
 	LinkMark,
 	LinkMarkError,
@@ -81,6 +81,7 @@ private:
 	void OnSaveAs(wxCommandEvent& event);
 	void OnDestroyAll(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
+	void OnSize(wxSizeEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void HandleBackupProgressDialog();
 

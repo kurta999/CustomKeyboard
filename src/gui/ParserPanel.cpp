@@ -1,42 +1,34 @@
 #include "pch.h"
 
-#define WX_SIZERPADDING(sizer) \
-	sizer->Add(new wxStaticText(this, wxID_ANY, ""), 0, wxALL, 5);
-
 wxBEGIN_EVENT_TABLE(ParserPanel, wxPanel)
 EVT_FILEPICKER_CHANGED(ID_FilePicker, ParserPanel::OnFileSelected)
+EVT_SIZE(ParserPanel::OnSize)
 wxEND_EVENT_TABLE()
 
 ParserPanel::ParserPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	wxFlexGridSizer* fgSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	fgSizer1->SetFlexibleDirection(wxBOTH);
-	fgSizer1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	m_IsModbus = new wxCheckBox(this, wxID_ANY, wxT("Is modbus?"), wxDefaultPosition, wxDefaultSize, 0);
-	fgSizer1->Add(m_IsModbus, 0, wxALL, 5);
-	WX_SIZERPADDING(fgSizer1);
+	bSizer1->Add(m_IsModbus, 0, wxALL, 5);
 
 	const std::vector<wxString> vec_pointer_sizes = { "Ptr size: 1", "Ptr size: 2", "Ptr size: 4", "Ptr size: 8" };
 	m_PointerSize = new wxComboBox(this, wxID_ANY, wxT("Ptr size: 4"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
 	m_PointerSize->Set(vec_pointer_sizes);
 	m_PointerSize->SetSelection(2);
 	m_PointerSize->SetHelpText("Select pointer size");
-	fgSizer1->Add(m_PointerSize, 0, wxALL, 5);
-	WX_SIZERPADDING(fgSizer1);
+	bSizer1->Add(m_PointerSize, 0, wxALL, 5);
 
 	m_StructurePadding = new wxSpinCtrl(this, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1000, 1);
 	m_StructurePadding->SetHelpText("Select structure padding");
-	fgSizer1->Add(m_StructurePadding, 0, wxALL, 5);
-	WX_SIZERPADDING(fgSizer1);
+	bSizer1->Add(m_StructurePadding, 0, wxALL, 5);
 
-	fgSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select a file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Generate!"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select a file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Generate!"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 	m_FilePicker = new wxFilePickerCtrl(this, ID_FilePicker, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE);
-	fgSizer1->Add(m_FilePicker, 0, wxALL, 5);
+	bSizer1->Add(m_FilePicker, 0, wxALL, 5);
 
-	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(320, 320), 0, wxEmptyString);
-
+	m_StyledTextCtrl = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(310, 310), 0, wxEmptyString);
 	m_StyledTextCtrl->SetUseTabs(true);
 	m_StyledTextCtrl->SetTabWidth(4);
 	m_StyledTextCtrl->SetIndent(4);
@@ -85,19 +77,21 @@ ParserPanel::ParserPanel(wxFrame* parent)
 	// Give a list of keywords. They will be given the style specified for
 	// wxSTC_C_WORD items.
 	m_StyledTextCtrl->SetKeyWords(0, wxT("return int float double char this new delete goto for while do if else uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t"));
-	fgSizer1->Add(m_StyledTextCtrl);
 	m_StyledTextCtrl->DragAcceptFiles(true);
 	m_StyledTextCtrl->Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(ParserPanel::OnFileDrop), NULL, this);
 
-	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(320, 320), wxTE_MULTILINE | wxTE_READONLY);
-	fgSizer1->Add(m_Output, 0, wxALL, 5);
+	wxBoxSizer* bSizer2 = new wxBoxSizer(wxHORIZONTAL);
+	bSizer2->Add(m_StyledTextCtrl, wxSizerFlags(1).Top().Expand());
+
+	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(310, 310), wxTE_MULTILINE | wxTE_READONLY);
+	bSizer2->Add(m_Output, wxSizerFlags(1).Expand());
+	bSizer1->Add(bSizer2, wxSizerFlags(1).Expand());
 
 	m_OkButton = new wxButton(this, wxID_ANY, wxT("Generate"), wxDefaultPosition, wxDefaultSize, 0);
-	fgSizer1->Add(m_OkButton, 0, wxALL, 5);
+	bSizer1->Add(m_OkButton);
 
-	this->SetSizer(fgSizer1);
+	this->SetSizerAndFit(bSizer1);
 	this->Layout();
-	this->Centre(wxBOTH);
 
 	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 		{
@@ -134,6 +128,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			catch(std::exception& e)
 			{
 				LOGMSG(critical, "Exception {}", e.what());
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 
 			wxString wxout(output);
@@ -158,4 +153,10 @@ void ParserPanel::OnFileSelected(wxFileDirPickerEvent& event)
 {
 	path = event.GetPath();
 	m_OkButton->SetForegroundColour(*wxRED);
+}
+
+void ParserPanel::OnSize(wxSizeEvent& event)
+{
+	wxSize a = event.GetSize();
+	event.Skip(true);
 }

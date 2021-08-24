@@ -91,6 +91,7 @@ public:
 	wxComboBox* m_serial;
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
+	wxCheckBox* m_RememberWindowSize;
 	wxSpinCtrl* m_DefaultPage;
 	wxTextCtrl* m_ScreenshotKey;
 	wxTextCtrl* m_ScreenshotDateFmt;

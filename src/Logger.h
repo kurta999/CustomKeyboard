@@ -5,31 +5,6 @@
 #include <stdarg.h>
 
 #include <wx/wx.h>
-/*
-#include <wx/slider.h>
-#include <wx/artprov.h>
-#include <wx/spinctrl.h>
-#include <wx/filepicker.h>
-#include <wx/aui/aui.h>
-#include <wx/button.h>
-#include <wx/combobox.h>
-#include <wx/choice.h>
-#include <wx/statline.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/aui/aui.h>
-#include <wx/stc/stc.h>
-#include <wx/tglbtn.h>
-#include <wx/srchctrl.h>
-#include <wx/clrpicker.h>
-#include <wx/fontpicker.h>
-#include <wx/filepicker.h>
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
-#include <wx/timectrl.h>
-#include <wx/calctrl.h>
-#include <wx/treectrl.h>
-*/
 #include "gui/main_frame.h"
 #include "CustomKeyboard.h"
 #include <ctime>

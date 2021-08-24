@@ -68,7 +68,8 @@ void Database::DoGenerateGraphs()
 void Database::GenerateGraphs()
 {
     if(graph_future.valid())
-        graph_future.get();
+        if(graph_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)
+            return;
     graph_future = std::async(&Database::DoGenerateGraphs, this);
 }
 
