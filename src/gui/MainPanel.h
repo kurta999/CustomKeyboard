@@ -22,7 +22,7 @@ public:
 	wxButton* m_OpenGraphs = nullptr;
 	wxSpinCtrl* m_GraphStartHours1;
 	wxSpinCtrl* m_GraphStartHours2;
-private:
 
+private:
 	wxDECLARE_EVENT_TABLE();
 };

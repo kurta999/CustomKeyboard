@@ -24,23 +24,28 @@ MainPanel::MainPanel(wxFrame* parent)
 		});
 
 
-#define ADD_MEASUREMENT_TEXT(var_name, name, tooltip) \
+#define ADD_MEASUREMENT_TEXT(var_name, html_name, name, tooltip, color) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
 	var_name->Wrap(-1); \
 	var_name->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
-	var_name->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)); \
-	var_name->SetToolTip(tooltip); \
-	bSizer1->Add(var_name, 0, wxALL, 5)
+	var_name->SetForegroundColour(color); \
+	var_name->SetToolTip(tooltip"\nPress MIDDLE CLICK to open graphs in browser"); \
+	bSizer1->Add(var_name, 0, wxALL, 5); \
+	var_name->Bind(wxEVT_MIDDLE_DOWN, [this](wxMouseEvent& event) \
+		{ \
+			DBGW(L"Graphs" ##html_name## ".html"); \
+			ShellExecute(NULL, L"open", L"Graphs\\"##html_name##".html", NULL, NULL, SW_SHOWNORMAL); \
+		})
 
-	ADD_MEASUREMENT_TEXT(m_textTemp, "Temperature: N/A", "Unit: 0,1°C");
-	ADD_MEASUREMENT_TEXT(m_textHum, "Humidity: N/A", "Unit: 0,1%RH");
-	ADD_MEASUREMENT_TEXT(m_textCO2, "CO2: N/A", "Unit: ppm");
-	ADD_MEASUREMENT_TEXT(m_textVOC, "VOC: N/A", "Unit: ppb");
-	ADD_MEASUREMENT_TEXT(m_textPM25, "PM2.5: N/A", "Unit: ug/m3");
-	ADD_MEASUREMENT_TEXT(m_textPM10, "PM10: N/A", "Unit: ug/m3");
-	ADD_MEASUREMENT_TEXT(m_textLux, "Lux: N/A", "Unit: Lux");
-	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT: N/A", "Unit: Kelvin");
-	ADD_MEASUREMENT_TEXT(m_textTime, "Time: N/A", "Unit: Date & Time");
+	ADD_MEASUREMENT_TEXT(m_textTemp, "Temperature", "Temperature: N/A", "Unit: 0,1°C", wxColour(244, 99, 11));
+	ADD_MEASUREMENT_TEXT(m_textHum, "Humidity", "Humidity: N/A", "Unit: 0,1% RH", wxColour(29, 79, 252));
+	ADD_MEASUREMENT_TEXT(m_textCO2, "CO2", "CO2: N/A", "Unit: ppm", wxColour(237, 60, 251));
+	ADD_MEASUREMENT_TEXT(m_textVOC, "VOC", "VOC: N/A", "Unit: ppb", wxColour(185, 4, 200));
+	ADD_MEASUREMENT_TEXT(m_textPM25, "PM25", "PM2.5: N/A", "Unit: ug/m3", wxColour(62, 211, 24));
+	ADD_MEASUREMENT_TEXT(m_textPM10, "PM10", "PM10: N/A", "Unit: ug/m3", wxColour(50, 172, 19));
+	ADD_MEASUREMENT_TEXT(m_textLux, "Lux", "Lux: N/A", "Unit: Lux", wxColour(84, 67, 71));
+	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT", "CCT: N/A", "Unit: Kelvin", wxColour(55, 45, 47));
+	ADD_MEASUREMENT_TEXT(m_textTime, "CCT", "Time: N/A - 0", "Unit: Date & Time - Number of measurements received", wxColour(255, 21, 21));
 
 	m_OpenGraphs = new wxButton(this, wxID_ANY, wxT("Open graphs"), wxDefaultPosition, wxDefaultSize, 0);
 	m_OpenGraphs->SetToolTip("Open graphs file in browser");
