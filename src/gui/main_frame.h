@@ -94,3 +94,8 @@ private:
 	wxAuiManager m_mgr;
 	wxTimer* m_timer;
 };
+
+namespace utils
+{
+	std::string GetDataUnit(size_t input);
+}

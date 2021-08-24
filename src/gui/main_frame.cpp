@@ -301,8 +301,9 @@ void MyFrame::HandleNotifications()
 			{
 				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 				size_t file_count = std::any_cast<decltype(file_count)>(ret[2]);
-				std::filesystem::path* p = std::any_cast<decltype(p)>(ret[3]);
-				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files in %.3fms", file_count, (double)time_elapsed / 1000000.0), 
+				size_t files_size = std::any_cast<decltype(files_size)>(ret[3]);
+				std::filesystem::path* p = std::any_cast<decltype(p)>(ret[4]);
+				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files (%s) in %.3fms", file_count, utils::GetDataUnit(files_size), (double)time_elapsed / 1000000.0),
 					3, wxICON_INFORMATION, [this, p](wxCommandEvent& event)
 					{
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -375,4 +376,44 @@ template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const
 	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, flags);
 	m_notif->Show(timeout);
 	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, fptr);
+}
+
+namespace utils
+{
+	std::string GetDataUnit(size_t input)
+	{
+		float fInput = static_cast<float>(input);
+
+		if(fInput < 1024)
+		{
+			return fmt::format("{} B", (size_t)fInput);
+		}
+
+		fInput /= 1024;
+		if(fInput < 1024)
+		{
+			return fmt::format("{:.2f} kB", fInput);
+		}
+
+		fInput /= 1024;
+		if(fInput < 1024)
+		{
+			return fmt::format("{:.2f} MB", fInput);
+		}
+
+		fInput /= 1024;
+		if(fInput < 1024)
+		{
+			return fmt::format("{:.2f} GB", fInput);
+		}
+
+		fInput /= 1024;
+		if(fInput < 1024)
+		{
+			return fmt::format("{:.2f} TB", fInput);
+		}
+
+		return std::string("X");
+	}
+
 }

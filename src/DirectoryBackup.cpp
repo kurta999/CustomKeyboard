@@ -43,7 +43,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 		hash_buf = new char[backup->hash_buf_size * 1024 * 1024];
 
 	bool first_run_hash = false;
-	size_t file_count = 0;
+	size_t file_count = 0, files_size = 0;
 	SHA256_CTX ctx_from;
 	SHA256_CTX ctx_to;
 	uint8_t hash_from[SHA256_BLOCK_SIZE];
@@ -92,6 +92,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			if(!first_run_hash)  /* calculate source hash - only once */
 			{
 				file_count++;
+				if(is_file)
+					files_size += std::filesystem::file_size(p.path());
 				if(backup->calculate_hash)
 				{
 					std::ifstream f(p.path(), std::ifstream::binary);
@@ -133,7 +135,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	{
 		std::lock_guard<std::mutex> lock(frame->mtx);
 		if(!fail)
-			frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, &backup->to[0] });
+			frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, files_size, &backup->to[0] });
 		else
 			frame->pending_msgs.push_back({ (uint8_t)BackupFailed });
 		frame->show_backup_dlg = false;
