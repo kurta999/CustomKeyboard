@@ -38,6 +38,7 @@ IF %TestVal%==%UserInput% (
     copy /y Debug\wxmsw315ud_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_aui_vc_custom.dll
     copy /y Debug\wxmsw315ud_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_core_vc_custom.dll
     copy /y Debug\wxmsw315ud_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_stc_vc_custom.dll
+    copy /y Debug\wxmsw315ud_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_propgrid_vc_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Debug x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
@@ -48,6 +49,7 @@ IF %TestVal%==%UserInput% (
     copy /y Release\wxmsw315u_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_custom.dll
     copy /y Release\wxmsw315u_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_custom.dll
     copy /y Release\wxmsw315u_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_custom.dll
+    copy /y Release\wxmsw315u_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_propgrid_vc_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Release x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
@@ -58,6 +60,7 @@ IF %TestVal%==%UserInput% (
     copy /y x64\Debug\wxmsw315ud_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_aui_vc_x64_custom.dll
     copy /y x64\Debug\wxmsw315ud_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_core_vc_x64_custom.dll
     copy /y x64\Debug\wxmsw315ud_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_stc_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw315ud_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315ud_propgrid_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Debug x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
@@ -68,6 +71,7 @@ IF %TestVal%==%UserInput% (
     copy /y x64\Release\wxmsw315u_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_aui_vc_x64_custom.dll
     copy /y x64\Release\wxmsw315u_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_core_vc_x64_custom.dll
     copy /y x64\Release\wxmsw315u_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_stc_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw315u_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw315u_propgrid_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Release x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
