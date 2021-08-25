@@ -85,8 +85,8 @@ class GuiEditor : public CSingleton < GuiEditor >
 	void AddFlags(wxString& wxstr, void* widget, Widget* obj, const long* to_pointer, const wxString* to_pointer_str, const long max_array_size);
 	void AddFontAndColor(wxString& wxstr, void* widget, Widget* obj);
 	void DuplicateWidget();
-	void AdjustWidgetPos(wxWindow* window, Widget* widget, int8_t x, int8_t y);
-	void AdjustWidgetSize(wxWindow* window, Widget* widget, int8_t x, int8_t y);
+	void AdjustWidgetPos(std::pair<wxWindow*, Widget*> item, int8_t x, int8_t y);
+	void AdjustWidgetSize(std::pair<wxWindow*, Widget*> item, int8_t x, int8_t y);
 public:
 	void Init(GuiEditorMain* panel_);
 	void OnClick(void* object);

@@ -352,6 +352,7 @@
     <ClInclude Include="src\StructParser.h" />
     <ClInclude Include="src\SymlinkCreator.h" />
     <ClInclude Include="src\targetver.h" />
+    <ClInclude Include="src\Utils.h" />
     <ClInclude Include="src\utils\AsyncSerial.h" />
     <ClInclude Include="src\utils\CSingleton.h" />
   </ItemGroup>
@@ -454,6 +455,7 @@
     <ClCompile Include="src\Settings.cpp" />
     <ClCompile Include="src\StructParser.cpp" />
     <ClCompile Include="src\SymlinkCreator.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
     <ClCompile Include="src\utils\AsyncSerial.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

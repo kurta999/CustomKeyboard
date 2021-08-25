@@ -315,7 +315,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), -1);
+				AdjustWidgetPos({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, std::numeric_limits<int8_t>::max(), -1);
 			}
 			break;
 		}
@@ -323,7 +323,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), 1);
+				AdjustWidgetPos({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, std::numeric_limits<int8_t>::max(), 1);
 			}
 			break;
 		}
@@ -331,7 +331,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, -1, std::numeric_limits<int8_t>::max());
+				AdjustWidgetPos({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, -1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -339,7 +339,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetPos(dynamic_cast<wxWindow*>(m_SelectedWidget), t, 1, std::numeric_limits<int8_t>::max());
+				AdjustWidgetPos({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, 1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -347,7 +347,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, 1, std::numeric_limits<int8_t>::max());
+				AdjustWidgetSize({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, 1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -355,7 +355,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), 1);
+				AdjustWidgetSize({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, std::numeric_limits<int8_t>::max(), 1);
 			}
 			break;
 		}
@@ -363,7 +363,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, -1, std::numeric_limits<int8_t>::max());
+				AdjustWidgetSize({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, -1, std::numeric_limits<int8_t>::max());
 			}
 			break;
 		}
@@ -371,7 +371,7 @@ void GuiEditor::OnKeyDown(int keycode)
 		{
 			if(t != nullptr)
 			{
-				AdjustWidgetSize(dynamic_cast<wxWindow*>(m_SelectedWidget), t, std::numeric_limits<int8_t>::max(), -1);
+				AdjustWidgetSize({ dynamic_cast<wxWindow*>(m_SelectedWidget), t }, std::numeric_limits<int8_t>::max(), -1);
 			}
 			break;
 		}
@@ -772,8 +772,9 @@ void GuiEditor::DuplicateWidget()
 	}
 }
 
-void GuiEditor::AdjustWidgetPos(wxWindow* window, Widget* widget, int8_t x, int8_t y)
+void GuiEditor::AdjustWidgetPos(std::pair<wxWindow*, Widget*> item, int8_t x, int8_t y)
 {
+	auto [window, widget] = item;
 	wxPoint pos = window->GetPosition();
 	if(x != std::numeric_limits<int8_t>::max())
 	{
@@ -794,8 +795,9 @@ void GuiEditor::AdjustWidgetPos(wxWindow* window, Widget* widget, int8_t x, int8
 	panel->UpdatePropgrid({ widget->id, &widget->name, window });
 }
 
-void GuiEditor::AdjustWidgetSize(wxWindow* window, Widget* widget, int8_t x, int8_t y)
+void GuiEditor::AdjustWidgetSize(std::pair<wxWindow*, Widget*> item, int8_t x, int8_t y)
 {
+	auto [window, widget] = item;
 	wxSize pos = window->GetSize();
 	if(x != std::numeric_limits<int8_t>::max())
 	{
@@ -866,7 +868,7 @@ void GuiEditor::LoadWidgets()
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
-			wxButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "combobox")
@@ -874,7 +876,7 @@ void GuiEditor::LoadWidgets()
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
 			wxArrayString a;
-			wxComboBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, a, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxComboBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, a, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "choise")
@@ -882,88 +884,88 @@ void GuiEditor::LoadWidgets()
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
 			wxArrayString a;
-			wxChoice* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, a, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxChoice* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, a, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "listbox")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxListBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxListBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "checkbox")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxCheckBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxCheckBox* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "radiobutton")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxRadioButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxRadioButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "staticline")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxStaticLine* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxStaticLine* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "slider")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxSlider* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, std::stoi(v.second.get<std::string>("<xmlattr>.value")), std::stoi(v.second.get<std::string>("<xmlattr>.min")),
-				std::stoi(v.second.get<std::string>("<xmlattr>.max")), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxSlider* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.value")), utils::stoi<int>(v.second.get<std::string>("<xmlattr>.min")),
+				utils::stoi<int>(v.second.get<std::string>("<xmlattr>.max")), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "gauge")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxGauge* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, std::stoi(v.second.get<std::string>("<xmlattr>.max")), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxGauge* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.max")), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "spincontrol")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxSpinCtrl* tmp = AddWidget<wxSpinCtrl>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")),
-				std::stoi(v.second.get<std::string>("<xmlattr>.min")), std::stoi(v.second.get<std::string>("<xmlattr>.max")), std::stoi(v.second.get<std::string>("<xmlattr>.value")));
+			wxSpinCtrl* tmp = AddWidget<wxSpinCtrl>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")),
+				utils::stoi<int>(v.second.get<std::string>("<xmlattr>.min")), utils::stoi<int>(v.second.get<std::string>("<xmlattr>.max")), utils::stoi<int>(v.second.get<std::string>("<xmlattr>.value")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "spincontroldouble")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxSpinCtrlDouble* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")),
-				std::stoi(v.second.get<std::string>("<xmlattr>.min")), std::stoi(v.second.get<std::string>("<xmlattr>.max")), std::stoi(v.second.get<std::string>("<xmlattr>.value")), 
-				std::stoi(v.second.get<std::string>("<xmlattr>.inc")));
+			wxSpinCtrlDouble* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")),
+				utils::stoi<int>(v.second.get<std::string>("<xmlattr>.min")), utils::stoi<int>(v.second.get<std::string>("<xmlattr>.max")), utils::stoi<int>(v.second.get<std::string>("<xmlattr>.value")), 
+				utils::stoi<int>(v.second.get<std::string>("<xmlattr>.inc")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "textcontrol")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxTextCtrl* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxTextCtrl* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "togglebutton")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxToggleButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxToggleButton* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 		else if(type == "statictext")
 		{
 			uint8_t fg_colors[3], bg_colors[3];
 			ParseDefaultWidgetFormat(v, pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);			
-			wxStaticText* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, std::stoi(v.second.get<std::string>("<xmlattr>.flags")));
+			wxStaticText* tmp = AddWidget<std::decay<decltype(*tmp)>::type>(panel, wxID_ANY, v.second.get<std::string>("<xmlattr>.label"), pos, size, utils::stoi<int>(v.second.get<std::string>("<xmlattr>.flags")));
 			SetDefaultWidgetFormat(tmp, v.second.get<std::string>("<xmlattr>.tooltip"), pos, size, min_size, max_size, fontsize, fontfamily, fontstyle, fontweight, is_underlined, fontname, fg_colors, bg_colors);
 		}
 	}
@@ -978,7 +980,6 @@ void GuiEditor::SaveWidgets()
 	wxString lines = "<wxCreatorXmlFile>\n";
 	for(auto& x : widgets)
 	{
-		if(!x.first || !x.second) continue;
 		if(x.second->type == typeid(wxButton*).hash_code())  /* I know this is against polymorhism in C++, but no time for better one... */
 		{
 			wxButton* t = dynamic_cast<wxButton*>(x.first);
@@ -1206,7 +1207,6 @@ void GuiEditor::GenerateCode(wxString& str)
 #define FLAG(val) val##_style_values, val##_style_flags, WXSIZEOF(val##_style_flags)
 	for(auto& x : widgets)
 	{
-		//if(!x.first || !x.second) continue;
 		if(x.second->type == typeid(wxButton*).hash_code())
 		{
 			wxButton* t = dynamic_cast<wxButton*>(x.first);

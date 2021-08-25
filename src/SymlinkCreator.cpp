@@ -33,7 +33,7 @@ void SymlinkCreator::Mark()
 	GetSelectedItemsFromFileExplorer();
 	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 	{
-		std::lock_guard<std::mutex> lock(frame->mtx);
+		std::lock_guard lock(frame->mtx);
 		frame->pending_msgs.push_back({ !selected_items.empty() ? (uint8_t)LinkMark : (uint8_t)LinkMarkError, (uint32_t)selected_items.size() });
 	}
 }
@@ -65,7 +65,7 @@ void SymlinkCreator::Place(bool is_symlink)
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
-				std::lock_guard<std::mutex> lock(frame->mtx);
+				std::lock_guard lock(frame->mtx);
 				frame->pending_msgs.push_back({ (uint8_t)SymlinkCreated, (uint32_t)selected_items.size() });
 			}
 		}
@@ -87,7 +87,7 @@ void SymlinkCreator::Place(bool is_symlink)
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
-				std::lock_guard<std::mutex> lock(frame->mtx);
+				std::lock_guard lock(frame->mtx);
 				frame->pending_msgs.push_back({ (uint8_t)HardlinkCreated, (uint32_t)selected_items.size() });
 			}
 		}

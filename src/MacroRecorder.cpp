@@ -3,23 +3,6 @@
 static HHOOK hHook_keyboard = nullptr;
 static HHOOK hHook_mouse = nullptr;
 
-namespace utils
-{
-    void MadeTextFromKeys(std::string& chr)
-    {
-        if(chr == "SPACE")
-            chr = ' ';
-        else if(chr == 'z')
-            chr = 'y';
-        else if(chr == 'Z')
-            chr = 'Y';
-        else if(chr == 'y')
-            chr = 'z';
-        else if(chr == 'Y')
-            chr = 'Z';
-    }
-}
-
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if(nCode == HC_ACTION)

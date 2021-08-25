@@ -260,7 +260,7 @@ MacroPanel::MacroPanel(wxFrame* parent)
 
 void MyFrame::HandleNotifications()
 {
-	std::lock_guard<std::mutex> lock(mtx);
+	std::lock_guard lock(mtx);
 	if(pending_msgs.size() > 0)
 	{
 		std::vector<std::any> ret = pending_msgs.front();
@@ -376,44 +376,4 @@ template<typename T> void MyFrame::ShowNotificaiton(const wxString& title, const
 	wxNotificationMessageBase* m_notif = new wxGenericNotificationMessage(title, message, this, flags);
 	m_notif->Show(timeout);
 	m_notif->Bind(wxEVT_NOTIFICATION_MESSAGE_CLICK, fptr);
-}
-
-namespace utils
-{
-	std::string GetDataUnit(size_t input)
-	{
-		float fInput = static_cast<float>(input);
-
-		if(fInput < 1024)
-		{
-			return fmt::format("{} B", (size_t)fInput);
-		}
-
-		fInput /= 1024;
-		if(fInput < 1024)
-		{
-			return fmt::format("{:.2f} kB", fInput);
-		}
-
-		fInput /= 1024;
-		if(fInput < 1024)
-		{
-			return fmt::format("{:.2f} MB", fInput);
-		}
-
-		fInput /= 1024;
-		if(fInput < 1024)
-		{
-			return fmt::format("{:.2f} GB", fInput);
-		}
-
-		fInput /= 1024;
-		if(fInput < 1024)
-		{
-			return fmt::format("{:.2f} TB", fInput);
-		}
-
-		return std::string("X");
-	}
-
 }

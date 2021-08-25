@@ -47,12 +47,11 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 
 	size_t array_size = std::numeric_limits<size_t>::max();
 	size_t array_pos = var_name.find("[", 0);
-	size_t array_pos2 = var_name.find("]", 0);
-	if(array_pos != std::string::npos)
+	if(size_t array_pos2 = var_name.find("]", 0); array_pos2 != std::string::npos)
 	{
 		std::string sub = var_name.substr(array_pos + 1, array_pos2 - array_pos - 1);
 		if(utils::is_number(sub))
-			array_size = std::stol(sub);
+			array_size = utils::stoi<size_t>(sub);
 		else
 		{
 			auto it = definitions.find(sub);
@@ -164,7 +163,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			try_parse_element = 0;
 			if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack(push, "), "#pragma pack(push, "))
 			{
-				packing = std::stoi(&str_in[input_len + std::char_traits<char>::length("#pragma pack(push, ")]);
+				packing = utils::stoi<size_t>(&str_in[input_len + std::char_traits<char>::length("#pragma pack(push, ")]);
 				size_t pos = str_in.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
@@ -182,7 +181,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack("), "#pragma pack("))
 			{
-				packing = std::stoi(&str_in[input_len + std::char_traits<char>::length("#pragma pack(")]);
+				packing = utils::stoi<size_t>(&str_in[input_len + std::char_traits<char>::length("#pragma pack(")]);
 				size_t pos = str_in.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
@@ -460,13 +459,5 @@ void StructParser::TrimStructure(std::string& str_in, std::string& str_out)
 				i += 2;
 			}
 		}
-	}
-}
-
-namespace utils
-{
-	bool is_number(const std::string& s)
-	{
-		return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 	}
 }

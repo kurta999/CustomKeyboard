@@ -33,13 +33,13 @@ KeyDelay::KeyDelay(const std::string&& str)
     size_t separator_pos = str.find("-");
     if(separator_pos != std::string::npos)
     {
-        uint32_t delay_start = static_cast<uint32_t>(std::stoi(str));
-        uint32_t delay_end = static_cast<uint32_t>(std::stoi(&str[separator_pos + 1]));
+        uint32_t delay_start = utils::stoi<uint32_t>(str);
+        uint32_t delay_end = utils::stoi<uint32_t>(&str[separator_pos + 1]);
         delay = std::array<uint32_t, 2>{delay_start, delay_end};
     }
     else
     {
-        delay = static_cast<uint32_t>(std::stoi(str));
+        delay = utils::stoi<uint32_t>(str);
     }
 }
 
@@ -48,8 +48,8 @@ MouseMovement::MouseMovement(const std::string&& str)
     size_t separator_pos = str.find(",");
     if(separator_pos != std::string::npos)
     {
-        pos.x = static_cast<long>(std::stoi(str));
-        pos.y = static_cast<uint32_t>(std::stoi(&str[separator_pos + 1]));
+        pos.x = utils::stoi<decltype(pos.x)>(str);
+        pos.y = utils::stoi<decltype(pos.y)>(&str[separator_pos + 1]);
     }
     else
         throw std::invalid_argument(fmt::format("Invalid mouse movement input: {}", str));

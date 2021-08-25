@@ -23,7 +23,7 @@ void PathSeparator::ReplaceClipboard()
 
 				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 				{
-					std::lock_guard<std::mutex> lock(frame->mtx);
+					std::lock_guard lock(frame->mtx);
 					frame->pending_msgs.push_back({ (uint8_t)PathSeparatorsReplaced, std::move(input) });
 				}
 			}

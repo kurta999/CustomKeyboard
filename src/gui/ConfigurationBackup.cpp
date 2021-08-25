@@ -135,7 +135,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			{
 				try
 				{
-					int max_backups = std::stoi(d.GetValue().ToStdString());
+					int max_backups = utils::stoi<int>(d.GetValue().ToStdString());
 					DirectoryBackup::Get()->backups[id]->max_backups = max_backups;
 					UpdateMainTree();
 				}
@@ -153,7 +153,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			int ret_code = d.ShowModal();
 			if(ret_code == 5100)  /* OK */
 			{
-				DirectoryBackup::Get()->backups[id]->calculate_hash = static_cast<bool>(std::stoi(d.GetValue().ToStdString()) != 0);
+				DirectoryBackup::Get()->backups[id]->calculate_hash = utils::stob(d.GetValue().ToStdString());
 				UpdateMainTree();
 			}
 		}
@@ -167,7 +167,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			{
 				try
 				{
-					size_t max_backups = static_cast<size_t>(std::stoll(d.GetValue().ToStdString()));
+					size_t max_backups = utils::stoi<size_t>(d.GetValue().ToStdString());
 					DirectoryBackup::Get()->backups[id]->hash_buf_size = max_backups;
 					UpdateMainTree();
 				}

@@ -52,7 +52,7 @@ void Sensors::WriteGraphs()
 {
     WriteGraph<decltype(Measurement::temp)>("Temperature.html", 15, 35, "Temperature", offsetof(Measurement, temp));
     WriteGraph<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
-    WriteGraph<decltype(Measurement::co2)>("CO2.html", 200, 3000, "CO2", offsetof(Measurement, co2));
+    WriteGraph<decltype(Measurement::co2)>("CO2.html", 150, 3000, "CO2", offsetof(Measurement, co2));
     WriteGraph<decltype(Measurement::voc)>("VOC.html", 0, 65535, "VOC", offsetof(Measurement, voc));
     WriteGraph<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "PM2.5", offsetof(Measurement, pm25));
     WriteGraph<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "PM10", offsetof(Measurement, pm10));

@@ -133,7 +133,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 	
 	{
-		std::lock_guard<std::mutex> lock(frame->mtx);
+		std::lock_guard lock(frame->mtx);
 		if(!fail)
 			frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, files_size, &backup->to[0] });
 		else

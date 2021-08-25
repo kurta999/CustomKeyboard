@@ -29,6 +29,7 @@
 #include "Session.h"
 #include "SymlinkCreator.h"
 #include "MacroRecorder.h"
+#include "Utils.h"
 
 #include <wx/aui/aui.h>
 #include <wx/statline.h>
@@ -114,7 +115,7 @@
 #include <deque>
 #include <cstdint>
 #include <stack>
-#include <variant>
+#include <charconv>
 
 #include <enumser/enumser.h>
 #include <lodepng/lodepng.h>

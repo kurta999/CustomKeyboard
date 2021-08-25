@@ -135,8 +135,3 @@ private:
 		return std::nullopt;
 	}
 };
-
-namespace utils
-{
-	bool is_number(const std::string& s);
-}

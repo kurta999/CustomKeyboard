@@ -140,8 +140,8 @@ void Settings::LoadFile()
 
     try
     {
-        CustomMacro::Get()->use_per_app_macro = static_cast<bool>(std::stoi(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data())) != 0;
-        CustomMacro::Get()->advanced_key_binding = static_cast<bool>(std::stoi(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data())) != 0;
+        CustomMacro::Get()->use_per_app_macro = utils::stob(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data());
+        CustomMacro::Get()->advanced_key_binding = utils::stob(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data());
 
         CustomMacro::Get()->macros.clear();
         std::unique_ptr<MacroContainer> p = std::make_unique<MacroContainer>();
@@ -175,18 +175,20 @@ void Settings::LoadFile()
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
-        CustomMacro::Get()->is_enabled = std::stoi(pt.get_child("COM_Backend").find("Enable")->second.data());
-        CustomMacro::Get()->com_port = std::stoi(pt.get_child("COM_Backend").find("COM")->second.data());
-        Server::Get()->is_enabled = static_cast<uint16_t>(std::stoi(pt.get_child("TCP_Backend").find("Enable")->second.data()));
-        Server::Get()->tcp_port = static_cast<uint16_t>(std::stoi(pt.get_child("TCP_Backend").find("TCP_Port")->second.data()));
-        minimize_on_exit = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnExit")->second.data()) != 0);
-        minimize_on_startup = static_cast<bool>(std::stoi(pt.get_child("App").find("MinimizeOnStartup")->second.data()) != 0);
-        default_page = static_cast<uint8_t>(std::stoi(pt.get_child("App").find("DefaultPage")->second.data()));
-        remember_window_size = static_cast<uint8_t>(std::stoi(pt.get_child("App").find("RememberWindowSize")->second.data()));
+        CustomMacro::Get()->is_enabled = utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data());
+        CustomMacro::Get()->com_port = utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data());
+        Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
+        Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
+        minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
+        minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
+        default_page = utils::stoi<decltype(default_page)>(pt.get_child("App").find("DefaultPage")->second.data());
+        remember_window_size = utils::stoi<decltype(remember_window_size)>(pt.get_child("App").find("RememberWindowSize")->second.data());
         if(remember_window_size)
         {
-            sscanf(pt.get_child("App").find("WindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y);
-            if(window_size.x < WINDOW_SIZE_X)
+            if(sscanf(pt.get_child("App").find("WindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y) != 2)
+                LOGMSG(error, "Invalid ini format for WindowSize");
+
+            if(window_size.x < WINDOW_SIZE_X) 
                 window_size.x = WINDOW_SIZE_X;
             if(window_size.y < WINDOW_SIZE_Y)
                 window_size.y = WINDOW_SIZE_Y;
@@ -196,7 +198,7 @@ void Settings::LoadFile()
         PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
         PathSeparator::Get()->replace_key = pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data();
         
-        SymlinkCreator::Get()->is_enabled = static_cast<bool>(std::stoi(pt.get_child("SymlinkCreator").find("Enable")->second.data()) != 0);
+        SymlinkCreator::Get()->is_enabled = utils::stob(pt.get_child("SymlinkCreator").find("Enable")->second.data());
         SymlinkCreator::Get()->mark_key = pt.get_child("SymlinkCreator").find("MarkKey")->second.data();
         SymlinkCreator::Get()->place_symlink_key = pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data();
         SymlinkCreator::Get()->place_hardlink_key = pt.get_child("SymlinkCreator").find("PlaceHardlinkKey")->second.data();
@@ -221,9 +223,9 @@ void Settings::LoadFile()
 
             std::vector<std::string> ignore_list;
             boost::split(ignore_list, pt.get_child(key).find("Ignore")->second.data(), boost::is_any_of("|"));
-            int max_backups = std::stoi(pt.get_child(key).find("MaxBackups")->second.data());
-            bool calculate_hash = static_cast<bool>(std::stoi(pt.get_child(key).find("CalculateHash")->second.data()) != 0);
-            size_t buffer_size = static_cast<bool>(std::stoi(pt.get_child(key).find("BufferSize")->second.data()) != 0);
+            int max_backups = utils::stoi<decltype(max_backups)>(pt.get_child(key).find("MaxBackups")->second.data());
+            bool calculate_hash = utils::stob(pt.get_child(key).find("CalculateHash")->second.data());
+            size_t buffer_size = utils::stob(pt.get_child(key).find("BufferSize")->second.data());
             BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
 
             counter_++;
@@ -233,9 +235,9 @@ void Settings::LoadFile()
         if(default_page > 6)
             default_page = 6;
 
-        uint32_t val1 = static_cast<uint32_t>(std::stoi(pt.get_child("Graph").find("Graph1HoursBack")->second.data()));
+        uint32_t val1 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph1HoursBack")->second.data());
         Database::Get()->SetGraphHours(0, val1);
-        uint32_t val2 = static_cast<uint32_t>(std::stoi(pt.get_child("Graph").find("Graph2HoursBack")->second.data()));
+        uint32_t val2 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph2HoursBack")->second.data());
         Database::Get()->SetGraphHours(1, val2);
     }
     catch(boost::property_tree::ptree_error& e)
@@ -244,7 +246,7 @@ void Settings::LoadFile()
     }
     catch(std::exception& e)
     {
-        LOGMSG(critical, "Exception %s", e.what());
+        LOGMSG(critical, "Exception {}", e.what());
     }
 }
 
