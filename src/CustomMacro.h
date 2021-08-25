@@ -192,29 +192,35 @@ public:
 
     void DoWrite() override
     {
-        if(std::holds_alternative<uint32_t>(delay))
-            std::this_thread::sleep_for(std::chrono::milliseconds(std::get<uint32_t>(delay)));
-        else
-        {
-            std::array<uint32_t, 2> d = std::get<std::array<uint32_t, 2>>(delay);
-            boost::uniform_int<> dist(d[0], d[1]);
-            boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(gen, dist);
-
-            int ret = die();
-            std::this_thread::sleep_for(std::chrono::milliseconds(ret));
-        }
+        std::visit([](auto&& arg) 
+            {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr(std::is_same_v<T, uint32_t>)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(arg));
+                }
+                else if constexpr(std::is_same_v<T, std::array<uint32_t, 2>>)
+                {
+                    static boost::mt19937 gen;
+                    boost::uniform_int<> dist(arg[0], arg[1]);
+                    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(gen, dist);
+                    int ret = die();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+                }
+                else
+                    static_assert(always_false<T>::value, "bad visitor!");
+            }, delay);
     }
-
     std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name_delay; }
-
+    
     std::variant<uint32_t, std::array<uint32_t, 2>>& GetDelay()
     {
         return delay;
     }
+
 private:
     std::variant<uint32_t, std::array<uint32_t, 2>> delay;
-    boost::mt19937 gen;
     static const char* name_delay;
     static const char* name_random;
 };
