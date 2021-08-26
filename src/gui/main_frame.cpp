@@ -215,7 +215,11 @@ MyFrame::MyFrame(const wxString& title)
 
 	CreateStatusBar();
 	wxString platform = (sizeof(void*) == 4 ? "x86" : "x64");
+#ifdef DEBUG
+	SetStatusText("CustomKeyboard " + platform + " v" + COMMIT_TAG + " DEBUG BUILD " + COMMIT_ID);
+#else
 	SetStatusText("CustomKeyboard " + platform + " v" + COMMIT_TAG);
+#endif
 
 	main_panel = new MainPanel(this);
 	escape_panel = new EscaperPanel(this);
@@ -233,10 +237,13 @@ MyFrame::MyFrame(const wxString& title)
 	editor_panel = new EditorPanel(ctrl);
 	ctrl->AddPage(editor_panel, "wxEditor page", false, wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(macro_panel, "Custom Macro", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(macro_panel, "Mouse Info", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
+
+	if(Settings::Get()->default_page > ctrl->GetPageCount() - 1)
+		Settings::Get()->default_page = ctrl->GetPageCount() - 1;
 
 	ctrl->SetSelection(Settings::Get()->default_page);
 	Show(!Settings::Get()->minimize_on_startup);
@@ -270,13 +277,23 @@ void MyFrame::HandleNotifications()
 			case ScreenshotSaved:
 			{
 				int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
-				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms", (double)time_elapsed / 1000000.0), 
-					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+				std::string filename = std::any_cast<decltype(filename)>(ret[2]);
+				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms\nPath: %s", 
+					(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 					{
-						char work_dir[256];
-						GetCurrentDirectoryA(sizeof(work_dir), work_dir);
-						strncat(work_dir, "\\Screenshots", 12);
-						ShellExecuteA(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
+						std::string cmdline = std::string("/select,\"" + filename);
+						ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+					});
+				break;
+			}
+			case SettingsSaved:
+			{
+				ShowNotificaiton("Settings saved", "Settings has been successfully saved", 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+					{
+						wchar_t work_dir[1024];
+						GetCurrentDirectory(sizeof(work_dir), work_dir);
+						StrCatW(work_dir, L"\\settings.ini");
+						ShellExecute(NULL, L"open", work_dir, NULL, NULL, SW_SHOW);
 					});
 				break;
 			}
@@ -312,10 +329,12 @@ void MyFrame::HandleNotifications()
 			}
 			case BackupFailed:
 			{
+				std::filesystem::path* p = std::any_cast<decltype(p)>(ret[1]);
 				ShowNotificaiton("Backup failed!",
 					wxString::Format("Backup failed due to wrong checksum values\nMake sure that your drive is not damaged\nCheck log file for more info"), 
-					3, wxICON_ERROR, [this](wxCommandEvent& event)
+					3, wxICON_ERROR, [this, p](wxCommandEvent& event)
 					{
+						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
 					});
 				break;
 			}	
@@ -323,10 +342,12 @@ void MyFrame::HandleNotifications()
 			{
 				uint32_t files_marked = std::any_cast<decltype(files_marked)>(ret[1]);
 				ShowNotificaiton("Selected files have been marked", wxString::Format("%d files has been marked.\n\
-Press KEY %s in destination directory for creating symlinks\nPress KEY %s in destination directory for creating hardlinks\n", 
+Press KEY %s in destination directory for creating symlinks\nPress KEY %s in destination directory for creating hardlinks\n\n\
+If you accidentaly marked the files, click here to unmark them", 
 					files_marked, SymlinkCreator::Get()->place_symlink_key, SymlinkCreator::Get()->place_hardlink_key), 
 					3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
+						SymlinkCreator::Get()->UnmarkFiles();
 					});
 				break;
 			}

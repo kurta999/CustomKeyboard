@@ -81,12 +81,9 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 			if(wxTheClipboard->Open())
 			{
 				wxTheClipboard->SetData(new wxTextDataObject(str));
-				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-				{
-					std::lock_guard lock(frame->mtx);
-					frame->pending_msgs.push_back({ (uint8_t)StringEscaped });
-				}
 				wxTheClipboard->Close();
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				frame->pending_msgs.push_back({ (uint8_t)StringEscaped });
 			}
 		});
 }

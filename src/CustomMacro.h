@@ -127,7 +127,7 @@ public:
     }
 private:
     std::string seq; /* virtual key codes to press and release*/
-    static const char* name;
+    static inline const char* name = "TEXT";
 };
 
 class KeyCombination final : public KeyClass
@@ -165,7 +165,7 @@ public:
     }
 private:
     std::vector<uint16_t> seq; /* scan codes to press and release*/
-    static const char* name;
+    static inline const char* name = "SEQUENCE";
 };
 
 class KeyDelay final : public KeyClass
@@ -212,7 +212,7 @@ public:
             }, delay);
     }
     std::string GenerateText(bool is_ini_format) override;
-    const char* GetName() override { return name_delay; }
+    const char* GetName() override { return std::holds_alternative<uint32_t>(delay) ? name_delay : name_random; }
     
     std::variant<uint32_t, std::array<uint32_t, 2>>& GetDelay()
     {
@@ -221,8 +221,8 @@ public:
 
 private:
     std::variant<uint32_t, std::array<uint32_t, 2>> delay;
-    static const char* name_delay;
-    static const char* name_random;
+    static inline const char* name_delay = "DELAY";
+    static inline const char* name_random = "DELAY RANDOM";
 };
 
 class MouseMovement final : public KeyClass
@@ -256,7 +256,7 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{}, {}]",  pos.x, pos.y) : fmt::format("{}, {}", pos.x, pos.y);
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{},{}]",  pos.x, pos.y) : fmt::format("{},{}", pos.x, pos.y);
         return ret;
     }
     const char* GetName() override { return name; }
@@ -268,7 +268,7 @@ public:
 
 private:
     POINT pos = {};
-    static const char* name;
+    static inline const char* name = "MOUSE MOVE";
 };
 
 class MouseClick final : public KeyClass
@@ -320,7 +320,7 @@ public:
     }
 private:
     uint16_t key;
-    static const char* name;
+    static inline const char* name = "MOUSE CLICK";
 };
 
 /* each given macro per-app get's a macro container */

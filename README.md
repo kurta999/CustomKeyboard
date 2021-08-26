@@ -20,7 +20,7 @@ This is a personal project for myself to improve my coding experience. It's open
 
 5. **LinkCreator** - Select desired files from File Explorer and click the mark key (key down on second keyboard by default) and files (directories too) will be marked for link creation. Go to target directory where you want to place the links for marked files, press symlink key (KEY UP) by default for symlink or hardlink key (KEY RIGHT) by default for hardlinks. That's all, symlink or hardlink is created from marked files in target directory.
 
-6. **Sensors** - Backend means simple TCP server with boost asio where sensor conencts and sends measurements. Each measurement is inserted to a local SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can ben changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel.
+6. **Sensors** - Backend means simple TCP server with boost asio where sensor conencts and sends measurements. Each measurement is inserted to a local SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel.
 
 7. **wxWidget's GUI editor** - Oversimplified GUI editor which sometimes can be useful beside [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder "wxFormBuilder's Homepage"). GUI items are movable & resizable - directly without sizers. C++ code generation also implemented, current workspace can be saved & loaded to/from XML file.
 
@@ -31,6 +31,7 @@ This is a personal project for myself to improve my coding experience. It's open
 - [enumser](http://www.naughter.com/enumser.html "enumser's Homepage")
 - [sha256](https://github.com/B-Con/crypto-algorithms "sha256's Homepage")
 - [AsyncSerial](https://github.com/fedetft/serial-port "AsyncSerial's Homepage")
+- [Chart.js](https://www.chartjs.org/ "Charts.js' Homepage")
 
 Required external depencencies:
 - [Boost 1.77.0](https://www.boost.org/ "Boost's Homepage")
@@ -64,7 +65,7 @@ Available build configurations:
 
 **Configuration**
 
-![Alt text](/github_screens/config_main_page.png?raw=true "Main page")
+![Alt text](/github_screens/config_main_page.png?raw=true "Configuration")
 
 **Macro editor**
 
@@ -75,6 +76,12 @@ Available build configurations:
 **Backup**
 
 ![Alt text](/github_screens/backup_config.png?raw=true "Backup page")
+![Alt text](/github_screens/backup_progress.png?raw=true "Backup in progress")
+
+**GUI Editor**
+
+![Alt text](/github_screens/gui_editor_1.png?raw=true "GUI Editor 1")
+![Alt text](/github_screens/gui_editor_2.png?raw=true "GUI Editor 2")
 
 **Log**
 

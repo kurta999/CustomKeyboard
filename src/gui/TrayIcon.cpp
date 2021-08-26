@@ -81,6 +81,7 @@ wxMenu* TrayIcon::CreatePopupMenu()
 void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 {
 	Settings::Get()->LoadFile();
+	mainFrame->config_panel->UpdateSubpanels();
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))

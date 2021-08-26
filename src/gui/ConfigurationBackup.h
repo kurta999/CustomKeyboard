@@ -9,15 +9,14 @@ class BackupPanel : public wxPanel
 {
 public:
 	BackupPanel(wxWindow* parent);
-
+	void UpdateMainTree();
 
 private:
-	wxButton* m_Ok;
-	wxTreeListCtrl* tree;
-
 	void OnItemContextMenu(wxTreeListEvent& evt);
 	void OnItemActivated(wxTreeListEvent& evt);
 
-	void UpdateMainTree();
+	wxButton* m_Ok;
+	wxTreeListCtrl* tree;
+
 	wxDECLARE_EVENT_TABLE();
 };

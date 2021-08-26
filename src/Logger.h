@@ -44,9 +44,11 @@ public:
         tm* current_tm;
         time(&current_time);
         current_tm = localtime(&current_time);
-        str = fmt::format("{:%Y.%m.%d %H:%M:%S} {}", *current_tm, formatted_msg);
-
-        //OutputDebugStringA(buf);
+        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, serverity_str[lvl - 1], formatted_msg);
+#if DEBUG
+        OutputDebugStringA(str.c_str());
+        OutputDebugStringA("\n");
+#endif
         const char* filename = file;
         for(int i = strlen(file); i > 0; i--)
         {
@@ -58,9 +60,8 @@ public:
         }
         if(lvl > normal)
         {
-            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}:{} - {}] {}", *current_tm, filename, line, function, formatted_msg);
+            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, serverity_str[lvl - 1], filename, line, function, formatted_msg);
             fwrite(str_file.c_str(), 1, str_file.length(), fLog);
-            fwrite("\n", 1, 1, fLog);
             fflush(fLog);
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -82,6 +83,8 @@ public:
 private:
     FILE* fLog = nullptr;
     wxArrayString preinit_entries;
+
+    static inline const char* serverity_str[] = { "Notification", "Warning", "Error", "Critical" };
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

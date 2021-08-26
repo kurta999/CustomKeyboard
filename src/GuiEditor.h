@@ -73,7 +73,7 @@ public:
 	uint8_t font_changed;
 	wxTreeItemId item_id;
 
-	static std::map<size_t, uint16_t> item_ids;
+	static inline std::map<size_t, uint16_t> item_ids;
 };
 
 class GuiEditor : public CSingleton < GuiEditor >

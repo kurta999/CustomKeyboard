@@ -28,6 +28,11 @@ bool SymlinkCreator::HandleKeypress(std::string& pressed_keys)
 	return ret;
 }
 
+void SymlinkCreator::UnmarkFiles()
+{
+	selected_items.clear();
+}
+
 void SymlinkCreator::Mark()
 {
 	GetSelectedItemsFromFileExplorer();

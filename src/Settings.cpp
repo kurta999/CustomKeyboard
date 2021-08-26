@@ -1,10 +1,5 @@
 #include "pch.h"
 
-inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
-{
-    return str.substr(start + len, start_end - start - len);
-}
-
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
 {
     constexpr size_t MAX_ITEMS = MacroTypes::MAX;
@@ -38,7 +33,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
         if(not_empty_cnt > 1 || input_type == 0xFF)
         {
-            LOGMSG(error, "Error with config file macro formatting");
+            LOGMSG(error, "Error with config file macro formatting: {}", str);
             return;
         }
 
@@ -47,27 +42,27 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::BIND_NAME:
             {
                 pos = first_end;
-                c->bind_name[key_code] = extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
+                c->bind_name[key_code] = utils::extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
                 break;
             }
             case MacroTypes::KEY_SEQ:
             {
                 pos = first_end;
-                std::string &&sequence = extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
+                std::string &&sequence = utils::extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
                 break;
             }
             case MacroTypes::KEY_TYPE:
             {
                 pos = first_end;
-                std::string sequence = extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
+                std::string sequence = utils::extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
                 break;
             }
             case MacroTypes::DELAY:
             {
                 pos = first_end;
-                std::string sequence = extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
+                std::string sequence = utils::extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
@@ -81,7 +76,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_MOVE:
             {
                 pos = first_end;
-                std::string sequence = extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
+                std::string sequence = utils::extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
@@ -95,7 +90,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_CLICK:
             {
                 pos = first_end;
-                std::string sequence = extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);
+                std::string sequence = utils::extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
@@ -185,7 +180,7 @@ void Settings::LoadFile()
         remember_window_size = utils::stoi<decltype(remember_window_size)>(pt.get_child("App").find("RememberWindowSize")->second.data());
         if(remember_window_size)
         {
-            if(sscanf(pt.get_child("App").find("WindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y) != 2)
+            if(sscanf(pt.get_child("App").find("LastWindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y) != 2)
                 LOGMSG(error, "Invalid ini format for WindowSize");
 
             if(window_size.x < WINDOW_SIZE_X) 
@@ -209,7 +204,7 @@ void Settings::LoadFile()
         DirectoryBackup::Get()->backup_time_format = pt.get_child("BackupSettings").find("BackupFileFormat")->second.data();
 
         /* load backup configs */
-        DirectoryBackup::Get()->backups.clear();
+        DirectoryBackup::Get()->Clear();
         size_t counter_ = 1;
         size_t cnt_ = 0;
         while((cnt_ = pt.count("Backup_" + std::to_string(counter_))) == 1)
@@ -231,9 +226,6 @@ void Settings::LoadFile()
             counter_++;
             DirectoryBackup::Get()->backups.push_back(b);
         }
-
-        if(default_page > 6)
-            default_page = 6;
 
         uint32_t val1 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph1HoursBack")->second.data());
         Database::Get()->SetGraphHours(0, val1);
@@ -370,7 +362,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             out << "Ignore = " << key << '\n';
             out << "MaxBackups = " << i->max_backups << '\n';
             out << "CalculateHash = " << i->calculate_hash << '\n';
-            out << "BufferSize = " << i->hash_buf_size << "# Buffer size for file operations - determines how much data is read once, Unit: Megabytes" << '\n';
+            out << "BufferSize = " << i->hash_buf_size << " # Buffer size for file operations - determines how much data is read once, Unit: Megabytes" << '\n';
         }
     }
     else

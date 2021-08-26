@@ -152,6 +152,14 @@ void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 	}
 }
 
+void ConfigurationPanel::UpdateSubpanels()
+{
+	comtcp_panel->UpdatePanel();
+	keybrd_panel->UpdateMainTree();
+	keybrd_panel->UpdateDetailsTree();
+	backup_panel->UpdateMainTree();
+}
+
 ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
@@ -286,6 +294,9 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SymlinkCreator::Get()->place_hardlink_key = m_CreateHardlink->GetValue().ToStdString();
 
 			Settings::Get()->SaveFile(false);
+
+			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+			frame->pending_msgs.push_back({ (uint8_t)SettingsSaved });
 		});
 	SetSizer(bSizer1);
 }
@@ -1080,6 +1091,9 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			Settings::Get()->SaveFile(false);
+
+			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+			frame->pending_msgs.push_back({ (uint8_t)SettingsSaved });
 		});
 
 	vertical_sizer->Add(btn_add);

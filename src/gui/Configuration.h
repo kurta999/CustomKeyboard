@@ -83,6 +83,8 @@ class ComTcpPanel : public wxPanel
 {
 public:
 	ComTcpPanel(wxWindow* parent);
+	void UpdatePanel();
+
 	wxCheckBox* m_IsTcp;
 	wxSpinCtrl* m_TcpPortSpin;
 	wxCheckBox* m_IsPerAppMacro;
@@ -103,8 +105,6 @@ public:
 	wxTextCtrl* m_CreateHardlink;
 
 private:
-	void UpdatePanel();
-
 	wxButton* m_Ok;
 
 	wxDECLARE_EVENT_TABLE();
@@ -121,13 +121,13 @@ public:
 	void OnItemContextMenu_Main(wxTreeListEvent& evt);
 	void OnItemContextMenu_Details(wxTreeListEvent& evt);
 	void OnItemActivated(wxTreeListEvent& event);
+	void UpdateMainTree();
 	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
 	void OnKeyDown(wxKeyEvent& evt);
 
 private:
 	void ShowAddDialog();
 	void ShowEditDialog(wxTreeListItem item);
-	void UpdateMainTree();
 	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
 	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
 
@@ -163,6 +163,7 @@ class ConfigurationPanel : public wxPanel
 public:
 	ConfigurationPanel(wxWindow* parent);
 	void Changeing(wxAuiNotebookEvent& event);
+	void UpdateSubpanels();
 
 	ComTcpPanel* comtcp_panel;
 	KeybrdPanel* keybrd_panel;

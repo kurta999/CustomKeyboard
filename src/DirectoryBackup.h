@@ -49,6 +49,7 @@ public:
     void Init(void);
     void BackupFile(int id);
     bool IsInProgress();
+    void Clear();
 
     std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";
     std::vector< BackupEntry*> backups;

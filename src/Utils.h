@@ -1,17 +1,23 @@
 #pragma once
 
 #include <charconv>
+#include <string>
 
 namespace utils
 {
+    inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
+    {
+        return str.substr(start + len, start_end - start - len);
+    }
+
     bool is_number(const std::string& s);
     void MadeTextFromKeys(std::string& chr);
     std::string GetDataUnit(size_t input);
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
-        /*if constexpr(std::is_integral_v<R>)
-            static_assert(false, "R is not integral!");*/
+        if constexpr(!std::is_arithmetic_v<R>)
+            static_assert(false, "R is not arithmetic!");
 
         using T = std::decay_t<decltype(from_str)>;
         if constexpr(std::is_same_v<T, std::string>)
@@ -47,9 +53,6 @@ namespace utils
 
     template <typename S> inline bool stob(const S& from_str)
     {
-        /*if constexpr(std::is_integral_v<R>)
-            static_assert(false, "R is not integral!");*/
-
         using T = std::decay_t<decltype(from_str)>;
         if constexpr(std::is_same_v<T, std::string>)
         {

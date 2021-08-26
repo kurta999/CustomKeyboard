@@ -137,7 +137,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 		if(!fail)
 			frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, files_size, &backup->to[0] });
 		else
-			frame->pending_msgs.push_back({ (uint8_t)BackupFailed });
+			frame->pending_msgs.push_back({ (uint8_t)BackupFailed, &backup->to[0] });
 		frame->show_backup_dlg = false;
 	}
 }
@@ -163,4 +163,13 @@ bool DirectoryBackup::IsInProgress()
 	if(backup_future.valid())
 		ret = backup_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready;
 	return ret;
+}
+
+void DirectoryBackup::Clear()
+{
+	for(auto& i : backups)
+	{
+		delete i;
+	}
+	backups.clear();
 }

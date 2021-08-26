@@ -11,6 +11,7 @@ class SymlinkCreator : public CSingleton < SymlinkCreator >
 public:
     SymlinkCreator() = default;
     bool HandleKeypress(std::string& pressed_keys);
+    void UnmarkFiles();
 
     bool is_enabled = 1;
     std::string mark_key = "DOWN";

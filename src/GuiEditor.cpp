@@ -163,8 +163,6 @@ static const long gauge_style_values[] = {
 	wxGA_VERTICAL,
 };
 
-std::map<size_t, uint16_t> Widget::item_ids;
-
 void GuiEditor::Init(GuiEditorMain* panel_)
 {
 	panel = panel_;

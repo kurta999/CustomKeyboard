@@ -4,13 +4,6 @@
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 
-const char* KeyText::name = "TEXT";
-const char* KeyCombination::name = "SEQUENCE";
-const char* KeyDelay::name_delay = "DELAY";
-const char* KeyDelay::name_random = "DELAY RANDOM";
-const char* MouseMovement::name = "MOUSE MOVE";
-const char* MouseClick::name = "MOUSE CLICK";
-
 KeyCombination::KeyCombination(const std::string&& str)
 {
     boost::char_separator<char> sep("+");

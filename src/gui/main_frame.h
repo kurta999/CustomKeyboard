@@ -34,6 +34,7 @@ class TrayIcon;
 enum Msg : uint8_t
 {
 	ScreenshotSaved = 0,
+	SettingsSaved,
 	BackupCompleted,
 	BackupFailed,
 	StringEscaped,
