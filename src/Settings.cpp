@@ -323,7 +323,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";
     out << "ScreenshotDateFormat = " << PrintScreenSaver::Get()->timestamp_format << "\n";
-    out << "ScreenshotPath = " << PrintScreenSaver::Get()->screenshot_path.generic_u8string() << "\n";
+    out << "ScreenshotPath = " << PrintScreenSaver::Get()->screenshot_path.generic_string() << "\n";
     out << "\n";
     out << "[PathSeparator]\n";
     out << "ReplacePathSeparatorKey = " << PathSeparator::Get()->replace_key << "\n";
@@ -343,11 +343,11 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         for(auto& i : DirectoryBackup::Get()->backups)
         {
             out << fmt::format("\n[Backup_{}]\n", cnt++);
-            out << "From = " << i->from.generic_u8string() << '\n';
+            out << "From = " << i->from.generic_string() << '\n';
             key.clear();
             for(auto& x : i->to)
             {
-                key += x.generic_u8string() + '|';
+                key += x.generic_string() + '|';
             }
             if(key[key.length() - 1] == '|')
                 key.erase(key.length() - 1, key.length());

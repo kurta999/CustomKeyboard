@@ -63,7 +63,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 
 			bool is_file = std::filesystem::is_regular_file(p.path());
 
-			if(backup->IsInIgnoreList(rel_path.generic_u8string())) continue;
+			if(backup->IsInIgnoreList(rel_path.generic_string())) continue;
 			//DBGW(L"f: %d, %s\n", is_file, p.path().c_str());
 
 			if(!is_file)

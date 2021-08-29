@@ -9,7 +9,7 @@ enum
 	ID_About,
 	ID_Quit,
 	ID_UpdateMousePosText,
-	ID_OCTimer,
+	ID_CheckKeypress,
 	ID_FilePicker,
 	ID_DestroyAll,
 	ID_AppBindListMain,

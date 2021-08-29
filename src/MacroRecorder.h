@@ -63,10 +63,13 @@ public:
     void OnKeyPressed(KBDLLHOOKSTRUCT* p);
     void OnKeyReleased(KBDLLHOOKSTRUCT* p);
 private:
+    void FinishTextMacro(std::string& out, bool clear);
+
     std::vector<KeyInfo> key_press;  /* TODO: consider using (smart?) pointers here */
     DWORD last_key_down = std::numeric_limits<DWORD>::max();
 
     uint8_t current_macro_type = 0xFF;
+    uint8_t last_macro_type = 0xFF;
     bool is_caps = false;
     bool is_shift = false;
 
@@ -74,6 +77,7 @@ private:
     {
         int scancode;
         uint32_t flags;
+        bool is_modifier_key;
     } KeyAndFlags_t;
     static const std::unordered_map<std::string, KeyAndFlags_t> scan_codes;
 };

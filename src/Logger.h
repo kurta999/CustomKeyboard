@@ -44,7 +44,7 @@ public:
         tm* current_tm;
         time(&current_time);
         current_tm = localtime(&current_time);
-        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, serverity_str[lvl - 1], formatted_msg);
+        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, serverity_str[lvl], formatted_msg);
 #if DEBUG
         OutputDebugStringA(str.c_str());
         OutputDebugStringA("\n");
@@ -60,7 +60,7 @@ public:
         }
         if(lvl > normal)
         {
-            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, serverity_str[lvl - 1], filename, line, function, formatted_msg);
+            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, serverity_str[lvl], filename, line, function, formatted_msg);
             fwrite(str_file.c_str(), 1, str_file.length(), fLog);
             fflush(fLog);
         }
@@ -84,7 +84,7 @@ private:
     FILE* fLog = nullptr;
     wxArrayString preinit_entries;
 
-    static inline const char* serverity_str[] = { "Notification", "Warning", "Error", "Critical" };
+    static inline const char* serverity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

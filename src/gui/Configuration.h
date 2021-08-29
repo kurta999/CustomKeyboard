@@ -69,11 +69,13 @@ public:
 	bool IsApplyClicked() { return m_IsApplyClicked; }
 protected:
 	void OnApply(wxCommandEvent& event);
+	void OnTimer(wxTimerEvent& event);
 private:
 	wxRadioBox* m_radioBox1;
 	wxTextCtrl* m_textMsg;
 	wxStaticText* m_labelResult;
 	bool m_IsApplyClicked;
+	wxTimer* m_timer;
 
 	wxDECLARE_EVENT_TABLE();
 	wxDECLARE_NO_COPY_CLASS(MacroEditBoxDialog);

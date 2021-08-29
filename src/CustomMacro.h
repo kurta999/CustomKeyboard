@@ -126,7 +126,7 @@ public:
         return seq;
     }
 private:
-    std::string seq; /* virtual key codes to press and release*/
+    std::string seq; /* characters to press and release*/
     static inline const char* name = "TEXT";
 };
 
@@ -352,9 +352,20 @@ public:
             TerminateThread(t->native_handle(), 0);
     }
     void Init();
+
+    template<typename T> void OnItemRecordingStarted(std::unique_ptr<T>&& val)
+    {
+        editing_macro->push_back(std::move(val));
+        editing_item = editing_macro->back().get();
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        if(frame)
+            frame->config_panel->keybrd_panel->UpdateDetailsTree();
+    }  
+   
     template<typename T> void OnItemRecordingComplete(std::unique_ptr<T>&& val)
     {
         editing_macro->push_back(std::move(val));
+        editing_item = editing_macro->back().get();
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
             frame->config_panel->keybrd_panel->UpdateDetailsTree();
@@ -398,6 +409,7 @@ public:
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
     std::vector<std::unique_ptr<KeyClass>>* editing_macro;
+    KeyClass* editing_item = nullptr;
 
 private:
     friend class Settings;

@@ -30,8 +30,8 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 	{
 		case Id_AddNewBackup:
 		{
-			wxString root_str = tree->GetItemText(item, 0);
-			wxString item_str = tree->GetItemText(item, 1);
+			const wxString& root_str = tree->GetItemText(item, 0);
+			const wxString& item_str = tree->GetItemText(item, 1);
 
 			BackupEntry* p = new BackupEntry("C:\\folder_non_exists", std::vector<std::filesystem::path>{"C:\\backup"}, 
 				std::vector<std::string>({ ".gitignore", ".txt" }), 2, 0, 1);
@@ -59,7 +59,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 {
 	wxTreeListItem item = evt.GetItem();
 	wxTreeListItem root = tree->GetItemParent(item);
-	wxString type_str = tree->GetItemText(item, 0);
+	const wxString& type_str = tree->GetItemText(item, 0);
 	if(root)
 	{
 		wxClientData* itemdata = tree->GetItemData(root);
@@ -70,7 +70,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 		{
 			wxDirDialog d(this, "Chose source directory", DirectoryBackup::Get()->backups[id]->from.generic_string(), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{
 				std::string str = d.GetPath().ToStdString();
 				if(std::filesystem::exists(str))
@@ -95,7 +95,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				str.erase(str.length() - 1, str.length());
 			wxTextEntryDialog d(this, "Enter below destiantion list where backup(s) will be placed", "Enter destination(s)", str, wxOK | wxCANCEL | wxTE_MULTILINE);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{
 				std::string result = d.GetValue().ToStdString();
 				std::vector<std::filesystem::path> new_destination_list;
@@ -116,7 +116,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				str.erase(str.length() - 1, str.length());
 			wxTextEntryDialog d(this, "Enter below desired folder names which you want to ignore", "Ignore list", str, wxOK | wxCANCEL | wxTE_MULTILINE);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{ 
 				std::string result = d.GetValue().ToStdString();
 				std::vector<std::string> new_ignore_list;
@@ -131,7 +131,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			wxTextEntryDialog d(this, "Enter maximum number of backups", "Enter max backups", std::to_string(DirectoryBackup::Get()->backups[id]->max_backups), wxOK | wxCANCEL);
 			d.SetTextValidator(wxFILTER_DIGITS);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{
 				try
 				{
@@ -151,7 +151,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				"Toggle hash calculating ", std::to_string(DirectoryBackup::Get()->backups[id]->calculate_hash), wxOK | wxCANCEL);
 			d.SetTextValidator(wxFILTER_DIGITS);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{
 				DirectoryBackup::Get()->backups[id]->calculate_hash = utils::stob(d.GetValue().ToStdString());
 				UpdateMainTree();
@@ -163,7 +163,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				"Hash buffer size ", std::to_string(DirectoryBackup::Get()->backups[id]->hash_buf_size), wxOK | wxCANCEL);
 			d.SetTextValidator(wxFILTER_DIGITS);
 			int ret_code = d.ShowModal();
-			if(ret_code == 5100)  /* OK */
+			if(ret_code == wxID_OK)  /* OK */
 			{
 				try
 				{
