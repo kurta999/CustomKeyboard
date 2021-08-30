@@ -12,7 +12,7 @@ This is a personal project for myself to improve my coding experience. It's open
 ## Explanation
 1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for tranmitting keypresses to PC. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
 
-2. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (pragma pack), preprocessor definitions & unions. 
+2. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 
 3. **ScreenshotSaver** - Press screenshot save key (F12 by default, on second keyboard) and screenshot from the clipboard will be saved to (app path)/Screenshots folder by default as .png file. Can be changed in configuration.
 
