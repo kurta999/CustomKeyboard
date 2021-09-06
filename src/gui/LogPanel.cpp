@@ -1,5 +1,8 @@
 #include "pch.h"
 
+wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 LogPanel::LogPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {

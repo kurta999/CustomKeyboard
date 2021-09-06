@@ -167,10 +167,12 @@ public:
 	void Changeing(wxAuiNotebookEvent& event);
 	void UpdateSubpanels();
 
+	wxAuiNotebook* m_notebook;
 	ComTcpPanel* comtcp_panel;
 	KeybrdPanel* keybrd_panel;
 	BackupPanel* backup_panel;
 
 private:
+	void OnSize(wxSizeEvent& evt);
 	wxDECLARE_EVENT_TABLE();
 };

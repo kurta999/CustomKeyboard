@@ -16,19 +16,7 @@ wxEND_EVENT_TABLE()
 wxBEGIN_EVENT_TABLE(MainPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
-wxBEGIN_EVENT_TABLE(EditorPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
-wxBEGIN_EVENT_TABLE(ConfigurationPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
-wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
 wxBEGIN_EVENT_TABLE(MacroPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
-wxBEGIN_EVENT_TABLE(LogPanel, wxPanel)
 wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
@@ -91,6 +79,10 @@ void MyFrame::OnSize(wxSizeEvent& event)
 	{
 		main_panel->SetSize(a);
 		config_panel->SetSize(a);
+		config_panel->m_notebook->SetSize(a);
+		config_panel->comtcp_panel->SetSize(a);
+		config_panel->keybrd_panel->SetSize(a);
+		config_panel->backup_panel->SetSize(a);
 		editor_panel->SetSize(a);
 		editor_panel->m_notebook->SetSize(a);
 		editor_panel->gui_editor->SetSize(a);
@@ -98,6 +90,7 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		escape_panel->SetSize(a);
 		parser_panel->SetSize(a);
 		log_panel->SetSize(a);
+		file_panel->SetSize(a);
 	}
 	event.Skip(true);
 }
@@ -225,6 +218,7 @@ MyFrame::MyFrame(const wxString& title)
 	escape_panel = new EscaperPanel(this);
 	macro_panel = new MacroPanel(this);
 	parser_panel = new ParserPanel(this);
+	file_panel = new FilePanel(this);
 	log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
 
@@ -239,6 +233,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(macro_panel, "Mouse Info", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(file_panel, "File browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 

@@ -68,13 +68,14 @@ wxMenu* TrayIcon::CreatePopupMenu()
 	for(auto& i : DirectoryBackup::Get()->backups)
 	{
 		wxMenuItem* item = popup->Append(TrayIcon::ID::DoBackup + max_backups++, i->from.filename().generic_string());
+		item->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW_DIR, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 		if(DirectoryBackup::Get()->IsInProgress())
 			item->Enable(false);
 	}
 	popup->AppendSeparator();
-	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"));
+	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
-	popup->Append(TrayIcon::ID::Exit, wxT("E&xit"));
+	popup->Append(TrayIcon::ID::Exit, wxT("E&xit"))->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	return popup;
 }
 

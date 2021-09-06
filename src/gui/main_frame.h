@@ -6,6 +6,7 @@
 #include "LogPanel.h"
 #include "Editor.h"
 #include "Configuration.h"
+#include "FilePanel.h"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -65,6 +66,7 @@ public:
 	EscaperPanel* escape_panel;
 	MacroPanel* macro_panel;
 	ParserPanel* parser_panel;
+	FilePanel* file_panel = nullptr;
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl;
 	std::mutex mtx;

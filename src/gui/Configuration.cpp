@@ -1,5 +1,9 @@
 #include "pch.h"
 
+wxBEGIN_EVENT_TABLE(ConfigurationPanel, wxPanel)
+EVT_SIZE(ConfigurationPanel::OnSize)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(MacroRecordBoxDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, MacroRecordBoxDialog::OnApply)
 wxEND_EVENT_TABLE()
@@ -189,7 +193,7 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 {
 	wxSize client_size = GetClientSize();
 
-	wxAuiNotebook* m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	comtcp_panel = new ComTcpPanel(m_notebook);
 	keybrd_panel = new KeybrdPanel(m_notebook);
 	backup_panel = new BackupPanel(m_notebook);
@@ -200,6 +204,11 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	m_notebook->SetSelection(1);
 #endif
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
+}
+
+void ConfigurationPanel::OnSize(wxSizeEvent& evt)
+{
+	evt.Skip(true);
 }
 
 ComTcpPanel::ComTcpPanel(wxWindow* parent)
@@ -422,19 +431,11 @@ void KeybrdPanel::OnTreeListChanged_Details(wxTreeListEvent& evt)
 
 void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 {
-	enum
-	{
-		Id_AddNewApplication,
-		Id_AddNewMacroKey,
-		Id_Rename,
-		Id_Delete,
-	};
-
 	wxMenu menu;
-	menu.Append(Id_AddNewApplication, "&Add new application (below)");
-	menu.Append(Id_AddNewMacroKey, "&Add new macro key (below)");
-	menu.Append(Id_Rename, "&Rename");
-	menu.Append(Id_Delete, "Delete", "Delete selected item");
+	menu.Append(Id_Macro_AddNewApplication, "&Add new application (below)")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW_DIR, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_Macro_AddNewMacroKey, "&Add new macro key (below)")->SetBitmap(wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_Macro_Rename, "&Rename")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_Macro_Delete, "&Delete", "&Delete selected item")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
 
 	const wxTreeListItem item = evt.GetItem();
 	wxTreeListItem root = tree->GetItemParent(item);
@@ -442,12 +443,12 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 	wxTreeListItem root2 = tree->GetItemParent(root);
 
 	wxTreeListItem child = tree->GetFirstChild(item);
-	menu.Enable(Id_AddNewApplication, !(child == 0));
+	menu.Enable(Id_Macro_AddNewApplication, !(child == 0));
 
 	int ret = tree->GetPopupMenuSelectionFromUser(menu);
 	switch(ret)
 	{
-		case Id_AddNewApplication:
+		case Id_Macro_AddNewApplication:
 		{
 			const wxString& root_str = tree->GetItemText(item, 0);
 			const wxString& item_str = tree->GetItemText(item, 1);
@@ -471,7 +472,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			UpdateMainTree();
 			break;
 		}
-		case Id_AddNewMacroKey:
+		case Id_Macro_AddNewMacroKey:
 		{
 			wxTreeListItem root = tree->GetItemParent(item);
 			wxTreeListItem root2 = tree->GetItemParent(root);
@@ -507,7 +508,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			}
 			break;
 		}
-		case Id_Rename:
+		case Id_Macro_Rename:
 		{
 			const wxString& name_str = tree->GetItemText(item, 0);
 			wxTreeListItem root = tree->GetItemParent(item);
@@ -560,7 +561,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			}
 			break;
 		}
-		case Id_Delete:
+		case Id_Macro_Delete:
 		{
 			wxMessageDialog dialog(this, "Are you sure want to delete selected macro?", "Deleting macro", wxCENTER | wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
 			int ret = dialog.ShowModal();
@@ -603,21 +604,12 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 
 void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& evt)
 {
-	enum
-	{
-		Id_AddNew,
-		Id_Clone,
-		Id_Delete,
-		Id_MoveUp,
-		Id_MoveDown,
-	};
-
 	wxMenu menu;
-	menu.Append(Id_AddNew, "&Add new macro (below)");
-	menu.Append(Id_Clone, "&Clone (below)");
-	menu.Append(Id_Delete, "&Delete macro(s)");
-	menu.Append(Id_MoveUp, "&Move up");
-	menu.Append(Id_MoveDown, "&Move down");
+	menu.Append(Id_MacroDetails_AddNew, "&Add new macro (below)")->SetBitmap(wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_MacroDetails_Clone, "&Clone (below)")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_MacroDetails_Delete, "&Delete macro(s)")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_MacroDetails_MoveUp, "&Move up")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_MacroDetails_MoveDown, "&Move down")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, FromDIP(wxSize(14, 14))));
 
 	const wxTreeListItem item = evt.GetItem();
 	wxTreeListItem root = tree->GetItemParent(item);
@@ -625,27 +617,27 @@ void KeybrdPanel::OnItemContextMenu_Details(wxTreeListEvent& evt)
 	int ret = tree->GetPopupMenuSelectionFromUser(menu);
 	switch(ret)
 	{
-		case Id_AddNew:
+		case Id_MacroDetails_AddNew:
 		{
 			TreeDetails_AddNewMacro();
 			break;
 		}
-		case Id_Clone:
+		case Id_MacroDetails_Clone:
 		{
 			TreeDetails_CloneMacro();
 			break;
 		}
-		case Id_Delete:
+		case Id_MacroDetails_Delete:
 		{
 			TreeDetails_DeleteSelectedMacros();
 			break;
 		}
-		case Id_MoveUp:
+		case Id_MacroDetails_MoveUp:
 		{
 			TreeDetails_MoveUpSelectedMacro();
 			break;
 		}
-		case Id_MoveDown:
+		case Id_MacroDetails_MoveDown:
 		{
 			TreeDetails_MoveDownSelectedMacro();
 			break;
@@ -1074,16 +1066,16 @@ void KeybrdPanel::TreeDetails_StartRecording()
 				bool kbd = false, mouse = false;
 				switch(selection)
 				{
-				case 0:
-					kbd = true;
-					break;
-				case 1:
-					mouse = true;
-					break;
-				case 2:
-					mouse = true;
-					kbd = true;
-					break;
+					case 0:
+						kbd = true;
+						break;
+					case 1:
+						mouse = true;
+						break;
+					case 2:
+						mouse = true;
+						kbd = true;
+						break;
 				}
 				MacroRecorder::Get()->StartRecording(kbd, mouse);
 				btn_record->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(24, 24))));
@@ -1103,19 +1095,19 @@ void KeybrdPanel::TreeDetails_StartRecording()
 KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
+	wxBoxSizer* bSizer0 = new wxBoxSizer(wxVERTICAL); 
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxHORIZONTAL);
 
 	tree = new wxTreeListCtrl(this, ID_AppBindListMain, wxDefaultPosition, wxSize(300, 400), wxTL_SINGLE);
 	tree->AppendColumn("App name", tree->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree->AppendColumn("Key bindings", tree->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	UpdateMainTree();
-
-	bSizer1->Add(tree, wxSizerFlags(2).Left());
+	bSizer1->Add(tree, wxSizerFlags(5).Left().Expand());
 
 	tree_details = new wxTreeListCtrl(this, ID_MacroDetails, wxDefaultPosition, wxSize(300, 400), wxTL_MULTIPLE);
 	tree_details->AppendColumn("Action type", tree_details->WidthFor("App nameApp nameApp name"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree_details->AppendColumn("Parameters", tree_details->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
-	bSizer1->Add(tree_details, wxSizerFlags(2).Top());
+	bSizer1->Add(tree_details, wxSizerFlags(5).Top().Expand());
 
 	Bind(wxEVT_CHAR_HOOK, &KeybrdPanel::OnKeyDown, this);
 
@@ -1162,7 +1154,7 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 			TreeDetails_MoveDownSelectedMacro();
 		});
 
-	m_Ok = new wxButton(this, wxID_ANY, "Save", wxPoint(tree->GetSize().x + 20, tree->GetSize().y + 20), wxDefaultSize);
+	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize); // wxPoint(tree->GetSize().x + 20, tree->GetSize().y + 20)
 	m_Ok->SetToolTip("Save all settings to settings.ini file");
 	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
@@ -1178,12 +1170,15 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	vertical_sizer->Add(btn_delete);
 	vertical_sizer->Add(btn_up);
 	vertical_sizer->Add(btn_down);
-	bSizer1->Add(vertical_sizer);
+	bSizer1->Add(vertical_sizer, wxSizerFlags(1).Border(wxRIGHT, 1).Expand());
+
+	bSizer0->Add(bSizer1, wxSizerFlags(1).Expand().Border(wxDOWN, 50));
+	bSizer0->Add(m_Ok, wxSizerFlags(0).CenterHorizontal().Border(wxDOWN, 150));
 
 	record_dlg = new MacroRecordBoxDialog(this);
 	edit_dlg = new MacroEditBoxDialog(this);
 	add_dlg = new MacroAddBoxDialog(this);
-	SetSizer(bSizer1);
+	SetSizerAndFit(bSizer0);
 	Show();
 }
 

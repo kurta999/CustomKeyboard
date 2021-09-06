@@ -10,7 +10,6 @@ KeyCombination::KeyCombination(const std::string&& str)
     boost::tokenizer< boost::char_separator<char> > tok(str, sep);
     for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
     {
-        DBG("Token: %s\n", beg->c_str());
         std::string key_code = *beg;
         uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
         if(key == 0xFFFF) /* do not throw here! */
@@ -114,7 +113,6 @@ void CustomMacro::PressKey(std::string key)
         {
             char window_title[256];
             GetWindowTextA(foreground, window_title, 256);
-            DBG("Focus: %s\n", window_title);
             for(auto& m : macros)
             {
                 if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)

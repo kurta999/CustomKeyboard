@@ -65,7 +65,7 @@ public:
             fflush(fLog);
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame)
+        if(frame && frame->log_panel)
             frame->log_panel->m_Log->Append(wxString(str));
         else
             preinit_entries.Add(str);
@@ -74,7 +74,7 @@ public:
     void AppendPreinitedEntries()
     {
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame)
+        if(frame && frame->log_panel)
         {
             frame->log_panel->m_Log->Append(preinit_entries);
             preinit_entries.Clear();

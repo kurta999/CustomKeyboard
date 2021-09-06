@@ -7,15 +7,9 @@ wxEND_EVENT_TABLE()
 
 void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 {
-	enum
-	{
-		Id_AddNewBackup,
-		Id_Delete,
-	};
-
 	wxMenu menu;
-	menu.Append(Id_AddNewBackup, "&Add new backup");
-	menu.Append(Id_Delete, "&Delete");
+	menu.Append(Id_Backup_AddNew, "&Add new backup")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW_DIR, wxART_OTHER, FromDIP(wxSize(14, 14))));
+	menu.Append(Id_Backup_Delete, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
 
 	const wxTreeListItem item = evt.GetItem();
 	wxTreeListItem root = tree->GetItemParent(item);
@@ -23,12 +17,12 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 	wxTreeListItem root2 = tree->GetItemParent(root);
 
 	wxTreeListItem child = tree->GetFirstChild(item);
-	menu.Enable(Id_Delete, !(child == 0));
+	menu.Enable(Id_Backup_Delete, !(child == 0));
 
 	int ret = tree->GetPopupMenuSelectionFromUser(menu);
 	switch(ret)
 	{
-		case Id_AddNewBackup:
+		case Id_Backup_AddNew:
 		{
 			const wxString& root_str = tree->GetItemText(item, 0);
 			const wxString& item_str = tree->GetItemText(item, 1);
@@ -40,7 +34,7 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 			UpdateMainTree();
 			break;
 		}
-		case Id_Delete:
+		case Id_Backup_Delete:
 		{
 			wxClientData* itemdata = tree->GetItemData(root);
 			if(!itemdata)
@@ -225,7 +219,7 @@ BackupPanel::BackupPanel(wxWindow* parent)
 	tree->AppendColumn("Data", tree->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	UpdateMainTree();
 
-	bSizer1->Add(tree, wxSizerFlags(2).Left());
+	bSizer1->Add(tree, wxSizerFlags(2).Left().Border(wxRIGHT, 25).Expand());
 	SetSizer(bSizer1);
 	Show();
 }

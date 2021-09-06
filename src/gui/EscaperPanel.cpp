@@ -1,5 +1,8 @@
 #include "pch.h"
 
+wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 EscaperPanel::EscaperPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {

@@ -332,6 +332,7 @@
     <ClInclude Include="src\gui\ConfigurationBackup.h" />
     <ClInclude Include="src\gui\Editor.h" />
     <ClInclude Include="src\gui\EscaperPanel.h" />
+    <ClInclude Include="src\gui\FilePanel.h" />
     <ClInclude Include="src\gui\gui_id.h" />
     <ClInclude Include="src\gui\LogPanel.h" />
     <ClInclude Include="src\gui\MainPanel.h" />
@@ -441,6 +442,7 @@
     <ClCompile Include="src\gui\ConfigurationBackup.cpp" />
     <ClCompile Include="src\gui\Editor.cpp" />
     <ClCompile Include="src\gui\EscaperPanel.cpp" />
+    <ClCompile Include="src\gui\FilePanel.cpp" />
     <ClCompile Include="src\gui\LogPanel.cpp" />
     <ClCompile Include="src\gui\MainPanel.cpp" />
     <ClCompile Include="src\gui\main_frame.cpp" />

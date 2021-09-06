@@ -1,5 +1,8 @@
 #include "pch.h"
 
+wxBEGIN_EVENT_TABLE(EditorPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(GuiEditorMain, wxPanel)
 EVT_MOTION(GuiEditorMain::OnMouseMotion)
 //EVT_LEFT_DOWN(GuiEditorMain::OnMouseLeftDown)

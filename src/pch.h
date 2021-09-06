@@ -10,6 +10,7 @@
 #include "gui/EscaperPanel.h"
 #include "gui/ParserPanel.h"
 #include "gui/LogPanel.h"
+#include "gui/FilePanel.h"
 #include "gui/TrayIcon.h"
 #include "gui/MainPanel.h"
 #include "gui/main_frame.h"
