@@ -26,7 +26,10 @@ namespace utils
             auto int_val = 0;
             auto ret = std::from_chars(conv.data(), conv.data() + conv.size(), int_val);
             if(ret.ec != std::errc())
-                throw std::runtime_error(fmt::format("Bad input: {}", from_str));
+            {
+                std::error_code ecode = std::make_error_code(ret.ec);
+                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+            }
             return int_val;
         }
         else if constexpr(std::is_same_v<T, const char*>)
@@ -35,7 +38,10 @@ namespace utils
             decltype(auto) int_val = 0;
             auto ret = std::from_chars(from_str, from_str + len, int_val);
             if(ret.ec != std::errc())
-                throw std::runtime_error(fmt::format("Bad input: {}", from_str));
+            {
+                std::error_code ecode = std::make_error_code(ret.ec);
+                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+            }            
             return int_val;
         }
         else if constexpr(std::is_same_v<T, char*>)
@@ -44,7 +50,10 @@ namespace utils
             decltype(auto) int_val = 0;
             auto ret = std::from_chars(from_str, from_str + len, int_val);
             if(ret.ec != std::errc())
-                throw std::runtime_error(fmt::format("Bad input: {}", from_str));
+            {
+                std::error_code ecode = std::make_error_code(ret.ec);
+                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+            }
             return int_val;
         }
         else
