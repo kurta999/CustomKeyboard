@@ -29,7 +29,7 @@ EVT_TREELIST_ITEM_ACTIVATED(ID_MacroDetails, KeybrdPanel::OnItemActivated)
 wxEND_EVENT_TABLE()
 
 MacroRecordBoxDialog::MacroRecordBoxDialog(wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, "Macro details", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	: wxDialog(parent, wxID_ANY, "Macro recording", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
 
@@ -87,7 +87,7 @@ MacroAddBoxDialog::MacroAddBoxDialog(wxWindow* parent)
 }
 
 MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, "Message Edit", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	: wxDialog(parent, wxID_ANY, "Macro editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
 

@@ -148,7 +148,7 @@ void MacroRecorder::OnKeyReleased(KBDLLHOOKSTRUCT* p)
 
                 int scancode = i.scanCode;
                 if(i.flags & 1)
-                    scancode |= 0xE0 << 8;
+                    scancode |= 0xE0 << 8;  /* mark as extended key */
 
                 keys_seq.push_back(scancode);
                 DBG("%s ", i.key.c_str());

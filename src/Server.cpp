@@ -5,6 +5,22 @@ using namespace std::chrono_literals;
 
 extern std::mutex mutex;
 
+Server::Server()
+{
+
+}
+
+Server::~Server()
+{
+    StopAsync();
+    if(t)
+    {
+        t->join();
+        delete t;
+        t = nullptr;
+    }
+}
+
 void Server::HandleAccept(const boost::system::error_code& error, SharedSession session)
 {
     std::scoped_lock lock(mutex);
@@ -20,8 +36,8 @@ void Server::HandleAccept(const boost::system::error_code& error, SharedSession 
 
 void Server::StartAccept()
 {
-    SharedSession session(new Session(io_service));
-    acceptor->async_accept(session->sessionSocket, boost::bind(&Server::HandleAccept, this, boost::asio::placeholders::error, session));
+    SharedSession session = std::make_shared<Session>(io_service);
+    acceptor->async_accept(session->sessionSocket, std::bind(&Server::HandleAccept, this, std::placeholders::_1, session));
 }
 
 void Server::StartAsync()
@@ -47,8 +63,7 @@ void Server::StopAsync()
             }
             sessions.clear();
         }
-        //io_service.stop();
-        //TerminateThread(t->native_handle(), 0);
+        io_service.stop();
     }
 }
 
@@ -56,7 +71,7 @@ bool Server::CreateAcceptor(unsigned short port)
 {
     boost::system::error_code error;
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
-    acceptor = SharedAcceptor(new boost::asio::ip::tcp::acceptor(io_service));
+    acceptor = std::make_shared<boost::asio::ip::tcp::acceptor>(io_service);
     acceptor->open(endpoint.protocol(), error);
     if(error)
     {

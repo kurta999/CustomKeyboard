@@ -22,11 +22,8 @@ class Server : public CSingleton < Server >
     friend class Session;
 
 public:
-    Server() = default;
-    ~Server()
-    {
-        StopAsync();
-    }
+    Server();
+    ~Server();
 
     void Init();
     void StartAsync();
@@ -36,9 +33,8 @@ public:
     
     bool is_enabled = true;
     uint16_t tcp_port = 2005;
-private:
-    friend class Settings;
 
+private:
     void StopAsync();
     void HandleAccept(const boost::system::error_code& error, SharedSession session);
     void StartAccept();

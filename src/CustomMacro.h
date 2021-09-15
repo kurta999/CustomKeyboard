@@ -330,7 +330,6 @@ public:
     MacroContainer() = default;
     MacroContainer(std::string&& _name)
     {
-        //key_vec.push_back(p);
         name = std::move(_name);
     }
     std::map<std::string, std::vector<std::unique_ptr<KeyClass>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
@@ -342,15 +341,10 @@ private:
 class CustomMacro : public CSingleton < CustomMacro >
 {
     friend class CSingleton < CustomMacro >;
-    friend class KeyCombination;
 
 public:
-    CustomMacro() = default;
-    ~CustomMacro()
-    {
-        if(t)
-            TerminateThread(t->native_handle(), 0);
-    }
+    CustomMacro();
+    ~CustomMacro();
     void Init();
 
     template<typename T> void OnItemRecordingStarted(std::unique_ptr<T>&& val)
@@ -408,19 +402,23 @@ public:
     uint16_t com_port = 5;
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
-    std::vector<std::unique_ptr<KeyClass>>* editing_macro;
+    std::vector<std::unique_ptr<KeyClass>>* editing_macro = nullptr;
     KeyClass* editing_item = nullptr;
 
 private:
     friend class Settings;
 
+    void DestroyWorkingThread();
     void PressKey(std::string key);
     void UartDataReceived(const char* data, unsigned int len);
-    void UartReceiveThread();
+    void UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex &m);
 
     std::vector<std::unique_ptr<MacroContainer>> macros;
     std::string pressed_keys;
-    std::thread* t = nullptr;
+    std::thread *t = nullptr;
+    std::atomic<bool> to_exit = false;
+    std::condition_variable cv;
+    std::mutex m;
     static const std::unordered_map<std::string, int> scan_codes;
     static const std::unordered_map<int, std::string> hid_scan_codes;
 };

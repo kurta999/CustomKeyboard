@@ -7,8 +7,8 @@ using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 KeyCombination::KeyCombination(const std::string&& str)
 {
     boost::char_separator<char> sep("+");
-    boost::tokenizer< boost::char_separator<char> > tok(str, sep);
-    for(boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
+    boost::tokenizer<boost::char_separator<char>> tok(str, sep);
+    for(boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin(); beg != tok.end(); ++beg)
     {
         std::string key_code = *beg;
         uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
@@ -90,6 +90,15 @@ std::string KeyDelay::GenerateText(bool is_ini_format)
     return ret;
 }
 
+CustomMacro::CustomMacro()
+{
+
+}
+
+CustomMacro::~CustomMacro()
+{
+    DestroyWorkingThread();
+}
 
 void CustomMacro::PressKey(std::string key)
 {
@@ -212,13 +221,33 @@ void CustomMacro::Init()
 {
     if(is_enabled)
     {
-        t = new std::thread(&CustomMacro::UartReceiveThread, this);
+        if(t == nullptr)
+            t = new std::thread(&CustomMacro::UartReceiveThread, this, std::ref(to_exit), std::ref(cv), std::ref(m));
+    }
+    else
+    {
+        DestroyWorkingThread();
     }
 }
 
-void CustomMacro::UartReceiveThread()
+void CustomMacro::DestroyWorkingThread()
 {
-    while(1)
+    if(t)
+    {
+        {
+            std::lock_guard guard(m);
+            to_exit = true;
+            cv.notify_all();
+        }
+        t->join();
+        delete t;
+        t = nullptr;
+    }
+}
+
+void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m)
+{
+    while(!to_exit)
     {
         try
         {
@@ -226,21 +255,27 @@ void CustomMacro::UartReceiveThread()
             auto fp = std::bind(&CustomMacro::UartDataReceived, this, std::placeholders::_1, std::placeholders::_2);
             serial.setCallback(fp);
 
-            for(;;)
+            while(!to_exit)
             {
                 if(serial.errorStatus() || serial.isOpen() == false)
                 {
                     LOGMSG(error, "Serial port unexpectedly closed");
                     break;
                 }
-                std::this_thread::sleep_for(1000ms);
+                {
+                    std::unique_lock lock(m);
+                    cv.wait_for(lock, 1000ms);
+                }
             }
             serial.close();
         }
         catch(std::exception& e)
         {
-            std::this_thread::sleep_for(1000ms);
             LOGMSG(error, "Exception serial {}", e.what());
+            {
+                std::unique_lock lock(m);
+                cv.wait_for(lock, 1000ms);
+            }
         }
     }
 }
