@@ -7,7 +7,7 @@
 
 class MyComparator : public wxTreeListItemComparator
 {
-public: /* this comparator currently doesn't work, need to change the return value of comparators to int64_t from int in wxWidgets main library */
+public: /* to made this comparator work, you need to change the return value of comparators to int64_t from int in wxWidgets main library */
 	virtual int64_t Compare(wxTreeListCtrl* treelist, unsigned column, wxTreeListItem item1, wxTreeListItem item2) override
 	{
 		wxString text1 = treelist->GetItemText(item1, column), text2 = treelist->GetItemText(item2, column);

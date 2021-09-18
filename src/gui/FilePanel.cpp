@@ -14,34 +14,32 @@ void FilePanel::OnItemActivated(wxTreeListEvent& evt)
 {
 	wxTreeListItem item = evt.GetItem();
 	const wxString& text = tree->GetItemText(item);
-	DBG("text: %s\n", text.ToStdString().c_str());
 
-	std::list<std::string> vec_path;
-	vec_path.push_front(text.ToStdString());
+	std::list<std::wstring> vec_path;
+	vec_path.push_front(text.ToStdWstring());
 
 	wxTreeListItem item2 = item;
 	while((item2 = tree->GetItemParent(item2)) != NULL)
 	{
 		const wxString& text2 = tree->GetItemText(item2);
 		
-		std::string textstr = text2.ToStdString();
+		std::wstring textstr = text2.ToStdWstring();
 		if(!textstr.empty())
 			vec_path.push_front(textstr);
 	}
 
-	std::string final_path = m_DirText->GetValue().ToStdString();
-	if(final_path[final_path.length() - 1] != '\\')
-		final_path.append("\\");
+	std::wstring final_path = m_DirText->GetValue().ToStdWstring();
+	if(final_path[final_path.length() - 1] != L'\\')
+		final_path.append(L"\\");
 
-	std::list<std::string>::iterator it = vec_path.begin();
+	std::list<std::wstring>::iterator it = vec_path.begin();
 	std::advance(it, 1);
 
 	for(; it != vec_path.end(); ++it)
-		final_path += *it + "\\";
-	DBG("ok\n");
+		final_path += *it + L"\\";
 
-	std::string cmdline = std::string("/select,\"" + final_path);
-	ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+	std::wstring cmdline = std::wstring("/select,\"" + final_path);
+	ShellExecuteW(NULL, L"open", L"explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
 }
 
 FilePanel::FilePanel(wxFrame* parent)
@@ -99,7 +97,7 @@ void FilePanel::GenerateTree()
 	if(root_path.empty())
 		root_path = path;
 	wxTreeListItem root = tree->GetRootItem();
-	wxTreeListItem root_item = tree->AppendItem(root, root_path.generic_string().c_str());
+	wxTreeListItem root_item = tree->AppendItem(root, root_path.generic_wstring().c_str());
 	dir_map[std::filesystem::hash_value(path)] = std::make_unique<DirItems>(root_item, 0, 0);
 
 	wxTreeListItem item = root_item;
@@ -135,14 +133,14 @@ void FilePanel::GenerateTree()
 				auto it = dir_map.find(std::filesystem::hash_value(parent_p));
 				if(it != dir_map.end())
 				{
-					wxTreeListItem child_item = tree->AppendItem(it->second->item, curr_path.filename().generic_string().c_str());
+					wxTreeListItem child_item = tree->AppendItem(it->second->item, curr_path.filename().generic_wstring().c_str());
 					tree->SetItemText(child_item, 1, str.c_str());
 					if(p.depth() < 1)
 						tree->Expand(child_item);
 				}
 				else
 				{
-					wxTreeListItem child_item = tree->AppendItem(item, curr_path.filename().generic_string().c_str());
+					wxTreeListItem child_item = tree->AppendItem(item, curr_path.filename().generic_wstring().c_str());
 					tree->SetItemText(child_item, 1, str.c_str());
 					if(p.depth() < 1)
 						tree->Expand(child_item);
@@ -176,7 +174,7 @@ void FilePanel::GenerateTree()
 				auto it = dir_map.find(std::filesystem::hash_value(parent_p));
 				if(it != dir_map.end())
 				{
-					wxTreeListItem child_item = tree->AppendItem(it->second->item, curr_path.filename().generic_string().c_str());
+					wxTreeListItem child_item = tree->AppendItem(it->second->item, curr_path.filename().generic_wstring().c_str());
 					if(p.depth() < 1)
 						tree->Expand(child_item);
 
@@ -188,7 +186,7 @@ void FilePanel::GenerateTree()
 				}
 				else
 				{
-					wxTreeListItem child_item = tree->AppendItem(item, curr_path.filename().generic_string().c_str());
+					wxTreeListItem child_item = tree->AppendItem(item, curr_path.filename().generic_wstring().c_str());
 					if(p.depth() < 1)
 						tree->Expand(child_item);
 
@@ -205,6 +203,7 @@ void FilePanel::GenerateTree()
 		}
 		catch(...)
 		{
+			//LOGMSG(critical, "Exception: {}", boost::current_exception_diagnostic_information().c_str()); /* #include "boost/exception/diagnostic_information.hpp" */
 			continue;
 		}
 	}
