@@ -66,15 +66,22 @@ public:
   
     void TypeCharacter(WORD character)
     {
+#ifdef _WIN32
+        int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
+        wchar_t wide_char;
+        MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
         INPUT input = { 0 };
         input.type = INPUT_KEYBOARD;
-        input.ki.wScan = character;
+        input.ki.wScan = wide_char;
         input.ki.dwFlags = KEYEVENTF_UNICODE;
-        if((character & 0xFF00) == 0xE000)
+        if((wide_char & 0xFF00) == 0xE000)
             input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         SendInput(1, &input, sizeof(input));
         input.ki.dwFlags |= KEYEVENTF_KEYUP;
         SendInput(1, &input, sizeof(input));
+#else
+    #error "This function is only implemented for Window"
+#endif
     }
 
     void PressReleaseMouse(WORD mouse_button)
