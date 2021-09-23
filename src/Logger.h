@@ -66,7 +66,10 @@ public:
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame && frame->log_panel)
+        {
             frame->log_panel->m_Log->Append(wxString(str));
+            frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
+        }
         else
             preinit_entries.Add(str);
     }
