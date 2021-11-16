@@ -144,7 +144,7 @@ public:
     {
         seq = std::move(keys);
     }    
-    KeyCombination(const std::string&& str);
+    KeyCombination(std::string&& str);
     KeyCombination(const KeyCombination& from)
     {
         seq = from.seq;
@@ -186,7 +186,7 @@ public:
     {
         //delay = ;
     }
-    KeyDelay(const std::string&& str);
+    KeyDelay(std::string&& str);
     KeyDelay(const KeyDelay& from)
     {
         delay = from.delay;
@@ -243,7 +243,7 @@ public:
     {
         memcpy(&pos, &from.pos, sizeof(pos));
     }
-    MouseMovement(const std::string&& str);
+    MouseMovement(std::string&& str);
     virtual ~MouseMovement() { }
     MouseMovement* Clone() override
     {

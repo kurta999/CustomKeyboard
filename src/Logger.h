@@ -49,7 +49,7 @@ public:
         OutputDebugStringA(str.c_str());
         OutputDebugStringA("\n");
 #endif
-        const char* filename = file;
+        const char* filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
         for(int i = strlen(file); i > 0; i--)
         {
             if(file[i] == '/' || file[i] == '\\')

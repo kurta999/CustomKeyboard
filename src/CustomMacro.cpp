@@ -1,11 +1,11 @@
-
 #include "pch.h"
 
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 
-KeyCombination::KeyCombination(const std::string&& str)
+KeyCombination::KeyCombination(std::string&& str)
 {
+    boost::erase_all(str, " ");
     boost::char_separator<char> sep("+");
     boost::tokenizer<boost::char_separator<char>> tok(str, sep);
     for(boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin(); beg != tok.end(); ++beg)
@@ -20,11 +20,12 @@ KeyCombination::KeyCombination(const std::string&& str)
     }
 }
 
-KeyDelay::KeyDelay(const std::string&& str)
+KeyDelay::KeyDelay(std::string&& str)
 {
     size_t separator_pos = str.find("-");
     if(separator_pos != std::string::npos)
     {
+        boost::erase_all(str, " ");
         uint32_t delay_start = utils::stoi<uint32_t>(str);
         uint32_t delay_end = utils::stoi<uint32_t>(&str[separator_pos + 1]);
         delay = std::array<uint32_t, 2>{delay_start, delay_end};
@@ -35,11 +36,12 @@ KeyDelay::KeyDelay(const std::string&& str)
     }
 }
 
-MouseMovement::MouseMovement(const std::string&& str)
+MouseMovement::MouseMovement(std::string&& str)
 {
     size_t separator_pos = str.find(",");
     if(separator_pos != std::string::npos)
     {
+        boost::erase_all(str, " ");
         pos.x = utils::stoi<decltype(pos.x)>(str);
         pos.y = utils::stoi<decltype(pos.y)>(&str[separator_pos + 1]);
     }
@@ -69,8 +71,8 @@ std::string KeyCombination::GenerateText(bool is_ini_format)
     {
         text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
     }
-    if(text[text.length() - 1] == '+')
-        text.erase(text.length() - 1, text.length());
+    if(text.back() == '+')
+        text.pop_back();
     std::string&& ret = is_ini_format ? fmt::format(" KEY_SEQ[{}]", text) : text;
     return ret;
 }
