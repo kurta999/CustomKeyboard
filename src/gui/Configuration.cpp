@@ -298,6 +298,14 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	sizer_box_symlink->Add(m_CreateHardlink);
 	bSizer1->Add(sizer_box_symlink);
 
+	wxSizer* const sizer_box_antilock = new wxStaticBoxSizer(wxHORIZONTAL, this, "&AntiLock settings");
+	m_IsAntiLock = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+	sizer_box_antilock->Add(m_IsAntiLock);
+	sizer_box_antilock->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+	m_AntiLockTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
+	sizer_box_antilock->Add(m_AntiLockTimeout);
+	bSizer1->Add(sizer_box_antilock);
+
 	UpdatePanel(); /* update panel for first time, because changeing isn't happen when user clicks to aui and it shows first panel */
 
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
@@ -312,11 +320,11 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			if(m_serial->GetSelection() > 0)
 				CustomMacro::Get()->com_port = atoi(&com_str.c_str().AsChar()[2]);
 			Server::Get()->is_enabled = m_IsTcp->IsChecked();
-			Server::Get()->tcp_port = m_TcpPortSpin->GetValue();
+			Server::Get()->tcp_port = static_cast<uint16_t>(m_TcpPortSpin->GetValue());
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
 			Settings::Get()->remember_window_size = m_RememberWindowSize->GetValue();
-			Settings::Get()->default_page = m_DefaultPage->GetValue();
+			Settings::Get()->default_page = static_cast<uint8_t>(m_DefaultPage->GetValue());
 			PrintScreenSaver::Get()->screenshot_key = m_ScreenshotKey->GetValue(); /* in case of invalid key screenshot saving never will be triggered - nothing special.. using it for disabling */
 			PrintScreenSaver::Get()->timestamp_format = m_ScreenshotDateFmt->GetValue();
 			PrintScreenSaver::Get()->screenshot_path = m_ScreenshotPath->GetValue().ToStdString();
@@ -325,6 +333,8 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SymlinkCreator::Get()->mark_key = m_MarkSymlink->GetValue().ToStdString();
 			SymlinkCreator::Get()->place_symlink_key = m_CreateSymlink->GetValue().ToStdString();
 			SymlinkCreator::Get()->place_hardlink_key = m_CreateHardlink->GetValue().ToStdString();
+			AntiLock::Get()->is_enabled = m_IsAntiLock->GetValue();
+			AntiLock::Get()->timeout = static_cast<uint32_t>(m_AntiLockTimeout->GetValue());
 
 			Settings::Get()->SaveFile(false);
 
@@ -369,6 +379,8 @@ void ComTcpPanel::UpdatePanel()
 	m_MarkSymlink->SetValue(SymlinkCreator::Get()->mark_key);
 	m_CreateSymlink->SetValue(SymlinkCreator::Get()->place_symlink_key);
 	m_CreateHardlink->SetValue(SymlinkCreator::Get()->place_hardlink_key);
+	m_IsAntiLock->SetValue(AntiLock::Get()->is_enabled);
+	m_AntiLockTimeout->SetValue(AntiLock::Get()->timeout);
 }
 
 void KeybrdPanel::UpdateMainTree()

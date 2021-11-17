@@ -27,8 +27,8 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 			const wxString& root_str = tree->GetItemText(item, 0);
 			const wxString& item_str = tree->GetItemText(item, 1);
 
-			BackupEntry* p = new BackupEntry("C:\\folder_non_exists", std::vector<std::filesystem::path>{"C:\\backup"}, 
-				std::vector<std::string>({ ".gitignore", ".txt" }), 2, 0, 1);
+			BackupEntry* p = new BackupEntry(L"C:\\folder_non_exists", std::vector<std::filesystem::path>{L"C:\\backup"}, 
+				std::vector<std::wstring>({ L".gitignore", L".txt" }), 2, 0, 1);
 			DirectoryBackup::Get()->backups.push_back(p);
 
 			UpdateMainTree();
@@ -57,6 +57,8 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 	if(root)
 	{
 		wxClientData* itemdata = tree->GetItemData(root);
+		if(!itemdata) return; /* To avoid crash */
+
 		wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
 		uint16_t id = dret->GetValue();
 
@@ -66,7 +68,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			int ret_code = d.ShowModal();
 			if(ret_code == wxID_OK)  /* OK */
 			{
-				std::string str = d.GetPath().ToStdString();
+				std::wstring str = d.GetPath().ToStdWstring();
 				if(std::filesystem::exists(str))
 				{
 					DirectoryBackup::Get()->backups[id]->from = str;
@@ -91,7 +93,7 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			int ret_code = d.ShowModal();
 			if(ret_code == wxID_OK)  /* OK */
 			{
-				std::string result = d.GetValue().ToStdString();
+				std::wstring result = d.GetValue().ToStdWstring();
 				std::vector<std::filesystem::path> new_destination_list;
 				boost::split(new_destination_list, result, boost::is_any_of("\n"));
 
@@ -112,8 +114,8 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 			int ret_code = d.ShowModal();
 			if(ret_code == wxID_OK)  /* OK */
 			{ 
-				std::string result = d.GetValue().ToStdString();
-				std::vector<std::string> new_ignore_list;
+				std::wstring result = d.GetValue().ToStdWstring();
+				std::vector<std::wstring> new_ignore_list;
 				boost::split(new_ignore_list, result, boost::is_any_of("\n"));
 
 				DirectoryBackup::Get()->backups[id]->ignore_list = std::move(new_ignore_list);

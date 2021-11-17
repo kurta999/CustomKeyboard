@@ -321,6 +321,7 @@
     <ClInclude Include="libs\sqlite\sqlite3.h" />
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="src\AntiLock.h" />
     <ClInclude Include="src\commitid.h" />
     <ClInclude Include="src\CustomKeyboard.h" />
     <ClInclude Include="src\CustomMacro.h" />
@@ -433,6 +434,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\AntiLock.cpp" />
     <ClCompile Include="src\CustomKeyboard.cpp" />
     <ClCompile Include="src\CustomMacro.cpp" />
     <ClCompile Include="src\Database.cpp" />

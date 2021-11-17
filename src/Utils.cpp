@@ -56,4 +56,22 @@ namespace utils
 
 		return std::string("X");
 	}
+
+	size_t MBStringToWString(const std::string& src, std::wstring& dest)
+	{
+		wchar_t* wstr = new wchar_t[src.length()];
+		size_t ret = std::mbstowcs(wstr, src.c_str(), src.length());
+		dest = wstr;
+		delete[] wstr;
+		return ret;
+	}
+
+	size_t WStringToMBString(const std::wstring& src, std::string& dest)
+	{
+		char* str = new char[src.length()];
+		size_t ret = std::wcstombs(str, src.c_str(), src.length());
+		dest = str;
+		delete[] str;
+		return ret;
+	}
 }

@@ -4,7 +4,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 {
 	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 	auto folder_name = backup->from.filename();
-	auto folder_name_with_date = folder_name.generic_string();
+	std::wstring folder_name_with_date = folder_name.generic_wstring();
 
 	if(!std::filesystem::exists(backup->from))
 		return; /* if source directory doesn't exists, just do nothing */
@@ -19,10 +19,10 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			continue;
 		}
 
-		std::set<std::string> files;
+		std::set<std::wstring> files;
 		for(auto& f : std::filesystem::directory_iterator(t))
 		{
-			files.emplace(f.path().generic_string());
+			files.emplace(f.path().generic_wstring());
 		}
 		if(files.size() >= (size_t)backup->max_backups)
 		{
@@ -36,7 +36,9 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	std::tm* now = std::localtime(&current_time);
 	char datetime[64];
 	strftime(datetime, sizeof(datetime), backup_time_format.c_str(), now);
-	folder_name_with_date += std::string(datetime);
+	std::string date_tmp(datetime);
+
+	folder_name_with_date += std::wstring(date_tmp.begin(), date_tmp.end());
 
 	char* hash_buf = nullptr;
 	if(backup->calculate_hash)
@@ -63,7 +65,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 
 			bool is_file = std::filesystem::is_regular_file(p.path());
 
-			if(backup->IsInIgnoreList(rel_path.generic_string())) continue;
+			if(backup->IsInIgnoreList(rel_path.generic_wstring())) continue;
 			//DBGW(L"f: %d, %s\n", is_file, p.path().c_str());
 
 			if(!is_file)

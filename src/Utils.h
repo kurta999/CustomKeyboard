@@ -13,6 +13,8 @@ namespace utils
     bool is_number(const std::string& s);
     void MadeTextFromKeys(std::string& chr);
     std::string GetDataUnit(size_t input);
+    size_t MBStringToWString(const std::string& src, std::wstring& dest);
+    size_t WStringToMBString(const std::wstring& src, std::string& dest);
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {

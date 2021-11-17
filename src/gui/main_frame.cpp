@@ -142,6 +142,8 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			}
 		}
 	}
+
+	AntiLock::Get()->Process();
 	HandleNotifications();
 	HandleBackupProgressDialog();
 }

@@ -30,6 +30,7 @@
 #include "Session.h"
 #include "SymlinkCreator.h"
 #include "MacroRecorder.h"
+#include "AntiLock.h"
 #include "Utils.h"
 
 #include <wx/aui/aui.h>

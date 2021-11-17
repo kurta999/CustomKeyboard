@@ -188,20 +188,23 @@ void Settings::LoadFile()
             if(window_size.y < WINDOW_SIZE_Y)
                 window_size.y = WINDOW_SIZE_Y;
         }
-        PrintScreenSaver::Get()->screenshot_key = pt.get_child("Screenshot").find("ScreenshotKey")->second.data();
-        PrintScreenSaver::Get()->timestamp_format = pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data();
-        PrintScreenSaver::Get()->screenshot_path = pt.get_child("Screenshot").find("ScreenshotPath")->second.data();
-        PathSeparator::Get()->replace_key = pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data();
-        
-        SymlinkCreator::Get()->is_enabled = utils::stob(pt.get_child("SymlinkCreator").find("Enable")->second.data());
-        SymlinkCreator::Get()->mark_key = pt.get_child("SymlinkCreator").find("MarkKey")->second.data();
-        SymlinkCreator::Get()->place_symlink_key = pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data();
-        SymlinkCreator::Get()->place_hardlink_key = pt.get_child("SymlinkCreator").find("PlaceHardlinkKey")->second.data();
+        PrintScreenSaver::Get()->screenshot_key = std::move(pt.get_child("Screenshot").find("ScreenshotKey")->second.data());
+        PrintScreenSaver::Get()->timestamp_format = std::move(pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data());
+        PrintScreenSaver::Get()->screenshot_path = std::move(pt.get_child("Screenshot").find("ScreenshotPath")->second.data());
+        PathSeparator::Get()->replace_key = std::move(pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data());
 
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
+        
+        SymlinkCreator::Get()->is_enabled = utils::stob(pt.get_child("SymlinkCreator").find("Enable")->second.data());
+        SymlinkCreator::Get()->mark_key = std::move(pt.get_child("SymlinkCreator").find("MarkKey")->second.data());
+        SymlinkCreator::Get()->place_symlink_key = std::move(pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data());
+        SymlinkCreator::Get()->place_hardlink_key = std::move(pt.get_child("SymlinkCreator").find("PlaceHardlinkKey")->second.data());
 
-        DirectoryBackup::Get()->backup_time_format = pt.get_child("BackupSettings").find("BackupFileFormat")->second.data();
+        AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
+        AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
+
+        DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
         /* load backup configs */
         DirectoryBackup::Get()->Clear();
@@ -216,8 +219,10 @@ void Settings::LoadFile()
             std::vector<std::filesystem::path> to;
             boost::split(to, pt.get_child(key).find("To")->second.data(), boost::is_any_of("|"));
 
-            std::vector<std::string> ignore_list;
-            boost::split(ignore_list, pt.get_child(key).find("Ignore")->second.data(), boost::is_any_of("|"));
+            std::vector<std::wstring> ignore_list;
+            std::wstring ignore;
+            utils::MBStringToWString(pt.get_child(key).find("Ignore")->second.data(), ignore);
+            boost::split(ignore_list, ignore, boost::is_any_of("|"));
             int max_backups = utils::stoi<decltype(max_backups)>(pt.get_child(key).find("MaxBackups")->second.data());
             bool calculate_hash = utils::stob(pt.get_child(key).find("CalculateHash")->second.data());
             size_t buffer_size = utils::stob(pt.get_child(key).find("BufferSize")->second.data());
@@ -234,7 +239,7 @@ void Settings::LoadFile()
     }
     catch(boost::property_tree::ptree_error& e)
     {
-        LOGMSG(error, "Exception: {}", e.what());
+        LOGMSG(error, "Ptree exception: {}", e.what());
     }
     catch(std::exception& e)
     {
@@ -334,32 +339,39 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "PlaceSymlinkKey = " << SymlinkCreator::Get()->place_symlink_key << "\n";
     out << "PlaceHardlinkKey = " << SymlinkCreator::Get()->place_hardlink_key << "\n";
     out << "\n";
+    out << "[AntiLock]\n";
+    out << "Enable = " << AntiLock::Get()->is_enabled << "\n";
+    out << "Timeout = " << AntiLock::Get()->timeout << " # Seconds\n";
+    out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
     if(!write_default_macros)
     {
         int cnt = 1;
-        std::string key;
+        std::wstring key;
         for(auto& i : DirectoryBackup::Get()->backups)
         {
             out << fmt::format("\n[Backup_{}]\n", cnt++);
-            out << "From = " << i->from.generic_string() << '\n';
+            out << "From = " << i->from.generic_wstring() << '\n';
             key.clear();
             for(auto& x : i->to)
             {
-                key += x.generic_string() + '|';
+                key += x.generic_wstring() + '|';
             }
-            if(key[key.length() - 1] == '|')
-                key.erase(key.length() - 1, key.length());
+            if(key.back() == '|')
+                key.pop_back();
             out << "To = " << key << '\n';
             key.clear();
             for(auto& x : i->ignore_list)
             {
                 key += x + '|';
             }
-            if(key[key.length() - 1] == '|')
-                key.erase(key.length() - 1, key.length());
-            out << "Ignore = " << key << '\n';
+            if(key.back() == '|')
+                key.pop_back();
+
+            std::string ignore_list;
+            utils::WStringToMBString(key, ignore_list);
+            out << "Ignore = " << ignore_list << '\n';
             out << "MaxBackups = " << i->max_backups << '\n';
             out << "CalculateHash = " << i->calculate_hash << '\n';
             out << "BufferSize = " << i->hash_buf_size << " # Buffer size for file operations - determines how much data is read once, Unit: Megabytes" << '\n';

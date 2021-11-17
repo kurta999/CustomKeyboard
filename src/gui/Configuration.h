@@ -105,6 +105,8 @@ public:
 	wxTextCtrl* m_MarkSymlink;
 	wxTextCtrl* m_CreateSymlink;
 	wxTextCtrl* m_CreateHardlink;
+	wxCheckBox* m_IsAntiLock;
+	wxSpinCtrl* m_AntiLockTimeout;
 
 private:
 	wxButton* m_Ok;
