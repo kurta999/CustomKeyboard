@@ -20,7 +20,6 @@ bool MyApp::OnInit()
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     SetTopWindow(frame);
-    Database::Get()->GenerateGraphs();
     return true;
 }
 

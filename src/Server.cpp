@@ -116,6 +116,7 @@ void Server::Init(void)
             return;
         }
         t = new std::thread(&Server::StartAsync, this);
+        Database::Get()->GenerateGraphs();
     }
 }
 
