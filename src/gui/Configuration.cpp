@@ -247,6 +247,12 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	sizer_box_com->Add(com_vert_2);
 	bSizer1->Add(sizer_box_com);
 
+	wxSizer* const sizer_box_pathsep = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Path separator replacer settings");
+	sizer_box_pathsep->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+	m_PathSepReplacerKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	sizer_box_pathsep->Add(m_PathSepReplacerKey);
+	bSizer1->Add(sizer_box_pathsep);
+
 	wxSizer* const sizer_box_app = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Application settings");
 	m_IsMinimizeOnExit = new wxCheckBox(this, wxID_ANY, wxT("Minimize on exit?"), wxDefaultPosition, wxDefaultSize, 0);
 	sizer_box_app->Add(m_IsMinimizeOnExit, 0, wxALL, 5);
@@ -321,6 +327,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 				CustomMacro::Get()->com_port = atoi(&com_str.c_str().AsChar()[2]);
 			Server::Get()->is_enabled = m_IsTcp->IsChecked();
 			Server::Get()->tcp_port = static_cast<uint16_t>(m_TcpPortSpin->GetValue());
+			PathSeparator::Get()->replace_key = m_PathSepReplacerKey->GetValue();
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
 			Settings::Get()->remember_window_size = m_RememberWindowSize->GetValue();
@@ -367,6 +374,7 @@ void ComTcpPanel::UpdatePanel()
 	m_serial->SetSelection(sel);
 	m_IsTcp->SetValue(Server::Get()->is_enabled);
 	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
+	m_PathSepReplacerKey->SetValue(PathSeparator::Get()->replace_key);
 	m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
 	m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
 	m_RememberWindowSize->SetValue(Settings::Get()->remember_window_size);

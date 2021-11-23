@@ -4,7 +4,7 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
-    if (!wxApp::OnInit())
+    if(!wxApp::OnInit())
         return false;
 
     Settings::Get()->Init();
@@ -16,7 +16,7 @@ bool MyApp::OnInit()
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
 
-    if (!wxTaskBarIcon::IsAvailable())
+    if(!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     SetTopWindow(frame);

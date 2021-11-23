@@ -93,6 +93,7 @@ public:
 	wxCheckBox* m_IsAdvancedMacro;
 	wxCheckBox* m_IsCom;
 	wxComboBox* m_serial;
+	wxTextCtrl* m_PathSepReplacerKey;
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
 	wxCheckBox* m_RememberWindowSize;

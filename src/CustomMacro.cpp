@@ -402,6 +402,7 @@ const std::unordered_map<int, std::string> CustomMacro::hid_scan_codes =
         {0x25, "8"},
         {0x26, "9"},
         {0x27, "0"},
+        {0x2A, "NUM_BACKSPACE"},
         {0x3A, "F1"},
         {0x3B, "F2"},
         {0x3C, "F3"},
