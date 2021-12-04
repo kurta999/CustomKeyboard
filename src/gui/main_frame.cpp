@@ -56,7 +56,10 @@ SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
 "wxWidgets: " + wxwidgets_version + "\n" +
 "boost: " + BOOST_LIB_VERSION + "\n" +
 "lodepng: " + LODEPNG_VERSION_STRING + "\n" +
-"fmt: " + fmt_version + "\n", "OK");
+"fmt: " + fmt_version + "\n\n" +
+"Build info:\n" +
+"Compiler: " + BOOST_PP_STRINGIZE(_MSC_FULL_VER) + "\n"
+"Built on: " + __TIMESTAMP__, "OK");
 }
 
 void MyFrame::OnQuit(wxCommandEvent& event)
