@@ -117,6 +117,18 @@ void CustomMacro::PressKey(std::string key)
     if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
         return;
 
+    auto ExecuteGlobalMacro = [this]()
+    {
+        const auto it = macros[0]->key_vec.find(pressed_keys);
+        if(it != macros[0]->key_vec.end())
+        {
+            for(const auto& i : it->second)
+            {
+                i->DoWrite();
+            }
+        }
+    };
+
     if(use_per_app_macro)
     {
         HWND foreground = GetForegroundWindow();
@@ -124,6 +136,7 @@ void CustomMacro::PressKey(std::string key)
         {
             char window_title[256];
             GetWindowTextA(foreground, window_title, 256);
+            bool app_found = false;
             for(auto& m : macros)
             {
                 if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)
@@ -136,21 +149,21 @@ void CustomMacro::PressKey(std::string key)
                             i->DoWrite();
                         }
                     }
-                    return; /* Exit from loop */
+                    app_found = true;
+                    break;
                 }
             }
+            if(!app_found)
+                ExecuteGlobalMacro();
+        }
+        else
+        {
+            ExecuteGlobalMacro();
         }
     }
     else
     {
-        const auto it = macros[0]->key_vec.find(pressed_keys);
-        if(it != macros[0]->key_vec.end())
-        {
-            for(const auto& i : it->second)
-            {
-                i->DoWrite();
-            }
-        }
+        ExecuteGlobalMacro();
     }
 }
 
@@ -164,7 +177,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
     {
         pressed_keys.clear();
     }
-   
+
     if(k->crc == crc)
     {
         static const char all_released[14] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
