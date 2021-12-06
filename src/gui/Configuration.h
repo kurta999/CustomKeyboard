@@ -111,6 +111,7 @@ public:
 
 private:
 	wxButton* m_Ok;
+	wxButton* m_Backup;
 
 	wxDECLARE_EVENT_TABLE();
 };

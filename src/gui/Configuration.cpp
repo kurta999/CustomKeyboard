@@ -314,9 +314,17 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 	UpdatePanel(); /* update panel for first time, because changeing isn't happen when user clicks to aui and it shows first panel */
 
+	wxBoxSizer* v_sizer_1 = new wxBoxSizer(wxHORIZONTAL);
 	m_Ok = new wxButton(this, wxID_ANY, "Save", wxDefaultPosition, wxDefaultSize);
 	m_Ok->SetToolTip("Save all settings to settings.ini file");
-	bSizer1->Add(m_Ok, 0, wxALL, 5);
+	v_sizer_1->Add(m_Ok, 0, wxALL, 5);
+
+	m_Backup = new wxButton(this, wxID_ANY, "Backup", wxDefaultPosition, wxDefaultSize);
+	m_Backup->SetToolTip("Backup settings.ini file");
+	v_sizer_1->Add(m_Backup, 0, wxALL, 5);
+
+	bSizer1->Add(v_sizer_1);
+
 	m_Ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			CustomMacro::Get()->use_per_app_macro = m_IsPerAppMacro->IsChecked();
@@ -347,6 +355,25 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			frame->pending_msgs.push_back({ (uint8_t)SettingsSaved });
+		});
+
+	m_Backup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			std::ifstream in("settings.ini", std::ios::in | std::ios::binary);
+			if(in.is_open())
+			{
+				std::string in_str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+				in.close();
+
+				time_t current_time;
+				tm* current_tm;
+				time(&current_time);
+				current_tm = localtime(&current_time);
+				std::ofstream out(fmt::format("settings.ini_{:%Y.%m.%d_%H-%M-%S}.ini", *current_tm), std::ofstream::binary);
+				out << in_str;
+				out.close();
+				LOGMSG(notification, "Settings.ini has been successfully backed up");
+			}
 		});
 	SetSizer(bSizer1);
 }
