@@ -2,7 +2,7 @@
 
 set PROJECT_NAME=CustomKeyboard
 set EXPORT_APP_DIR=C:\Users\%USERNAME%\Desktop
-set MSBUILD_LOC="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\"
+set MSBUILD_LOC="C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin"
 
 git describe --abbrev=0 --tags >%PROJECT_NAME%
 set /p TAG=<%PROJECT_NAME%
