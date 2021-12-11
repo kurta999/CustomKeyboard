@@ -32,4 +32,5 @@ public:
 	boost::asio::ip::tcp::socket sessionSocket;
 	bool waitingForResponse;
 	bool writeInProgress = false;
+	boost::asio::deadline_timer transferTimer;
 };

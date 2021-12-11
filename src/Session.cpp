@@ -2,7 +2,7 @@
 
 std::mutex mutex;
 
-Session::Session(boost::asio::io_service& io_service) : sessionSocket(io_service)
+Session::Session(boost::asio::io_service& io_service) : sessionSocket(io_service), transferTimer(io_service)
 {
 
 }
@@ -53,13 +53,17 @@ void Session::SendAsync(const std::string& buffer)
 	if(writeInProgress)
 	{
 		pendingMessages.push(buffer);
+		/* TODO: finish this */
+		// if(transferTimer.expires_at())
+		transferTimer.expires_from_now(boost::posix_time::milliseconds(100));
+		transferTimer.async_wait(std::bind(&Session::HandleTransferTimer, shared_from_this(), std::placeholders::_1));
 	}
 	else
 	{
 		sentData = buffer;
 		writeInProgress = true;
 		boost::asio::async_write(sessionSocket, boost::asio::buffer(sentData, sentData.length()), 
-			boost::bind(&Session::HandleWrite, shared_from_this(), boost::asio::placeholders::error));
+			std::bind(&Session::HandleWrite, shared_from_this(), std::placeholders::_1));
 	}
 }
 
@@ -85,7 +89,7 @@ void Session::StartAsync()
 	}
 	
 	sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)), 
-		boost::bind(&Session::HandleRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+		std::bind(&Session::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 	Server::Get()->sessions.emplace(shared_from_this());
 }
 
