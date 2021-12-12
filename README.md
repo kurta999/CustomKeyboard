@@ -8,6 +8,7 @@ This is a personal project for myself to improve my coding experience. It's open
 5. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
 6. **Sensors** - Backend for sensors with SQLite database for measurements & graphs generation to .html file
 7. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support
+8. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
 
 ## Explanation
 1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for tranmitting keypresses to PC. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
@@ -34,12 +35,12 @@ This is a personal project for myself to improve my coding experience. It's open
 - [Chart.js](https://www.chartjs.org/ "Charts.js' Homepage")
 
 Required external depencencies:
-- [Boost 1.77.0](https://www.boost.org/ "Boost's Homepage")
+- [Boost 1.78.0](https://www.boost.org/ "Boost's Homepage")
 - [wxWidgets 3.1.5](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 
 ## Building
 1. Get the latest version of Visual Studio 2019, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_77_0
+- boost: C:\Program Files\boost\boost_1_78_0
 - wxWidgets: C:\wxWidgets-3.1.5
 
 Feel free to change, but don't forget to change them too in Visual Studio's project file.
