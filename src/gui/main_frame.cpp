@@ -58,7 +58,7 @@ SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
 "lodepng: " + LODEPNG_VERSION_STRING + "\n" +
 "fmt: " + fmt_version + "\n\n" +
 "Build info:\n" +
-"Compiler: " + BOOST_PP_STRINGIZE(_MSC_FULL_VER) + "\n"
+"Compiler: " + BOOST_COMPILER + "\n"
 "Built on: " + __TIMESTAMP__, "OK");
 }
 

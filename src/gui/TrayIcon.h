@@ -30,6 +30,7 @@ public:
 	void SetMainFrame(MyFrame* frame);
 
 	void OnLeftDoubleClick(wxTaskBarIconEvent& event);
+	void OnOpenScreenshots(wxCommandEvent& event);
 	void OnReload(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	void OnBackup(wxCommandEvent& event);
@@ -39,6 +40,7 @@ public:
 	{
 		Exit = 0,
 		ReloadConfig,
+		OpenScreenshots,
 		DoBackup = 1500,
 	};
 	static int max_backups;

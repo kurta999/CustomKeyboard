@@ -25,7 +25,7 @@ enum severity_level
 
 #define LOGMSG(level, message, ...)      \
     do {\
-    Logger::Get()->Log(level, __FILE__, __LINE__, __FUNCTION__, message, __VA_ARGS__); \
+    Logger::Get()->Log(level, __FILE__, __LINE__, __FUNCTION__, message, ##__VA_ARGS__); \
 } while(0)
 
 class Logger : public CSingleton < Logger >
