@@ -85,7 +85,9 @@ wxMenu* TrayIcon::CreatePopupMenu()
 
 void TrayIcon::OnOpenScreenshots(wxCommandEvent& WXUNUSED(event))
 {
+#ifdef _WIN32
 	ShellExecuteW(NULL, NULL, PrintScreenSaver::Get()->screenshot_path.generic_wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
 }
 
 void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))

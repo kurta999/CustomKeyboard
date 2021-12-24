@@ -14,13 +14,13 @@ void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     strftime(buf, len, timestamp_format.c_str(), timeinfo);
-    strncat(buf, ".png", 4);
+    strncat(buf, ".png", 5);
 }
 
 void PrintScreenSaver::DoSave()
 {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-
+#ifdef _WIN32
     OpenClipboard(NULL);
     HGLOBAL ClipboardDataHandle = (HGLOBAL)GetClipboardData(CF_DIB);
     if(!ClipboardDataHandle)
@@ -86,6 +86,7 @@ void PrintScreenSaver::DoSave()
         std::lock_guard lock(frame->mtx);
         frame->pending_msgs.push_back({ (uint8_t)ScreenshotSaved, dif, std::move(save_path) });
     }
+#endif
 }
 
 void PrintScreenSaver::SaveScreenshot()
@@ -95,7 +96,7 @@ void PrintScreenSaver::SaveScreenshot()
 
     screenshot_future = std::async(&PrintScreenSaver::DoSave, this);
 }
-
+#ifdef _WIN32
 // Returns the offset, in bytes, from the start of the BITMAPINFO, to the start of the pixel data array, for a packed DIB.
 INT PrintScreenSaver::GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader)
 {
@@ -193,3 +194,4 @@ unsigned PrintScreenSaver::decodeBMP(std::vector<unsigned char>& image, unsigned
         }
     return 0;
 }
+#endif

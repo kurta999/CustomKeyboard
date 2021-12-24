@@ -23,6 +23,7 @@ MainPanel::MainPanel(wxFrame* parent)
 			Database::Get()->GenerateGraphs();
 		});
 
+#if defined _WIN32
 #define ADD_MEASUREMENT_TEXT(var_name, html_name, name, tooltip, color) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
 	var_name->Wrap(-1); \
@@ -35,7 +36,15 @@ MainPanel::MainPanel(wxFrame* parent)
 			DBGW(L"Graphs" ##html_name## ".html"); \
 			ShellExecute(NULL, L"open", L"Graphs\\"##html_name##".html", NULL, NULL, SW_SHOWNORMAL); \
 		})
-
+#else
+#define ADD_MEASUREMENT_TEXT(var_name, html_name, name, tooltip, color) \
+	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \
+	var_name->Wrap(-1); \
+	var_name->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+	var_name->SetForegroundColour(color); \
+	var_name->SetToolTip(tooltip"\nPress MIDDLE CLICK to open graphs in browser"); \
+	bSizer1->Add(var_name, 0, wxALL, 5); 
+#endif
 	ADD_MEASUREMENT_TEXT(m_textTemp, "Temperature", "Temperature: N/A", "Unit: °C", wxColour(244, 99, 11));
 	ADD_MEASUREMENT_TEXT(m_textHum, "Humidity", "Humidity: N/A", "Unit: % RH", wxColour(29, 79, 252));
 	ADD_MEASUREMENT_TEXT(m_textCO2, "CO2", "CO2: N/A", "Unit: ppm", wxColour(237, 60, 251));
@@ -51,7 +60,11 @@ MainPanel::MainPanel(wxFrame* parent)
 	bSizer1->Add(m_OpenGraphs, 0, wxALL, 5);
 	m_OpenGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
+#ifdef _WIN32
 			ShellExecute(NULL, L"open", L"Graphs\\Temperature.html", NULL, NULL, SW_SHOWNORMAL);
+#else
+
+#endif
 		});
 
 	m_GraphStartHours1 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 7 * 24);

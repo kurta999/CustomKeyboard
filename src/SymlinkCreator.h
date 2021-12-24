@@ -2,7 +2,9 @@
 
 #include "utils/CSingleton.h"
 #include <string>
+#ifdef _WIN32
 #include <shlobj.h>
+#endif
 
 class SymlinkCreator : public CSingleton < SymlinkCreator >
 {
@@ -23,7 +25,8 @@ private:
     void Place(bool is_symlink);
     void GetSelectedItemsFromFileExplorer();
     std::wstring GetDestinationPathFromFileExplorer();
+#ifdef _WIN32
     IFolderView2* GetFolderView2();
-
-    std::vector<PWSTR> selected_items;
+#endif
+    std::vector<wchar_t*> selected_items;
 };

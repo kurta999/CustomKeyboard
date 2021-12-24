@@ -5,7 +5,7 @@
 class KeyInfo
 {
 public:
-    KeyInfo(DWORD scanCode_, DWORD flags_, std::string&& str, bool is_down_) :
+    KeyInfo(uint32_t scanCode_, uint32_t flags_, std::string&& str, bool is_down_) :
         scanCode(scanCode_), flags(flags_), key(std::move(str)), is_down(is_down_)
     {
 
@@ -37,9 +37,9 @@ public:
     }
 
     KeyInfo& operator= (KeyInfo&&) { return *this; }
-    DWORD scanCode;
+    uint32_t scanCode;
     std::string key;
-    DWORD flags;
+    uint32_t flags;
     bool is_down; /* 1 = down (pressed), 1 = up (released) */
 };
 
@@ -60,13 +60,15 @@ public:
     void MarkMousePosition(LPPOINT* pos);
     std::string GetKeyFromScanCode(int scancode, uint32_t flags);
 
+#ifdef _WIN32
     void OnKeyPressed(KBDLLHOOKSTRUCT* p);
     void OnKeyReleased(KBDLLHOOKSTRUCT* p);
+#endif
 private:
     void FinishTextMacro(std::string& out, bool clear);
 
     std::vector<KeyInfo> key_press;  /* TODO: consider using (smart?) pointers here */
-    DWORD last_key_down = std::numeric_limits<DWORD>::max();
+    uint32_t last_key_down = std::numeric_limits<uint32_t>::max();
 
     uint8_t current_macro_type = 0xFF;
     uint8_t last_macro_type = 0xFF;

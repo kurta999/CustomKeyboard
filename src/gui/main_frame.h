@@ -72,7 +72,7 @@ public:
 	std::mutex mtx;
 	std::deque<std::vector<std::any>> pending_msgs;
 	wxProgressDialog* backup_prog = NULL;
-	std::atomic<bool> show_backup_dlg;
+	std::atomic<bool> show_backup_dlg = false;
 
 	wxDECLARE_EVENT_TABLE();
 private:

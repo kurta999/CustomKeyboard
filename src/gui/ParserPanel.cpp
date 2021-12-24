@@ -77,7 +77,9 @@ ParserPanel::ParserPanel(wxFrame* parent)
 	// Give a list of keywords. They will be given the style specified for
 	// wxSTC_C_WORD items.
 	m_StyledTextCtrl->SetKeyWords(0, wxT("return int float double char this new delete goto for while do if else uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t"));
-	m_StyledTextCtrl->DragAcceptFiles(true);
+#ifdef _WIN32
+	m_StyledTextCtrl->DragAcceptFiles(true);  /* This one doesn't work with GTK for some reason... */
+#endif
 	m_StyledTextCtrl->Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(ParserPanel::OnFileDrop), NULL, this);
 
 	wxBoxSizer* bSizer2 = new wxBoxSizer(wxHORIZONTAL);

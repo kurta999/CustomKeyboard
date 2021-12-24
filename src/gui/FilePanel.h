@@ -5,6 +5,7 @@
 
 #include <map>
 
+#ifdef _WIN32
 class MyComparator : public wxTreeListItemComparator
 {
 public: /* to made this comparator work, you need to change the return value of comparators to int64_t from int in wxWidgets main library */
@@ -40,7 +41,7 @@ private:
 		return n * factor;
 	}
 };
-
+#endif
 class DirItems
 {
 public:
@@ -70,7 +71,9 @@ public:
 	wxButton* m_Generate = nullptr;
 	wxButton* m_Clear = nullptr;
 	wxTreeListCtrl* tree;
+#ifdef _WIN32
 	MyComparator m_comparator;
+#endif
 private:
 
 	std::map<size_t, std::unique_ptr<DirItems>> dir_map;

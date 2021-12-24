@@ -5,6 +5,7 @@
 #include <wx/aui/aui.h>
 #include <wx/stc/stc.h>
 #include <wx/treelist.h>
+#include <wx/spinctrl.h>
 
 template <class T>
 class wxIntClientData : public wxClientData

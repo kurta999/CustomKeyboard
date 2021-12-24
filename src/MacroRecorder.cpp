@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#ifdef _WIN32
 static HHOOK hHook_keyboard = nullptr;
 static HHOOK hHook_mouse = nullptr;
 
@@ -47,9 +48,11 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
         CustomMacro::Get()->OnItemRecordingComplete(std::make_unique<MouseClick>(key));
     return CallNextHookEx(0, nCode, wParam, lParam);
 }
+#endif
 
 void MacroRecorder::FinishTextMacro(std::string& out, bool clear)
 {
+#ifdef _WIN32
     bool is_capital = false;
     for(auto& i : key_press)
     {
@@ -75,6 +78,9 @@ void MacroRecorder::FinishTextMacro(std::string& out, bool clear)
                 DBG("NOT TEXT ERROR: %s\n", chr.c_str());
         }
     }
+#else
+
+#endif
     DBG("text final: %s\n", out.c_str());
     if(clear)
     {
@@ -82,7 +88,7 @@ void MacroRecorder::FinishTextMacro(std::string& out, bool clear)
         key_press.clear();
     }
 }
-
+#ifdef _WIN32
 void MacroRecorder::OnKeyPressed(KBDLLHOOKSTRUCT* p)
 {
     if(last_key_down != p->scanCode)  /* avoid adding same key more times when it's being hold down */
@@ -187,18 +193,22 @@ void MacroRecorder::OnKeyReleased(KBDLLHOOKSTRUCT* p)
             frame->config_panel->keybrd_panel->UpdateDetailsTree();
     }
 }
+#endif
 
 void MacroRecorder::StartRecording(bool kbd, bool mouse)
 {
+#ifdef _WIN32
     StopRecording();
     if(kbd)
         hHook_keyboard = SetWindowsHookEx(WH_KEYBOARD_LL, &LowLevelKeyboardProc, GetModuleHandle(NULL), NULL);
     if(mouse)
 	    hHook_mouse = SetWindowsHookEx(WH_MOUSE_LL, &LowLevelMouseProc, GetModuleHandle(NULL), NULL);
+#endif
 }
 
 void MacroRecorder::StopRecording()
 {
+#ifdef _WIN32
     if(hHook_keyboard)
     {
         UnhookWindowsHookEx(hHook_keyboard);
@@ -209,24 +219,35 @@ void MacroRecorder::StopRecording()
         UnhookWindowsHookEx(hHook_mouse);
         hHook_mouse = nullptr;
     }
+#endif
 }
 
 bool MacroRecorder::IsRecordingKeyboard()
 {
+#ifdef _WIN32
     return hHook_keyboard != nullptr;
+#else
+    return false;
+#endif
 }
 
 bool MacroRecorder::IsRecordingMouse()
 {
+#ifdef _WIN32
     return hHook_mouse != nullptr;
+#else
+    return false;
+#endif
 }
 
 void MacroRecorder::MarkMousePosition(LPPOINT* pos)
 {
+#ifdef _WIN32
     if(hHook_mouse != nullptr)
     {
         CustomMacro::Get()->OnItemRecordingComplete(std::make_unique<MouseMovement>(pos));
     }
+#endif
 }
 
 std::string MacroRecorder::GetKeyFromScanCode(int scancode, uint32_t flags)
@@ -257,6 +278,10 @@ std::string MacroRecorder::GetKeyFromScanCode(int scancode, uint32_t flags)
     }
     return ret;
 }
+
+#ifndef _WIN32
+#define LLKHF_EXTENDED  1
+#endif
 
 const std::unordered_map<std::string, MacroRecorder::KeyAndFlags_t> MacroRecorder::scan_codes =
 {

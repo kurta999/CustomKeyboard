@@ -4,7 +4,9 @@
 
 #include <filesystem>
 #include <string.h>
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 #include <future>
 
 constexpr size_t max_timestamp_len = 80;
@@ -24,6 +26,8 @@ private:
     std::future<void> screenshot_future;
 
     void FormatTimestamp(char* buf, uint8_t len);
+#ifdef _WIN32
     INT GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader);
     unsigned decodeBMP(std::vector<unsigned char>& image, unsigned& w, unsigned& h, const std::vector<unsigned char>& bmp);
+#endif
 };

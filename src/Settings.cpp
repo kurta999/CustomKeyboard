@@ -4,7 +4,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 {
     constexpr size_t MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
-    constexpr const char start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
+    constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
         std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]) };
 

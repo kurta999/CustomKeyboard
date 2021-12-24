@@ -9,6 +9,9 @@
 #include "CustomKeyboard.h"
 #include <ctime>
 #include <filesystem>
+#ifndef _WIN32
+#define FMT_HEADER_ONLY
+#endif
 #include <fmt/format.h>
 #include "fmt/chrono.h"
 

@@ -52,12 +52,16 @@ MouseMovement::MouseMovement(std::string&& str)
 MouseClick::MouseClick(const std::string&& str)
 {
     uint16_t mouse_button = 0xFFFF;
+#ifdef _WIN32
     if(str == "L" || str == "LEFT")
         mouse_button = MOUSEEVENTF_LEFTDOWN;
     if(str == "R" || str == "RIGHT")
         mouse_button = MOUSEEVENTF_RIGHTDOWN;
     if(str == "M" || str == "MIDDLE")
         mouse_button = MOUSEEVENTF_MIDDLEDOWN;
+#else
+    mouse_button = 0;
+#endif
     if(mouse_button != 0xFFFF)
         key = mouse_button;
     else
@@ -131,6 +135,7 @@ void CustomMacro::PressKey(std::string key)
 
     if(use_per_app_macro)
     {
+#ifdef _WIN32
         HWND foreground = GetForegroundWindow();
         if(foreground)
         {
@@ -160,6 +165,9 @@ void CustomMacro::PressKey(std::string key)
         {
             ExecuteGlobalMacro();
         }
+#else
+        ExecuteGlobalMacro();
+#endif
     }
     else
     {

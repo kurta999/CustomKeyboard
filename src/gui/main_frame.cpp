@@ -120,6 +120,7 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 
 void MyFrame::OnTimer(wxTimerEvent& event)
 {
+#ifdef _WIN32
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
 	if((sel == 4 || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
@@ -145,8 +146,13 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			}
 		}
 	}
+#else
 
+#endif
+
+#ifdef _WIN32
 	AntiLock::Get()->Process();
+#endif
 	HandleNotifications();
 	HandleBackupProgressDialog();
 }
@@ -180,11 +186,15 @@ void MyFrame::HandleBackupProgressDialog()
 
 void MyFrame::SetIconTooltip(const wxString &str)
 {
+#ifdef _WIN32
 	if(!tray->SetIcon(wxIcon(wxT("aaaa")), str))
 	{
 		wxLogError("Could not set icon.");
 	}
 	SetIcon(wxICON(aaaa));
+#else
+
+#endif
 }
 
 MyFrame::MyFrame(const wxString& title)
@@ -281,8 +291,10 @@ void MyFrame::HandleNotifications()
 				ShowNotificaiton("Screenshot saved", wxString::Format("Screenshot saved in %.3fms\nPath: %s", 
 					(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 					{
+#ifdef _WIN32
 						std::string cmdline = std::string("/select,\"" + filename);
 						ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#endif
 					});
 				break;
 			}
@@ -290,10 +302,12 @@ void MyFrame::HandleNotifications()
 			{
 				ShowNotificaiton("Settings saved", "Settings has been successfully saved", 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 					{
+#ifdef _WIN32
 						wchar_t work_dir[1024];
 						GetCurrentDirectory(sizeof(work_dir), work_dir);
 						StrCatW(work_dir, L"\\settings.ini");
 						ShellExecute(NULL, L"open", work_dir, NULL, NULL, SW_SHOW);
+#endif
 					});
 				break;
 			}
@@ -323,7 +337,9 @@ void MyFrame::HandleNotifications()
 				ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files (%s) in %.3fms", file_count, utils::GetDataUnit(files_size), (double)time_elapsed / 1000000.0),
 					3, wxICON_INFORMATION, [this, p](wxCommandEvent& event)
 					{
+#ifdef _WIN32
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
 					});
 				break;
 			}
@@ -334,7 +350,9 @@ void MyFrame::HandleNotifications()
 					wxString::Format("Backup failed due to wrong checksum values\nMake sure that your drive is not damaged\nCheck log file for more info"), 
 					3, wxICON_ERROR, [this, p](wxCommandEvent& event)
 					{
+#ifdef _WIN32
 						ShellExecuteA(NULL, NULL, p->generic_string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
 					});
 				break;
 			}	

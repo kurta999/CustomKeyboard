@@ -37,9 +37,12 @@ void FilePanel::OnItemActivated(wxTreeListEvent& evt)
 
 	for(; it != vec_path.end(); ++it)
 		final_path += *it + L"\\";
-
+#ifdef _WIN32
 	std::wstring cmdline = std::wstring("/select,\"" + final_path);
 	ShellExecuteW(NULL, L"open", L"explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#else
+
+#endif
 }
 
 FilePanel::FilePanel(wxFrame* parent)
@@ -73,8 +76,9 @@ FilePanel::FilePanel(wxFrame* parent)
 	tree = new wxTreeListCtrl(this, ID_DirList, wxDefaultPosition, wxSize(400, 400), wxTL_SINGLE);
 	tree->AppendColumn("Directory entry", tree->WidthFor("Very long text for filenames AAAAAAAAAAA"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	tree->AppendColumn("Size", tree->WidthFor("Key bindingsKey bindings"), wxALIGN_RIGHT, wxCOL_RESIZABLE | wxCOL_SORTABLE);
+#ifdef _WIN32
 	tree->SetItemComparator(&m_comparator);
-
+#endif
 	bSizer1->Add(tree, wxSizerFlags(1).Left().Expand().Border(wxRIGHT, 30));
 	SetSizerAndFit(bSizer1);
 }

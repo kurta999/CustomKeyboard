@@ -46,10 +46,14 @@ void MyApp::OnUnhandledException()
     }
     catch(std::exception& e)
     {
+#ifdef _WIN32
         MessageBoxA(NULL, e.what(), "std::exception caught", MB_OK);
+#endif
     }
     catch(...)
     {
+#ifdef _WIN32
         MessageBoxA(NULL, "Unknown exception", "exception caught", MB_OK);
+#endif
     }
 }

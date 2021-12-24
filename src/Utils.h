@@ -18,9 +18,10 @@ namespace utils
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
+#ifdef _WIN32
         if constexpr(!std::is_arithmetic_v<R>)
             static_assert(false, "R is not arithmetic!");
-
+#endif
         using T = std::decay_t<decltype(from_str)>;
         if constexpr(std::is_same_v<T, std::string>)
         {
@@ -58,8 +59,10 @@ namespace utils
             }
             return int_val;
         }
+#ifdef _WIN32
         else
             static_assert(false, "bad type - from_str!");
+#endif
     }
 
     template <typename S> inline bool stob(const S& from_str)
@@ -73,7 +76,9 @@ namespace utils
         {
             return !(!strcmp(from_str, "false") || from_str[0] == '0');
         }
+#ifdef _WIN32
         else
             static_assert(false, "bad type - from_str!");
+#endif
     }
 }

@@ -19,6 +19,14 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/tokenizer.hpp>
 
+#ifndef _WIN32
+typedef struct tagPOINT
+{
+    long  x;
+    long  y;
+} POINT, * PPOINT, *NPPOINT, * LPPOINT;
+#endif
+
 #pragma pack(push, 1)
 typedef struct
 {
@@ -90,7 +98,7 @@ public:
         return seq;
     }
 private:
-    void TypeCharacter(WORD character)
+    void TypeCharacter(uint16_t character)
     {
 #ifdef _WIN32
         int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
@@ -106,7 +114,7 @@ private:
         input.ki.dwFlags |= KEYEVENTF_KEYUP;
         SendInput(1, &input, sizeof(input));
 #else
-#error "This function is only implemented for Window"
+
 #endif
     }
 
@@ -150,6 +158,7 @@ public:
 private:
     void PressReleaseKey(uint16_t scancode, bool press = true)
     {
+#ifdef _WIN32
         INPUT input = { 0 };
         input.type = INPUT_KEYBOARD;
         input.ki.wScan = scancode;
@@ -157,6 +166,9 @@ private:
         if((scancode & 0xFF00) == 0xE000)
             input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         SendInput(1, &input, sizeof(input));
+#else
+
+#endif
     }
 
     std::vector<uint16_t> seq; /* scan codes to press and release*/
@@ -202,8 +214,10 @@ public:
                     int ret = die();
                     std::this_thread::sleep_for(std::chrono::milliseconds(ret));
                 }
+#ifdef _WIN32
                 else
                     static_assert(always_false<T>::value, "bad visitor!");
+#endif
             }, delay);
     }
     std::string GenerateText(bool is_ini_format) override;
@@ -240,6 +254,7 @@ public:
 
     void DoWrite() override
     {
+#ifdef _WIN32
         POINT to_screen;
         HWND hwnd = GetForegroundWindow();
         memcpy(&to_screen, &pos, sizeof(to_screen));
@@ -247,6 +262,9 @@ public:
         ShowCursor(FALSE);
         SetCursorPos(to_screen.x, to_screen.y);
         ShowCursor(TRUE);
+#else
+
+#endif
     }
 
     std::string GenerateText(bool is_ini_format) override
@@ -290,6 +308,7 @@ public:
     std::string GenerateText(bool is_ini_format) override
     {
         std::string text;
+#ifdef _WIN32
         switch(key)
         {
             case MOUSEEVENTF_LEFTDOWN:
@@ -304,6 +323,7 @@ public:
             default:
                 assert(0);
         }
+#endif
         std::string&& ret = is_ini_format ? fmt::format(" MOUSE_CLICK[{}]", text) : text;
         return ret;
     }
@@ -314,14 +334,18 @@ public:
         return key;
     }
 private:
-    void PressReleaseMouse(WORD mouse_button)
+    void PressReleaseMouse(uint16_t mouse_button)
     {
+#ifdef _WIN32
         INPUT input = { 0 };
         input.type = INPUT_MOUSE;
         input.mi.dwFlags = mouse_button;
         SendInput(1, &input, sizeof(input));
         input.mi.dwFlags = mouse_button << (uint16_t)1;
         SendInput(1, &input, sizeof(input));
+#else
+
+#endif
     }
 
     uint16_t key;

@@ -155,6 +155,7 @@ void MacroEditBoxDialog::OnTimer(wxTimerEvent& event)
 {
 	if(IsShown() && GetType() == 3) /* is shown edit macro dialog & mouse movement radio item is selected */
 	{
+#ifdef _WIN32
 		if(GetAsyncKeyState(VK_SCROLL) & 1)
 		{
 			HWND foreground = GetForegroundWindow();
@@ -168,6 +169,9 @@ void MacroEditBoxDialog::OnTimer(wxTimerEvent& event)
 				}
 			}
 		}
+#else
+
+#endif
 	}
 }
 
@@ -382,6 +386,7 @@ void ComTcpPanel::UpdatePanel()
 {
 	int sel = 0;
 	wxArrayString array_serials;
+#ifdef _WIN32
 	CEnumerateSerial::CPortAndNamesArray ports;
 	CEnumerateSerial::UsingSetupAPI1(ports);
 
@@ -391,7 +396,9 @@ void ComTcpPanel::UpdatePanel()
 		if(CustomMacro::Get()->com_port == i.first)
 			sel = array_serials.GetCount() - 1;
 	}
+#else
 
+#endif
 	m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
 	m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
 	m_IsCom->SetValue(CustomMacro::Get()->is_enabled);

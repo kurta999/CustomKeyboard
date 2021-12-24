@@ -51,7 +51,7 @@ void SymlinkCreator::Place(bool is_symlink)
 		std::filesystem::path dest = dest_path;
 		if(is_symlink)
 		{
-			for(PWSTR& item : selected_items)
+			for(auto& item : selected_items)
 			{
 				std::filesystem::path dest_with_name = dest_path / std::filesystem::path(item).filename();
 				try
@@ -76,7 +76,7 @@ void SymlinkCreator::Place(bool is_symlink)
 		}
 		else
 		{
-			for(PWSTR& item : selected_items)
+			for(auto& item : selected_items)
 			{
 				std::filesystem::path dest_with_name = dest_path / std::filesystem::path(item).filename();
 				try
@@ -98,7 +98,7 @@ void SymlinkCreator::Place(bool is_symlink)
 		}
 	}
 }
-
+#ifdef _WIN32
 IFolderView2* SymlinkCreator::GetFolderView2()
 {
 	IFolderView2* pfv = NULL;
@@ -154,9 +154,11 @@ IFolderView2* SymlinkCreator::GetFolderView2()
 	SAFE_RELEASE(psw);
 	return pfv;
 }
+#endif
 
 void SymlinkCreator::GetSelectedItemsFromFileExplorer()
 {
+#ifdef _WIN32
 	IFolderView2* pfv = GetFolderView2();  /* null if clicked on desktop and not in file explorer */
 	if(pfv)
 	{
@@ -198,11 +200,13 @@ void SymlinkCreator::GetSelectedItemsFromFileExplorer()
 		}
 		pfv->Release();
 	}
+#endif
 }
 
 std::wstring SymlinkCreator::GetDestinationPathFromFileExplorer()
 {
 	std::wstring ret;
+#ifdef _WIN32
 	IFolderView2* pfv = GetFolderView2();
 	if(pfv)
 	{
@@ -241,6 +245,7 @@ std::wstring SymlinkCreator::GetDestinationPathFromFileExplorer()
 		if(path)
 			ret = path;
 	}
+#endif
 	return ret;
 }
 

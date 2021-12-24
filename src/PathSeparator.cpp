@@ -2,6 +2,8 @@
 
 void PathSeparator::ReplaceClipboard()
 {
+	/* TODO: replace this with wxWidget's clipboard handling */
+#ifdef _WIN32
 	if(OpenClipboard(0))
 	{
 		char* text = (char*)GetClipboardData(CF_TEXT);
@@ -30,6 +32,7 @@ void PathSeparator::ReplaceClipboard()
 		}
 		CloseClipboard();
 	}
+#endif
 }
 
 void PathSeparator::ReplaceString(std::string& str)

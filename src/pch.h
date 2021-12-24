@@ -1,7 +1,10 @@
 #pragma once
 
 #include <boost/asio.hpp>
+
+#ifdef _WIN32
 #include <urlmon.h>
+#endif
 
 #include "gui/Configuration.h"
 #include "gui/ConfigurationBackup.h"
@@ -88,11 +91,14 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include <assert.h>
+
+#ifdef _WIN32
 #include <shellapi.h>
 #include <shlobj.h>
 #include <exdisp.h>
 #include <shlwapi.h>
 #include "Wtsapi32.h"
+#endif
 
 #include <any>
 #include <iostream>
@@ -120,8 +126,14 @@
 #include <stack>
 #include <charconv>
 
+#ifdef _WIN32
 #include <enumser/enumser.h>
+#endif
 #include <lodepng/lodepng.h>
+
+#ifndef _WIN32
+#define FMT_HEADER_ONLY
+#endif
 #include <fmt/format.h>
 
 #include "utils/AsyncSerial.h"
@@ -131,4 +143,6 @@ extern "C"
 	#include "sha256/sha256.h"
 }
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif

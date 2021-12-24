@@ -2,6 +2,7 @@
 
 bool AntiLock::IsSessionActive()
 {
+#ifdef _WIN32
     typedef BOOL(PASCAL* WTSQuerySessionInformation)(HANDLE hServer, DWORD SessionId, WTS_INFO_CLASS WTSInfoClass, LPTSTR* ppBuffer, DWORD* pBytesReturned);
     typedef void (PASCAL* WTSFreeMemory)(PVOID pMemory);
 
@@ -50,10 +51,14 @@ bool AntiLock::IsSessionActive()
         FreeLibrary(hLib);
     }
     return bRet;
+#else
+
+#endif
 }
 
 void AntiLock::SimulateUserActivity()
 {
+#ifdef _WIN32
     POINT pos;
     GetCursorPos(&pos);
     step_forward ^= step_forward;
@@ -77,6 +82,9 @@ void AntiLock::SimulateUserActivity()
     SendInput(1, &input, sizeof(INPUT));
     input.ki.dwFlags = KEYEVENTF_KEYUP;
     SendInput(1, &input, sizeof(INPUT));
+#else
+
+#endif
     LOGMSG(normal, "AntiLock executed");
 }
 
@@ -84,6 +92,7 @@ void AntiLock::Process()
 {
 	if(is_enabled)
 	{
+#ifdef _WIN32
 		LASTINPUTINFO linput_info;
 		linput_info.cbSize = sizeof(LASTINPUTINFO);
 		linput_info.dwTime = 0;
@@ -96,5 +105,8 @@ void AntiLock::Process()
                     SimulateUserActivity();
 			}
 		}
+#else
+        SimulateUserActivity();
+#endif
 	}
 }
