@@ -116,7 +116,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 };
 
-class KeyClass;
+class IKey;
 class KeybrdPanel : public wxPanel
 {
 public:
@@ -128,14 +128,14 @@ public:
 	void OnItemContextMenu_Details(wxTreeListEvent& evt);
 	void OnItemActivated(wxTreeListEvent& event);
 	void UpdateMainTree();
-	void UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr = nullptr);
+	void UpdateDetailsTree(std::unique_ptr<IKey>* ptr = nullptr);
 	void OnKeyDown(wxKeyEvent& evt);
 
 private:
 	void ShowAddDialog();
 	void ShowEditDialog(wxTreeListItem item);
-	void DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id);
-	void ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add);
+	void DuplicateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_t id);
+	void ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_t id, bool add);
 
 	void TreeDetails_DeleteSelectedMacros();
 	void TreeDetails_AddNewMacro();
@@ -144,7 +144,7 @@ private:
 	void TreeDetails_MoveDownSelectedMacro();
 	void TreeDetails_StartRecording();
 
-	std::vector<std::unique_ptr<KeyClass>>* GetKeyClassByItem(wxTreeListItem item, uint16_t& id);
+	std::vector<std::unique_ptr<IKey>>* GetKeyClassByItem(wxTreeListItem item, uint16_t& id);
 
 	wxTreeListCtrl* tree;
 	wxTreeListCtrl* tree_details;

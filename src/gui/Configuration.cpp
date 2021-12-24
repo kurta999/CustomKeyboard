@@ -434,7 +434,7 @@ void KeybrdPanel::UpdateMainTree()
 	}
 }
 
-void KeybrdPanel::UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr)
+void KeybrdPanel::UpdateDetailsTree(std::unique_ptr<IKey>* ptr)
 {
 	tree_details->DeleteAllItems();
 	wxTreeListItem root2 = tree_details->GetRootItem();
@@ -446,7 +446,7 @@ void KeybrdPanel::UpdateDetailsTree(std::unique_ptr<KeyClass>* ptr)
 		{
 			for(auto& x : i->key_vec[child_sel_str.ToStdString()])
 			{
-				KeyClass* p = x.get();
+				IKey* p = x.get();
 				wxTreeListItem item = tree_details->AppendItem(root2, p->GetName(), -1, -1, new wxIntClientData(cnt++));
 				std::string str = p->GenerateText(false);
 				tree_details->SetItemText(item, 1, str);
@@ -573,7 +573,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 				auto it = std::find_if(m.begin(), m.end(), [this, sel_str = this->root_sel_str](std::unique_ptr<MacroContainer>& x) { return x->name == sel_str; });
 				if(it != m.end())
 				{
-					std::map<std::string, std::vector<std::unique_ptr<KeyClass>>>::iterator e = (*it)->key_vec.find(child_sel_str.ToStdString());
+					std::map<std::string, std::vector<std::unique_ptr<IKey>>>::iterator e = (*it)->key_vec.find(child_sel_str.ToStdString());
 					if(e == (*it)->key_vec.end())
 						throw std::logic_error("map item not found");
 
@@ -725,14 +725,14 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 	}
 }
 
-void KeybrdPanel::DuplicateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id)
+void KeybrdPanel::DuplicateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_t id)
 {
-	KeyClass* p = x[id].get(); /* TODO: use smart pointers here! */
-	KeyClass* c(p->Clone());
-	x.insert(x.begin() + ++id, std::unique_ptr<KeyClass>(c));
+	IKey* p = x[id].get(); /* TODO: use smart pointers here! */
+	IKey* c(p->Clone());
+	x.insert(x.begin() + ++id, std::unique_ptr<IKey>(c));
 }
 
-template <typename T> void AddOrModifyMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add, std::string&& source_string)
+template <typename T> void AddOrModifyMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_t id, bool add, std::string&& source_string)
 {
 	auto tmp = std::make_unique<T>(std::move(source_string));
 	if(id >= x.size())
@@ -744,7 +744,7 @@ template <typename T> void AddOrModifyMacro(std::vector<std::unique_ptr<KeyClass
 			x[id] = std::move(tmp);
 }
 
-void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<KeyClass>>& x, uint16_t id, bool add)
+void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_t id, bool add)
 {
 	uint8_t edit_sel = edit_dlg->GetType();
 	std::string edit_str = edit_dlg->GetText().ToStdString();
@@ -809,7 +809,7 @@ void KeybrdPanel::OnItemActivated(wxTreeListEvent& evt)
 	{
 		if(i->name == root_sel_str.ToStdString())
 		{
-			std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
+			std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
 			wxClientData* itemdata = tree_details->GetItemData(item);
 			wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
 			uint16_t id = dret->GetValue();
@@ -897,7 +897,7 @@ void KeybrdPanel::OnKeyDown(wxKeyEvent& evt)
 
 void KeybrdPanel::TreeDetails_DeleteSelectedMacros()
 {
-	std::set<KeyClass*> items_to_delete;
+	std::set<IKey*> items_to_delete;
 	wxTreeListItems items;
 	tree_details->GetSelections(items);
 	if(!items.empty())
@@ -918,7 +918,7 @@ void KeybrdPanel::TreeDetails_DeleteSelectedMacros()
 		{
 			if(i->name == root_sel_str.ToStdString())
 			{
-				std::vector<std::unique_ptr<KeyClass>>& c = i->key_vec[child_sel_str.ToStdString()];
+				std::vector<std::unique_ptr<IKey>>& c = i->key_vec[child_sel_str.ToStdString()];
 				for(auto& j : boost::adaptors::reverse(to_erase))
 				{
 					c.erase(c.begin() + j);
@@ -948,8 +948,8 @@ void KeybrdPanel::TreeDetails_AddNewMacro()
 		{
 			if(i->name == root_sel_str.ToStdString())
 			{
-				std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-				std::unique_ptr<KeyClass>* ptr = nullptr;
+				std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
+				std::unique_ptr<IKey>* ptr = nullptr;
 				uint16_t id = std::numeric_limits<uint16_t>::max();
 				bool push_back = true;
 				if(item)  // if selected item exists and not root element
@@ -986,7 +986,7 @@ void KeybrdPanel::TreeDetails_CloneMacro()
 
 		wxTreeListItem& item = items[0];
 		uint16_t id;
-		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		std::vector<std::unique_ptr<IKey>>* x = GetKeyClassByItem(item, id);
 		if(x)
 		{
 			DuplicateMacro(*x, id);
@@ -1009,10 +1009,10 @@ void KeybrdPanel::TreeDetails_MoveUpSelectedMacro()
 
 		wxTreeListItem& item = items[0];
 		uint16_t id;
-		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		std::vector<std::unique_ptr<IKey>>* x = GetKeyClassByItem(item, id);
 		if(x)
 		{
-			std::unique_ptr<KeyClass>* ptr;
+			std::unique_ptr<IKey>* ptr;
 			if((*x)[id] == x->front())
 			{
 				std::rotate(x->begin(), x->begin() + 1, x->end());
@@ -1042,10 +1042,10 @@ void KeybrdPanel::TreeDetails_MoveDownSelectedMacro()
 
 		wxTreeListItem& item = items[0];
 		uint16_t id;
-		std::vector<std::unique_ptr<KeyClass>>* x = GetKeyClassByItem(item, id);
+		std::vector<std::unique_ptr<IKey>>* x = GetKeyClassByItem(item, id);
 		if(x)
 		{
-			std::unique_ptr<KeyClass>* ptr;
+			std::unique_ptr<IKey>* ptr;
 			if((*x)[id] == x->back())
 			{
 				std::rotate(x->rbegin(), x->rbegin() + 1, x->rend());
@@ -1093,8 +1093,8 @@ void KeybrdPanel::TreeDetails_StartRecording()
 		{
 			if(i->name == root_sel_str.ToStdString())
 			{
-				std::vector<std::unique_ptr<KeyClass>>& x = i->key_vec[child_sel_str.ToStdString()];
-				std::unique_ptr<KeyClass>* ptr = nullptr;
+				std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
+				std::unique_ptr<IKey>* ptr = nullptr;
 				uint16_t id = std::numeric_limits<uint16_t>::max();
 				bool push_back = true;
 				if(item)  // if selected item exists and not root element
@@ -1229,9 +1229,9 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 	Show();
 }
 
-std::vector<std::unique_ptr<KeyClass>>* KeybrdPanel::GetKeyClassByItem(wxTreeListItem item, uint16_t& id)
+std::vector<std::unique_ptr<IKey>>* KeybrdPanel::GetKeyClassByItem(wxTreeListItem item, uint16_t& id)
 {
-	std::vector<std::unique_ptr<KeyClass>>* ret = nullptr;
+	std::vector<std::unique_ptr<IKey>>* ret = nullptr;
 	if(item.GetID() != NULL)
 	{
 		auto& m = CustomMacro::Get()->GetMacros();
@@ -1239,7 +1239,7 @@ std::vector<std::unique_ptr<KeyClass>>* KeybrdPanel::GetKeyClassByItem(wxTreeLis
 		{
 			if(i->name == root_sel_str.ToStdString())
 			{
-				std::vector<std::unique_ptr<KeyClass>>* x = &i->key_vec[child_sel_str.ToStdString()];
+				std::vector<std::unique_ptr<IKey>>* x = &i->key_vec[child_sel_str.ToStdString()];
 
 				wxClientData* itemdata = tree_details->GetItemData(item);
 				wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);

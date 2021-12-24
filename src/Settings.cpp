@@ -285,7 +285,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
 
                 for(auto& k : x.second)
                 {
-                    KeyClass* p = k.get();
+                    IKey* p = k.get();
                     key += p->GenerateText(true);
                 }
                 out << key << '\n';

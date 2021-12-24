@@ -53,8 +53,6 @@ void Session::SendAsync(const std::string& buffer)
 	if(writeInProgress)
 	{
 		pendingMessages.push(buffer);
-		/* TODO: finish this */
-		// if(transferTimer.expires_at())
 		transferTimer.expires_from_now(boost::posix_time::milliseconds(100));
 		transferTimer.async_wait(std::bind(&Session::HandleTransferTimer, shared_from_this(), std::placeholders::_1));
 	}

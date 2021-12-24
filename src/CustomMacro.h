@@ -41,62 +41,19 @@ enum MacroTypes : uint8_t
     BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK, MAX
 };
 
-class KeyClass
+class IKey
 {
 public:
-    KeyClass() {}
-    virtual ~KeyClass() {}
-    KeyClass(const KeyClass&) {}
+    IKey() {}
+    virtual ~IKey() {}
+    IKey(const IKey&) {}
     virtual void DoWrite() = 0;
     virtual std::string GenerateText(bool is_ini_format) = 0;
     virtual const char* GetName() = 0;
-    virtual KeyClass* Clone() = 0;
-
-public:
-    void PressReleaseKey(uint16_t scancode, bool press = true)
-    {
-        INPUT input = { 0 };
-        input.type = INPUT_KEYBOARD;
-        input.ki.wScan = scancode;
-        input.ki.dwFlags = (press ? 0 : KEYEVENTF_KEYUP) | KEYEVENTF_SCANCODE;
-        if((scancode & 0xFF00) == 0xE000)
-            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-        SendInput(1, &input, sizeof(input));
-    }
-  
-    void TypeCharacter(WORD character)
-    {
-#ifdef _WIN32
-        int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
-        wchar_t wide_char;
-        MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
-        INPUT input = { 0 };
-        input.type = INPUT_KEYBOARD;
-        input.ki.wScan = wide_char;
-        input.ki.dwFlags = KEYEVENTF_UNICODE;
-        if((wide_char & 0xFF00) == 0xE000)
-            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-        SendInput(1, &input, sizeof(input));
-        input.ki.dwFlags |= KEYEVENTF_KEYUP;
-        SendInput(1, &input, sizeof(input));
-#else
-    #error "This function is only implemented for Window"
-#endif
-    }
-
-    void PressReleaseMouse(WORD mouse_button)
-    {
-        INPUT input = { 0 };
-        input.type = INPUT_MOUSE;
-        input.mi.dwFlags = mouse_button;
-        SendInput(1, &input, sizeof(input));
-        input.mi.dwFlags = mouse_button << (uint16_t)1;
-        SendInput(1, &input, sizeof(input));
-    }
-protected:
+    virtual IKey* Clone() = 0;
 };
 
-class KeyText final : public KeyClass
+class KeyText final : public IKey
 {
 public:
     KeyText(std::string&& keys)
@@ -133,11 +90,31 @@ public:
         return seq;
     }
 private:
+    void TypeCharacter(WORD character)
+    {
+#ifdef _WIN32
+        int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
+        wchar_t wide_char;
+        MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wScan = wide_char;
+        input.ki.dwFlags = KEYEVENTF_UNICODE;
+        if((wide_char & 0xFF00) == 0xE000)
+            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+        SendInput(1, &input, sizeof(input));
+        input.ki.dwFlags |= KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(input));
+#else
+#error "This function is only implemented for Window"
+#endif
+    }
+
     std::string seq; /* characters to press and release*/
     static inline const char* name = "TEXT";
 };
 
-class KeyCombination final : public KeyClass
+class KeyCombination final : public IKey
 {
 public:
     KeyCombination(std::vector<uint16_t>&& keys)
@@ -171,11 +148,22 @@ public:
         return seq;
     }
 private:
+    void PressReleaseKey(uint16_t scancode, bool press = true)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wScan = scancode;
+        input.ki.dwFlags = (press ? 0 : KEYEVENTF_KEYUP) | KEYEVENTF_SCANCODE;
+        if((scancode & 0xFF00) == 0xE000)
+            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+        SendInput(1, &input, sizeof(input));
+    }
+
     std::vector<uint16_t> seq; /* scan codes to press and release*/
     static inline const char* name = "SEQUENCE";
 };
 
-class KeyDelay final : public KeyClass
+class KeyDelay final : public IKey
 {
 public:
     KeyDelay(uint32_t delay_) : delay(delay_)
@@ -232,7 +220,7 @@ private:
     static inline const char* name_random = "DELAY RANDOM";
 };
 
-class MouseMovement final : public KeyClass
+class MouseMovement final : public IKey
 {
 public:
     MouseMovement(LPPOINT* pos_)
@@ -278,7 +266,7 @@ private:
     static inline const char* name = "MOUSE MOVE";
 };
 
-class MouseClick final : public KeyClass
+class MouseClick final : public IKey
 {
 public:
     MouseClick(uint16_t key_) : key(key_)
@@ -326,6 +314,16 @@ public:
         return key;
     }
 private:
+    void PressReleaseMouse(WORD mouse_button)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_MOUSE;
+        input.mi.dwFlags = mouse_button;
+        SendInput(1, &input, sizeof(input));
+        input.mi.dwFlags = mouse_button << (uint16_t)1;
+        SendInput(1, &input, sizeof(input));
+    }
+
     uint16_t key;
     static inline const char* name = "MOUSE CLICK";
 };
@@ -339,7 +337,7 @@ public:
     {
         name = std::move(_name);
     }
-    std::map<std::string, std::vector<std::unique_ptr<KeyClass>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
+    std::map<std::string, std::vector<std::unique_ptr<IKey>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
     std::map<std::string, std::string> bind_name;  /* [Key code] = bind name text */
     std::string name;
 private:
@@ -409,8 +407,8 @@ public:
     uint16_t com_port = 5;
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
-    std::vector<std::unique_ptr<KeyClass>>* editing_macro = nullptr;
-    KeyClass* editing_item = nullptr;
+    std::vector<std::unique_ptr<IKey>>* editing_macro = nullptr;
+    IKey* editing_item = nullptr;
 
 private:
     friend class Settings;

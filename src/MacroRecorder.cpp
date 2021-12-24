@@ -175,7 +175,7 @@ void MacroRecorder::OnKeyReleased(KBDLLHOOKSTRUCT* p)
         if(CustomMacro::Get()->editing_item == nullptr)
             CustomMacro::Get()->OnItemRecordingStarted(std::make_unique<KeyText>(std::string("")));
 
-        KeyClass* p = CustomMacro::Get()->editing_item;
+        IKey* p = CustomMacro::Get()->editing_item;
         std::string text;
         FinishTextMacro(text, false);
         KeyText* t = dynamic_cast<KeyText*>(CustomMacro::Get()->editing_item);
