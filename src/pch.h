@@ -92,6 +92,7 @@
 #include <shlobj.h>
 #include <exdisp.h>
 #include <shlwapi.h>
+#include "Wtsapi32.h"
 
 #include <any>
 #include <iostream>

@@ -15,5 +15,8 @@ public:
     bool is_enabled = false;
     uint32_t timeout = 300; /* Timeout [s] */
 private:
+    bool IsSessionActive();
+    void SimulateUserActivity();
+
     bool step_forward = false;
 };
