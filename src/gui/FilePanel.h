@@ -1,15 +1,21 @@
 #pragma once
 
+#include <inttypes.h>
 #include <wx/wx.h>
 #include <wx/treelist.h>
 
 #include <map>
 
 #ifdef _WIN32
+using ComparatorIntType = int64_t;  /* To be able to use uint64_t, you have to add a corresponding function to wxWidgets library */
+#else
+using ComparatorIntType = int32_t;
+#endif
+
 class MyComparator : public wxTreeListItemComparator
 {
 public: /* to made this comparator work, you need to change the return value of comparators to int64_t from int in wxWidgets main library */
-	virtual int64_t Compare(wxTreeListCtrl* treelist, unsigned column, wxTreeListItem item1, wxTreeListItem item2) override
+	virtual ComparatorIntType Compare(wxTreeListCtrl* treelist, unsigned column, wxTreeListItem item1, wxTreeListItem item2) override
 	{
 		wxString text1 = treelist->GetItemText(item1, column), text2 = treelist->GetItemText(item2, column);
 		switch(column)
@@ -24,16 +30,16 @@ public: /* to made this comparator work, you need to change the return value of 
 	}
 
 private:
-	int64_t GetSizeFromText(const wxString& text) const
+	ComparatorIntType GetSizeFromText(const wxString& text) const
 	{
 		wxString size;
-		int64_t factor = 1;
+		ComparatorIntType factor = 1;
 		if(text.EndsWith(" GB", &size))
-			factor = (int64_t)((int64_t)8 * (int64_t)1024 * (int64_t)1024 * (int64_t)1024);
+			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024 * (int64_t)1024 * (int64_t)1024);
 		else if(text.EndsWith(" MB", &size))
-			factor = (int64_t)((int64_t)8 * (int64_t)1024 * (int64_t)1024);
+			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024 * (int64_t)1024);
 		else if(!text.EndsWith(" kB", &size))
-			factor = (int64_t)((int64_t)8 * (int64_t)1024);
+			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024);
 		else if(!text.EndsWith(" B", &size))
 			factor = 8;
 		unsigned long long n = 0;
@@ -41,7 +47,7 @@ private:
 		return n * factor;
 	}
 };
-#endif
+
 class DirItems
 {
 public:
@@ -71,9 +77,7 @@ public:
 	wxButton* m_Generate = nullptr;
 	wxButton* m_Clear = nullptr;
 	wxTreeListCtrl* tree;
-#ifdef _WIN32
 	MyComparator m_comparator;
-#endif
 private:
 
 	std::map<size_t, std::unique_ptr<DirItems>> dir_map;

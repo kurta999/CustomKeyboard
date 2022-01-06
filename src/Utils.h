@@ -5,6 +5,8 @@
 
 namespace utils
 {
+    template<class> inline constexpr bool always_false_v = false;
+
     inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
     {
         return str.substr(start + len, start_end - start - len);
@@ -18,10 +20,9 @@ namespace utils
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
-#ifdef _WIN32
         if constexpr(!std::is_arithmetic_v<R>)
-            static_assert(false, "R is not arithmetic!");
-#endif
+            static_assert(always_false_v<R>, "R is not arithmetic!");
+
         using T = std::decay_t<decltype(from_str)>;
         if constexpr(std::is_same_v<T, std::string>)
         {
@@ -59,10 +60,8 @@ namespace utils
             }
             return int_val;
         }
-#ifdef _WIN32
         else
-            static_assert(false, "bad type - from_str!");
-#endif
+            static_assert(always_false_v<T>, "bad type - from_str!");
     }
 
     template <typename S> inline bool stob(const S& from_str)
@@ -76,9 +75,7 @@ namespace utils
         {
             return !(!strcmp(from_str, "false") || from_str[0] == '0');
         }
-#ifdef _WIN32
         else
-            static_assert(false, "bad type - from_str!");
-#endif
+            static_assert(always_false_v<T>, "bad type - from_str!");
     }
 }

@@ -10,7 +10,9 @@
 #include <ctime>
 #include <filesystem>
 #ifndef _WIN32
-#define FMT_HEADER_ONLY
+    #ifndef FMT_HEADER_ONLY
+        #define FMT_HEADER_ONLY
+    #endif
 #endif
 #include <fmt/format.h>
 #include "fmt/chrono.h"
@@ -61,7 +63,7 @@ public:
                     break;
             }
         }
-        if(lvl > normal)
+        if(lvl > normal && lvl <= critical)
         {
             std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, serverity_str[lvl], filename, line, function, formatted_msg);
             fwrite(str_file.c_str(), 1, str_file.length(), fLog);

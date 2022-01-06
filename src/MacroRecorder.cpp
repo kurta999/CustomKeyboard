@@ -136,9 +136,9 @@ void MacroRecorder::OnKeyReleased(KBDLLHOOKSTRUCT* p)
     if(key == "LSHIFT" || key == "RSHIFT")
         is_shift = false;
 
+    DBG("key up %s\n", key.c_str());
     last_key_down = std::numeric_limits<DWORD>::max();
     key_press.push_back({ p->scanCode, p->flags, std::move(key), false });
-    DBG("key up %s\n", key.c_str());
 
     if(current_macro_type == MacroTypes::KEY_SEQ)
     {

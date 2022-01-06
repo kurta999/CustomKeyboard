@@ -2,37 +2,24 @@
 
 void PathSeparator::ReplaceClipboard()
 {
-	/* TODO: replace this with wxWidget's clipboard handling */
-#ifdef _WIN32
-	if(OpenClipboard(0))
+	if(wxTheClipboard->Open())
 	{
-		char* text = (char*)GetClipboardData(CF_TEXT);
-		if(text)
+		if(wxTheClipboard->IsSupported(wxDF_TEXT))
 		{
-			std::string input(text);
+			wxTextDataObject data;
+			wxTheClipboard->GetData(data);
+			std::string input(data.GetText());
 			ReplaceString(input);
 
-			HGLOBAL clipbuffer;
-			EmptyClipboard();
-			clipbuffer = GlobalAlloc(GMEM_DDESHARE, input.length() + 1);
-			if(clipbuffer)
+			wxTheClipboard->SetData(new wxTextDataObject(input));
+			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
-				char* buffer = static_cast<char*>(GlobalLock(clipbuffer));
-				if(buffer)
-					strncpy(buffer, input.c_str(), input.length() + 1);
-				GlobalUnlock(clipbuffer);
-				SetClipboardData(CF_TEXT, clipbuffer);
-
-				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-				{
-					std::lock_guard lock(frame->mtx);
-					frame->pending_msgs.push_back({ (uint8_t)PathSeparatorsReplaced, std::move(input) });
-				}
+				std::lock_guard lock(frame->mtx);
+				frame->pending_msgs.push_back({ (uint8_t)PathSeparatorsReplaced, std::move(input) });
 			}
 		}
-		CloseClipboard();
+		wxTheClipboard->Close();
 	}
-#endif
 }
 
 void PathSeparator::ReplaceString(std::string& str)

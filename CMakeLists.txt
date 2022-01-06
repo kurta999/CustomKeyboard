@@ -14,25 +14,49 @@ find_package(Boost 1.78.0 COMPONENTS filesystem )
 
 find_package(fmt)
 
+add_subdirectory(libs)
+
 include_directories(libs)
-#include_directories(libs/fmt)
 include_directories(wxWidgets_INCLUDE_DIRS)
 
-add_subdirectory(libs)
-add_subdirectory(src) 
+if(MSVC)
+	add_definitions(-DWXUSINGDLL=1 -D_CRT_SECURE_NO_WARNINGS -DWIN32 -D_WINDOWS -D_WIN32_WINNT=0x0601)
+endif()
+
+set(src_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CustomKeyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CustomMacro.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Database.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryBackup.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/GuiEditor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Logger.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/MacroRecorder.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PathSeparator.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/pch.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PrintScreenSaver.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Sensors.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Server.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Session.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Settings.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/StructParser.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SymlinkCreator.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Utils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/Configuration.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ConfigurationBackup.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/Editor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EscaperPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/FilePanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/LogPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/main_frame.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ParserPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/TrayIcon.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/utils/AsyncSerial.cpp
+)
  
-message("PROJECT_NAME: " ${PROJECT_NAME})
-message("src_SOURCES: " ${src_SOURCES})
-message("gui_SOURCES: " ${gui_SOURCES})
-message("libs_SOURCES: " ${libs_SOURCES})
-message("wxWidgets_LIBRARIES: " ${wxWidgets_LIBRARIES})
-message("Boost_LIBRARIES: " ${Boost_LIBRARIES})
+#message("src_SOURCES: " ${src_SOURCES})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-PIE")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-
-add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:libs> $<TARGET_OBJECTS:src> $<TARGET_OBJECTS:gui> $<TARGET_OBJECTS:utils>)
-target_link_libraries(${PROJECT_NAME} libs fmt::fmt-header-only src ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} gui)
-
+add_executable(${PROJECT_NAME} ${src_SOURCES})
+target_link_libraries(${PROJECT_NAME} fmt::fmt-header-only $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})
 
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

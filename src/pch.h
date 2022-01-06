@@ -132,7 +132,9 @@
 #include <lodepng/lodepng.h>
 
 #ifndef _WIN32
-#define FMT_HEADER_ONLY
+	#ifndef FMT_HEADER_ONLY
+		#define FMT_HEADER_ONLY
+	#endif
 #endif
 #include <fmt/format.h>
 

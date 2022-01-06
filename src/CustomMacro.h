@@ -80,10 +80,14 @@ public:
 
     void DoWrite() override
     {
+#ifdef _WIN32
         for(size_t i = 0; i < seq.length(); i++)
         {
             TypeCharacter(seq[i] & 0xFF);
         }
+#else
+        system(fmt::format("xte 'str {}'", seq).c_str());
+#endif
     }
 
     std::string GenerateText(bool is_ini_format) override
@@ -98,9 +102,10 @@ public:
         return seq;
     }
 private:
+
+#ifdef _WIN32
     void TypeCharacter(uint16_t character)
     {
-#ifdef _WIN32
         int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
         wchar_t wide_char;
         MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
@@ -113,11 +118,8 @@ private:
         SendInput(1, &input, sizeof(input));
         input.ki.dwFlags |= KEYEVENTF_KEYUP;
         SendInput(1, &input, sizeof(input));
-#else
-
-#endif
     }
-
+#endif
     std::string seq; /* characters to press and release*/
     static inline const char* name = "TEXT";
 };
@@ -175,6 +177,8 @@ private:
     static inline const char* name = "SEQUENCE";
 };
 
+template<class> inline constexpr bool always_false_v = false;
+
 class KeyDelay final : public IKey
 {
 public:
@@ -214,10 +218,8 @@ public:
                     int ret = die();
                     std::this_thread::sleep_for(std::chrono::milliseconds(ret));
                 }
-#ifdef _WIN32
                 else
-                    static_assert(always_false<T>::value, "bad visitor!");
-#endif
+                    static_assert(always_false_v<T>, "bad visitor!");
             }, delay);
     }
     std::string GenerateText(bool is_ini_format) override;
@@ -263,7 +265,7 @@ public:
         SetCursorPos(to_screen.x, to_screen.y);
         ShowCursor(TRUE);
 #else
-
+        system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
 #endif
     }
 
@@ -344,7 +346,7 @@ private:
         input.mi.dwFlags = mouse_button << (uint16_t)1;
         SendInput(1, &input, sizeof(input));
 #else
-
+        
 #endif
     }
 
