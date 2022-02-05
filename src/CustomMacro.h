@@ -46,7 +46,7 @@ typedef struct
 
 enum MacroTypes : uint8_t
 {
-    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_CLICK, MAX
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, MAX
 };
 
 class IKey
@@ -55,7 +55,7 @@ public:
     IKey() {}
     virtual ~IKey() {}
     IKey(const IKey&) {}
-    virtual void DoWrite() = 0;
+    virtual void Execute() = 0;
     virtual std::string GenerateText(bool is_ini_format) = 0;
     virtual const char* GetName() = 0;
     virtual IKey* Clone() = 0;
@@ -78,7 +78,7 @@ public:
         return new KeyText(*this);
     }
 
-    void DoWrite() override
+    void Execute() override
     {
 #ifdef _WIN32
         for(size_t i = 0; i < seq.length(); i++)
@@ -142,7 +142,7 @@ public:
         return new KeyCombination(*this);
     }
 
-    void DoWrite() override
+    void Execute() override
     {
         for(size_t i = 0; i < seq.size(); i++)
             PressReleaseKey(seq[i]);
@@ -201,7 +201,7 @@ public:
         return new KeyDelay(*this);
     }
 
-    void DoWrite() override
+    void Execute() override
     {
         std::visit([](auto&& arg) 
             {
@@ -241,11 +241,11 @@ class MouseMovement final : public IKey
 public:
     MouseMovement(LPPOINT* pos_)
     {
-        memcpy(&pos, pos_, sizeof(pos));
+        memcpy(&m_pos, pos_, sizeof(m_pos));
     }
     MouseMovement(const MouseMovement& from)
     {
-        memcpy(&pos, &from.pos, sizeof(pos));
+        memcpy(&m_pos, &from.m_pos, sizeof(m_pos));
     }
     MouseMovement(std::string&& str);
     virtual ~MouseMovement() { }
@@ -254,12 +254,12 @@ public:
         return new MouseMovement(*this);
     }
 
-    void DoWrite() override
+    void Execute() override
     {
 #ifdef _WIN32
         POINT to_screen;
         HWND hwnd = GetForegroundWindow();
-        memcpy(&to_screen, &pos, sizeof(to_screen));
+        memcpy(&to_screen, &m_pos, sizeof(to_screen));
         ClientToScreen(hwnd, &to_screen);
         ShowCursor(FALSE);
         SetCursorPos(to_screen.x, to_screen.y);
@@ -271,19 +271,202 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{},{}]",  pos.x, pos.y) : fmt::format("{},{}", pos.x, pos.y);
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{},{}]", m_pos.x, m_pos.y) : fmt::format("{},{}", m_pos.x, m_pos.y);
         return ret;
     }
     const char* GetName() override { return name; }
 
     POINT& GetPos()
     {
-        return pos;
+        return m_pos;
     }
 
 private:
-    POINT pos = {};
+    POINT m_pos = {};
     static inline const char* name = "MOUSE MOVE";
+};
+
+class MouseInterpolate final : public IKey
+{
+public:
+    MouseInterpolate(LPPOINT* pos_)
+    {
+        memcpy(&m_pos, pos_, sizeof(m_pos));
+    }
+    MouseInterpolate(const MouseInterpolate& from)
+    {
+        memcpy(&m_pos, &from.m_pos, sizeof(m_pos));
+    }
+    MouseInterpolate(std::string&& str);
+    virtual ~MouseInterpolate() { }
+    MouseInterpolate* Clone() override
+    {
+        return new MouseInterpolate(*this);
+    }
+
+    void Execute() override
+    {
+#ifdef _WIN32
+        /* TODO: interpolation from start pos to destination */
+        POINT to_screen;
+        HWND hwnd = GetForegroundWindow();
+        memcpy(&to_screen, &m_pos, sizeof(to_screen));
+        ClientToScreen(hwnd, &to_screen);
+        ShowCursor(FALSE);
+        SetCursorPos(to_screen.x, to_screen.y);
+        ShowCursor(TRUE);
+#else
+        system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
+#endif
+    }
+
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : fmt::format("{},{}", m_pos.x, m_pos.y);
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
+    POINT& GetPos()
+    {
+        return m_pos;
+    }
+
+private:
+    POINT m_pos = {};
+    static inline const char* name = "MOUSE INTERPOLATE";
+};
+
+class MousePress final : public IKey
+{
+public:
+    MousePress(uint16_t key_) : key(key_)
+    {}
+    MousePress(const MousePress& from)
+    {
+        key = from.key;
+    }
+    MousePress(const std::string&& str);
+    virtual ~MousePress() { }
+    MousePress* Clone() override
+    {
+        return new MousePress(*this);
+    }
+
+    void Execute() override
+    {
+        PressMouse(key);
+    }
+
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string text;
+#ifdef _WIN32
+        switch(key)
+        {
+        case MOUSEEVENTF_LEFTDOWN:
+            text = "LEFT";
+            break;
+        case MOUSEEVENTF_RIGHTDOWN:
+            text = "RIGHT";
+            break;
+        case MOUSEEVENTF_MIDDLEDOWN:
+            text = "MIDDLE";
+            break;
+        default:
+            assert(0);
+        }
+#endif
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_PRESS[{}]", text) : text;
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
+    uint16_t GetKey()
+    {
+        return key;
+    }
+private:
+    void PressMouse(uint16_t mouse_button)
+    {
+#ifdef _WIN32
+        INPUT input = { 0 };
+        input.type = INPUT_MOUSE;
+        input.mi.dwFlags = mouse_button;
+        SendInput(1, &input, sizeof(input));
+#else
+
+#endif
+    }
+
+    uint16_t key;
+    static inline const char* name = "MOUSE PRESS";
+};
+
+class MouseRelease final : public IKey
+{
+public:
+    MouseRelease(uint16_t key_) : key(key_)
+    {}
+    MouseRelease(const MouseRelease& from)
+    {
+        key = from.key;
+    }
+    MouseRelease(const std::string&& str);
+    virtual ~MouseRelease() { }
+    MouseRelease* Clone() override
+    {
+        return new MouseRelease(*this);
+    }
+
+    void Execute() override
+    {
+        ReleaseMouse(key);
+    }
+
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string text;
+#ifdef _WIN32
+        switch(key)
+        {
+        case MOUSEEVENTF_LEFTDOWN:
+            text = "LEFT";
+            break;
+        case MOUSEEVENTF_RIGHTDOWN:
+            text = "RIGHT";
+            break;
+        case MOUSEEVENTF_MIDDLEDOWN:
+            text = "MIDDLE";
+            break;
+        default:
+            assert(0);
+        }
+#endif
+        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_RELEASE[{}]", text) : text;
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
+    uint16_t GetKey()
+    {
+        return key;
+    }
+private:
+    void ReleaseMouse(uint16_t mouse_button)
+    {
+#ifdef _WIN32
+        INPUT input = { 0 };
+        input.type = INPUT_MOUSE;
+        input.mi.dwFlags = mouse_button << (uint16_t)1;
+        SendInput(1, &input, sizeof(input));
+#else
+
+#endif
+    }
+
+    uint16_t key;
+    static inline const char* name = "MOUSE RELEASE";
 };
 
 class MouseClick final : public IKey
@@ -302,7 +485,7 @@ public:
         return new MouseClick(*this);
     }
 
-    void DoWrite() override
+    void Execute() override
     {
         PressReleaseMouse(key);
     }
@@ -355,17 +538,23 @@ private:
 };
 
 /* each given macro per-app get's a macro container */
-class MacroContainer
+class MacroAppProfile
 {
 public:
-    MacroContainer() = default;
-    MacroContainer(std::string&& _name)
+    MacroAppProfile() = default;
+    MacroAppProfile(std::string&& name)
     {
-        name = std::move(_name);
+        app_name = std::move(name);
     }
-    std::map<std::string, std::vector<std::unique_ptr<IKey>>> key_vec;  /* std::string -> it could be better, like storing hash, but I did it for myself - it's OK */
-    std::map<std::string, std::string> bind_name;  /* [Key code] = bind name text */
-    std::string name;
+
+    // \brief Map of macros per code, [Key code] = macro list (KeyText, KeySequence, etc...)
+    std::map<std::string, std::vector<std::unique_ptr<IKey>>> key_vec;
+
+    // \brief Binding name - [Key code] = bind name text
+    std::map<std::string, std::string> bind_name;
+
+    // \brief Name of assigned application - like Visual Studio
+    std::string app_name;
 private:
 };
 
@@ -396,7 +585,7 @@ public:
             frame->config_panel->keybrd_panel->UpdateDetailsTree();
 
     }
-    std::vector<std::unique_ptr<MacroContainer>>& GetMacros()
+    std::vector<std::unique_ptr<MacroAppProfile>>& GetMacros()
     {
         return macros;
     }
@@ -444,7 +633,7 @@ private:
     void UartDataReceived(const char* data, unsigned int len);
     void UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex &m);
 
-    std::vector<std::unique_ptr<MacroContainer>> macros;
+    std::vector<std::unique_ptr<MacroAppProfile>> macros;
     std::string pressed_keys;
     std::thread *t = nullptr;
     std::atomic<bool> to_exit = false;

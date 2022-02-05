@@ -42,11 +42,62 @@ MouseMovement::MouseMovement(std::string&& str)
     if(separator_pos != std::string::npos)
     {
         boost::erase_all(str, " ");
-        pos.x = utils::stoi<decltype(pos.x)>(str);
-        pos.y = utils::stoi<decltype(pos.y)>(&str[separator_pos + 1]);
+        m_pos.x = utils::stoi<decltype(m_pos.x)>(str);
+        m_pos.y = utils::stoi<decltype(m_pos.y)>(&str[separator_pos + 1]);
     }
     else
         throw std::invalid_argument(fmt::format("Invalid mouse movement input: {}", str));
+}
+
+MouseInterpolate::MouseInterpolate(std::string&& str)
+{
+    size_t separator_pos = str.find(",");
+    if(separator_pos != std::string::npos)
+    {
+        boost::erase_all(str, " ");
+        m_pos.x = utils::stoi<decltype(m_pos.x)>(str);
+        m_pos.y = utils::stoi<decltype(m_pos.y)>(&str[separator_pos + 1]);
+    }
+    else
+        throw std::invalid_argument(fmt::format("Invalid mouse interpolate input: {}", str));
+}
+
+MousePress::MousePress(const std::string&& str)
+{
+    uint16_t mouse_button = 0xFFFF;
+#ifdef _WIN32
+    if(str == "L" || str == "LEFT")
+        mouse_button = MOUSEEVENTF_LEFTDOWN;
+    if(str == "R" || str == "RIGHT")
+        mouse_button = MOUSEEVENTF_RIGHTDOWN;
+    if(str == "M" || str == "MIDDLE")
+        mouse_button = MOUSEEVENTF_MIDDLEDOWN;
+#else
+    mouse_button = 0;
+#endif
+    if(mouse_button != 0xFFFF)
+        key = mouse_button;
+    else
+        throw std::invalid_argument(fmt::format("Invalid mouse button input: {}", str));
+}
+
+MouseRelease::MouseRelease(const std::string&& str)
+{
+    uint16_t mouse_button = 0xFFFF;
+#ifdef _WIN32
+    if(str == "L" || str == "LEFT")
+        mouse_button = MOUSEEVENTF_LEFTDOWN;
+    if(str == "R" || str == "RIGHT")
+        mouse_button = MOUSEEVENTF_RIGHTDOWN;
+    if(str == "M" || str == "MIDDLE")
+        mouse_button = MOUSEEVENTF_MIDDLEDOWN;
+#else
+    mouse_button = 0;
+#endif
+    if(mouse_button != 0xFFFF)
+        key = mouse_button;
+    else
+        throw std::invalid_argument(fmt::format("Invalid mouse button input: {}", str));
 }
 
 MouseClick::MouseClick(const std::string&& str)
@@ -128,7 +179,7 @@ void CustomMacro::PressKey(std::string key)
         {
             for(const auto& i : it->second)
             {
-                i->DoWrite();
+                i->Execute();
             }
         }
     };
@@ -144,14 +195,14 @@ void CustomMacro::PressKey(std::string key)
             bool app_found = false;
             for(auto& m : macros)
             {
-                if(boost::algorithm::contains(window_title, m->name) && m->name.length() > 2)
+                if(boost::algorithm::contains(window_title, m->app_name) && m->app_name.length() > 2)
                 {
                     const auto it = m->key_vec.find(pressed_keys);
                     if(it != m->key_vec.end())
                     {
                         for(const auto& i : it->second)
                         {
-                            i->DoWrite();
+                            i->Execute();
                         }
                     }
                     app_found = true;
@@ -275,8 +326,7 @@ void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_v
         try
         {
             CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600); /* baud rate has no meaning here */
-            auto fp = std::bind(&CustomMacro::UartDataReceived, this, std::placeholders::_1, std::placeholders::_2);
-            serial.setCallback(fp);
+            serial.setCallback(std::bind(&CustomMacro::UartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
 
             while(!to_exit)
             {

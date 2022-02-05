@@ -29,10 +29,10 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
             frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
         }
 
-        Database::Get()->InsertMeasurement(m);
+        DatabaseLogic::Get()->InsertMeasurement(m);
         AddMeasurement(std::move(m));
-        if(current_time - Database::Get()->last_db_update > 10 * 60)  /* 10 minutes */
-            Database::Get()->GenerateGraphs();
+        if(current_time - DatabaseLogic::Get()->last_db_update > 10 * 60)  /* 10 minutes */
+            DatabaseLogic::Get()->GenerateGraphs();
         else
             WriteGraphs();
     }

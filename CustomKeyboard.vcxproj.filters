@@ -129,7 +129,7 @@
     <ClInclude Include="src\CustomMacro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Database.h">
+    <ClInclude Include="src\DatabaseLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\DirectoryBackup.h">
@@ -207,6 +207,9 @@
     <ClInclude Include="src\AntiLock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\DatabaseImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -260,7 +263,7 @@
     <ClCompile Include="src\CustomMacro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Database.cpp">
+    <ClCompile Include="src\DatabaseLogic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DirectoryBackup.cpp">
@@ -315,6 +318,9 @@
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\AntiLock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DatabaseImpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

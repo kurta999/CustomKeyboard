@@ -1,16 +1,7 @@
 #include "pch.h"
 
-void DirectoryBackup::DoBackup(BackupEntry* backup)
+void DirectoryBackup::BackupRotation(BackupEntry* backup)
 {
-	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-	auto folder_name = backup->from.filename();
-	std::wstring folder_name_with_date = folder_name.generic_wstring();
-
-	if(!std::filesystem::exists(backup->from))
-		return; /* if source directory doesn't exists, just do nothing */
-
-	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-	frame->show_backup_dlg = true;
 	for(auto& t : backup->to)
 	{
 		if(!std::filesystem::exists(t))  /* not needed to go file checking when even the directory doesns't exists */
@@ -30,6 +21,21 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			std::filesystem::remove_all(to_remove);
 		}
 	}
+}
+
+void DirectoryBackup::DoBackup(BackupEntry* backup)
+{
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+	auto folder_name = backup->from.filename();
+	std::wstring folder_name_with_date = folder_name.generic_wstring();
+
+	if(!std::filesystem::exists(backup->from))
+		return; /* if source directory doesn't exists, just do nothing */
+
+	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+	frame->show_backup_dlg = true;
+
+	BackupRotation(backup);
 
 	time_t current_time;
 	time(&current_time);

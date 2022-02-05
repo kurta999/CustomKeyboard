@@ -15,11 +15,19 @@ class PrintScreenSaver : public CSingleton < PrintScreenSaver >
 {
     friend class CSingleton < PrintScreenSaver >;
 public:
+    // \brief Initialize function
     void Init();
+
+    // \brief Execute screenshot saving
     void SaveScreenshot();
 
+    // \brief Screenshot timestamp format in filename
     std::string timestamp_format = "%Y.%m.%d %H.%M.%S";
+
+    // \brief Screenshots path (relative to application directory)
     std::filesystem::path screenshot_path = "Screenshots";
+
+    // \brief Screenshot key
     std::string screenshot_key = "F12";
 private:
     void DoSave();

@@ -18,9 +18,9 @@ MainPanel::MainPanel(wxFrame* parent)
 	bSizer1->Add(m_GenerateGraphs, 0, wxALL, 5);
 	m_GenerateGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			Database::Get()->SetGraphHours(0, (uint32_t)m_GraphStartHours1->GetValue());
-			Database::Get()->SetGraphHours(1, (uint32_t)m_GraphStartHours2->GetValue());
-			Database::Get()->GenerateGraphs();
+			DatabaseLogic::Get()->SetGraphHours(0, (uint32_t)m_GraphStartHours1->GetValue());
+			DatabaseLogic::Get()->SetGraphHours(1, (uint32_t)m_GraphStartHours2->GetValue());
+			DatabaseLogic::Get()->GenerateGraphs();
 		});
 
 #if defined _WIN32
@@ -69,11 +69,11 @@ MainPanel::MainPanel(wxFrame* parent)
 
 	m_GraphStartHours1 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 7 * 24);
 	m_GraphStartHours1->SetToolTip("Sets how many hours before current time the first graph should start");
-	m_GraphStartHours1->SetValue(Database::Get()->GetGraphHours(0));
+	m_GraphStartHours1->SetValue(DatabaseLogic::Get()->GetGraphHours(0));
 	bSizer1->Add(m_GraphStartHours1, 0, wxALL, 5);
 	m_GraphStartHours2 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 365 * 24);
 	m_GraphStartHours2->SetToolTip("Sets how many hours before current time the second graph should start");
-	m_GraphStartHours2->SetValue(Database::Get()->GetGraphHours(1));
+	m_GraphStartHours2->SetValue(DatabaseLogic::Get()->GetGraphHours(1));
 	bSizer1->Add(m_GraphStartHours2, 0, wxALL, 5);
 
 	this->SetSizer(bSizer1);

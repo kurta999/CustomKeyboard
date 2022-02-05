@@ -30,7 +30,7 @@ int MyApp::OnExit()
     CustomMacro::CSingleton::Destroy();
     Server::CSingleton::Destroy();
     Sensors::CSingleton::Destroy();
-    Database::CSingleton::Destroy();
+    DatabaseLogic::CSingleton::Destroy();
     StructParser::CSingleton::Destroy();
     PrintScreenSaver::CSingleton::Destroy();
     DirectoryBackup::CSingleton::Destroy();

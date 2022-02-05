@@ -1,12 +1,14 @@
 #include "pch.h"
 
-void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroContainer>& c)
+void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
     constexpr size_t MAX_ITEMS = MacroTypes::MAX;
-    constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_CLICK[" };
+    constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[", 
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[" };
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
-        std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]) };
+        std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
+        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -86,7 +88,49 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                     LOGMSG(critical, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
                 }
                 break;
+            }            
+            case MacroTypes::MOUSE_INTERPOLATE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MOUSE_INTERPOLATE], first_end, start_str_arr_lens[MOUSE_INTERPOLATE]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseInterpolate>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOGMSG(critical, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
+                }
+                break;
             }
+            case MacroTypes::MOUSE_PRESS:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MOUSE_PRESS], first_end, start_str_arr_lens[MOUSE_PRESS]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MousePress>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOGMSG(critical, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
+                }
+                break;
+            }            
+            case MacroTypes::MOUSE_RELEASE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MOUSE_RELEASE], first_end, start_str_arr_lens[MOUSE_RELEASE]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseRelease>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOGMSG(critical, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
+                }
+                break;
+            }     
             case MacroTypes::MOUSE_CLICK:
             {
                 pos = first_end;
@@ -139,7 +183,7 @@ void Settings::LoadFile()
         CustomMacro::Get()->advanced_key_binding = utils::stob(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data());
 
         CustomMacro::Get()->macros.clear();
-        std::unique_ptr<MacroContainer> p = std::make_unique<MacroContainer>();
+        std::unique_ptr<MacroAppProfile> p = std::make_unique<MacroAppProfile>();
         macro_section.clear();
         auto& global_child = pt.get_child("Keys_Global");
         for(auto& key : global_child)
@@ -147,7 +191,7 @@ void Settings::LoadFile()
             std::string& str = key.second.data();
             ParseMacroKeys(0, key.first, str, p);
         }
-        p->name = "Global";
+        p->app_name = "Global";
         CustomMacro::Get()->macros.push_back(std::move(p));
 
         /* load per-application macros */
@@ -155,13 +199,13 @@ void Settings::LoadFile()
         size_t cnt = 0;
         while((cnt = pt.count("Keys_Macro" + std::to_string(counter))) == 1)
         {
-            std::unique_ptr<MacroContainer> p2 = std::make_unique<MacroContainer>();
+            std::unique_ptr<MacroAppProfile> p2 = std::make_unique<MacroAppProfile>();
             auto& ch = pt.get_child("Keys_Macro" + std::to_string(counter));
             for(auto& key : ch)
             {
                 if(key.first.data() == std::string("AppName"))
                 {
-                    p2->name = key.second.data();
+                    p2->app_name = key.second.data();
                     continue;
                 }
                 std::string& str = key.second.data();
@@ -233,9 +277,9 @@ void Settings::LoadFile()
         }
 
         uint32_t val1 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph1HoursBack")->second.data());
-        Database::Get()->SetGraphHours(0, val1);
+        DatabaseLogic::Get()->SetGraphHours(0, val1);
         uint32_t val2 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph2HoursBack")->second.data());
-        Database::Get()->SetGraphHours(1, val2);
+        DatabaseLogic::Get()->SetGraphHours(1, val2);
     }
     catch(boost::property_tree::ptree_error& e)
     {
@@ -276,7 +320,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             else
             {
                 out << fmt::format("\n[Keys_Macro{}]\n", cnt);
-                out << fmt::format("AppName = {}\n", i->name);
+                out << fmt::format("AppName = {}\n", i->app_name);
             }
             cnt++;
             for(auto& x : i->key_vec)
@@ -389,8 +433,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     }
     out << "\n";
     out << "[Graph]\n";
-    out << "Graph1HoursBack = " << Database::Get()->GetGraphHours(0) << " # One day\n";
-    out << "Graph2HoursBack = " << Database::Get()->GetGraphHours(1) << " # One week\n";
+    out << "Graph1HoursBack = " << DatabaseLogic::Get()->GetGraphHours(0) << " # One day\n";
+    out << "Graph2HoursBack = " << DatabaseLogic::Get()->GetGraphHours(1) << " # One week\n";
     out.close();
 }
 

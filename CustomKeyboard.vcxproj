@@ -325,7 +325,8 @@
     <ClInclude Include="src\commitid.h" />
     <ClInclude Include="src\CustomKeyboard.h" />
     <ClInclude Include="src\CustomMacro.h" />
-    <ClInclude Include="src\Database.h" />
+    <ClInclude Include="src\DatabaseImpl.h" />
+    <ClInclude Include="src\DatabaseLogic.h" />
     <ClInclude Include="src\DirectoryBackup.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\GuiEditor.h" />
@@ -437,7 +438,8 @@
     <ClCompile Include="src\AntiLock.cpp" />
     <ClCompile Include="src\CustomKeyboard.cpp" />
     <ClCompile Include="src\CustomMacro.cpp" />
-    <ClCompile Include="src\Database.cpp" />
+    <ClCompile Include="src\DatabaseImpl.cpp" />
+    <ClCompile Include="src\DatabaseLogic.cpp" />
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
     <ClCompile Include="src\gui\Configuration.cpp" />

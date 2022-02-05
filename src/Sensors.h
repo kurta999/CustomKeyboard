@@ -2,7 +2,7 @@
 
 #include "utils/CSingleton.h"
 #include "Logger.h"
-#include "Database.h"
+#include "DatabaseLogic.h"
 
 #include <deque>
 #include <memory>
@@ -38,10 +38,19 @@ class Sensors : public CSingleton < Sensors >
 {
     friend class CSingleton < Sensors >;
 public:
+    // \brief Initialize sensors
     void Init();
+
+    // \brief Process incomming data
+    // \param recv_data [in] - received data C string
+    // \param from_ip [in] - sender ip C string
     void ProcessIncommingData(char* recv_data, const char* from_ip);
+
+    // \brief Write graphs from memory to .html files
     void WriteGraphs();
 
+    // \brief Add measurement to last_meas queue
+    // \param meas [in] - pointer to measure to add
     void AddMeasurement(std::unique_ptr<Measurement>&& meas)
     {
         size_t size = last_meas.size();
@@ -56,13 +65,23 @@ public:
         return last_meas;
     }
 
-    std::vector<std::unique_ptr<Measurement>> last_day[3];  /* avg, max, min */
-    std::vector<std::unique_ptr<Measurement>> last_week[3];  /* avg, max, min */
+    // \brief Vector of last day's measurement, array order is: avg, max, min
+    std::vector<std::unique_ptr<Measurement>> last_day[3];
+
+    // \brief Vector of last week's measurement, array order is: avg, max, min
+    std::vector<std::unique_ptr<Measurement>> last_week[3];
 private:
     template<typename T1> void WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
 
+    // \brief Dequeue for last X measurement
     std::deque<std::unique_ptr<Measurement>> last_meas;
+
+    // \brief Basic HTML template file for measurement graphs
     std::string template_str;
+
+    // \brief Mutex for generating measurements
     std::mutex mtx;
+
+    // \brief Number of received measurements
     size_t num_recv_meas = 0;
 };

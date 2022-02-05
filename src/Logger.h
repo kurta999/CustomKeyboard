@@ -40,6 +40,13 @@ public:
     Logger();
     ~Logger();
 
+    // !\brief Write given log message to logfile.txt & LogPanel
+    // !\param lvl [in] Serverity level
+    // !\param file [in] Filename where the call comes from
+    // !\param line [in] Line in source file where the call comes from
+    // !\param function [in] Function name in source file where the call comes from
+    // !\param msg [in] Message to log
+    // !\param args [in] va_args arguments for fmt::format
     template<typename... Args>
     void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
     {
@@ -70,7 +77,7 @@ public:
             fflush(fLog);
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame && frame->log_panel)
+        if(frame && frame->log_panel && frame->log_panel->m_Log)
         {
             frame->log_panel->m_Log->Append(wxString(str));
             frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
@@ -79,6 +86,7 @@ public:
             preinit_entries.Add(str);
     }
 
+    // !\brief Append log messages to log panel which were logged before log panel was constructor
     void AppendPreinitedEntries()
     {
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -89,9 +97,13 @@ public:
         }
     }
 private:
+    // !\brief File handle for log 
     FILE* fLog = nullptr;
+
+    // !\brief Preinited log messages
     wxArrayString preinit_entries;
 
+    // !\brief Serverity level in string format
     static inline const char* serverity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
 };
 

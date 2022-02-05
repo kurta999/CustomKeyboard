@@ -94,7 +94,8 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	// this sizer allows to configure the messages shown in the message box
 	wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Macro settings");
 
-	const wxString choices[] = { wxT("Sequence"), wxT("Text"), wxT("Delay"), wxT("Mouse move"), wxT("Mouse click") };
+	const wxString choices[] = { wxT("Sequence"), wxT("Text"), wxT("Delay"), wxT("Mouse move"), 
+		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click") };
 	m_radioBox1 = new wxRadioBox(this, wxID_ANY, wxT("Action type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices, 1, wxRA_SPECIFY_ROWS);
 	sizerMsgs->Add(m_radioBox1, wxSizerFlags().Left());
 	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro text:"));
@@ -431,7 +432,7 @@ void KeybrdPanel::UpdateMainTree()
 	wxTreeListItem root = tree->GetRootItem();
 	for(auto& m : CustomMacro::Get()->GetMacros())
 	{
-		wxTreeListItem item = tree->AppendItem(root, m->name.c_str());
+		wxTreeListItem item = tree->AppendItem(root, m->app_name.c_str());
 		for(auto& b : m->bind_name)
 		{
 			wxTreeListItem bind_item = tree->AppendItem(item, b.second.c_str());
@@ -449,7 +450,7 @@ void KeybrdPanel::UpdateDetailsTree(std::unique_ptr<IKey>* ptr)
 	auto& m = CustomMacro::Get()->GetMacros();
 	for(auto& i : m)
 	{
-		if(i->name == root_sel_str.ToStdString())
+		if(i->app_name == root_sel_str.ToStdString())
 		{
 			for(auto& x : i->key_vec[child_sel_str.ToStdString()])
 			{
@@ -513,15 +514,15 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			{
 				auto& m = CustomMacro::Get()->GetMacros();
 
-				std::vector<std::unique_ptr<MacroContainer>>::const_iterator i;
+				std::vector<std::unique_ptr<MacroAppProfile>>::const_iterator i;
 				for(i = m.begin(); i != m.end(); i++)
 				{
-					if(i->get()->name == root_str)
+					if(i->get()->app_name == root_str)
 					{
 						break;
 					}
 				}
-				m.insert(i + 1, std::make_unique<MacroContainer>(d.GetValue().ToStdString()));
+				m.insert(i + 1, std::make_unique<MacroAppProfile>(d.GetValue().ToStdString()));
 			}
 			UpdateMainTree();
 			break;
@@ -546,7 +547,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			auto& m = CustomMacro::Get()->GetMacros();
 			for(auto& i : m)
 			{
-				if(i->name == item_str)
+				if(i->app_name == item_str)
 				{
 					if(i->key_vec.find(macro_key) != i->key_vec.end()) 
 					{
@@ -554,7 +555,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 						return;
 					}
 
-					auto pp = std::make_unique<MacroContainer>();
+					auto pp = std::make_unique<MacroAppProfile>();
 					i->bind_name[macro_key] = std::move(macro_name);
 					UpdateMainTree();
 					break;
@@ -577,7 +578,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 				if(!add_dlg->IsApplyClicked()) return;
 
 				auto& m = CustomMacro::Get()->GetMacros();
-				auto it = std::find_if(m.begin(), m.end(), [this, sel_str = this->root_sel_str](std::unique_ptr<MacroContainer>& x) { return x->name == sel_str; });
+				auto it = std::find_if(m.begin(), m.end(), [this, sel_str = this->root_sel_str](std::unique_ptr<MacroAppProfile>& x) { return x->app_name == sel_str; });
 				if(it != m.end())
 				{
 					std::map<std::string, std::vector<std::unique_ptr<IKey>>>::iterator e = (*it)->key_vec.find(child_sel_str.ToStdString());
@@ -605,10 +606,10 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 				if(ret == wxID_OK)
 				{
 					auto& m = CustomMacro::Get()->GetMacros();
-					auto it = std::find_if(m.begin(), m.end(), [&name_str](std::unique_ptr<MacroContainer>& x) { return x->name == name_str; });
+					auto it = std::find_if(m.begin(), m.end(), [&name_str](std::unique_ptr<MacroAppProfile>& x) { return x->app_name == name_str; });
 					if(it != m.end())
 					{
-						(*it)->name = dialog.GetValue().ToStdString();
+						(*it)->app_name = dialog.GetValue().ToStdString();
 						UpdateMainTree();
 					}
 				}
@@ -630,7 +631,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 
 					if(root2 == NULL) /* clicked on one of the root items */
 					{
-						m.erase(std::remove_if(m.begin(), m.end(), [&root_str](std::unique_ptr<MacroContainer>& x) { return x->name == root_str; }));
+						m.erase(std::remove_if(m.begin(), m.end(), [&root_str](std::unique_ptr<MacroAppProfile>& x) { return x->app_name == root_str; }));
 					}
 					else
 					{
@@ -638,7 +639,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 						const wxString& key_str = tree->GetItemText(item, 1);
 						for(auto& i : m)
 						{
-							if(i->name == root_str)
+							if(i->app_name == root_str)
 							{
 								std::string str = key_str.ToStdString();
 								i->key_vec.erase(str);
@@ -725,9 +726,15 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 		else if(type_str == "DELAY RANDOM" || type_str == "DELAY")
 			sel = 2;
 		else if(type_str == "MOUSE MOVE")
-			sel = 3;
-		else if(type_str == "MOUSE CLICK")
+			sel = 3;		
+		else if(type_str == "MOUSE INTERPOLATE")
 			sel = 4;
+		else if(type_str == "MOUSE PRESS")
+			sel = 5;		
+		else if(type_str == "MOUSE RELEASE")
+			sel = 6;		
+		else if(type_str == "MOUSE CLICK")
+			sel = 7;
 		edit_dlg->ShowDialog(item_str, sel);
 	}
 }
@@ -791,8 +798,44 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
-		}
+		}		
 		case 4:
+		{
+			try
+			{
+				AddOrModifyMacro<MouseInterpolate>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}
+		case 5:
+		{
+			try
+			{
+				AddOrModifyMacro<MousePress>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}		
+		case 6:
+		{
+			try
+			{
+				AddOrModifyMacro<MouseRelease>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}		
+		case 7:
 		{
 			try
 			{
@@ -814,7 +857,7 @@ void KeybrdPanel::OnItemActivated(wxTreeListEvent& evt)
 	auto& m = CustomMacro::Get()->GetMacros();
 	for(auto& i : m)
 	{
-		if(i->name == root_sel_str.ToStdString())
+		if(i->app_name == root_sel_str.ToStdString())
 		{
 			std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
 			wxClientData* itemdata = tree_details->GetItemData(item);
@@ -923,7 +966,7 @@ void KeybrdPanel::TreeDetails_DeleteSelectedMacros()
 		auto& m = CustomMacro::Get()->GetMacros();
 		for(auto& i : m)
 		{
-			if(i->name == root_sel_str.ToStdString())
+			if(i->app_name == root_sel_str.ToStdString())
 			{
 				std::vector<std::unique_ptr<IKey>>& c = i->key_vec[child_sel_str.ToStdString()];
 				for(auto& j : boost::adaptors::reverse(to_erase))
@@ -953,7 +996,7 @@ void KeybrdPanel::TreeDetails_AddNewMacro()
 		auto& m = CustomMacro::Get()->GetMacros();
 		for(auto& i : m)
 		{
-			if(i->name == root_sel_str.ToStdString())
+			if(i->app_name == root_sel_str.ToStdString())
 			{
 				std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
 				std::unique_ptr<IKey>* ptr = nullptr;
@@ -1098,7 +1141,7 @@ void KeybrdPanel::TreeDetails_StartRecording()
 		auto& m = CustomMacro::Get()->GetMacros();
 		for(auto& i : m)
 		{
-			if(i->name == root_sel_str.ToStdString())
+			if(i->app_name == root_sel_str.ToStdString())
 			{
 				std::vector<std::unique_ptr<IKey>>& x = i->key_vec[child_sel_str.ToStdString()];
 				std::unique_ptr<IKey>* ptr = nullptr;
@@ -1244,7 +1287,7 @@ std::vector<std::unique_ptr<IKey>>* KeybrdPanel::GetKeyClassByItem(wxTreeListIte
 		auto& m = CustomMacro::Get()->GetMacros();
 		for(auto& i : m)
 		{
-			if(i->name == root_sel_str.ToStdString())
+			if(i->app_name == root_sel_str.ToStdString())
 			{
 				std::vector<std::unique_ptr<IKey>>* x = &i->key_vec[child_sel_str.ToStdString()];
 
