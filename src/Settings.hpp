@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utils/CSingleton.h"
-#include "CustomMacro.h"
+#include "utils/CSingleton.hpp"
+#include "CustomMacro.hpp"
 
 class MacroAppProfile;
 class Settings : public CSingleton < Settings >

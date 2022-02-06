@@ -93,103 +93,103 @@
     <ClInclude Include="libs\enumser\enumser.h">
       <Filter>libs\enumser</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\Configuration.h">
+    <ClInclude Include="src\gui\Configuration.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\Editor.h">
+    <ClInclude Include="src\gui\Editor.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\EscaperPanel.h">
+    <ClInclude Include="src\gui\EscaperPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\gui_id.h">
+    <ClInclude Include="src\gui\gui_id.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\LogPanel.h">
+    <ClInclude Include="src\gui\LogPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\main_frame.h">
+    <ClInclude Include="src\gui\MainFrame.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\MainPanel.h">
+    <ClInclude Include="src\gui\MainPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\ParserPanel.h">
+    <ClInclude Include="src\gui\ParserPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\TrayIcon.h">
+    <ClInclude Include="src\gui\TrayIcon.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\commitid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CustomKeyboard.h">
+    <ClInclude Include="src\CustomKeyboard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CustomMacro.h">
+    <ClInclude Include="src\CustomMacro.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\DatabaseLogic.h">
+    <ClInclude Include="src\DatabaseLogic.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\DirectoryBackup.h">
+    <ClInclude Include="src\DirectoryBackup.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\framework.h">
+    <ClInclude Include="src\framework.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\GuiEditor.h">
+    <ClInclude Include="src\GuiEditor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Logger.h">
+    <ClInclude Include="src\Logger.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PathSeparator.h">
+    <ClInclude Include="src\PathSeparator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PrintScreenSaver.h">
+    <ClInclude Include="src\PrintScreenSaver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sensors.h">
+    <ClInclude Include="src\Sensors.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Server.h">
+    <ClInclude Include="src\Server.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Session.h">
+    <ClInclude Include="src\Session.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Settings.h">
+    <ClInclude Include="src\Settings.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\StructParser.h">
+    <ClInclude Include="src\StructParser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\targetver.h">
+    <ClInclude Include="src\targetver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\AsyncSerial.h">
+    <ClInclude Include="src\utils\AsyncSerial.hpp">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\CSingleton.h">
+    <ClInclude Include="src\utils\CSingleton.hpp">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\pch.h">
+    <ClInclude Include="src\pch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\pch.h">
+    <ClInclude Include="src\gui\pch.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\ConfigurationBackup.h">
+    <ClInclude Include="src\gui\ConfigurationBackup.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\SymlinkCreator.h">
+    <ClInclude Include="src\SymlinkCreator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\MacroRecorder.h">
+    <ClInclude Include="src\MacroRecorder.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -198,16 +198,22 @@
     <ClInclude Include="libs\sha256\sha256.h">
       <Filter>libs\sha256</Filter>
     </ClInclude>
-    <ClInclude Include="src\Utils.h">
+    <ClInclude Include="src\Utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\FilePanel.h">
+    <ClInclude Include="src\gui\FilePanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="src\AntiLock.h">
+    <ClInclude Include="src\AntiLock.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\DatabaseImpl.h">
+    <ClInclude Include="src\DatabaseImpl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SerialForwarder.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SerialPort.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -242,7 +248,7 @@
     <ClCompile Include="src\gui\LogPanel.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\main_frame.cpp">
+    <ClCompile Include="src\gui\MainFrame.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\MainPanel.cpp">
@@ -321,6 +327,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DatabaseImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SerialForwarder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SerialPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

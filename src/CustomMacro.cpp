@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
@@ -226,7 +226,7 @@ void CustomMacro::PressKey(std::string key)
     }
 }
 
-void CustomMacro::UartDataReceived(const char* data, unsigned int len)
+void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
 {
     KeyData_t* k = (KeyData_t*)data;
     crc16_modbus_t calc_result;
@@ -252,12 +252,12 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             if(advanced_key_binding)
             {
                 static const char no_keys[6] = { 0, 0, 0, 0, 0, 0 };
-                if(!memcmp(k->keys, no_keys, sizeof(k->keys)))
+                if(!memcmp(k->keys, no_keys, sizeof(k->keys)))  /* stop the execution when only control keys was pressed */
                 {
                     return;
                 }
             }
-            
+
             if(k->lshift)
                 pressed_keys += "LSHIFT";
             else if(k->lalt)
@@ -265,7 +265,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
             else if(k->lgui)
                 pressed_keys += "LGUI";
             else if(k->lctrl)
-                pressed_keys += "LCTRL"; 
+                pressed_keys += "LCTRL";
             if(k->rshift)
                 pressed_keys += "RSHIFT";
             else if(k->ralt)
@@ -274,7 +274,7 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
                 pressed_keys += "RGUI";
             else if(k->rctrl)
                 pressed_keys += "RCTRL";
-           
+
             for(int i = 0; i != 1; i++) // TODO: sizeof(k->keys) / sizeof(k->keys[0])
             {   /* only supporting 1 addon key (for now?), it should be more than enough - possible to bind more than 700 macros - PER APPLICATION! */
                 auto key_str = hid_scan_codes.find(k->keys[i]);
@@ -291,12 +291,24 @@ void CustomMacro::UartDataReceived(const char* data, unsigned int len)
     }
 }
 
+void CustomMacro::OnUartDataReceived(const char* data, unsigned int len)
+{
+    if(forward_serial_to_tcp)
+    {
+        SerialForwarder::Get()->Send(remote_tcp_ip, remote_tcp_port, data, len);
+    }
+    else
+    {
+        ProcessReceivedData(data, len);
+    }
+}
+
 void CustomMacro::Init()
 {
     if(is_enabled)
     {
-        if(t == nullptr)
-            t = new std::thread(&CustomMacro::UartReceiveThread, this, std::ref(to_exit), std::ref(cv), std::ref(m));
+        if(!m_worker)
+            m_worker = std::make_unique<std::thread>(&CustomMacro::UartReceiveThread, this, std::ref(to_exit), std::ref(m_cv), std::ref(m_mutex));
     }
     else
     {
@@ -306,19 +318,20 @@ void CustomMacro::Init()
 
 void CustomMacro::DestroyWorkingThread()
 {
-    if(t)
+    if(m_worker)
     {
         {
-            std::lock_guard guard(m);
+            std::lock_guard guard(m_mutex);
             to_exit = true;
-            cv.notify_all();
+            m_cv.notify_all();
         }
-        t->join();
-        delete t;
-        t = nullptr;
+        if(m_worker->joinable())
+            m_worker->join();
     }
 }
 
+// LUbuntu [Running] - Oracle VM VirtualBox
+// \x00\x00\x00\x00\x00\x00\x00\x00\x00\x54\x00\x00\x00\x00\x00\x4C\x45
 void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m)
 {
     while(!to_exit)
@@ -326,7 +339,7 @@ void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_v
         try
         {
             CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600); /* baud rate has no meaning here */
-            serial.setCallback(std::bind(&CustomMacro::UartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
+            serial.setCallback(std::bind(&CustomMacro::OnUartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
 
             while(!to_exit)
             {
@@ -336,8 +349,8 @@ void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_v
                     break;
                 }
                 {
-                    std::unique_lock lock(m);
-                    cv.wait_for(lock, 1000ms);
+                    std::unique_lock lock(m_mutex);
+                    m_cv.wait_for(lock, 1000ms);
                 }
             }
             serial.close();
@@ -346,8 +359,8 @@ void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_v
         {
             LOGMSG(error, "Exception serial {}", e.what());
             {
-                std::unique_lock lock(m);
-                cv.wait_for(lock, 1000ms);
+                std::unique_lock lock(m_mutex);
+                m_cv.wait_for(lock, 1000ms);
             }
         }
     }

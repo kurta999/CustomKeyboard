@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 MainPanel::MainPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)

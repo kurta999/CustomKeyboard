@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 #include "../commitid.h"
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
@@ -120,6 +120,15 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 
 void MyFrame::OnTimer(wxTimerEvent& event)
 {
+	{
+		HWND foreground = GetForegroundWindow();
+		if(foreground)
+		{
+			char window_title[256];
+			GetWindowTextA(foreground, window_title, 256);
+			DBG("fgw: %s\n", window_title);
+		}
+	}
 #ifdef _WIN32
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();

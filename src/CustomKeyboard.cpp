@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 IMPLEMENT_APP(MyApp)
 
@@ -15,6 +15,7 @@ bool MyApp::OnInit()
     PrintScreenSaver::Get()->Init();
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
+    SerialForwarder::Get()->Init();
 
     if(!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
@@ -35,6 +36,8 @@ int MyApp::OnExit()
     PrintScreenSaver::CSingleton::Destroy();
     DirectoryBackup::CSingleton::Destroy();
     MacroRecorder::CSingleton::Destroy();
+    DatabaseLogic::CSingleton::Destroy();
+    SerialForwarder::CSingleton::Destroy();
     return true;
 }
 

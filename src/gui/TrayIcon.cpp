@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 BEGIN_EVENT_TABLE(TrayIcon, wxTaskBarIcon)
 EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)

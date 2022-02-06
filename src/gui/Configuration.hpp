@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ConfigurationBackup.h"
+#include "ConfigurationBackup.hpp"
 #include <wx/wx.h>
 #include <wx/aui/aui.h>
 #include <wx/stc/stc.h>

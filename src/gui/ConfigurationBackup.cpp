@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(BackupPanel, wxPanel)
 EVT_TREELIST_ITEM_CONTEXT_MENU(ID_BackupPanel, BackupPanel::OnItemContextMenu)

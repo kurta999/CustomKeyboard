@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
 wxEND_EVENT_TABLE()

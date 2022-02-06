@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 constexpr const char* db_name = "meas_data.db";
 

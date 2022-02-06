@@ -1,12 +1,12 @@
 #pragma once
 
-#include "MainPanel.h"
-#include "EscaperPanel.h"
-#include "ParserPanel.h"
-#include "LogPanel.h"
-#include "Editor.h"
-#include "Configuration.h"
-#include "FilePanel.h"
+#include "MainPanel.hpp"
+#include "EscaperPanel.hpp"
+#include "ParserPanel.hpp"
+#include "LogPanel.hpp"
+#include "Editor.hpp"
+#include "Configuration.hpp"
+#include "FilePanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>

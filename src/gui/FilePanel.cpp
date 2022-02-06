@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(FilePanel, wxPanel)
 EVT_SIZE(FilePanel::OnSize)

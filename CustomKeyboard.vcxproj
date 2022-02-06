@@ -135,7 +135,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -163,7 +163,7 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_78_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -193,7 +193,7 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_78_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -217,11 +217,11 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswud;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_lib;C:\Program Files\boost\boost_1_78_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -249,7 +249,7 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_dll\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\wxWidgets-3.1.5\lib\vc_x64_dll;C:\Program Files\boost\boost_1_78_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -281,7 +281,7 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.5\lib\vc_x64_lib\mswu;C:\wxWidgets-3.1.5\include;C:\wxWidgets-3.1.3\include\msvc;C:\Program Files\boost\boost_1_78_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -321,43 +321,45 @@
     <ClInclude Include="libs\sqlite\sqlite3.h" />
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="src\AntiLock.h" />
+    <ClInclude Include="src\AntiLock.hpp" />
     <ClInclude Include="src\commitid.h" />
-    <ClInclude Include="src\CustomKeyboard.h" />
-    <ClInclude Include="src\CustomMacro.h" />
-    <ClInclude Include="src\DatabaseImpl.h" />
-    <ClInclude Include="src\DatabaseLogic.h" />
-    <ClInclude Include="src\DirectoryBackup.h" />
-    <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\GuiEditor.h" />
-    <ClInclude Include="src\gui\Configuration.h" />
-    <ClInclude Include="src\gui\ConfigurationBackup.h" />
-    <ClInclude Include="src\gui\Editor.h" />
-    <ClInclude Include="src\gui\EscaperPanel.h" />
-    <ClInclude Include="src\gui\FilePanel.h" />
-    <ClInclude Include="src\gui\gui_id.h" />
-    <ClInclude Include="src\gui\LogPanel.h" />
-    <ClInclude Include="src\gui\MainPanel.h" />
-    <ClInclude Include="src\gui\main_frame.h" />
-    <ClInclude Include="src\gui\ParserPanel.h" />
-    <ClInclude Include="src\gui\pch.h" />
-    <ClInclude Include="src\gui\TrayIcon.h" />
-    <ClInclude Include="src\Logger.h" />
-    <ClInclude Include="src\MacroRecorder.h" />
-    <ClInclude Include="src\PathSeparator.h" />
-    <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\PrintScreenSaver.h" />
+    <ClInclude Include="src\CustomKeyboard.hpp" />
+    <ClInclude Include="src\CustomMacro.hpp" />
+    <ClInclude Include="src\DatabaseImpl.hpp" />
+    <ClInclude Include="src\DatabaseLogic.hpp" />
+    <ClInclude Include="src\DirectoryBackup.hpp" />
+    <ClInclude Include="src\framework.hpp" />
+    <ClInclude Include="src\GuiEditor.hpp" />
+    <ClInclude Include="src\gui\Configuration.hpp" />
+    <ClInclude Include="src\gui\ConfigurationBackup.hpp" />
+    <ClInclude Include="src\gui\Editor.hpp" />
+    <ClInclude Include="src\gui\EscaperPanel.hpp" />
+    <ClInclude Include="src\gui\FilePanel.hpp" />
+    <ClInclude Include="src\gui\gui_id.hpp" />
+    <ClInclude Include="src\gui\LogPanel.hpp" />
+    <ClInclude Include="src\gui\MainPanel.hpp" />
+    <ClInclude Include="src\gui\MainFrame.hpp" />
+    <ClInclude Include="src\gui\ParserPanel.hpp" />
+    <ClInclude Include="src\gui\pch.hpp" />
+    <ClInclude Include="src\gui\TrayIcon.hpp" />
+    <ClInclude Include="src\Logger.hpp" />
+    <ClInclude Include="src\MacroRecorder.hpp" />
+    <ClInclude Include="src\PathSeparator.hpp" />
+    <ClInclude Include="src\pch.hpp" />
+    <ClInclude Include="src\PrintScreenSaver.hpp" />
     <ClInclude Include="src\Resource.h" />
-    <ClInclude Include="src\Sensors.h" />
-    <ClInclude Include="src\Server.h" />
-    <ClInclude Include="src\Session.h" />
-    <ClInclude Include="src\Settings.h" />
-    <ClInclude Include="src\StructParser.h" />
-    <ClInclude Include="src\SymlinkCreator.h" />
-    <ClInclude Include="src\targetver.h" />
-    <ClInclude Include="src\Utils.h" />
-    <ClInclude Include="src\utils\AsyncSerial.h" />
-    <ClInclude Include="src\utils\CSingleton.h" />
+    <ClInclude Include="src\Sensors.hpp" />
+    <ClInclude Include="src\SerialForwarder.hpp" />
+    <ClInclude Include="src\SerialPort.hpp" />
+    <ClInclude Include="src\Server.hpp" />
+    <ClInclude Include="src\Session.hpp" />
+    <ClInclude Include="src\Settings.hpp" />
+    <ClInclude Include="src\StructParser.hpp" />
+    <ClInclude Include="src\SymlinkCreator.hpp" />
+    <ClInclude Include="src\targetver.hpp" />
+    <ClInclude Include="src\Utils.hpp" />
+    <ClInclude Include="src\utils\AsyncSerial.hpp" />
+    <ClInclude Include="src\utils\CSingleton.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\enumser\enumser.cpp">
@@ -449,7 +451,7 @@
     <ClCompile Include="src\gui\FilePanel.cpp" />
     <ClCompile Include="src\gui\LogPanel.cpp" />
     <ClCompile Include="src\gui\MainPanel.cpp" />
-    <ClCompile Include="src\gui\main_frame.cpp" />
+    <ClCompile Include="src\gui\MainFrame.cpp" />
     <ClCompile Include="src\gui\ParserPanel.cpp" />
     <ClCompile Include="src\gui\TrayIcon.cpp" />
     <ClCompile Include="src\Logger.cpp" />
@@ -465,6 +467,8 @@
     </ClCompile>
     <ClCompile Include="src\PrintScreenSaver.cpp" />
     <ClCompile Include="src\Sensors.cpp" />
+    <ClCompile Include="src\SerialForwarder.cpp" />
+    <ClCompile Include="src\SerialPort.cpp" />
     <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Session.cpp" />
     <ClCompile Include="src\Settings.cpp" />

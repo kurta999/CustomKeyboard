@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(ParserPanel, wxPanel)
 EVT_FILEPICKER_CHANGED(ID_FilePicker, ParserPanel::OnFileSelected)

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils/CSingleton.h"
+#include "utils/CSingleton.hpp"
 
-#include "Settings.h"
+#include "Settings.hpp"
 #include <boost/asio.hpp>
 
 #include <inttypes.h>
@@ -10,7 +10,7 @@
 #include <string>
 #include <deque>
 
-#include "Session.h"
+#include "Session.hpp"
 #include <thread>
 
 typedef std::shared_ptr<boost::asio::ip::tcp::acceptor> SharedAcceptor;

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "utils/CSingleton.h"
+#include "utils/CSingleton.hpp"
 
 #include <stdarg.h>
 
 #include <wx/wx.h>
-#include "gui/main_frame.h"
-#include "CustomKeyboard.h"
+#include "gui/MainFrame.hpp"
+#include "CustomKeyboard.hpp"
 #include <ctime>
 #include <filesystem>
 #ifndef _WIN32

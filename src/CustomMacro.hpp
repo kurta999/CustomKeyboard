@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils/CSingleton.h"
+#include "utils/CSingleton.hpp"
 
-#include "Settings.h"
+#include "Settings.hpp"
 
 #include <inttypes.h>
 #include <unordered_map>
@@ -11,7 +11,7 @@
 #include <variant>
 #include <array>
 
-#include "Logger.h"
+#include "Logger.hpp"
 #include <thread>
 
 #include <boost/random/mersenne_twister.hpp>
@@ -622,6 +622,9 @@ public:
     uint16_t com_port = 5;
     bool use_per_app_macro = true;
     bool advanced_key_binding = true;
+    bool forward_serial_to_tcp = false;
+    std::string remote_tcp_ip;
+    uint16_t remote_tcp_port = 7777;
     std::vector<std::unique_ptr<IKey>>* editing_macro = nullptr;
     IKey* editing_item = nullptr;
 
@@ -630,15 +633,16 @@ private:
 
     void DestroyWorkingThread();
     void PressKey(std::string key);
-    void UartDataReceived(const char* data, unsigned int len);
+    void ProcessReceivedData(const char* data, unsigned int len);
+    void OnUartDataReceived(const char* data, unsigned int len);
     void UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex &m);
 
     std::vector<std::unique_ptr<MacroAppProfile>> macros;
     std::string pressed_keys;
-    std::thread *t = nullptr;
+    std::unique_ptr<std::thread> m_worker = nullptr;
     std::atomic<bool> to_exit = false;
-    std::condition_variable cv;
-    std::mutex m;
+    std::condition_variable m_cv;
+    std::mutex m_mutex;
     static const std::unordered_map<std::string, int> scan_codes;
     static const std::unordered_map<int, std::string> hid_scan_codes;
 };

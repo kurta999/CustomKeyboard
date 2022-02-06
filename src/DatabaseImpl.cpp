@@ -1,5 +1,4 @@
-#include "pch.h"
-#include "DatabaseImpl.h"
+#include "pch.hpp"
 
 Result::Result(sqlite3_stmt* stmt) :
     m_stmt(stmt)

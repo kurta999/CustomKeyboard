@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 {

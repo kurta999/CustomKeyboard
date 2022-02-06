@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/CSingleton.h"
+#include "utils/CSingleton.hpp"
 #include <wx/wx.h>
 
 #include <inttypes.h>
@@ -10,8 +10,8 @@
 
 #include <map>
 
-#include "gui/main_frame.h"
-#include "CustomKeyboard.h"
+#include "gui/MainFrame.hpp"
+#include "CustomKeyboard.hpp"
 
 enum class wxTypes : int
 {

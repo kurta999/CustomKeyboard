@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 /* This is an updated code of my old project called wxCreator - this file doesn't really follow OO principles :) */
 

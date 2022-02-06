@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
@@ -216,6 +216,9 @@ void Settings::LoadFile()
         }
         CustomMacro::Get()->is_enabled = utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data());
         CustomMacro::Get()->com_port = utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data());
+        CustomMacro::Get()->forward_serial_to_tcp = utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data());
+        CustomMacro::Get()->remote_tcp_ip = pt.get_child("COM_Backend").find("RemoteTcpIp")->second.data();
+        CustomMacro::Get()->remote_tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("RemoteTcpPort")->second.data());
         Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
@@ -355,7 +358,10 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "\n";
     out << "[COM_Backend]\n";
     out << "Enable = " << CustomMacro::Get()->is_enabled << "\n";
-    out << "COM = " << CustomMacro::Get()->com_port << " # Com port for UART where data received from STM32\n";
+    out << "COM = " << CustomMacro::Get()->com_port << " # Com port for UART where the data is received from STM32\n";
+    out << "ForwardViaTcp = " << CustomMacro::Get()->forward_serial_to_tcp << " # Is data have to be forwarded to remote TCP server\n";
+    out << "RemoteTcpIp = " << CustomMacro::Get()->remote_tcp_ip << "\n";
+    out << "RemoteTcpPort = " << CustomMacro::Get()->remote_tcp_port << "\n";
     out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";

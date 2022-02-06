@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils/CSingleton.h"
+#include "utils/CSingleton.hpp"
 
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <inttypes.h>
 #include <map>

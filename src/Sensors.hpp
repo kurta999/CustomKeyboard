@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils/CSingleton.h"
-#include "Logger.h"
-#include "DatabaseLogic.h"
+#include "utils/CSingleton.hpp"
+#include "Logger.hpp"
+#include "DatabaseLogic.hpp"
 
 #include <deque>
 #include <memory>
