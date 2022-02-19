@@ -85,7 +85,24 @@ void AntiLock::SimulateUserActivity()
 #else
 
 #endif
+    if(is_screensaver)
+        StartScreenSaver();
     LOGMSG(normal, "AntiLock executed");
+}
+
+void AntiLock::StartScreenSaver()
+{
+#ifdef _WIN32
+    static const std::string screensavers[] = { "PhotoScreensaver", "Mystify", "Ribbons" };
+    static boost::mt19937 gen;
+    boost::uniform_int<uint8_t> dist(0, std::size(screensavers) - 1);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<uint8_t> > die(gen, dist);
+    uint8_t ret = die();
+
+    ShellExecuteA(NULL, NULL, fmt::format("C:\\Windows\\System32\\{}.scr", screensavers[ret]).c_str(), NULL, "/s", SW_SHOWNORMAL);
+#else
+
+#endif
 }
 
 void AntiLock::Process()

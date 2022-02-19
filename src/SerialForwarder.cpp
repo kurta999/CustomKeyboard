@@ -52,7 +52,7 @@ class tcp_server
 public:
     tcp_server(boost::asio::io_context& io_context)
         : io_context_(io_context),
-        acceptor_(io_context, tcp::endpoint(tcp::v4(), 9999))
+        acceptor_(io_context, tcp::endpoint(tcp::v4(), 9999))  /* TODO: catch exception if port is already used or can't bind */
     {
         start_accept();
     }
@@ -95,16 +95,18 @@ SerialForwarder::~SerialForwarder()
 
 void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, size_t len)
 {
-    boost::asio::io_service ios;
-    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip), port);
-    boost::asio::ip::tcp::socket socket(ios);
-
     boost::system::error_code ec;
+    boost::asio::io_service ios;
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip, ec), port);
+    boost::asio::ip::tcp::socket socket(ios);
+    if(ec)
+        LOGMSG(error, "Failed to create endpoint from ip address: {}", ec.message());
+
     socket.connect(endpoint, ec);
     if(ec)
         LOGMSG(error, "Failed to connec to remote TCP server: {}", ec.message());
     
-    socket.write_some(boost::asio::buffer(data, len), ec);
+    socket.send(boost::asio::buffer(data, len), 0, ec);
     socket.close();
 
     if(ec)

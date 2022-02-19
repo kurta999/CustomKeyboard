@@ -108,6 +108,7 @@ public:
 	wxTextCtrl* m_CreateSymlink;
 	wxTextCtrl* m_CreateHardlink;
 	wxCheckBox* m_IsAntiLock;
+	wxCheckBox* m_IsScreensSaverAfterLock;
 	wxSpinCtrl* m_AntiLockTimeout;
 
 private:

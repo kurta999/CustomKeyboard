@@ -214,11 +214,11 @@ void Settings::LoadFile()
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
-        CustomMacro::Get()->is_enabled = utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data());
-        CustomMacro::Get()->com_port = utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data());
-        CustomMacro::Get()->forward_serial_to_tcp = utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data());
-        CustomMacro::Get()->remote_tcp_ip = pt.get_child("COM_Backend").find("RemoteTcpIp")->second.data();
-        CustomMacro::Get()->remote_tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("RemoteTcpPort")->second.data());
+        SerialPort::Get()->SetEnabled(utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data()));
+        SerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data()));
+        SerialPort::Get()->SetForwardToTcp(utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data()));
+        SerialPort::Get()->SetRemoteTcpIp(pt.get_child("COM_Backend").find("RemoteTcpIp")->second.data());
+        SerialPort::Get()->SetRemoteTcpPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("RemoteTcpPort")->second.data()));
         Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
@@ -250,6 +250,7 @@ void Settings::LoadFile()
 
         AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
         AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
+        AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
 
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
@@ -357,11 +358,11 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "TCP_Port = " << Server::Get()->tcp_port << " # TCP Port for receiving measurements from sensors\n";
     out << "\n";
     out << "[COM_Backend]\n";
-    out << "Enable = " << CustomMacro::Get()->is_enabled << "\n";
-    out << "COM = " << CustomMacro::Get()->com_port << " # Com port for UART where the data is received from STM32\n";
-    out << "ForwardViaTcp = " << CustomMacro::Get()->forward_serial_to_tcp << " # Is data have to be forwarded to remote TCP server\n";
-    out << "RemoteTcpIp = " << CustomMacro::Get()->remote_tcp_ip << "\n";
-    out << "RemoteTcpPort = " << CustomMacro::Get()->remote_tcp_port << "\n";
+    out << "Enable = " << SerialPort::Get()->IsEnabled() << "\n";
+    out << "COM = " << SerialPort::Get()->GetComPort() << " # Com port for UART where the data is received from STM32\n";
+    out << "ForwardViaTcp = " << SerialPort::Get()->IsForwardToTcp() << " # Is data have to be forwarded to remote TCP server\n";
+    out << "RemoteTcpIp = " << SerialPort::Get()->GetRemoteTcpIp() << "\n";
+    out << "RemoteTcpPort = " << SerialPort::Get()->GetRemoteTcpPort() << "\n";
     out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
@@ -392,6 +393,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[AntiLock]\n";
     out << "Enable = " << AntiLock::Get()->is_enabled << "\n";
     out << "Timeout = " << AntiLock::Get()->timeout << " # Seconds\n";
+    out << "StartScreenSaver = " << AntiLock::Get()->is_screensaver << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
