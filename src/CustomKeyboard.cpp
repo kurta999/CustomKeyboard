@@ -8,7 +8,7 @@ bool MyApp::OnInit()
         return false;
 
     Settings::Get()->Init();
-    CustomMacro::Get()->Init();
+    SerialPort::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
     StructParser::Get()->Init();
@@ -38,6 +38,7 @@ int MyApp::OnExit()
     MacroRecorder::CSingleton::Destroy();
     DatabaseLogic::CSingleton::Destroy();
     SerialForwarder::CSingleton::Destroy();
+    SerialPort::CSingleton::Destroy();
     return true;
 }
 

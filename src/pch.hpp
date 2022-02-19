@@ -36,6 +36,7 @@
 #include "SymlinkCreator.hpp"
 #include "MacroRecorder.hpp"
 #include "AntiLock.hpp"
+#include "SerialPort.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

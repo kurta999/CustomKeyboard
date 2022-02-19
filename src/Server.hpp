@@ -40,7 +40,7 @@ private:
     void StartAccept();
 
     std::set<SharedSession> sessions;
-    std::thread *t = nullptr;
+    std::unique_ptr<std::thread> m_worker = nullptr;
     SharedAcceptor acceptor;
     boost::asio::io_service io_service;
 };

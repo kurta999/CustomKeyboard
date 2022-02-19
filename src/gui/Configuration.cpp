@@ -311,7 +311,9 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 	wxSizer* const sizer_box_antilock = new wxStaticBoxSizer(wxHORIZONTAL, this, "&AntiLock settings");
 	m_IsAntiLock = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_antilock->Add(m_IsAntiLock);
+	sizer_box_antilock->Add(m_IsAntiLock);	
+	m_IsScreensSaverAfterLock = new wxCheckBox(this, wxID_ANY, wxT("Screensaver after move?"), wxDefaultPosition, wxDefaultSize, 0);
+	sizer_box_antilock->Add(m_IsScreensSaverAfterLock);
 	sizer_box_antilock->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 	m_AntiLockTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
 	sizer_box_antilock->Add(m_AntiLockTimeout);
@@ -335,9 +337,9 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			CustomMacro::Get()->use_per_app_macro = m_IsPerAppMacro->IsChecked();
 			CustomMacro::Get()->advanced_key_binding = m_IsAdvancedMacro->IsChecked();
 			wxString com_str = m_serial->GetStringSelection();
-			CustomMacro::Get()->is_enabled = m_IsCom->IsChecked();
+			SerialPort::Get()->SetEnabled(m_IsCom->IsChecked());
 			if(m_serial->GetSelection() > 0)
-				CustomMacro::Get()->com_port = atoi(&com_str.c_str().AsChar()[2]);
+				SerialPort::Get()->SetComPort(atoi(&com_str.c_str().AsChar()[2]));
 			Server::Get()->is_enabled = m_IsTcp->IsChecked();
 			Server::Get()->tcp_port = static_cast<uint16_t>(m_TcpPortSpin->GetValue());
 			PathSeparator::Get()->replace_key = m_PathSepReplacerKey->GetValue();
@@ -354,6 +356,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SymlinkCreator::Get()->place_symlink_key = m_CreateSymlink->GetValue().ToStdString();
 			SymlinkCreator::Get()->place_hardlink_key = m_CreateHardlink->GetValue().ToStdString();
 			AntiLock::Get()->is_enabled = m_IsAntiLock->GetValue();
+			AntiLock::Get()->is_screensaver = m_IsScreensSaverAfterLock->GetValue();
 			AntiLock::Get()->timeout = static_cast<uint32_t>(m_AntiLockTimeout->GetValue());
 
 			Settings::Get()->SaveFile(false);
@@ -394,7 +397,7 @@ void ComTcpPanel::UpdatePanel()
 	for(auto& i : ports)
 	{
 		array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
-		if(CustomMacro::Get()->com_port == i.first)
+		if(SerialPort::Get()->GetComPort() == i.first)
 			sel = array_serials.GetCount() - 1;
 	}
 #else
@@ -402,7 +405,7 @@ void ComTcpPanel::UpdatePanel()
 #endif
 	m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
 	m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
-	m_IsCom->SetValue(CustomMacro::Get()->is_enabled);
+	m_IsCom->SetValue(SerialPort::Get()->IsEnabled());
 
 	m_serial->Clear();
 	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
@@ -423,6 +426,7 @@ void ComTcpPanel::UpdatePanel()
 	m_CreateSymlink->SetValue(SymlinkCreator::Get()->place_symlink_key);
 	m_CreateHardlink->SetValue(SymlinkCreator::Get()->place_hardlink_key);
 	m_IsAntiLock->SetValue(AntiLock::Get()->is_enabled);
+	m_IsScreensSaverAfterLock->SetValue(AntiLock::Get()->is_screensaver);
 	m_AntiLockTimeout->SetValue(AntiLock::Get()->timeout);
 }
 

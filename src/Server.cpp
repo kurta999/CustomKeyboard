@@ -13,11 +13,10 @@ Server::Server()
 Server::~Server()
 {
     StopAsync();
-    if(t)
+    if(m_worker)
     {
-        t->join();
-        delete t;
-        t = nullptr;
+        if(m_worker->joinable())
+            m_worker->join();
     }
 }
 
@@ -115,7 +114,7 @@ void Server::Init(void)
             DBG("createAcceptor fail!");
             return;
         }
-        t = new std::thread(&Server::StartAsync, this);
+        m_worker = std::make_unique <std::thread> (&Server::StartAsync, this);
         DatabaseLogic::Get()->GenerateGraphs();
     }
 }

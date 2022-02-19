@@ -147,16 +147,6 @@ std::string KeyDelay::GenerateText(bool is_ini_format)
     return ret;
 }
 
-CustomMacro::CustomMacro()
-{
-
-}
-
-CustomMacro::~CustomMacro()
-{
-    DestroyWorkingThread();
-}
-
 void CustomMacro::PressKey(std::string key)
 {
     if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
@@ -287,81 +277,6 @@ void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
                 }
             }
             PressKey(pressed_keys);
-        }
-    }
-}
-
-void CustomMacro::OnUartDataReceived(const char* data, unsigned int len)
-{
-    if(forward_serial_to_tcp)
-    {
-        SerialForwarder::Get()->Send(remote_tcp_ip, remote_tcp_port, data, len);
-    }
-    else
-    {
-        ProcessReceivedData(data, len);
-    }
-}
-
-void CustomMacro::Init()
-{
-    if(is_enabled)
-    {
-        if(!m_worker)
-            m_worker = std::make_unique<std::thread>(&CustomMacro::UartReceiveThread, this, std::ref(to_exit), std::ref(m_cv), std::ref(m_mutex));
-    }
-    else
-    {
-        DestroyWorkingThread();
-    }
-}
-
-void CustomMacro::DestroyWorkingThread()
-{
-    if(m_worker)
-    {
-        {
-            std::lock_guard guard(m_mutex);
-            to_exit = true;
-            m_cv.notify_all();
-        }
-        if(m_worker->joinable())
-            m_worker->join();
-    }
-}
-
-// LUbuntu [Running] - Oracle VM VirtualBox
-// \x00\x00\x00\x00\x00\x00\x00\x00\x00\x54\x00\x00\x00\x00\x00\x4C\x45
-void CustomMacro::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m)
-{
-    while(!to_exit)
-    {
-        try
-        {
-            CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600); /* baud rate has no meaning here */
-            serial.setCallback(std::bind(&CustomMacro::OnUartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
-
-            while(!to_exit)
-            {
-                if(serial.errorStatus() || serial.isOpen() == false)
-                {
-                    LOGMSG(error, "Serial port unexpectedly closed");
-                    break;
-                }
-                {
-                    std::unique_lock lock(m_mutex);
-                    m_cv.wait_for(lock, 1000ms);
-                }
-            }
-            serial.close();
-        }
-        catch(std::exception& e)
-        {
-            LOGMSG(error, "Exception serial {}", e.what());
-            {
-                std::unique_lock lock(m_mutex);
-                m_cv.wait_for(lock, 1000ms);
-            }
         }
     }
 }
