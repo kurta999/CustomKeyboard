@@ -198,7 +198,7 @@ void MyFrame::SetIconTooltip(const wxString &str)
 #ifdef _WIN32
 	if(!tray->SetIcon(wxIcon(wxT("aaaa")), str))
 	{
-		wxLogError("Could not set icon.");
+		LOGMSG(error, "Could not set tray icon.");
 	}
 	SetIcon(wxICON(aaaa));
 #else
