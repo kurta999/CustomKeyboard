@@ -107,8 +107,7 @@ void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, siz
         LOGMSG(error, "Failed to connec to remote TCP server: {}", ec.message());
     
     socket.send(boost::asio::buffer(data, len), 0, ec);
-    socket.close();
-
     if(ec)
         LOGMSG(error, "Failed to forward serial over TCP: {}", ec.message());
+	socket.close(ec);
 }
