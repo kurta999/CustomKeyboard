@@ -267,6 +267,8 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 	m_RememberWindowSize = new wxCheckBox(this, wxID_ANY, wxT("Remember window size?"), wxDefaultPosition, wxDefaultSize, 0);
 	sizer_box_app->Add(m_RememberWindowSize, 0, wxALL, 5);
+	m_AlwaysOnNumlock = new wxCheckBox(this, wxID_ANY, wxT("Force numlock on?"), wxDefaultPosition, wxDefaultSize, 0);
+	sizer_box_app->Add(m_AlwaysOnNumlock, 0, wxALL, 5);
 
 	sizer_box_app->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
@@ -346,6 +348,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
 			Settings::Get()->remember_window_size = m_RememberWindowSize->GetValue();
+			Settings::Get()->always_on_numlock = m_AlwaysOnNumlock->GetValue();
 			Settings::Get()->default_page = static_cast<uint8_t>(m_DefaultPage->GetValue());
 			PrintScreenSaver::Get()->screenshot_key = m_ScreenshotKey->GetValue(); /* in case of invalid key screenshot saving never will be triggered - nothing special.. using it for disabling */
 			PrintScreenSaver::Get()->timestamp_format = m_ScreenshotDateFmt->GetValue();
@@ -416,6 +419,7 @@ void ComTcpPanel::UpdatePanel()
 	m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
 	m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
 	m_RememberWindowSize->SetValue(Settings::Get()->remember_window_size);
+	m_AlwaysOnNumlock->SetValue(Settings::Get()->always_on_numlock);
 	m_DefaultPage->SetValue(Settings::Get()->default_page);
 	m_ScreenshotKey->SetValue(PrintScreenSaver::Get()->screenshot_key);
 	m_ScreenshotDateFmt->SetValue(PrintScreenSaver::Get()->timestamp_format);

@@ -235,6 +235,8 @@ void Settings::LoadFile()
             if(window_size.y < WINDOW_SIZE_Y)
                 window_size.y = WINDOW_SIZE_Y;
         }
+        always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());
+
         PrintScreenSaver::Get()->screenshot_key = std::move(pt.get_child("Screenshot").find("ScreenshotKey")->second.data());
         PrintScreenSaver::Get()->timestamp_format = std::move(pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data());
         PrintScreenSaver::Get()->screenshot_path = std::move(pt.get_child("Screenshot").find("ScreenshotPath")->second.data());
@@ -251,6 +253,15 @@ void Settings::LoadFile()
         AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
         AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
         AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
+
+        TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
+        const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
+        TerminalHotkey::Get()->vkey = utils::GetVirtualKeyFromString(key);
+        if(TerminalHotkey::Get()->vkey == 0xFFFF)
+        {
+            LOGMSG(warning, "Invalid hotkey was specified for TerminalHotkey: {}", key);
+            TerminalHotkey::Get()->is_enabled = false;
+        }
 
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
@@ -375,6 +386,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         window_size = frame->GetSize();
     }
     out << "LastWindowSize = " << fmt::format("{}, {}", window_size.x, window_size.y) << "\n";
+    out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
     out << "\n";
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";

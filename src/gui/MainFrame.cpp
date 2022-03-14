@@ -118,8 +118,17 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 	GuiEditor::Get()->OnDestroyAll();
 }
 
-void MyFrame::OnTimer(wxTimerEvent& event)
+void MyFrame::On10msTimer(wxTimerEvent& event)
 {
+#ifdef _WIN32
+	TerminalHotkey::Get()->Process();
+#endif
+	HandleAlwaysOnNumlock();
+}
+
+void MyFrame::On100msTimer(wxTimerEvent& event)
+{
+#ifdef DBG_FOREGROUND_PRINT
 	{
 		HWND foreground = GetForegroundWindow();
 		if(foreground)
@@ -129,6 +138,8 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 			DBG("fgw: %s\n", window_title);
 		}
 	}
+#endif
+
 #ifdef _WIN32
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
@@ -161,6 +172,7 @@ void MyFrame::OnTimer(wxTimerEvent& event)
 
 #ifdef _WIN32
 	AntiLock::Get()->Process();
+	TerminalHotkey::Get()->Process();
 #endif
 	HandleNotifications();
 	HandleBackupProgressDialog();
@@ -190,6 +202,24 @@ void MyFrame::HandleBackupProgressDialog()
 		show_backup_dlg = false;
 		backup_prog->Destroy();
 		backup_prog = NULL;
+	}
+}
+
+void MyFrame::HandleAlwaysOnNumlock()
+{    /* TODO: rewrite this with LL Keyboard Hook in future */
+	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))
+	{
+		#ifdef _WIN32
+		INPUT input = { 0 };
+		input.type = INPUT_KEYBOARD;
+		input.ki.wVk = VK_NUMLOCK;
+		input.ki.dwFlags = 0;
+		SendInput(1, &input, sizeof(input));
+		input.ki.dwFlags = KEYEVENTF_KEYUP;
+		SendInput(1, &input, sizeof(input));
+		#else
+		/* TODO: Handle numlock on on linux */
+		#endif
 	}
 }
 
@@ -268,7 +298,7 @@ MyFrame::MyFrame(const wxString& title)
 	Show(!Settings::Get()->minimize_on_startup);
 
 	m_timer = new wxTimer(this, ID_UpdateMousePosText);
-	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::OnTimer), NULL, this);
+	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On100msTimer), NULL, this);
 	m_timer->Start(100, false);
 }
 

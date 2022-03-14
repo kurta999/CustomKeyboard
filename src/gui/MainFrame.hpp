@@ -54,8 +54,7 @@ public:
 	MyFrame(const wxString& title);
 	~MyFrame()
 	{
-		// deinitialize the frame manager
-		m_mgr.UnInit();
+		m_mgr.UnInit();  /* deinitialize the frame manager */
 	}
 
 	void SetIconTooltip(const wxString& str);
@@ -85,15 +84,35 @@ private:
 	void OnDestroyAll(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
-	void OnTimer(wxTimerEvent& event);
+
+	// \brief Fast timer for frame
+	void On10msTimer(wxTimerEvent& event);
+
+	// \brief Main timer for frame
+	void On100msTimer(wxTimerEvent& event);
+
+	// \brief Handles backup progress dialog
 	void HandleBackupProgressDialog();
 
+	// \brief Handles numlock to be always on
+	void HandleAlwaysOnNumlock();
+
 private:
+	// \brief Handles notifications
 	void HandleNotifications();
+
+	// \brief Show notification
 	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, int flags, T&& fptr);
 
+	// \brief Application icon
 	wxIcon applicationIcon;
+
+	// \brief Tray
 	TrayIcon* tray;
+
+	// \brief AUI manager for subwindows
 	wxAuiManager m_mgr;
+
+	// \brief Main frame timer
 	wxTimer* m_timer;
 };

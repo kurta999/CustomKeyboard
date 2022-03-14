@@ -98,6 +98,7 @@ public:
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
 	wxCheckBox* m_RememberWindowSize;
+	wxCheckBox* m_AlwaysOnNumlock;
 	wxSpinCtrl* m_DefaultPage;
 	wxTextCtrl* m_ScreenshotKey;
 	wxTextCtrl* m_ScreenshotDateFmt;

@@ -37,6 +37,9 @@ public:
     // !\brief Main frame size
     wxSize window_size = wxSize(WINDOW_SIZE_X, WINDOW_SIZE_Y);
 
+    // !\brief Num lock always on status
+    bool always_on_numlock = false;
+
 private:
     void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c);
     std::string macro_section;

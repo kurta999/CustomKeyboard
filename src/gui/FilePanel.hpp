@@ -6,7 +6,7 @@
 
 #include <map>
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(USE_LONG_LONG_FOR_COMPARATOR) 
 using ComparatorIntType = int64_t;  /* To be able to use uint64_t, you have to add a corresponding function to wxWidgets library */
 #else
 using ComparatorIntType = int32_t;
