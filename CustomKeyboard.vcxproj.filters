@@ -216,6 +216,9 @@
     <ClInclude Include="src\SerialPort.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\TerminalHotkey.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -333,6 +336,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SerialPort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TerminalHotkey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
