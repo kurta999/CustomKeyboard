@@ -113,6 +113,9 @@ private:
 	// \brief AUI manager for subwindows
 	wxAuiManager m_mgr;
 
+	// \brief Fast main frame timer
+	wxTimer* m_10msTimer;	
+	
 	// \brief Main frame timer
-	wxTimer* m_timer;
+	wxTimer* m_100msTimer;
 };

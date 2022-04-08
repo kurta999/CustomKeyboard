@@ -120,9 +120,6 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 
 void MyFrame::On10msTimer(wxTimerEvent& event)
 {
-#ifdef _WIN32
-	TerminalHotkey::Get()->Process();
-#endif
 	HandleAlwaysOnNumlock();
 }
 
@@ -176,6 +173,9 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 #endif
 	HandleNotifications();
 	HandleBackupProgressDialog();
+#ifdef _WIN32
+	TerminalHotkey::Get()->Process();
+#endif
 }
 
 void MyFrame::HandleBackupProgressDialog()
@@ -297,9 +297,12 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->SetSelection(Settings::Get()->default_page);
 	Show(!Settings::Get()->minimize_on_startup);
 
-	m_timer = new wxTimer(this, ID_UpdateMousePosText);
-	Connect(m_timer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On100msTimer), NULL, this);
-	m_timer->Start(100, false);
+	m_10msTimer = new wxTimer(this, ID_10msTimer);
+	Connect(m_10msTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On10msTimer), NULL, this);
+	m_10msTimer->Start(100, false);	
+	m_100msTimer = new wxTimer(this, ID_100msTimer);
+	Connect(m_100msTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On100msTimer), NULL, this);
+	m_100msTimer->Start(100, false);
 }
 
 MacroPanel::MacroPanel(wxFrame* parent)

@@ -2,6 +2,7 @@
 
 #include "utils/CSingleton.hpp"
 #include <string>
+#include <chrono>
 
 class TerminalHotkey : public CSingleton < TerminalHotkey >
 {
@@ -17,5 +18,8 @@ public:
     bool is_enabled;
 
     // !\brief wxKeyCode for trigger key
-    wxKeyCode vkey;  
+    wxKeyCode vkey;
+
+    // !\brief Last execution timepoint (used for avoid debouncing)
+    std::chrono::steady_clock::time_point last_execution;
 };

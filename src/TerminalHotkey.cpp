@@ -113,6 +113,11 @@ void TerminalHotkey::Process()
 #ifdef _WIN32 /* This is already done in Linux, so this implementation is Windows only */
 	if(is_enabled && wxGetKeyState(vkey))
 	{
+		std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+		int64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - last_execution).count();
+		if(dif < 500)  /* Avoid debouncing */
+			return;
+
 		std::wstring str = GetDestinationPathFromFileExplorer();
 		if(!str.empty())
 		{
@@ -121,8 +126,8 @@ void TerminalHotkey::Process()
 				p.remove_filename();
 			str = p.generic_wstring();
 			str.insert(0, L"/d ");
+			last_execution = std::chrono::steady_clock::now();
 			ShellExecute(NULL, L"open", L"wt", str.c_str(), NULL, SW_SHOW);
-
 			/* swprintf(buf, L"/k cd /d %s", str.c_str()); - for cmd */
 			/* swprintf(buf, L"/d %s", str.c_str()); - for wt */
 		}
