@@ -3,6 +3,7 @@
 MainPanel::MainPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {
+	wxBoxSizer* split_sizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
@@ -67,14 +68,93 @@ MainPanel::MainPanel(wxFrame* parent)
 #endif
 		});
 
-	m_GraphStartHours1 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 7 * 24);
-	m_GraphStartHours1->SetToolTip("Sets how many hours before current time the first graph should start");
+	wxStaticText* graph_helper_1 = new wxStaticText(this, wxID_ANY, "Hours backward for graph (1, 2) from db:", wxDefaultPosition, wxSize(-1, -1), 0); \
+	graph_helper_1->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	bSizer1->Add(graph_helper_1, 0, wxALL, 5);
+	m_GraphStartHours1 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 10 * 24 * 365); 
+	m_GraphStartHours1->SetToolTip("Sets how many hours before the current time the first graph should be generated");
 	m_GraphStartHours1->SetValue(DatabaseLogic::Get()->GetGraphHours(0));
 	bSizer1->Add(m_GraphStartHours1, 0, wxALL, 5);
-	m_GraphStartHours2 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 365 * 24);
-	m_GraphStartHours2->SetToolTip("Sets how many hours before current time the second graph should start");
+
+	m_GraphStartHours2 = new wxSpinCtrl(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 16384, 1, 10 * 24 * 365); 
+	m_GraphStartHours2->SetToolTip("Sets how many hours before the current time the second graph should be generated");
 	m_GraphStartHours2->SetValue(DatabaseLogic::Get()->GetGraphHours(1));
 	bSizer1->Add(m_GraphStartHours2, 0, wxALL, 5);
 
-	this->SetSizer(bSizer1);
+	split_sizer->Add(bSizer1, wxSizerFlags(0).Top());
+
+#define ADD_KEY(display_text, internal_name, key_name) \
+	{\
+		wxStaticBox* st_box = new wxStaticBox(this, wxID_ANY, wxT("N/A"));\
+		key_map.emplace(internal_name, st_box); \
+		wxStaticBoxSizer* num = new wxStaticBoxSizer(st_box, wxVERTICAL); \
+		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
+		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+		num->Add(button_num, 0, wxALL, 5); \
+		num_lock_box_sizer->Add(num, 1, wxEXPAND, 5); \
+	}
+
+	wxBoxSizer* second_vertical = new wxBoxSizer(wxVERTICAL);
+	wxGridSizer* num_lock_box_sizer = new wxGridSizer(5, 4, 0, 0);
+
+	ADD_KEY("NUM",		"NUM_LOCK",		lock);
+	ADD_KEY("/",		"NUM_MUL",		mul);
+	ADD_KEY("*",		"NUM_DIV",		div);
+	ADD_KEY("-",		"NUM_MINUS",	minus);
+	ADD_KEY("7",		"NUM_7",		7);
+	ADD_KEY("8",		"NUM_8",		8);
+	ADD_KEY("9",		"NUM_9",		9);
+	ADD_KEY("+",		"NUM_PLUS",		plus);
+	ADD_KEY("4",		"NUM_4",		4);
+	ADD_KEY("5",		"NUM_5",		5);
+	ADD_KEY("6",		"NUM_6",		6);
+	ADD_KEY("<--",		"NUM_BACK", 	back);
+	ADD_KEY("1",		"NUM_1",		1);
+	ADD_KEY("2",		"NUM_2",		2);
+	ADD_KEY("3",		"NUM_3",		3);
+	ADD_KEY("E",	"NUM_ENTER",	enter1);
+	ADD_KEY("0",		"NUM_0",		0);
+	ADD_KEY("00",		"NUM_0",		00);
+	ADD_KEY("DEL",		"NUM_DEL",		del);
+	ADD_KEY("E",	"NUM_ENTER",	enter2);
+	
+	second_vertical->Add(num_lock_box_sizer);
+	split_sizer->Add(second_vertical, wxSizerFlags(0));
+
+	UpdateKeybindings();
+
+	this->SetSizer(split_sizer);
 }
+
+void MainPanel::UpdateKeybindings()
+{
+	for(auto& i : key_map)
+	{
+		auto it = CustomMacro::Get()->GetMacros()[0]->key_vec.find(i.first);
+		if(it != CustomMacro::Get()->GetMacros()[0]->key_vec.end())
+		{
+			i.second->SetLabelText(CustomMacro::Get()->GetMacros()[0]->bind_name[i.first]);
+			i.second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+			continue;
+		}
+		i.second->SetLabelText("N/A");
+		i.second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+		i.second->SetForegroundColour(*wxGREEN);
+	}
+
+	auto it = key_map.find(PrintScreenSaver::Get()->screenshot_key);
+	if(it != key_map.end())
+	{
+		it->second->SetLabelText("SCREEN");
+		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+		it->second->SetForegroundColour(*wxRED);
+	}
+	it = key_map.find(PathSeparator::Get()->replace_key);
+	if(it != key_map.end())
+	{
+		it->second->SetLabelText("PATH");
+		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+		it->second->SetForegroundColour(*wxRED);
+	}
+}
+
