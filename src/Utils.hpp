@@ -18,6 +18,7 @@ namespace utils
     size_t MBStringToWString(const std::string& src, std::wstring& dest);
     size_t WStringToMBString(const std::wstring& src, std::string& dest);
     wxKeyCode GetVirtualKeyFromString(const std::string& key);
+    std::string GetKeyStringFromVirtualKey(wxKeyCode key_code);
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {

@@ -93,6 +93,7 @@ void TrayIcon::OnOpenScreenshots(wxCommandEvent& WXUNUSED(event))
 void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 {
 	Settings::Get()->LoadFile();
+	mainFrame->main_panel->UpdateKeybindings();
 	mainFrame->config_panel->UpdateSubpanels();
 }
 

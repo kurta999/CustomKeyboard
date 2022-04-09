@@ -19,6 +19,8 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <shellapi.h>
+
 #ifndef _WIN32
 typedef struct tagPOINT
 {
@@ -46,7 +48,7 @@ typedef struct
 
 enum MacroTypes : uint8_t
 {
-    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, MAX
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, COMMAND, MAX
 };
 
 class IKey
@@ -535,6 +537,50 @@ private:
 
     uint16_t key;
     static inline const char* name = "MOUSE CLICK";
+};
+
+class CommandExecute final : public IKey
+{
+public:
+    CommandExecute(std::string cmd_) : cmd(cmd_)
+    {}
+    CommandExecute(const CommandExecute& from)
+    {
+        cmd = from.cmd;
+    }
+    /*CommandExecute(const std::string&& str) : cmd(str)
+    {}*/
+    virtual ~CommandExecute() { }
+    CommandExecute* Clone() override
+    {
+        return new CommandExecute(*this);
+    }
+
+    void Execute() override
+    {
+#ifdef _WIN32
+        std::wstring param(cmd.begin(), cmd.end());
+        std::wstring command = L"/k " + param;
+        ShellExecuteW(NULL, L"open", L"cmd", command.c_str(), NULL, SW_NORMAL);
+#else
+
+#endif
+    }
+
+    std::string GenerateText(bool is_ini_format) override
+    {
+        std::string&& ret = is_ini_format ? fmt::format(" CMD[{}]", cmd) : cmd;
+        return ret;
+    }
+    const char* GetName() override { return name; }
+
+    std::string GetCmd()
+    {
+        return cmd;
+    }
+
+    std::string cmd;
+    static inline const char* name = "CMD";
 };
 
 /* each given macro per-app get's a macro container */

@@ -4,11 +4,11 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 {
     constexpr size_t MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[", 
-        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[" };
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "CMD[" };
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
         std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
-        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]) };
+        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -143,6 +143,13 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 {
                     LOGMSG(critical, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
                 }
+                break;
+            }            
+            case MacroTypes::COMMAND:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[COMMAND], first_end, start_str_arr_lens[COMMAND]);
+                c->key_vec[key_code].push_back(std::make_unique<CommandExecute>(std::move(sequence)));
                 break;
             }
             default:
@@ -310,10 +317,17 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
 {
     std::ofstream out("settings.ini", std::ofstream::binary);
     out << "# Possible macro keywords: \n";
+    out << "# BIND_NAME[binding name] = Set the name if macro. Should be used as first\n";
     out << "# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n";
     out << "# KEY_SEQ[CTRL+C] = Press all given keys after each other and release it when each was pressed - ideal for key shortcats\n";
     out << "# DELAY[time in ms] = Waits for given milliseconds\n";
     out << "# DELAY[min ms - max ms] = Waits randomly between min ms and max ms\n";
+    out << "# MOUSE_MOVE[x,y] = Move mouse to given coordinates\n";
+    out << "# MOUSE_INTERPOLATE[x,y] = Move mouse with interpolation to given coordinates\n";
+    out << "# MOUSE_PRESS[key] = Press given mouse key\n";
+    out << "# MOUSE_RELEASE[key] = Release given mouse key\n";
+    out << "# MOUSE_CLICK[key] = Click (press and release) with mouse\n";
+    out << "# CMD[key] = Execute specified command with command line\n";
     out << "\n";
     out << "[Macro_Config]\n";
     out << "# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n";
@@ -407,6 +421,9 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Timeout = " << AntiLock::Get()->timeout << " # Seconds\n";
     out << "StartScreenSaver = " << AntiLock::Get()->is_screensaver << "\n";
     out << "\n";
+    out << "[TerminalHotkey]\n";
+    out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
+    out << "Key = " << utils::GetKeyStringFromVirtualKey(TerminalHotkey::Get()->vkey) << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
     if(!write_default_macros)
