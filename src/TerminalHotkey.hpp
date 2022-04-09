@@ -22,4 +22,8 @@ public:
 
     // !\brief Last execution timepoint (used for avoid debouncing)
     std::chrono::steady_clock::time_point last_execution;
+
+private:
+    // !\brief Open terminal with given path
+    void OpenTerminal(std::wstring& path);
 };
