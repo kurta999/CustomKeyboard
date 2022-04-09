@@ -75,28 +75,42 @@ namespace utils
 		return ret;
 	}
 
+	static std::map<std::string, wxKeyCode> vkey_lookup  /* Only Fx keys for now */
+	{
+		{"F1", WXK_F1},
+		{"F2", WXK_F2},
+		{"F3", WXK_F3},
+		{"F4", WXK_F4},
+		{"F5", WXK_F5},
+		{"F6", WXK_F6},
+		{"F7", WXK_F7},
+		{"F8", WXK_F8},
+		{"F9", WXK_F9},
+		{"F10", WXK_F10},
+		{"F11", WXK_F11},
+		{"F12", WXK_F12},
+	};
+
 	wxKeyCode GetVirtualKeyFromString(const std::string& key)
 	{
-		static std::map<std::string, wxKeyCode> vkey_lookup  /* Only Fx keys for now */
-		{ 
-			{"F1", WXK_F1},
-			{"F2", WXK_F2},
-			{"F3", WXK_F3},
-			{"F4", WXK_F4},
-			{"F5", WXK_F5},
-			{"F6", WXK_F6},
-			{"F7", WXK_F7},
-			{"F8", WXK_F8},
-			{"F9", WXK_F9},
-			{"F10", WXK_F10},
-			{"F11", WXK_F11},
-			{"F12", WXK_F12},
-		};
-
 		wxKeyCode ret = WXK_NONE;
 		auto it = vkey_lookup.find(key);
 		if(it != vkey_lookup.end())
 			ret = it->second;
 		return ret;
+	}
+
+	std::string GetKeyStringFromVirtualKey(wxKeyCode key_code)
+	{
+		std::string key_name = "INVALID";
+		for(auto& i : vkey_lookup)
+		{
+			if(i.second == key_code)
+			{
+				key_name = i.first;
+				break;
+			}
+		}
+		return key_name;
 	}
 }
