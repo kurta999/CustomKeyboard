@@ -7,6 +7,8 @@ class MainPanel : public wxPanel
 {
 public:
 	MainPanel(wxFrame* parent);
+	 
+	void UpdateKeybindings();
 
 	wxButton* m_RefreshButton = nullptr;
 	wxButton* m_GenerateGraphs = nullptr;
@@ -24,5 +26,7 @@ public:
 	wxSpinCtrl* m_GraphStartHours2;
 
 private:
+	std::map<std::string, wxStaticBox*> key_map;
+
 	wxDECLARE_EVENT_TABLE();
 };
