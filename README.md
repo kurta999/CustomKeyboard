@@ -9,9 +9,11 @@ This is a personal project for myself to improve my coding experience. It's open
 6. **Sensors** - Backend for sensors with SQLite database for measurements & graphs generation to .html file
 7. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support
 8. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
+9. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
+10. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be started from Windows Explorer and from Desktop
 
 ## Explanation
-1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for tranmitting keypresses to PC. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
+1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for transmitting keypresses to PC. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
 
 2. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 
@@ -36,12 +38,14 @@ This is a personal project for myself to improve my coding experience. It's open
 
 Required external depencencies:
 - [Boost 1.78.0](https://www.boost.org/ "Boost's Homepage")
-- [wxWidgets 3.1.5](https://www.wxwidgets.org/ "wxWidgets' Homepage")
+- [wxWidgets 3.1.6](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 
 ## Building
-1. Get the latest version of Visual Studio 2019, boost & wxWidgets. My default directories are; 
+
+**Windows**
+1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
 - boost: C:\Program Files\boost\boost_1_78_0
-- wxWidgets: C:\wxWidgets-3.1.5
+- wxWidgets: C:\wxWidgets-3.1.6
 
 Feel free to change, but don't forget to change them too in Visual Studio's project file.
 
@@ -50,6 +54,12 @@ Feel free to change, but don't forget to change them too in Visual Studio's proj
 Available build configurations:
 - x86 - Debug, Release, Static Release
 - x64 - Debug, Release, Static Release
+
+CMake build system is planned for Windows, but may never happen.
+
+**Linux**
+
+Makefile have to be generated with CMake, currently it's a little bit abandobed.
 
 ## Screenshots
 **Main Page**
