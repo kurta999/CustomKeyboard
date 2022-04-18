@@ -115,7 +115,7 @@ void TerminalHotkey::Process()
 	{
 		std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 		int64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - last_execution).count();
-		if(dif < 500)  /* Avoid debouncing */
+		if(dif < 500)  /* Avoid bouncing */
 			return;
 
 		std::wstring str = GetDestinationPathFromFileExplorer();
