@@ -411,7 +411,8 @@ void ComTcpPanel::UpdatePanel()
 	m_IsCom->SetValue(SerialPort::Get()->IsEnabled());
 
 	m_serial->Clear();
-	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
+	if(!array_serials.empty()) /* TODO: serial iteration is disabled in linux and inserting empty array will cause assertation fail */
+		m_serial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_serial->SetSelection(sel);
 	m_IsTcp->SetValue(Server::Get()->is_enabled);
 	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);

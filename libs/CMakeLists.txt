@@ -6,4 +6,9 @@ set(libs_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c
 	CACHE FORCE ""
 )
+
+if(MSVC)
+	list(APPEND libs_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/enumser/enumser.cpp)
+endif()
+
 add_library(libs ${libs_SOURCES} )

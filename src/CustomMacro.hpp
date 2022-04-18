@@ -19,7 +19,9 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/tokenizer.hpp>
 
+#ifdef _WIN32
 #include <shellapi.h>
+#endif
 
 #ifndef _WIN32
 typedef struct tagPOINT

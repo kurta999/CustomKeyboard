@@ -52,7 +52,7 @@ bool AntiLock::IsSessionActive()
     }
     return bRet;
 #else
-
+    return true;
 #endif
 }
 
