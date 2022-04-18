@@ -1,3 +1,4 @@
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.1.6 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 This is a personal project for myself to improve my coding experience. It's open source, because why not, maybe somebody will benefit from it one day.
 
 ## Features

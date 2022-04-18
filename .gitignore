@@ -42,12 +42,12 @@ commitid.h
 .cache-main
 .scala_dependencies
 .worksheet
-/Debug/
-/Backup_Debug/
-/Backup_Release/
-/Release/
-/TrueSTUDIO/
-/Screenshots/
+Debug/
+Backup_Debug/
+Backup_Release/
+Release/
+TrueSTUDIO/
+Screenshots/
 
 # Visual Studio
 .vs/
@@ -62,14 +62,14 @@ struct_out.txt
 settings.ini
 
 # Graphs
-/Graphs/Temperature.html
-/Graphs/Humidity.html
-/Graphs/CO2.html
-/Graphs/Lux.html
-/Graphs/VOC.html
-/Graphs/CCT.html
-/Graphs/PM10.html
-/Graphs/PM25.html
+Graphs/Temperature.html
+Graphs/Humidity.html
+Graphs/CO2.html
+Graphs/Lux.html
+Graphs/VOC.html
+Graphs/CCT.html
+Graphs/PM10.html
+Graphs/PM25.html
 
 # Linux
-/build/
+build/

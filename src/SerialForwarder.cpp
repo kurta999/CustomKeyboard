@@ -38,6 +38,8 @@ public:
             boost::system::error_code error;
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
             socket_.close(error);
+
+            SerialPort::Get()->OnUartDataReceived(recv_buffer, bytes_transferred);
         }
     }
     
