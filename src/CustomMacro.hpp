@@ -18,6 +18,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/tokenizer.hpp>
+#include <random>
 
 #ifdef _WIN32
 #include <shellapi.h>
@@ -216,7 +217,7 @@ public:
                 }
                 else if constexpr(std::is_same_v<T, std::array<uint32_t, 2>>)
                 {
-                    static boost::mt19937 gen;
+                    static boost::mt19937 gen;  /* TODO: one time replace this with std random, just make sure which is really better before */
                     boost::uniform_int<> dist(arg[0], arg[1]);
                     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(gen, dist);
                     int ret = die();
@@ -311,14 +312,28 @@ public:
     void Execute() override
     {
 #ifdef _WIN32
-        /* TODO: interpolation from start pos to destination */
         POINT to_screen;
         HWND hwnd = GetForegroundWindow();
         memcpy(&to_screen, &m_pos, sizeof(to_screen));
         ClientToScreen(hwnd, &to_screen);
-        ShowCursor(FALSE);
-        SetCursorPos(to_screen.x, to_screen.y);
-        ShowCursor(TRUE);
+
+        POINT curr_pos;
+        GetCursorPos(&curr_pos);
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> random_steps(4000, 8000);
+
+        int steps = random_steps(gen);
+        for(int i = 0; i <= steps; i++)
+        {
+            int pos_x = std::round(std::lerp(static_cast<float>(curr_pos.x), static_cast<float>(to_screen.x), static_cast<float>(i) / static_cast<float>(steps)));
+            int pos_y = std::round(std::lerp(static_cast<float>(curr_pos.y), static_cast<float>(to_screen.y), static_cast<float>(i) / static_cast<float>(steps)));
+            ShowCursor(FALSE);
+            SetCursorPos(pos_x, pos_y);
+            ShowCursor(TRUE);
+            std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+        }
 #else
         system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
 #endif
