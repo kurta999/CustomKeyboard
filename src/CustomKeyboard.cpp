@@ -21,12 +21,13 @@ bool MyApp::OnInit()
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     SetTopWindow(frame);
+    is_init_finished = true;
     return true;
 }
 
 int MyApp::OnExit()
 {
-    Logger::CSingleton::Destroy();
+    is_init_finished = false;
     Settings::CSingleton::Destroy();
     CustomMacro::CSingleton::Destroy();
     Server::CSingleton::Destroy();
@@ -39,6 +40,7 @@ int MyApp::OnExit()
     DatabaseLogic::CSingleton::Destroy();
     SerialForwarder::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
+    Logger::CSingleton::Destroy();
     return true;
 }
 
