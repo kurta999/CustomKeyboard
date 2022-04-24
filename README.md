@@ -1,4 +1,3 @@
-cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.1.6 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 This is a personal project for myself to improve my coding experience. It's open source, because why not, maybe somebody will benefit from it one day.
 
 ## Features
@@ -38,14 +37,14 @@ This is a personal project for myself to improve my coding experience. It's open
 - [Chart.js](https://www.chartjs.org/ "Charts.js' Homepage")
 
 Required external depencencies:
-- [Boost 1.78.0](https://www.boost.org/ "Boost's Homepage")
+- [Boost 1.79.0](https://www.boost.org/ "Boost's Homepage")
 - [wxWidgets 3.1.6](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 
 ## Building
 
 **Windows**
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_78_0
+- boost: C:\Program Files\boost\boost_1_79_0
 - wxWidgets: C:\wxWidgets-3.1.6
 
 Feel free to change, but don't forget to change them too in Visual Studio's project file.
@@ -56,11 +55,17 @@ Available build configurations:
 - x86 - Debug, Release, Static Release
 - x64 - Debug, Release, Static Release
 
-CMake build system is planned for Windows, but may never happen.
+If you want to go with CMake, you can use this command as a starting point:
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.1.6 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 
 **Linux**
 
-Makefile have to be generated with CMake, currently it's a little bit abandobed.
+1. Install boost 1.79.0, wxWidgets 3.16.0, fmt 8.1.1
+2. Execute these commands in project root directory:
+mkdir build
+cd build
+cmake ..
+make  (or make -j <number of CPU cores> for faster build)
 
 ## Screenshots
 **Main Page**
