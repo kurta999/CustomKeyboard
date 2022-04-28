@@ -32,7 +32,7 @@ protected:
 private:
 	wxRadioBox* m_RecordType;
 	wxStaticText* m_labelResult;
-	bool m_IsApplyClicked;
+	bool m_IsApplyClicked = false;
 
 	wxDECLARE_EVENT_TABLE();
 	wxDECLARE_NO_COPY_CLASS(MacroRecordBoxDialog);
@@ -53,7 +53,7 @@ private:
 	wxTextCtrl* m_macroName;
 	wxTextCtrl* m_macroKey;
 	wxStaticText* m_labelResult;
-	bool m_IsApplyClicked;
+	bool m_IsApplyClicked = false;
 
 	wxDECLARE_EVENT_TABLE();
 	wxDECLARE_NO_COPY_CLASS(MacroAddBoxDialog);
@@ -75,7 +75,7 @@ private:
 	wxRadioBox* m_radioBox1;
 	wxTextCtrl* m_textMsg;
 	wxStaticText* m_labelResult;
-	bool m_IsApplyClicked;
+	bool m_IsApplyClicked = false;
 	wxTimer* m_timer;
 
 	wxDECLARE_EVENT_TABLE();
@@ -92,8 +92,14 @@ public:
 	wxSpinCtrl* m_TcpPortSpin;
 	wxCheckBox* m_IsPerAppMacro;
 	wxCheckBox* m_IsAdvancedMacro;
+	wxCheckBox* m_IsTcpForwarder;
+	wxTextCtrl* m_TcpForwarderIp;
+	wxSpinCtrl* m_TcpForwarderPort;
 	wxCheckBox* m_IsCom;
 	wxComboBox* m_serial;
+	wxCheckBox*	m_SerialForwarderIsEnabled;
+	wxTextCtrl*	m_SerialForwarderBindIp;
+	wxSpinCtrl*	m_SerialForwarderPort;
 	wxTextCtrl* m_PathSepReplacerKey;
 	wxCheckBox* m_IsMinimizeOnExit;
 	wxCheckBox* m_IsMinimizeOnStartup;
@@ -111,6 +117,8 @@ public:
 	wxCheckBox* m_IsAntiLock;
 	wxCheckBox* m_IsScreensSaverAfterLock;
 	wxSpinCtrl* m_AntiLockTimeout;
+	wxCheckBox* m_IsTerminalHotkey;
+	wxTextCtrl* m_TerminalHotkey;
 
 private:
 	wxButton* m_Ok;

@@ -111,11 +111,8 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			if(!path.empty())
 			{
 				std::ifstream f(path.ToStdString(), std::ios::in | std::ios::binary);
-				if(f.is_open())
-				{
+				if(f)
 					input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
-					f.close();
-				}
 			}
 			else
 			{

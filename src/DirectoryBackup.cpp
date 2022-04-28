@@ -176,9 +176,9 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	{
 		std::lock_guard lock(frame->mtx);
 		if(!fail)
-			frame->pending_msgs.push_back({ (uint8_t)BackupCompleted, dif, file_count, files_size, &backup->to[0] });
+			frame->pending_msgs.push_back({ BackupCompleted, dif, file_count, files_size, &backup->to[0] });
 		else
-			frame->pending_msgs.push_back({ (uint8_t)BackupFailed, &backup->to[0] });
+			frame->pending_msgs.push_back({ BackupFailed, &backup->to[0] });
 		frame->show_backup_dlg = false;
 	}
 }

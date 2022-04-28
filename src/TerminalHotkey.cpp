@@ -132,7 +132,7 @@ void TerminalHotkey::Process()
 			if(foreground)
 			{
 				char window_title[256];
-				GetWindowTextA(foreground, window_title, 256);
+				GetWindowTextA(foreground, window_title, sizeof(window_title));
 				if(!strncmp(window_title, "Program Manager", 16))  /* User has desktop in focus */
 				{
 					std::string dekstop_str = getenv("USERPROFILE") + std::string("/Desktop");

@@ -95,8 +95,8 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Macro settings");
 
 	const wxString choices[] = { wxT("Sequence"), wxT("Text"), wxT("Delay"), wxT("Mouse move"), 
-		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click") };
-	m_radioBox1 = new wxRadioBox(this, wxID_ANY, wxT("Action type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices, 1, wxRA_SPECIFY_ROWS);
+		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click"), wxT("Execute command")};
+	m_radioBox1 = new wxRadioBox(this, wxID_ANY, wxT("Action type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices, 1, wxRA_SPECIFY_COLS);
 	sizerMsgs->Add(m_radioBox1, wxSizerFlags().Left());
 	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro text:"));
 	m_textMsg = new wxTextCtrl(this, wxID_ANY, "a", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
@@ -154,7 +154,7 @@ void MacroAddBoxDialog::ShowDialog(const wxString& macro_key, const wxString& ma
 
 void MacroEditBoxDialog::OnTimer(wxTimerEvent& event)
 {
-	if(IsShown() && GetType() == 3) /* is shown edit macro dialog & mouse movement radio item is selected */
+	if(IsShown() && (GetType() == 3 || GetType() == 4)) /* is shown edit macro dialog & mouse movement or mouse interpolate radio item is selected */
 	{
 #ifdef _WIN32
 		if(GetAsyncKeyState(VK_SCROLL) & 1)
@@ -205,9 +205,6 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	m_notebook->AddPage(comtcp_panel, "Main settings", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(keybrd_panel, "Macro settings", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(backup_panel, "Backup settings", false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
-#ifdef DEBUG
-	m_notebook->SetSelection(1);
-#endif
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
 }
 
@@ -222,104 +219,192 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	wxArrayString array_serials;
 	array_serials.Add("Select a serial port from list below");
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
-	wxSizer* const sizer_box_tcp = new wxStaticBoxSizer(wxHORIZONTAL, this, "&TCP Settings");
 
-	m_IsTcp = new wxCheckBox(this, wxID_ANY, wxT("Enable TCP?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_tcp->Add(m_IsTcp, 0, wxALL, 5);
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, this, "&TCP Settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
 
-	sizer_box_tcp->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		wxBoxSizer* tcp_horizontal_1 = new wxBoxSizer(wxHORIZONTAL);
+		m_IsTcp = new wxCheckBox(this, wxID_ANY, wxT("Enable TCP?"), wxDefaultPosition, wxDefaultSize, 0);
+		tcp_horizontal_1->Add(m_IsTcp, 0, wxALL, 5);
+		tcp_horizontal_1->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		tcp_horizontal_1->Add(m_TcpPortSpin, 0, wxALL, 5);
+		static_box_sizer->Add(tcp_horizontal_1);
 
-	m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
-	sizer_box_tcp->Add(m_TcpPortSpin, 0, wxALL, 5);
-	bSizer1->Add(sizer_box_tcp);
+		wxBoxSizer* tcp_horizontal_2 = new wxBoxSizer(wxHORIZONTAL);
+		static_box_sizer->Add(tcp_horizontal_2);
 
-	wxSizer* const sizer_box_com = new wxStaticBoxSizer(wxHORIZONTAL, this, "&COM Settings");
-	wxBoxSizer* com_vert_1 = new wxBoxSizer(wxVERTICAL);
-	m_IsPerAppMacro = new wxCheckBox(this, wxID_ANY, wxT("Use per-application macros?"), wxDefaultPosition, wxDefaultSize, 0);
-	com_vert_1->Add(m_IsPerAppMacro, 0, wxALL, 5);
-	m_IsAdvancedMacro = new wxCheckBox(this, wxID_ANY, wxT("Use advanced macros?"), wxDefaultPosition, wxDefaultSize, 0);
-	com_vert_1->Add(m_IsAdvancedMacro, 0, wxALL, 5);
-	sizer_box_com->Add(com_vert_1, 0, wxEXPAND | wxALL, 5);
+		m_IsTcpForwarder = new wxCheckBox(this, wxID_ANY, wxT("Enable TCP forwarding?"), wxDefaultPosition, wxDefaultSize, 0);
+		tcp_horizontal_2->Add(m_IsTcpForwarder, 0, wxALL, 5);
 
-	wxBoxSizer* com_vert_2 = new wxBoxSizer(wxVERTICAL);
-	m_IsCom = new wxCheckBox(this, wxID_ANY, wxT("Enable COM?"), wxDefaultPosition, wxDefaultSize, 0);
-	com_vert_2->Add(m_IsCom, 0, wxEXPAND | wxALL, 5);
 
-	com_vert_2->Add(new wxStaticText(this, wxID_ANY, wxT("COM port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		tcp_horizontal_2->Add(new wxStaticText(this, wxID_ANY, wxT("TCP forward IP:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_TcpForwarderIp = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		tcp_horizontal_2->Add(m_TcpForwarderIp, 0, wxALL, 5);
 
-	m_serial = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_serials);
-	com_vert_2->Add(m_serial);
-	sizer_box_com->Add(com_vert_2);
-	bSizer1->Add(sizer_box_com);
+		tcp_horizontal_2->Add(new wxStaticText(this, wxID_ANY, wxT("TCP forward port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_TcpForwarderPort = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		tcp_horizontal_2->Add(m_TcpForwarderPort, 0, wxALL, 5);
 
-	wxSizer* const sizer_box_pathsep = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Path separator replacer settings");
-	sizer_box_pathsep->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_PathSepReplacerKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_pathsep->Add(m_PathSepReplacerKey);
-	bSizer1->Add(sizer_box_pathsep);
+		bSizer1->Add(static_box_sizer);
+	}
 
-	wxSizer* const sizer_box_app = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Application settings");
-	m_IsMinimizeOnExit = new wxCheckBox(this, wxID_ANY, wxT("Minimize on exit?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_app->Add(m_IsMinimizeOnExit, 0, wxALL, 5);
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&COM Settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
 
-	m_IsMinimizeOnStartup = new wxCheckBox(this, wxID_ANY, wxT("Minimize on startup?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_app->Add(m_IsMinimizeOnStartup, 0, wxALL, 5);
+		wxBoxSizer* com_vert_2 = new wxBoxSizer(wxVERTICAL);
+		m_IsCom = new wxCheckBox(this, wxID_ANY, wxT("Enable COM?"), wxDefaultPosition, wxDefaultSize, 0);
+		com_vert_2->Add(m_IsCom, 0, wxEXPAND | wxALL, 5);
 
-	m_RememberWindowSize = new wxCheckBox(this, wxID_ANY, wxT("Remember window size?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_app->Add(m_RememberWindowSize, 0, wxALL, 5);
-	m_AlwaysOnNumlock = new wxCheckBox(this, wxID_ANY, wxT("Force numlock on?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_app->Add(m_AlwaysOnNumlock, 0, wxALL, 5);
+		com_vert_2->Add(new wxStaticText(this, wxID_ANY, wxT("COM port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 
-	sizer_box_app->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_serial = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_serials);
+		com_vert_2->Add(m_serial);
+		static_box_sizer->Add(com_vert_2);
 
-	m_DefaultPage = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
-	sizer_box_app->Add(m_DefaultPage, 0, wxALL, 5);
-	bSizer1->Add(sizer_box_app);
+		wxBoxSizer* com_vert_1 = new wxBoxSizer(wxVERTICAL);
+		m_IsPerAppMacro = new wxCheckBox(this, wxID_ANY, wxT("Use per-application macros?"), wxDefaultPosition, wxDefaultSize, 0);
+		com_vert_1->Add(m_IsPerAppMacro, 0, wxALL, 5);
+		m_IsAdvancedMacro = new wxCheckBox(this, wxID_ANY, wxT("Use advanced macros?"), wxDefaultPosition, wxDefaultSize, 0);
+		com_vert_1->Add(m_IsAdvancedMacro, 0, wxALL, 5);
+		static_box_sizer->Add(com_vert_1, 0, wxEXPAND | wxALL, 5);
 
-	wxSizer* const sizer_box_screenshot = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Screenshot Settings");
-	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_ScreenshotKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_screenshot->Add(m_ScreenshotKey);
+		bSizer1->Add(static_box_sizer);
+	}
 
-	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Time format:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_ScreenshotDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_screenshot->Add(m_ScreenshotDateFmt);
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Serial listener");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
 
-	sizer_box_screenshot->Add(new wxStaticText(this, wxID_ANY, wxT("Path:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_ScreenshotPath = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_screenshot->Add(m_ScreenshotPath);
-	bSizer1->Add(sizer_box_screenshot);
+		m_SerialForwarderIsEnabled = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_SerialForwarderIsEnabled);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Binded IP:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_SerialForwarderBindIp = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_SerialForwarderBindIp);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Port:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_SerialForwarderPort = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		static_box_sizer->Add(m_SerialForwarderPort);
 
-	wxSizer* const sizer_box_backup = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
-	sizer_box_backup->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
-	m_BackupDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_backup->Add(m_BackupDateFmt);
-	bSizer1->Add(sizer_box_backup);
+		bSizer1->Add(static_box_sizer);
+	}
 
-	wxSizer* const sizer_box_symlink = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Sylink creator settings");
-	m_IsSymlink = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_symlink->Add(m_IsSymlink);
 
-	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Mark key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_MarkSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_symlink->Add(m_MarkSymlink);
-	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Symlink key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_CreateSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_symlink->Add(m_CreateSymlink);
-	sizer_box_symlink->Add(new wxStaticText(this, wxID_ANY, wxT("Hardlink key:"), wxDefaultPosition, wxDefaultSize, 0));
-	m_CreateHardlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
-	sizer_box_symlink->Add(m_CreateHardlink);
-	bSizer1->Add(sizer_box_symlink);
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Path separator replacer settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
 
-	wxSizer* const sizer_box_antilock = new wxStaticBoxSizer(wxHORIZONTAL, this, "&AntiLock settings");
-	m_IsAntiLock = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_antilock->Add(m_IsAntiLock);	
-	m_IsScreensSaverAfterLock = new wxCheckBox(this, wxID_ANY, wxT("Screensaver after move?"), wxDefaultPosition, wxDefaultSize, 0);
-	sizer_box_antilock->Add(m_IsScreensSaverAfterLock);
-	sizer_box_antilock->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
-	m_AntiLockTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
-	sizer_box_antilock->Add(m_AntiLockTimeout);
-	bSizer1->Add(sizer_box_antilock);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_PathSepReplacerKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_PathSepReplacerKey);
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Application settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		m_IsMinimizeOnExit = new wxCheckBox(this, wxID_ANY, wxT("Minimize on exit?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsMinimizeOnExit, 0, wxALL, 5);
+
+		m_IsMinimizeOnStartup = new wxCheckBox(this, wxID_ANY, wxT("Minimize on startup?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsMinimizeOnStartup, 0, wxALL, 5);
+
+		m_RememberWindowSize = new wxCheckBox(this, wxID_ANY, wxT("Remember window size?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_RememberWindowSize, 0, wxALL, 5);
+		m_AlwaysOnNumlock = new wxCheckBox(this, wxID_ANY, wxT("Force numlock on?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_AlwaysOnNumlock, 0, wxALL, 5);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+
+		m_DefaultPage = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
+		static_box_sizer->Add(m_DefaultPage, 0, wxALL, 5);
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Screenshot Settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Key:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_ScreenshotKey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_ScreenshotKey);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Time format:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_ScreenshotDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_ScreenshotDateFmt);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Path:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_ScreenshotPath = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_ScreenshotPath);
+		bSizer1->Add(static_box_sizer);
+	}
+
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Backup Settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Time format::"), wxDefaultPosition, wxDefaultSize, 0));
+		m_BackupDateFmt = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_BackupDateFmt);
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Sylink creator settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		m_IsSymlink = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsSymlink);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Mark key:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_MarkSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_MarkSymlink);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Symlink key:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_CreateSymlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_CreateSymlink);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Hardlink key:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_CreateHardlink = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_CreateHardlink);
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&AntiLock");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		m_IsAntiLock = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsAntiLock);
+		m_IsScreensSaverAfterLock = new wxCheckBox(this, wxID_ANY, wxT("Screensaver after move?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsScreensSaverAfterLock);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_AntiLockTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
+		static_box_sizer->Add(m_AntiLockTimeout);
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Terminal HotKey");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		m_IsTerminalHotkey = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsTerminalHotkey);
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Hotkey:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_TerminalHotkey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_TerminalHotkey);
+		bSizer1->Add(static_box_sizer);
+	}
 
 	UpdatePanel(); /* update panel for first time, because changeing isn't happen when user clicks to aui and it shows first panel */
 
@@ -342,6 +427,12 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SerialPort::Get()->SetEnabled(m_IsCom->IsChecked());
 			if(m_serial->GetSelection() > 0)
 				SerialPort::Get()->SetComPort(atoi(&com_str.c_str().AsChar()[2]));
+			SerialPort::Get()->SetForwardToTcp(m_IsTcpForwarder->IsChecked());
+			SerialPort::Get()->SetRemoteTcpIp(m_TcpForwarderIp->GetValue().ToStdString());
+			SerialPort::Get()->SetRemoteTcpPort(m_TcpForwarderPort->GetValue());
+			SerialForwarder::Get()->is_enabled = m_SerialForwarderIsEnabled->GetValue();
+			SerialForwarder::Get()->bind_ip = m_SerialForwarderBindIp->GetValue().ToStdString();
+			SerialForwarder::Get()->tcp_port = m_SerialForwarderPort->GetValue();
 			Server::Get()->is_enabled = m_IsTcp->IsChecked();
 			Server::Get()->tcp_port = static_cast<uint16_t>(m_TcpPortSpin->GetValue());
 			PathSeparator::Get()->replace_key = m_PathSepReplacerKey->GetValue();
@@ -361,20 +452,21 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			AntiLock::Get()->is_enabled = m_IsAntiLock->GetValue();
 			AntiLock::Get()->is_screensaver = m_IsScreensSaverAfterLock->GetValue();
 			AntiLock::Get()->timeout = static_cast<uint32_t>(m_AntiLockTimeout->GetValue());
+			TerminalHotkey::Get()->is_enabled = m_IsTerminalHotkey->GetValue();
+			TerminalHotkey::Get()->vkey = utils::GetVirtualKeyFromString(m_TerminalHotkey->GetValue().ToStdString());
 
 			Settings::Get()->SaveFile(false);
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-			frame->pending_msgs.push_back({ (uint8_t)SettingsSaved });
+			frame->pending_msgs.push_back({ SettingsSaved });
 		});
 
 	m_Backup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			std::ifstream in("settings.ini", std::ios::in | std::ios::binary);
-			if(in.is_open())
+			if(in)
 			{
 				std::string in_str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-				in.close();
 
 				time_t current_time;
 				tm* current_tm;
@@ -382,7 +474,6 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 				current_tm = localtime(&current_time);
 				std::ofstream out(fmt::format("settings.ini_{:%Y.%m.%d_%H-%M-%S}.ini", *current_tm), std::ofstream::binary);
 				out << in_str;
-				out.close();
 				LOGMSG(notification, "Settings.ini has been successfully backed up");
 			}
 		});
@@ -404,16 +495,22 @@ void ComTcpPanel::UpdatePanel()
 			sel = array_serials.GetCount() - 1;
 	}
 #else
-
+	array_serials.Add("empty");  /* TODO: serial iteration isn't implemented in linux and inserting empty array will cause assertation fail */
 #endif
+	
 	m_IsPerAppMacro->SetValue(CustomMacro::Get()->use_per_app_macro);
 	m_IsAdvancedMacro->SetValue(CustomMacro::Get()->advanced_key_binding);
 	m_IsCom->SetValue(SerialPort::Get()->IsEnabled());
 
 	m_serial->Clear();
-	if(!array_serials.empty()) /* TODO: serial iteration is disabled in linux and inserting empty array will cause assertation fail */
-		m_serial->Insert(array_serials, WXSIZEOF(array_serials));
+	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_serial->SetSelection(sel);
+	m_IsTcpForwarder->SetValue(SerialPort::Get()->IsForwardToTcp());
+	m_TcpForwarderIp->SetValue(SerialPort::Get()->GetRemoteTcpIp());
+	m_TcpForwarderPort->SetValue(SerialPort::Get()->GetRemoteTcpPort());
+	m_SerialForwarderIsEnabled->SetValue(SerialForwarder::Get()->is_enabled);
+	m_SerialForwarderBindIp->SetValue(SerialForwarder::Get()->bind_ip);
+	m_SerialForwarderPort->SetValue(SerialForwarder::Get()->tcp_port);
 	m_IsTcp->SetValue(Server::Get()->is_enabled);
 	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
 	m_PathSepReplacerKey->SetValue(PathSeparator::Get()->replace_key);
@@ -433,6 +530,8 @@ void ComTcpPanel::UpdatePanel()
 	m_IsAntiLock->SetValue(AntiLock::Get()->is_enabled);
 	m_IsScreensSaverAfterLock->SetValue(AntiLock::Get()->is_screensaver);
 	m_AntiLockTimeout->SetValue(AntiLock::Get()->timeout);
+	m_IsTerminalHotkey->SetValue(TerminalHotkey::Get()->is_enabled);
+	m_TerminalHotkey->SetValue(utils::GetKeyStringFromVirtualKey(TerminalHotkey::Get()->vkey));
 }
 
 void KeybrdPanel::UpdateMainTree()
@@ -558,7 +657,7 @@ void KeybrdPanel::OnItemContextMenu_Main(wxTreeListEvent& evt)
 			{
 				if(i->app_name == item_str)
 				{
-					if(i->key_vec.find(macro_key) != i->key_vec.end()) 
+					if(i->key_vec.contains(macro_key))
 					{
 						wxMessageDialog(this, "Given key already has a binded macro!", "Error", wxOK).ShowModal();
 						return;
@@ -744,6 +843,8 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 			sel = 6;		
 		else if(type_str == "MOUSE CLICK")
 			sel = 7;
+		else if(type_str == "CMD")
+			sel = 8;
 		edit_dlg->ShowDialog(item_str, sel);
 	}
 }
@@ -849,6 +950,18 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			try
 			{
 				AddOrModifyMacro<MouseClick>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}		
+		case 8:
+		{
+			try
+			{
+				AddOrModifyMacro<CommandExecute>(x, id, add, std::move(edit_str));
 			}
 			catch(std::exception& e)
 			{
@@ -1132,7 +1245,7 @@ void KeybrdPanel::TreeDetails_StartRecording()
 		MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 		{
 			std::lock_guard lock(frame->mtx);
-			frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStopped });
+			frame->pending_msgs.push_back({ MacroRecordingStopped });
 		}
 		return;
 	}
@@ -1191,7 +1304,7 @@ void KeybrdPanel::TreeDetails_StartRecording()
 				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 				{
 					std::lock_guard lock(frame->mtx);
-					frame->pending_msgs.push_back({ (uint8_t)MacroRecordingStarted });
+					frame->pending_msgs.push_back({ MacroRecordingStarted });
 				}
 			}
 		}
@@ -1267,7 +1380,7 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 			Settings::Get()->SaveFile(false);
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-			frame->pending_msgs.push_back({ (uint8_t)SettingsSaved });
+			frame->pending_msgs.push_back({ SettingsSaved });
 		});
 
 	vertical_sizer->Add(btn_add);

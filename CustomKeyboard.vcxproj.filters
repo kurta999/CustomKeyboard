@@ -361,4 +361,7 @@
   <ItemGroup>
     <None Include="settings.ini" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
 </Project>

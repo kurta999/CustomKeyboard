@@ -2,7 +2,7 @@
 
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
-    constexpr size_t MAX_ITEMS = MacroTypes::MAX;
+    constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[", 
         "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "CMD[" };
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
@@ -17,14 +17,14 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     {
         size_t first_end = str.find("]", pos + 1);
         size_t first_pos[MAX_ITEMS];
-        for(int i = 0; i != MAX_ITEMS; ++i)
+        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
         {
             first_pos[i] = str.substr(0, first_end).find(start_str_arr[i], pos - 1);
         }
 
         uint8_t input_type = 0xFF;
         uint8_t not_empty_cnt = 0;
-        for(int i = 0; i != MAX_ITEMS; ++i)
+        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
         {
             if(first_pos[i] != std::string::npos)
             {
@@ -226,6 +226,11 @@ void Settings::LoadFile()
         SerialPort::Get()->SetForwardToTcp(utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data()));
         SerialPort::Get()->SetRemoteTcpIp(pt.get_child("COM_Backend").find("RemoteTcpIp")->second.data());
         SerialPort::Get()->SetRemoteTcpPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("RemoteTcpPort")->second.data()));
+
+        SerialForwarder::Get()->is_enabled = utils::stob(pt.get_child("COM_TcpBackend").find("Enable")->second.data());
+        SerialForwarder::Get()->bind_ip = std::move(pt.get_child("COM_TcpBackend").find("ListeningIp")->second.data());
+        SerialForwarder::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_TcpBackend").find("ListeningPort")->second.data());
+
         Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
@@ -249,9 +254,12 @@ void Settings::LoadFile()
         PrintScreenSaver::Get()->screenshot_path = std::move(pt.get_child("Screenshot").find("ScreenshotPath")->second.data());
         PathSeparator::Get()->replace_key = std::move(pt.get_child("PathSeparator").find("ReplacePathSeparatorKey")->second.data());
 
+        std::error_code ec;
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
-            std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path);
-        
+            std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path, ec);
+        if(ec)
+            LOGMSG(error, "Error with create_directory ({}): {}", PrintScreenSaver::Get()->screenshot_path.generic_string(), ec.message());
+
         SymlinkCreator::Get()->is_enabled = utils::stob(pt.get_child("SymlinkCreator").find("Enable")->second.data());
         SymlinkCreator::Get()->mark_key = std::move(pt.get_child("SymlinkCreator").find("MarkKey")->second.data());
         SymlinkCreator::Get()->place_symlink_key = std::move(pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data());
@@ -260,6 +268,9 @@ void Settings::LoadFile()
         AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
         AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
         AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
+        std::vector<std::string> ignore_list;
+        boost::split(ignore_list, pt.get_child("AntiLock").find("Exclusions")->second.data(), boost::is_any_of("|"));
+        AntiLock::Get()->exclusions = std::move(ignore_list);
 
         TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
         const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
@@ -388,6 +399,10 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "ForwardViaTcp = " << SerialPort::Get()->IsForwardToTcp() << " # Is data have to be forwarded to remote TCP server\n";
     out << "RemoteTcpIp = " << SerialPort::Get()->GetRemoteTcpIp() << "\n";
     out << "RemoteTcpPort = " << SerialPort::Get()->GetRemoteTcpPort() << "\n";
+    out << "[COM_TcpBackend]\n";
+    out << "Enable = " << SerialForwarder::Get()->is_enabled << " # Listening port from second instance where the TCP Forwarder forwards data received from COM port\n";
+    out << "ListeningIp = " << SerialForwarder::Get()->bind_ip << "\n";
+    out << "ListeningPort = " << SerialForwarder::Get()->tcp_port << "\n";
     out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
@@ -420,6 +435,14 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Enable = " << AntiLock::Get()->is_enabled << "\n";
     out << "Timeout = " << AntiLock::Get()->timeout << " # Seconds\n";
     out << "StartScreenSaver = " << AntiLock::Get()->is_screensaver << "\n";
+    std::string exclusions;
+    for(auto& x : AntiLock::Get()->exclusions)
+    {
+        exclusions += x + '|';
+    }
+    if(exclusions.back() == '|')
+        exclusions.pop_back();
+    out << "Exclusions = " << exclusions << '\n';
     out << "\n";
     out << "[TerminalHotkey]\n";
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
@@ -472,7 +495,6 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[Graph]\n";
     out << "Graph1HoursBack = " << DatabaseLogic::Get()->GetGraphHours(0) << " # One day\n";
     out << "Graph2HoursBack = " << DatabaseLogic::Get()->GetGraphHours(1) << " # One week\n";
-    out.close();
 }
 
 void Settings::Init()

@@ -21,6 +21,9 @@ public:
 
     // \brief Is screen saver enabled
     bool is_screensaver = false;
+
+    // \brief Excluded window list
+    std::vector<std::string> exclusions;
 private:
     // \brief Check if current session active (user is logged in)
     // \return Is session active?
@@ -31,6 +34,10 @@ private:
     
     // \brief Simulate user activity
     void StartScreenSaver();
+
+    // \brief Return true if the given window is in exclusion list
+    // \param p [in] Window name to check
+    bool IsAnExclusion(std::string&& p);
 
     // \brief Mouse step
     bool step_forward = false;
