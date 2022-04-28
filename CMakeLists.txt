@@ -1,18 +1,17 @@
 cmake_minimum_required(VERSION 3.7)
 project(CustomKeyboard)
 
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 
 set(wxWidgets_USE_DEBUG ON)
 set(wxWidgets_USE_STATIC OFF)
 find_package(wxWidgets COMPONENTS core base stc propgrid aui REQUIRED)
-set(wxWidgets_USE_STATIC OFF)
 include(${wxWidgets_USE_FILE})
 
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost 1.79.0 REQUIRED system program_options) 
+find_package(Boost REQUIRED system program_options)
 
 find_package(fmt)
 

@@ -105,6 +105,18 @@ void AntiLock::StartScreenSaver()
 #endif
 }
 
+bool AntiLock::IsAnExclusion(std::string&& p)
+{
+    for(auto& i : exclusions)
+    {
+        if(std::search(p.begin(), p.end(), i.begin(), i.end()) != p.end())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AntiLock::Process()
 {
 	if(is_enabled)
@@ -118,8 +130,19 @@ void AntiLock::Process()
 			DWORD last_activity_time = GetTickCount() - linput_info.dwTime;
 			if(last_activity_time > (timeout * 1000))
 			{
-                if(IsSessionActive())
-                    SimulateUserActivity();
+                HWND foreground = GetForegroundWindow();
+                if(foreground)
+                {
+                    char window_title[256];
+                    if(GetWindowTextA(foreground, window_title, sizeof(window_title)))
+                    {
+                        if(!IsAnExclusion(window_title))
+                        {
+                            if(IsSessionActive())
+                                SimulateUserActivity();
+                        }
+                    }
+                }
 			}
 		}
 #else

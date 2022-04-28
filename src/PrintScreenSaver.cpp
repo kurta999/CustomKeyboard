@@ -84,7 +84,7 @@ void PrintScreenSaver::DoSave()
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
     {
         std::lock_guard lock(frame->mtx);
-        frame->pending_msgs.push_back({ (uint8_t)ScreenshotSaved, dif, std::move(save_path) });
+        frame->pending_msgs.push_back({ ScreenshotSaved, dif, std::move(save_path) });
     }
 #endif
 }

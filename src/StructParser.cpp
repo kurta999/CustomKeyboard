@@ -382,7 +382,7 @@ void StructParser::Init()
 #ifdef TESTING_PARSER
 	std::string out_str;
 	std::ifstream f("struct_in.txt", std::ios::in | std::ios::binary);
-	if(f.is_open())
+	if(f)
 	{
 		std::string in_str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 		try
@@ -393,11 +393,9 @@ void StructParser::Init()
 		{
 			LOGMSG(critical, "Exception %s", e.what());
 		}
-		f.close();
 
 		std::ofstream out("struct_out.txt", std::ofstream::binary);
 		out << out_str;
-		out.close();
 	}
 #endif
 }

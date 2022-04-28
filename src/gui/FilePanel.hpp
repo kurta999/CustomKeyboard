@@ -34,12 +34,12 @@ private:
 	{
 		wxString size;
 		ComparatorIntType factor = 1;
-		if(text.EndsWith(" GB", &size))
-			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024 * (int64_t)1024 * (int64_t)1024);
-		else if(text.EndsWith(" MB", &size))
-			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024 * (int64_t)1024);
+//		if(text.EndsWith(" GB", &size))
+	//		factor = (ComparatorIntType)((ComparatorIntType)8 * (ComparatorIntType)1024 * (ComparatorIntType)1024 * (ComparatorIntType)1024);
+		if(text.EndsWith(" MB", &size))
+			factor = (ComparatorIntType)((ComparatorIntType)8 * (ComparatorIntType)1024 * (ComparatorIntType)1024);
 		else if(!text.EndsWith(" kB", &size))
-			factor = (ComparatorIntType)((int64_t)8 * (int64_t)1024);
+			factor = (ComparatorIntType)((ComparatorIntType)8 * (ComparatorIntType)1024);
 		else if(!text.EndsWith(" B", &size))
 			factor = 8;
 		unsigned long long n = 0;

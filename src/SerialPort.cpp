@@ -38,7 +38,10 @@ void SerialPort::OnUartDataReceived(const char* data, unsigned int len)
 {
     if(forward_serial_to_tcp)
     {
-        SerialForwarder::Get()->Send(remote_tcp_ip, remote_tcp_port, data, len);
+        if(IsUsingVmOrWsl())
+            SerialForwarder::Get()->Send(remote_tcp_ip, remote_tcp_port, data, len);
+        else
+            CustomMacro::Get()->ProcessReceivedData(data, len);
     }
     else
     {
@@ -46,7 +49,6 @@ void SerialPort::OnUartDataReceived(const char* data, unsigned int len)
     }
 }
 
-// LUbuntu [Running] - Oracle VM VirtualBox
 // \x00\x00\x00\x00\x00\x00\x00\x00\x00\x54\x00\x00\x00\x00\x00\x4C\x45
 // \h(00 00 00 00 00 00 00 00 00 54 00 00 00 00 00 4C 45)
 void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m)
@@ -83,6 +85,21 @@ void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_va
     }
 }
 
+bool SerialPort::IsUsingVmOrWsl()
+{
+#ifdef _WIN32
+    bool ret = false;
+    char window_title[256];
+    HWND foreground = GetForegroundWindow();
+    GetWindowTextA(foreground, window_title, sizeof(window_title));
+    if(boost::algorithm::contains(window_title, "Oracle VM VirtualBox") || boost::algorithm::contains(window_title, "(Ubuntu)"))
+        ret = true;
+    return ret;
+#else
+    return false;
+#endif
+}
+
 void SerialPort::SetEnabled(bool enable)
 {
     is_enabled = enable;
@@ -113,7 +130,7 @@ bool SerialPort::IsForwardToTcp()
     return forward_serial_to_tcp;
 }
 
-void SerialPort::SetRemoteTcpIp(std::string& ip)
+void SerialPort::SetRemoteTcpIp(const std::string& ip)
 {
     remote_tcp_ip = ip;
 }

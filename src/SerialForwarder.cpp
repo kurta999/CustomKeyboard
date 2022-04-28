@@ -15,9 +15,6 @@ public:
     {
         socket_.async_read_some(boost::asio::buffer(recv_buffer, sizeof(recv_buffer)),
             std::bind(&session::handle_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-
-        //message_ = "test string from server";
-        //boost::asio::async_write(socket_, boost::asio::buffer(message_), std::bind(&session::handle_write, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
     }
 
     session(boost::asio::io_context& io_context)
@@ -54,7 +51,7 @@ class tcp_server
 public:
     tcp_server(boost::asio::io_context& io_context)
         : io_context_(io_context),
-        acceptor_(io_context, tcp::endpoint(tcp::v4(), 9999))  /* TODO: catch exception if port is already used or can't bind */
+        acceptor_(io_context, tcp::endpoint(boost::asio::ip::address::from_string(SerialForwarder::Get()->bind_ip), SerialForwarder::Get()->tcp_port), true)
     {
         start_accept();
     }
@@ -66,6 +63,7 @@ private:
         {
             new_connection->start();
         }
+        m_sessions.emplace(new_connection);
         start_accept();
     }
 
@@ -75,17 +73,37 @@ private:
         acceptor_.async_accept(new_connection->socket(), std::bind(&tcp_server::handle_accept, this, std::placeholders::_1, new_connection));
     }
 
-
+    std::set<std::shared_ptr<session>> m_sessions;
     boost::asio::io_context& io_context_;
     tcp::acceptor acceptor_;
 };
 
 SerialForwarder::SerialForwarder()
 {
-    m_worker = std::make_unique<std::thread>([this] {
-            tcp_server server(io_context);
-            io_context.run();
+
+}
+
+void SerialForwarder::Init()
+{
+    if(is_enabled)
+    {
+        m_worker = std::make_unique<std::thread>([this] {
+            try
+            {
+                tcp_server server(io_context);
+                io_context.run();
+                LOGMSG(notification, "iocontext finish");
+            }
+            catch(const boost::system::system_error& e)
+            {
+                LOGMSG(error, "Boost exception: {}", e.what());
+            }
+            catch(...)
+            {
+                LOGMSG(error, "Unknown exception");
+            }
         });
+    }
 }
 
 SerialForwarder::~SerialForwarder()
@@ -104,12 +122,27 @@ void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, siz
     if(ec)
         LOGMSG(error, "Failed to create endpoint from ip address: {}", ec.message());
 
-    socket.connect(endpoint, ec);
+    socket.set_option(boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>{ 200 }, ec);
     if(ec)
-        LOGMSG(error, "Failed to connec to remote TCP server: {}", ec.message());
-    
-    socket.send(boost::asio::buffer(data, len), 0, ec);
-    if(ec)
-        LOGMSG(error, "Failed to forward serial over TCP: {}", ec.message());
-	socket.close(ec);
+        LOGMSG(error, "set_option error: {}", ec.message());
+
+    bool is_connected = false;
+    socket.async_connect(endpoint, [&is_connected](const boost::system::error_code& ec)
+        {
+            if(!ec)
+                is_connected = true;
+        });
+    ios.run_for(std::chrono::duration<int, std::milli>(50));
+
+    if(is_connected)
+    {
+        socket.send(boost::asio::buffer(data, len), 0, ec);
+        if(ec)
+            LOGMSG(error, "Failed to forward serial over TCP: {}", ec.message());
+        socket.close(ec);
+    }
+    else
+    {
+        LOGMSG(error, "Failed to connect to the remote server!");
+    }
 }

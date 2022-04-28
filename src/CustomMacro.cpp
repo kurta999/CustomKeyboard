@@ -181,7 +181,7 @@ void CustomMacro::PressKey(std::string key)
         if(foreground)
         {
             char window_title[256];
-            GetWindowTextA(foreground, window_title, 256);
+            GetWindowTextA(foreground, window_title, sizeof(window_title));
             bool app_found = false;
             for(auto& m : macros)
             {
