@@ -19,12 +19,14 @@
 
 #include <mutex>
 #include <deque>
+#include <any>
 
 class MacroPanel : public wxPanel
 {
 public:
 	MacroPanel(wxFrame* parent);
 	wxStaticText* m_MousePos;
+	wxStaticText* m_ActiveWindowTitle;
 
 private:
 	wxDECLARE_EVENT_TABLE();
@@ -32,7 +34,7 @@ private:
 
 class TrayIcon;
 
-enum Msg : uint8_t
+enum PopupMsgIds : uint8_t
 {
 	ScreenshotSaved = 0,
 	SettingsSaved,
