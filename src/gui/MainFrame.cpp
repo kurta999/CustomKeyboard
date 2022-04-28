@@ -33,7 +33,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
-Copyright (c) 2021 kurta999\n\
+Copyright (c) 2021 - 2022 kurta999\n\
 \n\
 Permission is hereby granted, free of charge, to any person obtaining a copy\n\
 of this software and associated documentation files (the \"Software\"), to deal\n\
@@ -125,18 +125,6 @@ void MyFrame::On10msTimer(wxTimerEvent& event)
 
 void MyFrame::On100msTimer(wxTimerEvent& event)
 {
-#ifdef DBG_FOREGROUND_PRINT
-	{
-		HWND foreground = GetForegroundWindow();
-		if(foreground)
-		{
-			char window_title[256];
-			GetWindowTextA(foreground, window_title, 256);
-			DBG("fgw: %s\n", window_title);
-		}
-	}
-#endif
-
 #ifdef _WIN32
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
@@ -152,7 +140,7 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 				{
 					int width = rect.right - rect.left;
 					int height = rect.bottom - rect.top;
-					wxString str = wxString::Format(wxT("Mouse: %d,%d\n\nRect: %d,%d"), p.x, p.y, width, height);
+					wxString str = wxString::Format(wxT("Mouse: %d,%d - Rect: %d,%d"), p.x, p.y, width, height);
 					macro_panel->m_MousePos->SetLabelText(str);
 					if(GetAsyncKeyState(VK_SCROLL))
 					{
@@ -161,6 +149,13 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 					}
 				}
 			}
+		}
+
+		char window_title[256];
+		if(GetWindowTextA(foreground, window_title, sizeof(window_title)))
+		{
+			wxString str = wxString::Format(wxT("Window: \"%s\""), window_title);
+			macro_panel->m_ActiveWindowTitle->SetLabelText(str);
 		}
 	}
 #else
@@ -173,9 +168,6 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 #endif
 	HandleNotifications();
 	HandleBackupProgressDialog();
-#ifdef _WIN32
-	TerminalHotkey::Get()->Process();
-#endif
 }
 
 void MyFrame::HandleBackupProgressDialog()
@@ -311,7 +303,11 @@ MacroPanel::MacroPanel(wxFrame* parent)
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 	
 	m_MousePos = new wxStaticText(this, wxID_ANY, "Pos: 0,0");
+	m_MousePos->SetToolTip("Mouse position relative to active window");
 	bSizer1->Add(m_MousePos);
+	m_ActiveWindowTitle = new wxStaticText(this, wxID_ANY, "Window: \"NULL\"");
+	m_ActiveWindowTitle->SetToolTip("Name of foreground (active) window");
+	bSizer1->Add(m_ActiveWindowTitle);
 
 	this->SetSizer(bSizer1);
 	this->Layout();
@@ -323,7 +319,7 @@ void MyFrame::HandleNotifications()
 	if(pending_msgs.size() > 0)
 	{
 		std::vector<std::any> ret = pending_msgs.front();
-		uint8_t type = std::any_cast<uint8_t>(ret[0]);
+		std::underlying_type_t<PopupMsgIds> type = std::any_cast<std::underlying_type_t<PopupMsgIds>>(ret[0]);
 		switch(type)
 		{
 			case ScreenshotSaved:

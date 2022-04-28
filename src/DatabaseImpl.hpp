@@ -2,6 +2,7 @@
 
 #include <string>
 #include <functional>
+#include <any>
 
 #include <sqlite/sqlite3.h>
 
