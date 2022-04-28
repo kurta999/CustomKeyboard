@@ -6,7 +6,12 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 	{
 		if(!std::filesystem::exists(t))  /* not needed to go file checking when even the directory doesns't exists */
 		{
-			std::filesystem::create_directory(t);
+			std::error_code ec;
+			std::filesystem::create_directory(t, ec);
+			if(ec)
+			{
+				LOGMSG(error, "Error with create_directory ({}): {}", t.generic_string(), ec.message());
+			}
 			continue;
 		}
 
@@ -18,7 +23,12 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 		if(files.size() >= (size_t)backup->max_backups)
 		{
 			auto to_remove = *files.begin();
-			std::filesystem::remove_all(to_remove);
+			std::error_code ec;
+			std::filesystem::remove_all(to_remove, ec);
+			if(ec)
+			{
+				LOGMSG(error, "Error with remove_all ({}): {}", std::string(to_remove.begin(), to_remove.end()), ec.message());
+			}
 		}
 	}
 }
@@ -64,7 +74,15 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 		if(backup->calculate_hash)
 			sha256_init(&ctx_to);
 		std::filesystem::path destination_dir = t / folder_name_with_date;
-		std::filesystem::create_directory(destination_dir);
+
+		std::error_code ec;
+		std::filesystem::create_directory(destination_dir, ec);
+		if(ec)
+		{
+			LOGMSG(error, "Error with create_directory ({}): {}", destination_dir.generic_string(), ec.message());
+			fail = true;
+			break;
+		}
 		for(auto& p : std::filesystem::recursive_directory_iterator(backup->from))
 		{
 			auto rel_path = p.path().lexically_proximate(backup->from);
@@ -77,13 +95,28 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			if(!is_file)
 			{
 				std::filesystem::path destination_path = destination_dir / rel_path;
-				std::filesystem::create_directory(destination_path);
+
+				std::error_code ec;
+				std::filesystem::create_directory(destination_path, ec);
+				if(ec)
+				{
+					LOGMSG(error, "Error with create_directory ({}): {}", destination_path.generic_string(), ec.message());
+					fail = true;
+					break;
+				}
 			}
 			else
 			{
 				std::filesystem::path destination_path = destination_dir / rel_path;
-				std::filesystem::copy_file(p.path(), destination_path);
 
+				std::error_code ec;
+				std::filesystem::copy_file(p.path(), destination_path, ec);
+				if(ec)
+				{
+					LOGMSG(error, "Error with copy_file ({}): {}", destination_path.generic_string(), ec.message());
+					fail = true;
+					break;
+				}
 				if(backup->calculate_hash)
 				{
 					std::ifstream f(destination_path, std::ifstream::binary);
