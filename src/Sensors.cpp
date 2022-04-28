@@ -62,6 +62,9 @@ void Sensors::WriteGraphs()
 
 template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
 {
+    if(template_str.empty())
+        return; /* Do not proceed further when template.html is missing */
+
     std::scoped_lock lock(mtx);
     std::ofstream out(std::string("Graphs/") + filename, std::ofstream::binary);
    
@@ -161,18 +164,25 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
 
 void Sensors::Init()
 {
+    std::error_code ec;
     if(!std::filesystem::exists("Graphs"))
-        std::filesystem::create_directory("Graphs");
+        std::filesystem::create_directory("Graphs", ec);
+    if(ec)
+        LOGMSG(error, "Error with create_directory (Graphs): {}", ec.message());
 
     std::ifstream t("Graphs/template.html", std::ifstream::binary);
-    if(!t.is_open())
-        throw std::runtime_error(fmt::format("Missing template.html"));
+    if(t)
+    {
+        t.seekg(0, std::ios::end);
+        size_t size = t.tellg();
+        t.seekg(0);
+        template_str.resize(size);
 
-    t.seekg(0, std::ios::end);
-    size_t size = t.tellg();
-    t.seekg(0);
-    template_str.resize(size);
-
-    t.read(&template_str[0], size);
-    t.close();
+        t.read(&template_str[0], size);
+        t.close();
+    }
+    else
+    {
+        LOGMSG(error, "Missing template.html from 'Graphs' folder, disabling sensor's related module.");
+    }
 }
