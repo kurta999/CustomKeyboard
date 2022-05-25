@@ -27,9 +27,9 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 			const wxString& root_str = tree->GetItemText(item, 0);
 			const wxString& item_str = tree->GetItemText(item, 1);
 
-			BackupEntry* p = new BackupEntry(L"C:\\folder_non_exists", std::vector<std::filesystem::path>{L"C:\\backup"}, 
+			std::unique_ptr<BackupEntry> p = std::make_unique<BackupEntry>(L"C:\\folder_non_exists", std::vector<std::filesystem::path>{L"C:\\backup"},
 				std::vector<std::wstring>({ L".gitignore", L".txt" }), 2, 0, 1);
-			DirectoryBackup::Get()->backups.push_back(p);
+			DirectoryBackup::Get()->backups.push_back(std::move(p));
 
 			UpdateMainTree();
 			break;
@@ -41,7 +41,6 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 				itemdata = tree->GetItemData(item);
 			wxIntClientData<uint16_t>* dret = dynamic_cast<wxIntClientData<uint16_t>*>(itemdata);
 			uint16_t id = dret->GetValue();
-			delete DirectoryBackup::Get()->backups[id];
 			DirectoryBackup::Get()->backups.erase(DirectoryBackup::Get()->backups.begin() + id);
 			UpdateMainTree();
 			break;

@@ -303,10 +303,10 @@ void Settings::LoadFile()
             int max_backups = utils::stoi<decltype(max_backups)>(pt.get_child(key).find("MaxBackups")->second.data());
             bool calculate_hash = utils::stob(pt.get_child(key).find("CalculateHash")->second.data());
             size_t buffer_size = utils::stob(pt.get_child(key).find("BufferSize")->second.data());
-            BackupEntry* b = new BackupEntry(std::move(from), std::move(to), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
+            std::unique_ptr<BackupEntry> b = std::make_unique<BackupEntry>(std::move(from), std::move(to), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
 
             counter_++;
-            DirectoryBackup::Get()->backups.push_back(b);
+            DirectoryBackup::Get()->backups.push_back(std::move(b));
         }
 
         uint32_t val1 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph1HoursBack")->second.data());
