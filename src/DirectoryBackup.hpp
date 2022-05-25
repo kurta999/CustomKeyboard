@@ -20,17 +20,7 @@ public:
 
     // \brief Return true if the given file is in ignore list
     // \param p [in] File to check
-    bool IsInIgnoreList(std::wstring&& p)
-    {
-        for(auto& i : ignore_list)
-        {
-            if(std::search(p.begin(), p.end(), i.begin(), i.end()) != p.end())
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    bool IsInIgnoreList(std::wstring&& p);
 
     // \brief Backup source path
     std::filesystem::path from;
@@ -77,12 +67,14 @@ public:
     std::string backup_time_format = "_%Y_%m_%d %H_%M_%S";
 
     // \brief Vector of backups
-    std::vector<BackupEntry*> backups;
+    std::vector<std::unique_ptr<BackupEntry>> backups;
 private:
     // \brief Backups given backup entry
     // \param backup [in] Backup entry to execute
     void DoBackup(BackupEntry* backup);
 
+    // \brief Execute backup rotation (removing older backups)
+    // \param backup [in] Backup entry to execute
     void BackupRotation(BackupEntry* backup);
 
     // \brief Future for backup async operations

@@ -1,5 +1,17 @@
 #include "pch.hpp"
 
+bool BackupEntry::IsInIgnoreList(std::wstring&& p)
+{
+	for(auto& i : ignore_list)
+	{
+		if(std::search(p.begin(), p.end(), i.begin(), i.end()) != p.end())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void DirectoryBackup::BackupRotation(BackupEntry* backup)
 {
 	for(auto& t : backup->to)
@@ -194,7 +206,7 @@ void DirectoryBackup::BackupFile(int id)
 	{
 		if(backup_future.valid())
 			backup_future.get();
-		backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id]);
+		backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id].get());
 	}
 }
 
@@ -208,9 +220,5 @@ bool DirectoryBackup::IsInProgress()
 
 void DirectoryBackup::Clear()
 {
-	for(auto& i : backups)
-	{
-		delete i;
-	}
 	backups.clear();
 }
