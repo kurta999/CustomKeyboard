@@ -6,6 +6,7 @@
 #include <urlmon.h>
 #endif
 
+#include "gui/CanPanel.hpp"
 #include "gui/Configuration.hpp"
 #include "gui/ConfigurationBackup.hpp"
 #include "gui/gui_id.hpp"
@@ -38,6 +39,7 @@
 #include "AntiLock.hpp"
 #include "TerminalHotkey.hpp"
 #include "SerialPort.hpp"
+#include "CryptoPrice.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
@@ -83,6 +85,7 @@
 #include <wx/artprov.h>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string_regex.hpp>
 #include <boost/crc.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
