@@ -16,7 +16,7 @@ bool MyApp::OnInit()
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
     SerialForwarder::Get()->Init();
-
+    CryptoPrice::Get()->Init();
     if(!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
