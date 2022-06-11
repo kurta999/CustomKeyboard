@@ -97,6 +97,10 @@ public:
 	wxSpinCtrl* m_TcpForwarderPort;
 	wxCheckBox* m_IsCom;
 	wxComboBox* m_serial;
+	wxCheckBox* m_IsCanSerial;
+	wxComboBox* m_CanSerial;
+	wxTextCtrl* m_CanDefaultTxList;
+	wxTextCtrl* m_CanDefaultRxList;
 	wxCheckBox*	m_SerialForwarderIsEnabled;
 	wxTextCtrl*	m_SerialForwarderBindIp;
 	wxSpinCtrl*	m_SerialForwarderPort;

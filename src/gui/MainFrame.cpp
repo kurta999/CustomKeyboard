@@ -9,9 +9,14 @@ EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MyFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MyFrame::OnSaveAs)
 EVT_MENU(ID_DestroyAll, MyFrame::OnDestroyAll)
+EVT_MENU(ID_CanLoadTxList, MyFrame::OnCanLoadTxList)
+EVT_MENU(ID_CanSaveTxList, MyFrame::OnCanSaveTxList)
+EVT_MENU(ID_CanLoadRxList, MyFrame::OnCanLoadRxList)
+EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
+
 
 wxBEGIN_EVENT_TABLE(MainPanel, wxPanel)
 wxEND_EVENT_TABLE()
@@ -118,9 +123,35 @@ void MyFrame::OnDestroyAll(wxCommandEvent& event)
 	GuiEditor::Get()->OnDestroyAll();
 }
 
+void MyFrame::OnCanLoadTxList(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->LoadTxList();
+}
+
+void MyFrame::OnCanSaveTxList(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->SaveTxList();
+}
+
+void MyFrame::OnCanLoadRxList(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->LoadRxList();
+}
+
+void MyFrame::OnCanSaveRxList(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->SaveRxList();
+}
+
 void MyFrame::On10msTimer(wxTimerEvent& event)
 {
 	HandleAlwaysOnNumlock();
+	if(can_panel)
+		can_panel->On10MsTimer();
 }
 
 void MyFrame::On100msTimer(wxTimerEvent& event)
@@ -244,11 +275,17 @@ MyFrame::MyFrame(const wxString& title)
 	menuFile->Append(wxID_SAVE, "&Save file\tCtrl-S", "Save file")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuFile->Append(wxID_SAVEAS, "&Save file As\tCtrl-S", "Save file As other")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuFile->Append(ID_DestroyAll, "&Destroy all widgets\tCtrl-W", "Destroy all widgets")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	wxMenu* menuCan = new wxMenu;
+	menuCan->Append(ID_CanLoadTxList, "&Load TX List", "Load CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveTxList, "&Save TX List", "Save CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanLoadRxList, "&Load RX List", "Load CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveRxList, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(ID_About, "&About", "Read license")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenuBar* menuBar = new wxMenuBar;
 	menuBar->Append(menuFile, "&File");
+	menuBar->Append(menuCan, "&CAN");
 	menuBar->Append(menuHelp, "&Help");
 	SetMenuBar(menuBar);
 
@@ -265,6 +302,7 @@ MyFrame::MyFrame(const wxString& title)
 	macro_panel = new MacroPanel(this);
 	parser_panel = new ParserPanel(this);
 	file_panel = new FilePanel(this);
+	can_panel = new CanPanel(this);
 	log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
 
@@ -280,6 +318,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(macro_panel, "Mouse Info", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(file_panel, "File browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(can_panel, "CAN sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 

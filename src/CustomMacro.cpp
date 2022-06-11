@@ -218,6 +218,8 @@ void CustomMacro::PressKey(std::string key)
 
 void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
 {
+    if(len != sizeof(KeyData_t))
+        return;
     KeyData_t* k = (KeyData_t*)data;
     crc16_modbus_t calc_result;
     calc_result.process_bytes((void*)data, len - 2);

@@ -1,7 +1,7 @@
 #pragma once
 
-constexpr int WINDOW_SIZE_X = 800;
-constexpr int WINDOW_SIZE_Y = 600;
+constexpr int WINDOW_SIZE_X = 1024;
+constexpr int WINDOW_SIZE_Y = 768;
 
 enum
 {
@@ -13,6 +13,10 @@ enum
 	ID_CheckKeypress,
 	ID_FilePicker,
 	ID_DestroyAll,
+	ID_CanLoadTxList,
+	ID_CanSaveTxList,
+	ID_CanLoadRxList,
+	ID_CanSaveRxList,
 	ID_AppBindListMain,
 	ID_MacroDetails,
 	ID_BackupPanel,

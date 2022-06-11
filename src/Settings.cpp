@@ -233,6 +233,13 @@ void Settings::LoadFile()
 
         Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
+
+        CanEntryHandler* can_handler = wxGetApp().can_entry;
+        CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
+        CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
+        can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
+        can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
+
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
         default_page = utils::stoi<decltype(default_page)>(pt.get_child("App").find("DefaultPage")->second.data());
@@ -326,6 +333,7 @@ void Settings::LoadFile()
 
 void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
+    CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::ofstream out("settings.ini", std::ofstream::binary);
     out << "# Possible macro keywords: \n";
     out << "# BIND_NAME[binding name] = Set the name if macro. Should be used as first\n";
@@ -404,6 +412,11 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "ListeningIp = " << SerialForwarder::Get()->bind_ip << "\n";
     out << "ListeningPort = " << SerialForwarder::Get()->tcp_port << "\n";
     out << "\n";
+    out << "[CANSender]\n";
+    out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";
+    out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
+    out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
+    out << "DefaultRxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";

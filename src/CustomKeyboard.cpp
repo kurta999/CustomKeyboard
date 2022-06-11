@@ -7,8 +7,13 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
 
+    XmlCanEntryLoader xml;
+    XmlCanRxEntryLoader rx_xml;
+    can_entry = new CanEntryHandler(xml, rx_xml);
+
     Settings::Get()->Init();
     SerialPort::Get()->Init();
+    CanSerialPort::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
     StructParser::Get()->Init();
@@ -17,6 +22,9 @@ bool MyApp::OnInit()
     MacroRecorder::Get()->Init();
     SerialForwarder::Get()->Init();
     CryptoPrice::Get()->Init();
+
+    can_entry->Init();
+
     if(!wxTaskBarIcon::IsAvailable())
         LOGMSG(normal, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
@@ -40,6 +48,7 @@ int MyApp::OnExit()
     DatabaseLogic::CSingleton::Destroy();
     SerialForwarder::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
+    CanSerialPort::CSingleton::Destroy();
     Logger::CSingleton::Destroy();
     return true;
 }

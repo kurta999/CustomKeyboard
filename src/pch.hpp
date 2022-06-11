@@ -39,7 +39,9 @@
 #include "AntiLock.hpp"
 #include "TerminalHotkey.hpp"
 #include "SerialPort.hpp"
+#include "CanSerialPort.hpp"
 #include "CryptoPrice.hpp"
+#include "CanEntryHandler.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
@@ -86,6 +88,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string_regex.hpp>
+#include <boost/algorithm/hex.hpp>
 #include <boost/crc.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
