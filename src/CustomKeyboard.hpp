@@ -6,6 +6,7 @@
 
 #include <wx/wx.h>
 
+class CanEntryHandler;
 class MyApp : public wxApp
 {
 public:
@@ -15,4 +16,6 @@ public:
     
     // !\brief Helper variable for logger to avoid crash when inserting log messages befor logger frame is created
     bool is_init_finished = false;
+
+    CanEntryHandler* can_entry;
 };

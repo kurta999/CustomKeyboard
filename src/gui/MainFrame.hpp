@@ -7,6 +7,7 @@
 #include "Editor.hpp"
 #include "Configuration.hpp"
 #include "FilePanel.hpp"
+#include "CanPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -68,6 +69,7 @@ public:
 	MacroPanel* macro_panel;
 	ParserPanel* parser_panel;
 	FilePanel* file_panel = nullptr;
+	CanPanel* can_panel = nullptr;
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl;
 	std::mutex mtx;
@@ -84,6 +86,10 @@ private:
 	void OnSave(wxCommandEvent& event);
 	void OnSaveAs(wxCommandEvent& event);
 	void OnDestroyAll(wxCommandEvent& event);
+	void OnCanLoadTxList(wxCommandEvent& event);
+	void OnCanSaveTxList(wxCommandEvent& event);
+	void OnCanLoadRxList(wxCommandEvent& event);
+	void OnCanSaveRxList(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
 

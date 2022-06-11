@@ -80,4 +80,14 @@ namespace utils
         else
             static_assert(always_false_v<T>, "bad type - from_str!");
     }
+
+    template<const unsigned num, const char separator>
+    void separate(std::string& input)
+    {
+        for(auto it = input.begin(); (num + 1) <= std::distance(it, input.end()); ++it)
+        {
+            std::advance(it, num);
+            it = input.insert(it, separator);
+        }
+    }
 }

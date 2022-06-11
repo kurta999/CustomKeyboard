@@ -277,6 +277,32 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 	}
 
 	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&CAN Sender Settings");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		wxBoxSizer* com_vert_2 = new wxBoxSizer(wxVERTICAL);
+		m_IsCanSerial = new wxCheckBox(this, wxID_ANY, wxT("Enable COM?"), wxDefaultPosition, wxDefaultSize, 0);
+		com_vert_2->Add(m_IsCanSerial, 0, wxEXPAND | wxALL, 5);
+
+		com_vert_2->Add(new wxStaticText(this, wxID_ANY, wxT("COM port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+
+		m_CanSerial = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_serials);
+		com_vert_2->Add(m_CanSerial);
+		static_box_sizer->Add(com_vert_2);
+
+		wxBoxSizer* com_vert_1 = new wxBoxSizer(wxVERTICAL);
+
+		m_CanDefaultTxList = new wxTextCtrl(this, wxID_ANY, "TxList.txt", wxDefaultPosition, wxDefaultSize);
+		com_vert_1->Add(m_CanDefaultTxList);
+		m_CanDefaultRxList = new wxTextCtrl(this, wxID_ANY, "RxList.txt", wxDefaultPosition, wxDefaultSize);
+		com_vert_1->Add(m_CanDefaultRxList);
+		static_box_sizer->Add(com_vert_1, 0, wxEXPAND | wxALL, 5);
+
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
 		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Serial listener");
 		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
 		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
@@ -430,6 +456,15 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SerialPort::Get()->SetForwardToTcp(m_IsTcpForwarder->IsChecked());
 			SerialPort::Get()->SetRemoteTcpIp(m_TcpForwarderIp->GetValue().ToStdString());
 			SerialPort::Get()->SetRemoteTcpPort(m_TcpForwarderPort->GetValue());
+			
+			CanEntryHandler* can_handler = wxGetApp().can_entry;
+			wxString com_str_can = m_CanSerial->GetStringSelection();
+			CanSerialPort::Get()->SetEnabled(m_IsCanSerial->IsChecked());
+			if(m_CanSerial->GetSelection() > 0)
+				CanSerialPort::Get()->SetComPort(atoi(&com_str_can.c_str().AsChar()[2]));
+			can_handler->default_tx_list = m_CanDefaultTxList->GetValue().ToStdString();
+			can_handler->default_rx_list = m_CanDefaultTxList->GetValue().ToStdString();
+
 			SerialForwarder::Get()->is_enabled = m_SerialForwarderIsEnabled->GetValue();
 			SerialForwarder::Get()->bind_ip = m_SerialForwarderBindIp->GetValue().ToStdString();
 			SerialForwarder::Get()->tcp_port = m_SerialForwarderPort->GetValue();
@@ -483,7 +518,8 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 void ComTcpPanel::UpdatePanel()
 {
 	int sel = 0;
-	wxArrayString array_serials;
+	int sel_can = 0;
+	wxArrayString array_serials; /* TODO: remove can serials from keyboard serial port and vice versa */
 #ifdef _WIN32
 	CEnumerateSerial::CPortAndNamesArray ports;
 	CEnumerateSerial::UsingSetupAPI1(ports);
@@ -493,6 +529,8 @@ void ComTcpPanel::UpdatePanel()
 		array_serials.Add(wxString::Format("COM%d (%s)", i.first, i.second));
 		if(SerialPort::Get()->GetComPort() == i.first)
 			sel = array_serials.GetCount() - 1;
+		if(CanSerialPort::Get()->GetComPort() == i.first)
+			sel_can = array_serials.GetCount() - 1;
 	}
 #else
 	array_serials.Add("empty");  /* TODO: serial iteration isn't implemented in linux and inserting empty array will cause assertation fail */
@@ -505,6 +543,14 @@ void ComTcpPanel::UpdatePanel()
 	m_serial->Clear();
 	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_serial->SetSelection(sel);
+
+	CanEntryHandler* can_handler = wxGetApp().can_entry;
+	m_CanSerial->Clear();
+	m_CanSerial->Insert(array_serials, WXSIZEOF(array_serials));
+	m_CanSerial->SetSelection(sel_can);
+	m_IsCanSerial->SetValue(CanSerialPort::Get()->IsEnabled());
+	m_CanDefaultTxList->SetValue(can_handler->default_tx_list.generic_string());
+	m_CanDefaultRxList->SetValue(can_handler->default_rx_list.generic_string());
 	m_IsTcpForwarder->SetValue(SerialPort::Get()->IsForwardToTcp());
 	m_TcpForwarderIp->SetValue(SerialPort::Get()->GetRemoteTcpIp());
 	m_TcpForwarderPort->SetValue(SerialPort::Get()->GetRemoteTcpPort());

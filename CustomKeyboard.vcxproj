@@ -322,6 +322,8 @@
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\AntiLock.hpp" />
+    <ClInclude Include="src\CanEntryHandler.hpp" />
+    <ClInclude Include="src\CanSerialPort.hpp" />
     <ClInclude Include="src\CryptoPrice.hpp" />
     <ClInclude Include="src\commitid.h" />
     <ClInclude Include="src\CustomKeyboard.hpp" />
@@ -441,6 +443,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\AntiLock.cpp" />
+    <ClCompile Include="src\CanEntryHandler.cpp" />
+    <ClCompile Include="src\CanSerialPort.cpp" />
     <ClCompile Include="src\CryptoPrice.cpp" />
     <ClCompile Include="src\CustomKeyboard.cpp" />
     <ClCompile Include="src\CustomMacro.cpp" />
