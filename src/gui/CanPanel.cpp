@@ -17,12 +17,12 @@ CanGrid::CanGrid(wxWindow* parent)
     m_grid->EnableDragGridSize(false);
     m_grid->SetMargins(0, 0);
 
-    m_grid->SetColLabelValue(0, "ID");
-    m_grid->SetColLabelValue(1, "DLC");
-    m_grid->SetColLabelValue(2, "Data");
-    m_grid->SetColLabelValue(3, "Period");
-    m_grid->SetColLabelValue(4, "Count");
-    m_grid->SetColLabelValue(5, "Comment");
+    m_grid->SetColLabelValue(Col_Id, "ID");
+    m_grid->SetColLabelValue(Col_DataSize, "Size");
+    m_grid->SetColLabelValue(Col_Data, "Received Data");
+    m_grid->SetColLabelValue(Col_Period, "Period");
+    m_grid->SetColLabelValue(Col_Count, "Count");
+    m_grid->SetColLabelValue(Col_Comment, "Comment");
 
     // Columns
     m_grid->EnableDragColMove(true);
@@ -42,8 +42,8 @@ CanGrid::CanGrid(wxWindow* parent)
     m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     m_grid->HideRowLabels();
 
-    m_grid->SetColSize(1, 10);
-    m_grid->SetColSize(5, 100);
+    m_grid->SetColSize(Col_Data, 200);
+    m_grid->SetColSize(Col_Comment, 200);
 }
 
 void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString comment)
@@ -53,7 +53,7 @@ void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, 
         m_grid->AppendRows(1);
 
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Id), id);
-    m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Dlc), dlc);
+    m_grid->SetCellValue(wxGridCellCoords(cnt, Col_DataSize), dlc);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Data), data);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Period), period);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Count), count);
@@ -69,7 +69,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
         m_grid->AppendRows(1);
 
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Id), wxString::Format("%X", e->id));
-    m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Dlc), wxString::Format("%lld", e->data.size()));
+    m_grid->SetCellValue(wxGridCellCoords(cnt, Col_DataSize), wxString::Format("%lld", e->data.size()));
 
     std::string hex;
     boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
@@ -95,12 +95,12 @@ CanGridRx::CanGridRx(wxWindow* parent)
     m_grid->EnableDragGridSize(false);
     m_grid->SetMargins(0, 0);
 
-    m_grid->SetColLabelValue(0, "ID");
-    m_grid->SetColLabelValue(1, "DLC");
-    m_grid->SetColLabelValue(2, "Data");
-    m_grid->SetColLabelValue(3, "Period");
-    m_grid->SetColLabelValue(4, "Count");
-    m_grid->SetColLabelValue(5, "Comment");
+    m_grid->SetColLabelValue(Col_Id, "ID");
+    m_grid->SetColLabelValue(Col_DataSize, "Size");
+    m_grid->SetColLabelValue(Col_Data, "Data");
+    m_grid->SetColLabelValue(Col_Period, "Period");
+    m_grid->SetColLabelValue(Col_Count, "Count");
+    m_grid->SetColLabelValue(Col_Comment, "Comment");
 
     // Columns
     m_grid->EnableDragColMove(true);
@@ -120,8 +120,8 @@ CanGridRx::CanGridRx(wxWindow* parent)
     m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     m_grid->HideRowLabels();
 
-    m_grid->SetColSize(1, 10);
-    m_grid->SetColSize(5, 100);
+    m_grid->SetColSize(Col_Data, 200);
+    m_grid->SetColSize(Col_Comment, 200);
 }
 
 CanPanel::CanPanel(wxWindow* parent)
@@ -155,7 +155,7 @@ CanPanel::CanPanel(wxWindow* parent)
         bSizer1->Add(static_box_sizer, 0, wxALL, 5);
 
         wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_SingleShot = new wxButton(this, wxID_ANY, "Single Shot", wxDefaultPosition, wxDefaultSize);
+        m_SingleShot = new wxButton(this, wxID_ANY, "One Shot", wxDefaultPosition, wxDefaultSize);
         m_SingleShot->SetToolTip("Single shot mode for selected CAN frame");
         m_SingleShot->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
@@ -240,11 +240,12 @@ void CanPanel::On10MsTimer()
             if(can_grid_rx->rx_grid_to_entry[i.first] == entry.second.get())
             {
                 can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Id), wxString::Format("%X", entry.first));
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Dlc), wxString::Format("%lld", entry.second->data.size()));
+                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_DataSize), wxString::Format("%lld", entry.second->data.size()));
                 
                 std::string hex;
                 boost::algorithm::hex(entry.second->data.begin(), entry.second->data.end(), std::back_inserter(hex));
-                utils::separate<2, ' '>(hex);
+                if(hex.length() > 2)
+                    utils::separate<2, ' '>(hex);
                 can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Data), hex);
 
                 can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Period), wxString::Format("%d", entry.second->period));
@@ -265,7 +266,7 @@ void CanPanel::On10MsTimer()
             can_grid_rx->rx_grid_to_entry[num_row] = entry.second.get();
 
             can_grid_rx->m_grid->SetReadOnly(num_row, Col_Id);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Dlc);
+            can_grid_rx->m_grid->SetReadOnly(num_row, Col_DataSize);
             can_grid_rx->m_grid->SetReadOnly(num_row, Col_Data);
             can_grid_rx->m_grid->SetReadOnly(num_row, Col_Period);
             can_grid_rx->m_grid->SetReadOnly(num_row, Col_Count);
@@ -304,7 +305,7 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
                 can_grid_tx->grid_to_entry[row]->id = std::stoi(new_value.ToStdString(), nullptr, 16);
                 break;
             }
-            case Col_Dlc:
+            case Col_DataSize:
             {
                 uint32_t new_size = std::stoi(new_value.ToStdString());
                 if(new_size > 8) return;
@@ -383,7 +384,7 @@ void CanPanel::SaveRxList()
 
 /*
 wxString Strid = m_grid->GetCellValue(wxGridCellCoords(i, Col_Id));
-wxString Strdata_len = m_grid->GetCellValue(wxGridCellCoords(i, Col_Dlc));
+wxString Strdata_len = m_grid->GetCellValue(wxGridCellCoords(i, Col_DataSize));
 wxString Strdata = m_grid->GetCellValue(wxGridCellCoords(i, Col_Data));
 wxString Strperiod = m_grid->GetCellValue(wxGridCellCoords(i, Col_Period));
 wxString Strcount = m_grid->GetCellValue(wxGridCellCoords(i, Col_Count));
