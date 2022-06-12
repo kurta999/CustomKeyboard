@@ -11,7 +11,7 @@
 enum
 {
     Col_Id,
-    Col_Dlc,
+    Col_DataSize,
     Col_Data,
     Col_Period,
     Col_Count,
