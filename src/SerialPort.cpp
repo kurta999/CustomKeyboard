@@ -57,7 +57,11 @@ void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_va
     {
         try
         {
+#ifdef _WIN32
             CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600); /* baud rate has no meaning here */
+#else
+            CallbackAsyncSerial serial("/dev/ttyUSB" + std::to_string(com_port), 115200);
+#endif
             serial.setCallback(std::bind(&SerialPort::OnUartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
 
             while(!to_exit)
