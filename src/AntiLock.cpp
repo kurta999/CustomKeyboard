@@ -109,6 +109,7 @@ bool AntiLock::IsAnExclusion(std::string&& p)
 {
     for(auto& i : exclusions)
     {
+        if(i.empty()) continue;
         if(std::search(p.begin(), p.end(), i.begin(), i.end()) != p.end())
         {
             return true;
