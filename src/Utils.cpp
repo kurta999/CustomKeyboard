@@ -59,8 +59,9 @@ namespace utils
 
 	size_t MBStringToWString(const std::string& src, std::wstring& dest)
 	{
-		wchar_t* wstr = new wchar_t[src.length()];
+		wchar_t* wstr = new wchar_t[src.length() + 1];
 		size_t ret = std::mbstowcs(wstr, src.c_str(), src.length());
+		wstr[src.length()] = 0;
 		dest = wstr;
 		delete[] wstr;
 		return ret;
@@ -68,8 +69,9 @@ namespace utils
 
 	size_t WStringToMBString(const std::wstring& src, std::string& dest)
 	{
-		char* str = new char[src.length()];
+		char* str = new char[src.length() + 1];
 		size_t ret = std::wcstombs(str, src.c_str(), src.length());
+		str[src.length()] = 0;
 		dest = str;
 		delete[] str;
 		return ret;
@@ -113,4 +115,13 @@ namespace utils
 		}
 		return key_name;
 	}
+	/*
+	template<typename _Rep, typename _Period>
+	void sleep_for(const std::chrono::duration<_Rep, _Period>& duration, const std::mutex& mutex, const std::condition_variable& cv, const std::stop_token& stop_token)
+	{
+		std::unique_lock lock(m_mutex);
+		std::stop_callback stop_wait{ stop_token, [&cv]() { cv.notify_one(); } };
+		cv.wait_for(lock, 10ms, [&stop_token]() { return stop_token.stop_requested(); });
+	}
+	*/
 }

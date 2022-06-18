@@ -15,7 +15,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
         
         std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(fmt::format("{:%H:%M:%S}", *current_tm)));
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame)
+        if(wxGetApp().is_init_finished && frame && frame->main_panel)
         {
             frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.1f"), m->temp));
             frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.1f"), m->hum));
