@@ -275,9 +275,17 @@ void Settings::LoadFile()
         AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
         AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
         AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
-        std::vector<std::string> ignore_list;
-        boost::split(ignore_list, pt.get_child("AntiLock").find("Exclusions")->second.data(), boost::is_any_of("|"));
-        AntiLock::Get()->exclusions = std::move(ignore_list);
+        if(!pt.get_child("AntiLock").find("Exclusions")->second.data().empty())
+        {
+            std::vector<std::string> ignore_list;
+            std::string input_ignore = pt.get_child("AntiLock").find("Exclusions")->second.data();
+            boost::split(ignore_list, input_ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
+            AntiLock::Get()->exclusions = std::move(ignore_list);
+            for(auto& i : AntiLock::Get()->exclusions)
+            {
+                LOGMSG(notification, "AntiLock exclusion: {}", i);
+            }
+        }
 
         TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
         const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
@@ -301,12 +309,12 @@ void Settings::LoadFile()
             std::filesystem::path from = pt.get_child(key).find("From")->second.data();
 
             std::vector<std::filesystem::path> to;
-            boost::split(to, pt.get_child(key).find("To")->second.data(), boost::is_any_of("|"));
+            boost::split(to, pt.get_child(key).find("To")->second.data(), [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
 
             std::vector<std::wstring> ignore_list;
             std::wstring ignore;
             utils::MBStringToWString(pt.get_child(key).find("Ignore")->second.data(), ignore);
-            boost::split(ignore_list, ignore, boost::is_any_of("|"));
+            boost::split(ignore_list, ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
             int max_backups = utils::stoi<decltype(max_backups)>(pt.get_child(key).find("MaxBackups")->second.data());
             bool calculate_hash = utils::stob(pt.get_child(key).find("CalculateHash")->second.data());
             size_t buffer_size = utils::stob(pt.get_child(key).find("BufferSize")->second.data());
