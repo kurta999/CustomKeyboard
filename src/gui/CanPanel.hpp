@@ -29,6 +29,7 @@ public:
 
     void AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString comment);
     void AddRow(std::unique_ptr<CanTxEntry>& e);
+    void UpdateTxCounter(uint32_t frame_id, size_t count);
     wxGrid* m_grid;
     
     std::map<uint16_t, CanTxEntry*> grid_to_entry;  /* Helper map for storing an additional ID to CanTxEntry */
@@ -41,6 +42,8 @@ class CanGridRx
 public:
     CanGridRx(wxWindow* parent);
 
+    void AddRow(std::unique_ptr<CanRxData>& e);
+    void UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxData>& e, std::string& comment);
     wxGrid* m_grid;
     std::map<uint16_t, CanRxData*> rx_grid_to_entry;  /* Helper map for storing an additional ID to CanRxData */
 
@@ -58,15 +61,14 @@ public:
     void SaveTxList();
     void LoadRxList();
     void SaveRxList();
-
+    
+    CanGrid* can_grid_tx = nullptr;
+    CanGridRx* can_grid_rx = nullptr;
 private:
 	void OnCellValueChanged(wxGridEvent& ev);
 
 	wxTreeListCtrl* tree_receive;
 	wxDataViewCtrl* tree_t;
-
-    CanGrid* can_grid_tx = nullptr;
-    CanGridRx* can_grid_rx = nullptr;
 
 	wxButton* m_SingleShot;
 	wxButton* m_SendAll;

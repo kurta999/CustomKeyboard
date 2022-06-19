@@ -59,6 +59,9 @@ void TrayIcon::OnLeftDoubleClick(wxTaskBarIconEvent& event)
 		{
 			mainFrame->Show(!is_shown);
 		}
+
+		if(is_shown)
+			mainFrame->Raise();
 	}
 }
 
@@ -95,6 +98,7 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	Settings::Get()->LoadFile();
 	mainFrame->main_panel->UpdateKeybindings();
 	mainFrame->config_panel->UpdateSubpanels();
+	mainFrame->can_panel->Refresh();
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))

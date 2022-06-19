@@ -41,7 +41,9 @@ CanGrid::CanGrid(wxWindow* parent)
     // Cell Defaults
     m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     m_grid->HideRowLabels();
-
+    /*
+    m_grid->SetColSize(Col_Id, 60);
+    m_grid->SetColSize(Col_DataSize, 30);*/
     m_grid->SetColSize(Col_Data, 200);
     m_grid->SetColSize(Col_Comment, 200);
 }
@@ -59,6 +61,9 @@ void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, 
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Count), count);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Comment), comment);
 
+    m_grid->SetCellEditor(cnt, Col_Id, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, Col_DataSize, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, Col_Period, new wxGridCellNumberEditor);
     cnt++;
 }
 
@@ -73,15 +78,33 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
 
     std::string hex;
     boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
-    utils::separate<2, ' '>(hex);
+    if(hex.length() > 2)
+        utils::separate<2, ' '>(hex);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Data), hex);
 
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Period), wxString::Format("%d", e->period));
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Count), "0");
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Comment), e->comment);
 
+    m_grid->SetCellEditor(cnt, Col_DataSize, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, Col_Period, new wxGridCellNumberEditor);
+
+    m_grid->SetReadOnly(cnt, Col_Count, true);
+
     grid_to_entry[cnt] = e.get();
     cnt++;
+}
+
+void CanGrid::UpdateTxCounter(uint32_t frame_id, size_t count)
+{
+    for(auto& i : grid_to_entry)
+    {
+        if(i.second->id == frame_id)
+        {
+            m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Count), wxString::Format("%lld", count));
+            break;
+        }
+    }
 }
 
 CanGridRx::CanGridRx(wxWindow* parent)
@@ -97,7 +120,7 @@ CanGridRx::CanGridRx(wxWindow* parent)
 
     m_grid->SetColLabelValue(Col_Id, "ID");
     m_grid->SetColLabelValue(Col_DataSize, "Size");
-    m_grid->SetColLabelValue(Col_Data, "Data");
+    m_grid->SetColLabelValue(Col_Data, "Received Data");
     m_grid->SetColLabelValue(Col_Period, "Period");
     m_grid->SetColLabelValue(Col_Count, "Count");
     m_grid->SetColLabelValue(Col_Comment, "Comment");
@@ -122,6 +145,53 @@ CanGridRx::CanGridRx(wxWindow* parent)
 
     m_grid->SetColSize(Col_Data, 200);
     m_grid->SetColSize(Col_Comment, 200);
+}
+
+void CanGridRx::AddRow(std::unique_ptr<CanRxData>& e)
+{
+    m_grid->AppendRows(1);
+    int num_row = m_grid->GetNumberRows() - 1;
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), "0");
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), "1");
+    //can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Comment), entry.second->comment); // TODO: add RX list
+    rx_grid_to_entry[num_row] = e.get();
+
+    m_grid->SetReadOnly(num_row, Col_Id);
+    m_grid->SetReadOnly(num_row, Col_DataSize);
+    m_grid->SetReadOnly(num_row, Col_Data);
+    m_grid->SetReadOnly(num_row, Col_Period);
+    m_grid->SetReadOnly(num_row, Col_Count);
+    m_grid->SetReadOnly(num_row, Col_Id);
+    m_grid->SetReadOnly(num_row, Col_Id);
+}
+
+void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxData>& e, std::string& comment)
+{
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Id), wxString::Format("%X", frame_id));
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_DataSize), wxString::Format("%lld",e->data.size()));
+
+    std::string hex;
+    try
+    {
+        if(e->data.begin() != e->data.end())
+        {
+            boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
+            if(hex.length() > 2)
+                utils::separate<2, ' '>(hex);
+            m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Data), hex);
+        }
+        else
+        {
+            hex = "00 00 00 00 00 00 00 00";
+        }
+    }
+    catch(...)
+    {
+        LOGMSG(critical, "Exception happend");
+    }
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), wxString::Format("%d", e->period));
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), wxString::Format("%lld", e->count));
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Comment), comment);
 }
 
 CanPanel::CanPanel(wxWindow* parent)
@@ -232,6 +302,7 @@ CanPanel::CanPanel(wxWindow* parent)
 void CanPanel::On10MsTimer()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::scoped_lock lock{ can_handler->m };
     for(auto& entry : can_handler->m_rxData)
     {
         bool found_in_grid = false;
@@ -239,17 +310,11 @@ void CanPanel::On10MsTimer()
         {
             if(can_grid_rx->rx_grid_to_entry[i.first] == entry.second.get())
             {
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Id), wxString::Format("%X", entry.first));
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_DataSize), wxString::Format("%lld", entry.second->data.size()));
-                
-                std::string hex;
-                boost::algorithm::hex(entry.second->data.begin(), entry.second->data.end(), std::back_inserter(hex));
-                if(hex.length() > 2)
-                    utils::separate<2, ' '>(hex);
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Data), hex);
-
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Period), wxString::Format("%d", entry.second->period));
-                can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i.first, Col_Count), wxString::Format("%lld", entry.second->count));
+                std::string comment;
+                auto it = can_handler->rx_entry_comment.find(entry.first);
+                if(it != can_handler->rx_entry_comment.end())
+                    comment = it->second;
+                can_grid_rx->UpdateRow(i.first, entry.first, entry.second, comment);
 
                 found_in_grid = true;
                 break;
@@ -258,20 +323,7 @@ void CanPanel::On10MsTimer()
 
         if(!found_in_grid)
         {
-            can_grid_rx->m_grid->AppendRows(1);
-            int num_row = can_grid_rx->m_grid->GetNumberRows() - 1;
-            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), "0");
-            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), wxString::Format("%lld", entry.second->count));
-            //can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Comment), entry.second->comment); // TODO: add RX list
-            can_grid_rx->rx_grid_to_entry[num_row] = entry.second.get();
-
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Id);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_DataSize);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Data);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Period);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Count);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Id);
-            can_grid_rx->m_grid->SetReadOnly(num_row, Col_Id);
+            can_grid_rx->AddRow(entry.second);
         }
     }
 }
@@ -279,6 +331,7 @@ void CanPanel::On10MsTimer()
 void CanPanel::Refresh()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::scoped_lock lock{ can_handler->m };
     can_grid_tx->m_grid->DeleteRows(0, can_grid_tx->m_grid->GetNumberRows());
     can_grid_tx->cnt = 0;
     can_grid_tx->grid_to_entry.clear();
@@ -291,13 +344,26 @@ void CanPanel::Refresh()
 void CanPanel::OnCellValueChanged(wxGridEvent& ev)
 {
     int row = ev.GetRow(), col = ev.GetCol();
-    wxString new_value = can_grid_tx->m_grid->GetCellValue(row, col);
     if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_rx->m_grid))
     {
-        
+        wxString new_value = can_grid_tx->m_grid->GetCellValue(row, col);
+        switch(col)
+        {
+            case Col_Comment:
+            {
+                wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, Col_Id);
+                uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
+
+                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::scoped_lock lock{ can_handler->m };
+                can_handler->rx_entry_comment[frame_id] = std::move(new_value.ToStdString());
+                break;
+            }
+        }
     }
     else if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_tx->m_grid))
     {
+        wxString new_value = can_grid_tx->m_grid->GetCellValue(row, col);
         switch(col)
         {
             case Col_Id:
@@ -372,35 +438,18 @@ void CanPanel::LoadRxList()
         return;
 
     file_path_rx = openFileDialog.GetPath();
+    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::filesystem::path p = file_path_rx.ToStdString();
+    can_handler->LoadRxList(p);
 }
-
+ 
 void CanPanel::SaveRxList()
 {
     wxFileDialog saveFileDialog(this, _("Save RX XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if(saveFileDialog.ShowModal() == wxID_CANCEL)
         return;
     file_path_rx = saveFileDialog.GetPath();
+    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::filesystem::path p = file_path_rx.ToStdString();
+    can_handler->SaveRxList(p);
 }
-
-/*
-wxString Strid = m_grid->GetCellValue(wxGridCellCoords(i, Col_Id));
-wxString Strdata_len = m_grid->GetCellValue(wxGridCellCoords(i, Col_DataSize));
-wxString Strdata = m_grid->GetCellValue(wxGridCellCoords(i, Col_Data));
-wxString Strperiod = m_grid->GetCellValue(wxGridCellCoords(i, Col_Period));
-wxString Strcount = m_grid->GetCellValue(wxGridCellCoords(i, Col_Count));
-wxString Strcomment = m_grid->GetCellValue(wxGridCellCoords(i, Col_Comment));
-
-char bytes[128] = { 0 };
-std::string hex_str = Strdata.ToStdString();
-boost::algorithm::erase_all(hex_str, " ");
-std::string hash = boost::algorithm::unhex(hex_str);
-std::copy(hash.begin(), hash.end(), bytes);
-
-uint32_t frame_id = std::stoi(Strid.ToStdString(), nullptr, 16);
-uint8_t data_len = std::stoi(Strdata_len.ToStdString());
-CanSerialPort::Get()->AddToTxQueue(frame_id, data_len, (uint8_t*)&bytes);
-
-if(Strperiod == "off")
-Strperiod = "0";
-uint32_t period = std::stoi(Strperiod.ToStdString());
-*/

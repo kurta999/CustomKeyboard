@@ -5,8 +5,8 @@
 #endif
 
 #include <wx/wx.h>
+#include "CanEntryHandler.hpp"
 
-class CanEntryHandler;
 class MyApp : public wxApp
 {
 public:
@@ -17,5 +17,7 @@ public:
     // !\brief Helper variable for logger to avoid crash when inserting log messages befor logger frame is created
     bool is_init_finished = false;
 
+    XmlCanEntryLoader xml;
+    XmlCanRxEntryLoader rx_xml;
     CanEntryHandler* can_entry;
 };

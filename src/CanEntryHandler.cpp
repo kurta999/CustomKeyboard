@@ -6,7 +6,6 @@ CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_
     m_CanEntryLoader(loader), m_CanRxEntryLoader(rx_loader)
 {
 
-
 }
 
 XmlCanEntryLoader::~XmlCanEntryLoader()
@@ -65,7 +64,8 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
         out << fmt::format("\t\t<ID>{:X}</ID>\n", i->id);
         std::string hex;
         boost::algorithm::hex(i->data.begin(), i->data.end(), std::back_inserter(hex));
-        utils::separate<2, ' '>(hex);
+        if(hex.length() > 2)
+            utils::separate<2, ' '>(hex);
         out << fmt::format("\t\t<Data>{}</Data>\n", hex);
         out << fmt::format("\t\t<Period>{}</Period>\n", i->period);
         out << fmt::format("\t\t<Comment>{}</Comment>\n", i->comment);
@@ -86,7 +86,7 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
             std::string frame_id = v.second.get_child("ID").get_value<std::string>();
             uint32_t id = std::stoi(frame_id, nullptr, 16);
             
-            std::string comment = v.second.get_child("Data").get_value<std::string>();
+            std::string comment = v.second.get_child("Comment").get_value<std::string>();
             e[id] = std::move(comment);
         }
     }
@@ -120,34 +120,73 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
 void CanEntryHandler::Init()
 {    
     LoadTxList(default_tx_list);
-    t = std::make_unique<std::thread>([=] {
+    LoadRxList(default_rx_list);
+    t = std::make_unique<std::thread>([this] {
         while(!to_exit)
         {
-            std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
-            for(auto& i : entries)
             {
-                if((i->period != 0 && i->send) || i->single_shot)
+                std::scoped_lock lock{ m };
+                std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
+                for(auto& i : entries)
                 {
-                    if(i->single_shot)  /* Do not check time in case of singleshot */
+                    if((i->period != 0 && i->send) || i->single_shot)
                     {
-                        CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), (uint8_t*)i->data.data());
-                        i->single_shot = false;
-                    }
-                    else
-                    {
-                        uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - i->last_execution).count();
-                        if(elapsed > i->period)
+                        if(i->single_shot)  /* Do not check time in case of singleshot */
                         {
                             CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), (uint8_t*)i->data.data());
-                            i->last_execution = std::chrono::steady_clock::now();
+                            i->single_shot = false;
+                        }
+                        else
+                        {
+                            uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - i->last_execution).count();
+                            if(elapsed > i->period)
+                            {
+                                CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), (uint8_t*)i->data.data());
+                                i->last_execution = std::chrono::steady_clock::now();
+                            }
                         }
                     }
                 }
             }
 
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(1ms);
         }
         });
+}
+
+void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* data)
+{
+    std::scoped_lock lock{ m };
+    for(auto& i : entries)
+    {
+        if(i->id == frame_id)
+        {
+            i->count++;
+            MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+            frame->can_panel->can_grid_tx->UpdateTxCounter(frame_id, i->count);
+            break;
+        }
+    }
+}
+
+void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8_t* data)
+{
+    std::scoped_lock lock{ m };
+    std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
+    auto it = m_rxData.find(frame_id);
+    if(it == m_rxData.end())
+    {
+        m_rxData[frame_id] = std::make_unique<CanRxData>(data, data_len);
+    }
+    else
+    {
+        m_rxData[frame_id]->data.resize(data_len);
+        m_rxData[frame_id]->data.assign(data, data + data_len);
+        uint32_t elapsed = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(time_now - m_rxData[frame_id]->last_execution).count());
+        m_rxData[frame_id]->period = elapsed;
+        m_rxData[frame_id]->count++;
+    }
+    m_rxData[frame_id]->last_execution = std::chrono::steady_clock::now();
 }
 
 CanEntryHandler::~CanEntryHandler()
@@ -159,6 +198,7 @@ CanEntryHandler::~CanEntryHandler()
 
 void CanEntryHandler::LoadTxList(std::filesystem::path& path)
 {
+    std::scoped_lock lock{ m };
     if(path.empty())
         path = default_tx_list;
     
@@ -169,6 +209,7 @@ void CanEntryHandler::LoadTxList(std::filesystem::path& path)
 
 void CanEntryHandler::SaveTxList(std::filesystem::path& path)
 {
+    std::scoped_lock lock{ m };
     if(path.empty())
         path = default_tx_list;
     m_CanEntryLoader.Save(path, entries);
@@ -176,6 +217,7 @@ void CanEntryHandler::SaveTxList(std::filesystem::path& path)
 
 void CanEntryHandler::LoadRxList(std::filesystem::path& path)
 {
+    std::scoped_lock lock{ m };
     if(path.empty())
         path = default_rx_list;
 
@@ -186,6 +228,7 @@ void CanEntryHandler::LoadRxList(std::filesystem::path& path)
 
 void CanEntryHandler::SaveRxList(std::filesystem::path& path)
 {
+    std::scoped_lock lock{ m };
     if(path.empty())
         path = default_rx_list;
     m_CanRxEntryLoader.Save(path, rx_entry_comment);

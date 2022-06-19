@@ -10,7 +10,12 @@ public:
     CanData(uint32_t frame_id_, uint8_t data_len, uint8_t* data_)
         : frame_id(frame_id_), data_len(data_len)
     {
-        memcpy(data, data_, sizeof(data));
+        memset(data, 0, sizeof(data));
+        if(data_len > sizeof(data))
+            data_len = sizeof(data);
+
+        if(data_)
+            memcpy(data, data_, data_len);
     }
     uint32_t frame_id;
     uint8_t data_len;
@@ -28,9 +33,8 @@ public:
     ~CanSerialPort();
 
     void Init();
-    void DestroyWorkingThread();
     void OnUartDataReceived(const char* data, unsigned int len);
-    void UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m);
+    void UartReceiveThread(std::stop_token stop_token, std::condition_variable_any& cv, std::mutex& m);
 
     void SetEnabled(bool enable);
     bool IsEnabled();
@@ -57,17 +61,17 @@ private:
     uint16_t remote_tcp_port;
 
     // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
-
-    // !\brief Exit working thread?
-    std::atomic<bool> to_exit = false;
+    std::unique_ptr<std::jthread> m_worker = nullptr;
 
     // !\brief Conditional variable for main thread exiting
-    std::condition_variable m_cv;
+    std::condition_variable_any m_cv;
 
     // !\brief Mutex
     std::mutex m_mutex;
 
+    // !\brief CAN Tx Queue
     std::deque<std::shared_ptr<CanData>> m_TxQueue;
+
+    // !\brief CAN Rx Queue
     std::deque<std::shared_ptr<CanData>> m_RxQueue;
 };
