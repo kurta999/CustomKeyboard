@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/CSingleton.hpp"
+#include <filesystem>
 
 class CanTxEntry
 {
@@ -20,9 +21,9 @@ class CanRxData
 public:
     CanRxData(uint8_t* data_, uint8_t data_len)
     {
-        data.insert(data.end(), data_, data_ + data_len);
-        count++;
-        last_execution = std::chrono::steady_clock::now();
+        if(data_ && data_len)
+            data.insert(data.end(), data_, data_ + data_len);
+        count = 1;
     }
     std::vector<uint8_t> data{};
     uint32_t period{};
@@ -68,7 +69,9 @@ public:
     ~CanEntryHandler();
 
     void Init();
-
+    void OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* data);
+    void OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8_t* data);
+    
     void LoadTxList(std::filesystem::path& path);
     void SaveTxList(std::filesystem::path& path);
     void LoadRxList(std::filesystem::path& path);

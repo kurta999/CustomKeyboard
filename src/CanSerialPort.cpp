@@ -7,6 +7,8 @@ constexpr uint32_t MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS = 0xAABBCCDD;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_ERR = 0xAABBCCDF;
 
+constexpr uint32_t RX_QUEUE_MAX_SIZE = 1000;
+
 #pragma pack(push, 1)
 typedef struct
 {
@@ -18,18 +20,9 @@ typedef struct
 } UartCanData;
 #pragma pack(pop)
 
-enum UsbCanState : uint8_t
-{
-    CAN_DATA_SEND,
-    CAN_DATA_RECEIVE,
-    CAN_DATA_FINISH,
-};
-
-UsbCanState usb_state = CAN_DATA_FINISH;
-
 CanSerialPort::~CanSerialPort()
 {
-    DestroyWorkingThread();
+    
 }
 
 void CanSerialPort::Init()
@@ -37,25 +30,12 @@ void CanSerialPort::Init()
     if(is_enabled)
     {
         if(!m_worker)
-            m_worker = std::make_unique<std::thread>(&CanSerialPort::UartReceiveThread, this, std::ref(to_exit), std::ref(m_cv), std::ref(m_mutex));
+            m_worker = std::make_unique<std::jthread>(std::bind(&CanSerialPort::UartReceiveThread, this, std::placeholders::_1, std::ref(m_cv), std::ref(m_mutex)));
     }
     else
     {
-        DestroyWorkingThread();
-    }
-}
-
-void CanSerialPort::DestroyWorkingThread()
-{
-    if(m_worker)
-    {
-        {
-            std::lock_guard guard(m_mutex);
-            to_exit = true;
-            m_cv.notify_all();
-        }
-        if(m_worker->joinable())
-            m_worker->join();
+        if(m_worker)
+            m_worker->request_stop();
     }
 }
 
@@ -68,34 +48,29 @@ void CanSerialPort::OnUartDataReceived(const char* data, unsigned int len)
     calc_result.process_bytes((void*)data, len - 2);
     if(d->magic_number == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
     {
-        /*
-        uint8_t input_buffer[8];
-        memcpy(input_buffer, (uint8_t*)(&data[4]), sizeof(input_buffer));
-        */
         AddToRxQueue(d->frame_id, d->data_len, d->data);
     }
     else if(d->magic_number == MAGIC_NUMBER_RECV_DATA_ERR)
     {
         if(!m_TxQueue.empty())
             m_TxQueue.pop_front();
-        usb_state = CAN_DATA_FINISH;
     }
 }
 
-void CanSerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_variable& cv, std::mutex& m)
+void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition_variable_any& cv, std::mutex& m)
 {
-    while(!to_exit)
+    while(!stop_token.stop_requested())
     {
         try
         {
 #ifdef _WIN32
-            CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 115200);
+            CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600);
 #else
-            CallbackAsyncSerial serial("/dev/ttyUSB" + std::to_string(com_port), 115200);
+            CallbackAsyncSerial serial("/dev/ttyUSB" + std::to_string(com_port), 921600);
 #endif
             serial.setCallback(std::bind(&CanSerialPort::OnUartDataReceived, this, std::placeholders::_1, std::placeholders::_2));
 
-            while(!to_exit)
+            while(!stop_token.stop_requested())
             {
                 if(serial.errorStatus() || serial.isOpen() == false)
                 {
@@ -119,13 +94,15 @@ void CanSerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition
                     d.crc = crc;
 
                     serial.write((const char*)&d, sizeof(UartCanData));
+
+                    CanEntryHandler* can_handler = wxGetApp().can_entry;
+                    can_handler->OnFrameSent(d.frame_id, d.data_len, d.data);
                     m_TxQueue.pop_front();
                 }
 
-                {
-                    std::unique_lock lock(m_mutex);
-                    m_cv.wait_for(lock, 10ms);
-                }
+                std::unique_lock lock(m_mutex);
+                std::stop_callback stop_wait{ stop_token, [&cv]() { cv.notify_one(); } };
+                cv.wait_for(lock, 10ms, [&stop_token]() { return stop_token.stop_requested(); });
             }
             serial.close();
         }
@@ -134,7 +111,8 @@ void CanSerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition
             LOGMSG(error, "Exception can serial {}", e.what());
             {
                 std::unique_lock lock(m_mutex);
-                m_cv.wait_for(lock, 1000ms);
+                std::stop_callback stop_wait{ stop_token, [&cv]() { cv.notify_one(); } };
+                cv.wait_for(lock, 1000ms, [&stop_token]() { return stop_token.stop_requested(); });
             }
         }
     }
@@ -171,20 +149,9 @@ void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
 {
     // Update gui
     m_RxQueue.push_back(std::make_unique<CanData>(frame_id, data_len, data));
-
-    std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
     CanEntryHandler* can_handler = wxGetApp().can_entry;
-    auto it = can_handler->m_rxData.find(frame_id);
-    if(it == can_handler->m_rxData.end())
-    {
-        can_handler->m_rxData[frame_id] = std::make_unique<CanRxData>(data, data_len);
-    }
-    else
-    {
-        can_handler->m_rxData[frame_id]->data.assign(data, data + data_len);
-    }
-    uint32_t elapsed = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(time_now - can_handler->m_rxData[frame_id]->last_execution).count());
-    can_handler->m_rxData[frame_id]->period = elapsed;
-    can_handler->m_rxData[frame_id]->count++;
-    can_handler->m_rxData[frame_id]->last_execution = std::chrono::steady_clock::now();
+    can_handler->OnFrameReceived(frame_id, data_len, data);
+
+    if(m_RxQueue.size() > RX_QUEUE_MAX_SIZE)  /* TODO: once logging is added, move this to settings.ini */
+        m_RxQueue.pop_back();
 }

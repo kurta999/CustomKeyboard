@@ -7,8 +7,6 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
 
-    XmlCanEntryLoader xml;
-    XmlCanRxEntryLoader rx_xml;
     can_entry = new CanEntryHandler(xml, rx_xml);
 
     Settings::Get()->Init();
