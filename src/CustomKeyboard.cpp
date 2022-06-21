@@ -19,7 +19,6 @@ bool MyApp::OnInit()
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
     SerialForwarder::Get()->Init();
-    CryptoPrice::Get()->Init();
 
     can_entry->Init();
 

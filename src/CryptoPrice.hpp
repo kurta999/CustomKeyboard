@@ -11,9 +11,6 @@ class CryptoPrice : public CSingleton < CryptoPrice >
 public:
     CryptoPrice();
     ~CryptoPrice() = default;
-
-    // !\brief Initialize CoinPrice
-    void Init(void);    
     
     // !\brief Get coin price from web API
     void ExecuteApiRead(void);
@@ -21,6 +18,7 @@ public:
     // !\brief Update prices
     void UpdatePrices(void);
 
+    std::chrono::steady_clock::time_point last_update;
     std::future<void> m_api_future;
     std::atomic<float> eth_buy;
     std::atomic<float> eth_sell;
