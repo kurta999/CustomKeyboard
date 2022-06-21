@@ -199,6 +199,7 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 #endif
 	HandleNotifications();
 	HandleBackupProgressDialog();
+	CryptoPrice::Get()->UpdatePrices();
 }
 
 void MyFrame::HandleBackupProgressDialog()
