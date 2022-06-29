@@ -99,6 +99,7 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		parser_panel->SetSize(a);
 		log_panel->SetSize(a);
 		file_panel->SetSize(a);
+		can_panel->SetSize(a);
 	}
 	event.Skip(true);
 }

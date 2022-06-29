@@ -2,6 +2,7 @@
 
 wxBEGIN_EVENT_TABLE(CanPanel, wxPanel)
 EVT_GRID_CELL_CHANGED(CanPanel::OnCellValueChanged)
+EVT_SIZE(CanPanel::OnSize)
 wxEND_EVENT_TABLE()
 
 using namespace std::chrono_literals;
@@ -168,24 +169,17 @@ void CanGridRx::AddRow(std::unique_ptr<CanRxData>& e)
 void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxData>& e, std::string& comment)
 {
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Id), wxString::Format("%X", frame_id));
-    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_DataSize), wxString::Format("%lld",e->data.size()));
+    m_grid->SetCellValue(wxGridCellCoords(num_row, Col_DataSize), wxString::Format("%lld", e->data.size()));
 
     std::string hex;
     try
     {
-        if(e->data.begin() != e->data.end())
-        {
-            boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
-            if(hex.length() > 2)
-                utils::separate<2, ' '>(hex);
-            m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Data), hex);
-        }
-        else
-        {
-            hex = "00 00 00 00 00 00 00 00";
-        }
+        boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
+        if(hex.length() > 2)
+            utils::separate<2, ' '>(hex);
+        m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Data), hex);
     }
-    catch(...)
+    catch(...)  /* TODO: remove it after testing */
     {
         LOGMSG(critical, "Exception happend");
     }
@@ -219,7 +213,7 @@ CanPanel::CanPanel(wxWindow* parent)
         static_box_sizer->GetStaticBox()->SetForegroundColour(*wxBLUE);
 
         can_grid_tx = new CanGrid(this);
-        Refresh();
+        RefreshTx();
 
         static_box_sizer->Add(can_grid_tx->m_grid, 0, wxALL, 5);
         bSizer1->Add(static_box_sizer, 0, wxALL, 5);
@@ -279,8 +273,14 @@ CanPanel::CanPanel(wxWindow* parent)
                 CanEntryHandler* can_handler = wxGetApp().can_entry;
                 wxGrid* m_grid = can_grid_tx->m_grid;
 
-                can_handler->entries.push_back(std::make_unique<CanTxEntry>());
-                Refresh();
+                std::unique_ptr<CanTxEntry> entry = std::make_unique<CanTxEntry>();
+                entry->data = { 0, 0, 0, 0, 0, 0, 0, 0 };
+                entry->id = 0x123;
+                {
+                    std::scoped_lock lock{ can_handler->m };
+                    can_handler->entries.push_back(std::move(entry));
+                }
+                RefreshTx();
             });
         h_sizer->Add(m_Add);
 
@@ -328,7 +328,7 @@ void CanPanel::On10MsTimer()
     }
 }
 
-void CanPanel::Refresh()
+void CanPanel::RefreshTx()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
@@ -368,15 +368,37 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
         {
             case Col_Id:
             {
-                can_grid_tx->grid_to_entry[row]->id = std::stoi(new_value.ToStdString(), nullptr, 16);
+                uint32_t frame_id = std::stoi(new_value.ToStdString(), nullptr, 16);
+                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                for(auto& i : can_handler->entries)
+                {
+                    if(i->id == frame_id)
+                    {
+                        wxMessageDialog(this, "Given CAN Fame ID already added to the list!", "Error", wxOK).ShowModal();
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_Id), wxString::Format("%X", can_grid_tx->grid_to_entry[row]->id));
+                        return;
+                    }
+                }
+                can_grid_tx->grid_to_entry[row]->id = frame_id;
                 break;
             }
             case Col_DataSize:
             {
                 uint32_t new_size = std::stoi(new_value.ToStdString());
-                if(new_size > 8) return;
+                if(new_size > 8)
+                {
+                    wxMessageDialog(this, "Max payload size is 8!", "Error", wxOK).ShowModal();
+                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_DataSize), wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
+                    return;
+                }
 
                 can_grid_tx->grid_to_entry[row]->data.resize(new_size);
+
+                std::string hex;
+                boost::algorithm::hex(can_grid_tx->grid_to_entry[row]->data.begin(), can_grid_tx->grid_to_entry[row]->data.end(), std::back_inserter(hex));
+                if(hex.length() > 2)
+                    utils::separate<2, ' '>(hex);
+                can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_Data), wxString(hex));
                 break;
             }
             case Col_Data:
@@ -384,17 +406,40 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
                 char bytes[128] = { 0 };
                 std::string hex_str = new_value.ToStdString();
                 boost::algorithm::erase_all(hex_str, " ");
-                std::string hash = boost::algorithm::unhex(hex_str);
+                if(hex_str.length() > 16)
+                    hex_str.erase(16, hex_str.length() - 16);
+                std::string hash;
+                try
+                {
+                    hash = boost::algorithm::unhex(hex_str);
+                }
+                catch(...)
+                {
+                    LOGMSG(error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
+                }
                 std::copy(hash.begin(), hash.end(), bytes);
+                can_grid_tx->grid_to_entry[row]->data.assign(bytes, bytes + (hex_str.length() / 2));
 
-                can_grid_tx->grid_to_entry[row]->data.insert(can_grid_tx->grid_to_entry[row]->data.end(), bytes, bytes + 8);
+                std::string hex;
+                boost::algorithm::hex(can_grid_tx->grid_to_entry[row]->data.begin(), can_grid_tx->grid_to_entry[row]->data.end(), std::back_inserter(hex));
+                if(hex.length() > 2)
+                    utils::separate<2, ' '>(hex);
+                can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, col), wxString(hex));
+                can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_DataSize), wxString::Format("%lld", hex_str.length() / 2));
                 break;
             }
             case Col_Period:
             {
                 if(new_value == "off")
                     new_value = "0";
-                can_grid_tx->grid_to_entry[row]->period = std::stoi(new_value.ToStdString(), nullptr, 16);
+                int period = std::stoi(new_value.ToStdString());
+                if(period < 0)
+                {
+                    wxMessageDialog(this, "Period can't be negative!", "Error", wxOK).ShowModal();
+                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_Period), wxString::Format("%d", can_grid_tx->grid_to_entry[row]->period));
+                    return;
+                }
+                can_grid_tx->grid_to_entry[row]->period = period;
                 break;
             }
             case Col_Comment:
@@ -418,6 +463,7 @@ void CanPanel::LoadTxList()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_tx.ToStdString();
     can_handler->LoadTxList(p);
+    RefreshTx();
 }
 
 void CanPanel::SaveTxList()
@@ -452,4 +498,9 @@ void CanPanel::SaveRxList()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
     can_handler->SaveRxList(p);
+}
+
+void CanPanel::OnSize(wxSizeEvent& evt)
+{
+    evt.Skip();
 }

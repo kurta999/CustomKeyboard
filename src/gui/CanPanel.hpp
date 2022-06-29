@@ -56,12 +56,14 @@ public:
 	CanPanel(wxWindow* parent);
 
 	void On10MsTimer();
-    void Refresh();
+    void RefreshTx();
+    void RefreshRx();
     void LoadTxList();
     void SaveTxList();
     void LoadRxList();
     void SaveRxList();
-    
+    void OnSize(wxSizeEvent& evt);
+
     CanGrid* can_grid_tx = nullptr;
     CanGridRx* can_grid_rx = nullptr;
 private:
