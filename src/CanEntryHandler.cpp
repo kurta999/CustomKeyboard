@@ -33,10 +33,20 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             char bytes[128] = { 0 };
             std::string hex_str = v.second.get_child("Data").get_value<std::string>();
             boost::algorithm::erase_all(hex_str, " ");
-            std::string hash = boost::algorithm::unhex(hex_str);
+            if(hex_str.length() > 16)
+                hex_str.erase(16, hex_str.length() - 16);
+            std::string hash;
+            try
+            {
+                hash = boost::algorithm::unhex(hex_str);
+            }
+            catch(...)
+            {
+                LOGMSG(error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
+            }
             std::copy(hash.begin(), hash.end(), bytes);
 
-            local_entry->data.insert(local_entry->data.end(), bytes, bytes + 8);
+            local_entry->data.assign(bytes, bytes + (hex_str.length() / 2));
             local_entry->period = v.second.get_child("Period").get_value<int>();
             local_entry->comment = v.second.get_child("Comment").get_value<std::string>();
             e.push_back(std::move(local_entry));
@@ -118,7 +128,7 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
 }
 
 void CanEntryHandler::Init()
-{    
+{
     LoadTxList(default_tx_list);
     LoadRxList(default_rx_list);
     t = std::make_unique<std::thread>([this] {
@@ -204,7 +214,6 @@ void CanEntryHandler::LoadTxList(std::filesystem::path& path)
     
     entries.clear();
     m_CanEntryLoader.Load(path, entries);
-    /* TODO: Update GUI */
 }
 
 void CanEntryHandler::SaveTxList(std::filesystem::path& path)
