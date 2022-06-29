@@ -42,6 +42,7 @@
 #include "CanSerialPort.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
+#include "StringToCEscaper.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

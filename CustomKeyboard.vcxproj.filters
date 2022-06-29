@@ -231,6 +231,9 @@
     <ClInclude Include="src\CanEntryHandler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\StringToCEscaper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -363,6 +366,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CanEntryHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringToCEscaper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

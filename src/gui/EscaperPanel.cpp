@@ -72,15 +72,10 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 		{
 			std::string str = m_StyledTextCtrl->GetText().ToStdString();
-			boost::algorithm::replace_all(str, "\\", "\\\\");
-			boost::algorithm::replace_all(str, "\"", "\x5C\""); /* \x5C = \ ASCII code, I was not able to type write this here */
 
-			if(m_IsEscapePercent->IsChecked())
-				boost::algorithm::replace_all(str, "%", "%%");
-			if(m_IsBackslashAtEnd->IsChecked())
-			{
-				boost::algorithm::replace_all(str, "\x0D\x0A", "\x5C\x0D\x0A");
-			}
+			StringEscaper escaper;
+			escaper.EscapeString(str, m_IsEscapePercent->IsChecked(), m_IsBackslashAtEnd->IsChecked());
+
 			if(wxTheClipboard->Open())
 			{
 				wxTheClipboard->SetData(new wxTextDataObject(str));
