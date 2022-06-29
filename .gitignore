@@ -73,3 +73,6 @@ Graphs/PM25.html
 
 # Linux
 build/
+
+# Unit tests
+UnitTests/x64

@@ -358,6 +358,7 @@
     <ClInclude Include="src\Server.hpp" />
     <ClInclude Include="src\Session.hpp" />
     <ClInclude Include="src\Settings.hpp" />
+    <ClInclude Include="src\StringToCEscaper.hpp" />
     <ClInclude Include="src\StructParser.hpp" />
     <ClInclude Include="src\SymlinkCreator.hpp" />
     <ClInclude Include="src\targetver.hpp" />
@@ -481,6 +482,7 @@
     <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Session.cpp" />
     <ClCompile Include="src\Settings.cpp" />
+    <ClCompile Include="src\StringToCEscaper.cpp" />
     <ClCompile Include="src\StructParser.cpp" />
     <ClCompile Include="src\SymlinkCreator.cpp" />
     <ClCompile Include="src\TerminalHotkey.cpp" />
