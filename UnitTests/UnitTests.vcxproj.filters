@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\StringToCEscaper.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="EscaperTests.cpp" />
+    <ClCompile Include="..\src\StructParser.cpp" />
+    <ClCompile Include="..\src\Utils.cpp" />
+    <ClCompile Include="..\libs\fmt\format.cc">
+      <Filter>libs\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="StructParserTests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="libs">
+      <UniqueIdentifier>{61978002-bc29-4421-b20f-67cdca45de6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\fmt">
+      <UniqueIdentifier>{a2ffa04e-b0a1-4c07-93c3-de5d07932f5d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
