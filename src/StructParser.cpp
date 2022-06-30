@@ -2,7 +2,7 @@
 
 size_t ClassElement::pointer_size = 4;
 
-#define TESTING_PARSER 1
+//#define TESTING_PARSER 1
 
 size_t FindEndOfHeader(std::string& input)
 {
@@ -208,6 +208,12 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 
 		else if(str_in[input_len] == '}')
 		{
+			if(pointer_stack.empty())
+			{
+				DBG("Invalid structure format.");
+				return;
+			}
+
 			std::shared_ptr<ClassContainer> c = pointer_stack.top();
 			if(str_in[input_len + 1] != ';')  /* structure has a name */
 			{
@@ -246,7 +252,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 						else if(std::holds_alternative<std::shared_ptr<ClassContainer>>(*m))
 						{
 							classes.clear();
-							wxMessageBox("Please remove the object from union.", "Object support in union is not implemented yet!");
+							//wxMessageBox("Please remove the object from union.", "Object support in union is not implemented yet!");
 							break;
 						}
 					}

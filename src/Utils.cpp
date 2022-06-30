@@ -10,15 +10,15 @@ namespace utils
     void MadeTextFromKeys(std::string& chr)
     {
         if(chr == "SPACE")
-            chr = ' ';
-        else if(chr == 'z')
-            chr = 'y';
-        else if(chr == 'Z')
-            chr = 'Y';
-        else if(chr == 'y')
-            chr = 'z';
-        else if(chr == 'Y')
-            chr = 'Z';
+            chr = " ";
+        else if(chr == "z")
+            chr = "y";
+        else if(chr == "Z")
+            chr = "Y";
+        else if(chr == "y")
+            chr = "z";
+        else if(chr == "Y")
+            chr = "Z";
     }
 
 	std::string GetDataUnit(size_t input)
@@ -76,7 +76,7 @@ namespace utils
 		delete[] str;
 		return ret;
 	}
-
+#ifndef UNIT_TESTS
 	static std::map<std::string, wxKeyCode> vkey_lookup  /* Only Fx keys for now */
 	{
 		{"F1", WXK_F1},
@@ -115,6 +115,7 @@ namespace utils
 		}
 		return key_name;
 	}
+#endif
 	/*
 	template<typename _Rep, typename _Period>
 	void sleep_for(const std::chrono::duration<_Rep, _Period>& duration, const std::mutex& mutex, const std::condition_variable& cv, const std::stop_token& stop_token)
