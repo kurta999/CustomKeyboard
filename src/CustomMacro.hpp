@@ -97,7 +97,7 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string &&ret = is_ini_format ? fmt::format(" KEY_TYPE[{}]", seq) : seq;
+        std::string &&ret = is_ini_format ? std::format(" KEY_TYPE[{}]", seq) : seq;
         return ret;
     }
     const char* GetName() override { return name; }
@@ -276,7 +276,7 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_MOVE[{},{}]", m_pos.x, m_pos.y) : fmt::format("{},{}", m_pos.x, m_pos.y);
+        std::string&& ret = is_ini_format ? std::format(" MOUSE_MOVE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
         return ret;
     }
     const char* GetName() override { return name; }
@@ -341,7 +341,7 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : fmt::format("{},{}", m_pos.x, m_pos.y);
+        std::string&& ret = is_ini_format ? std::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
         return ret;
     }
     const char* GetName() override { return name; }
@@ -396,7 +396,7 @@ public:
             assert(0);
         }
 #endif
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_PRESS[{}]", text) : text;
+        std::string&& ret = is_ini_format ? std::format(" MOUSE_PRESS[{}]", text) : text;
         return ret;
     }
     const char* GetName() override { return name; }
@@ -462,7 +462,7 @@ public:
             assert(0);
         }
 #endif
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_RELEASE[{}]", text) : text;
+        std::string&& ret = is_ini_format ? std::format(" MOUSE_RELEASE[{}]", text) : text;
         return ret;
     }
     const char* GetName() override { return name; }
@@ -528,7 +528,7 @@ public:
                 assert(0);
         }
 #endif
-        std::string&& ret = is_ini_format ? fmt::format(" MOUSE_CLICK[{}]", text) : text;
+        std::string&& ret = is_ini_format ? std::format(" MOUSE_CLICK[{}]", text) : text;
         return ret;
     }
     const char* GetName() override { return name; }
@@ -586,7 +586,7 @@ public:
 
     std::string GenerateText(bool is_ini_format) override
     {
-        std::string&& ret = is_ini_format ? fmt::format(" CMD[{}]", cmd) : cmd;
+        std::string&& ret = is_ini_format ? std::format(" CMD[{}]", cmd) : cmd;
         return ret;
     }
     const char* GetName() override { return name; }

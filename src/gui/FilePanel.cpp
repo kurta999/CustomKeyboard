@@ -223,7 +223,7 @@ void FilePanel::GenerateTree()
 	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-	std::string result_str = fmt::format("{} file in {} directory has been parsed in {:.6f} ms ({})", file_cnt, dir_cnt, (double)dif / 1000000.0, utils::GetDataUnit(file_sizes));
+	std::string result_str = std::format("{} file in {} directory has been parsed in {:.6f} ms ({})", file_cnt, dir_cnt, (double)dif / 1000000.0, utils::GetDataUnit(file_sizes));
 	m_FileInfo->SetLabelText(result_str);
 	LOG(LogLevel::Notification, result_str.c_str());
 }

@@ -99,7 +99,7 @@ void AntiLock::StartScreenSaver()
     boost::variate_generator<boost::mt19937&, boost::uniform_int<uint8_t> > die(gen, dist);
     uint8_t ret = die();
 
-    ShellExecuteA(NULL, NULL, fmt::format("C:\\Windows\\System32\\{}.scr", screensavers[ret]).c_str(), NULL, "/s", SW_SHOWNORMAL);
+    ShellExecuteA(NULL, NULL, std::format("C:\\Windows\\System32\\{}.scr", screensavers[ret]).c_str(), NULL, "/s", SW_SHOWNORMAL);
 #else
 
 #endif

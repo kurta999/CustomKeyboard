@@ -33,8 +33,7 @@ void MyFrame::OnHelp(wxCommandEvent& event)
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
 	wxString platform = (sizeof(void*) == 4 ? " x86" : " x64");
-	std::string fmt_version = std::to_string(FMT_VERSION);
-	std::string wxwidgets_version = fmt::format("{}.{}.{}", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER);
+	std::string wxwidgets_version = std::format("{}.{}.{}", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER);
 	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
@@ -61,7 +60,6 @@ SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
 "wxWidgets: " + wxwidgets_version + "\n" +
 "boost: " + BOOST_LIB_VERSION + "\n" +
 "lodepng: " + LODEPNG_VERSION_STRING + "\n" +
-"fmt: " + fmt_version + "\n\n" +
 "Build info:\n" +
 "Compiler: " + BOOST_COMPILER + "\n"
 "Built on: " + __TIMESTAMP__, "OK");

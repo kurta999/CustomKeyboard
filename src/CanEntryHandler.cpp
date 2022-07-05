@@ -71,14 +71,14 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
     for(auto& i : e)
     {
         out << "\t<Frame>\n";
-        out << fmt::format("\t\t<ID>{:X}</ID>\n", i->id);
+        out << std::format("\t\t<ID>{:X}</ID>\n", i->id);
         std::string hex;
         boost::algorithm::hex(i->data.begin(), i->data.end(), std::back_inserter(hex));
         if(hex.length() > 2)
             utils::separate<2, ' '>(hex);
-        out << fmt::format("\t\t<Data>{}</Data>\n", hex);
-        out << fmt::format("\t\t<Period>{}</Period>\n", i->period);
-        out << fmt::format("\t\t<Comment>{}</Comment>\n", i->comment);
+        out << std::format("\t\t<Data>{}</Data>\n", hex);
+        out << std::format("\t\t<Period>{}</Period>\n", i->period);
+        out << std::format("\t\t<Comment>{}</Comment>\n", i->comment);
         out << "\t</Frame>\n";
     }
     out << "</CanUsbXml>\n";
@@ -119,8 +119,8 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
     for(auto& i : e)
     {
         out << "\t<Frame>\n";
-        out << fmt::format("\t\t<ID>{:X}</ID>\n", i.first);
-        out << fmt::format("\t\t<Comment>{}</Comment>\n", i.second);
+        out << std::format("\t\t<ID>{:X}</ID>\n", i.first);
+        out << std::format("\t\t<Comment>{}</Comment>\n", i.second);
         out << "\t</Frame>\n";
     }
     out << "</CanUsbRxXml>\n";

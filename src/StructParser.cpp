@@ -56,7 +56,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 			if(it != definitions.end())
 				array_size = it->second;
 			else
-				throw std::runtime_error(fmt::format("Invalid definition {}", sub));
+				throw std::runtime_error(std::format("Invalid definition {}", sub));
 		}
 		DBG("Array size: %zu\n", array_size);
 	}
@@ -110,9 +110,9 @@ void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassCon
 		real_size = e->union_size;
 
 	if(e->desc.empty())
-		output += fmt::format("{} {} [{} - {}]\r\n", e->type_name, e->name, offset, (offset + real_size) - 1);
+		output += std::format("{} {} [{} - {}]\r\n", e->type_name, e->name, offset, (offset + real_size) - 1);
 	else
-		output += fmt::format("{} {} [{} - {}] /**< {} >\r\n", e->type_name, e->name, offset, (offset + real_size) - 1, e->desc);
+		output += std::format("{} {} [{} - {}] /**< {} >\r\n", e->type_name, e->name, offset, (offset + real_size) - 1, e->desc);
 
 	if(e->union_size == 0)
 		offset += real_size;
@@ -364,13 +364,13 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 				p = nullptr;
 		}
 
-		output += fmt::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
+		output += std::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
 	}
 
 	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-	std::string elapsed_str = fmt::format("{} structure has been parsed in {:.6f} ms", classes.size(), (double)dif / 1000000.0);
+	std::string elapsed_str = std::format("{} structure has been parsed in {:.6f} ms", classes.size(), (double)dif / 1000000.0);
 	output += "\r\n\r\n// " + elapsed_str;
 	LOG(LogLevel::Notification, elapsed_str.c_str());
 	DoCleanup();
@@ -396,7 +396,7 @@ void StructParser::TrimStructure(std::string& str_in, std::string& str_out)
 	int space_count = 0;
 	boost::algorithm::replace_all(str_in, "\t", "");  /* this has one drawback: TABs can't be used between variable type and name */
 	boost::algorithm::replace_all(str_in, "\r\n", "");
-	for(int i = 0; i != str_in.length();)
+	for(size_t i = 0; i != str_in.length();)
 	{
 		if(str_in[i] == ' ')
 		{

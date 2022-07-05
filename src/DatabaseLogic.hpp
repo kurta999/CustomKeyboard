@@ -55,8 +55,8 @@ public:
        return m_graphs_hours_2;
     }
 
-    // !\brief Timepoint for storing last database update time
-    time_t last_db_update;
+    // !\brief Time for storing last database update time
+    std::chrono::steady_clock::time_point last_db_update;
 private:
     // !\brief Function for processing the results of query for latest measurements
     // !\param result [in] Reference to result's uniue pointer

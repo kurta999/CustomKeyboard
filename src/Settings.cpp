@@ -375,13 +375,13 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
                 out << "[Keys_Global]\n";
             else
             {
-                out << fmt::format("\n[Keys_Macro{}]\n", cnt);
-                out << fmt::format("AppName = {}\n", i->app_name);
+                out << std::format("\n[Keys_Macro{}]\n", cnt);
+                out << std::format("AppName = {}\n", i->app_name);
             }
             cnt++;
             for(auto& x : i->key_vec)
             {
-                key = fmt::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
+                key = std::format("{} = BIND_NAME[{}]", x.first, i->bind_name[x.first]);
 
                 for(auto& k : x.second)
                 {
@@ -437,7 +437,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         window_size = frame->GetSize();
     }
-    out << "LastWindowSize = " << fmt::format("{}, {}", window_size.x, window_size.y) << "\n";
+    out << "LastWindowSize = " << std::format("{}, {}", window_size.x, window_size.y) << "\n";
     out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
     out << "\n";
     out << "[Screenshot]\n";
@@ -478,7 +478,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         std::wstring key;
         for(auto& i : DirectoryBackup::Get()->backups)
         {
-            out << fmt::format("\n[Backup_{}]\n", cnt++);
+            out << std::format("\n[Backup_{}]\n", cnt++);
             out << "From = " << i->from.generic_wstring() << '\n';
             key.clear();
             for(auto& x : i->to)

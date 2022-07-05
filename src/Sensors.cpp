@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-constexpr time_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
+constexpr int64_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
  
 void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 {
@@ -10,12 +10,9 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     int ret = sscanf(recv_data, "%d|%f,%f,%d,%d,%d,%d,%d,%d,%*d,%*d,%*d", &send_interval, &temp, &hum, &co2, &voc, &pm25, &pm10, &lux, &cct);
     if(ret == 9)
     {
-        time_t current_time;
-        tm* current_tm;
-        time(&current_time);
-        current_tm = localtime(&current_time);
-        
-        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(fmt::format("{:%H:%M:%S}", *current_tm)));
+        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+
+        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(std::format("{:%H:%M:%OS}", now)));
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(wxGetApp().is_init_finished && frame && frame->main_panel)
         {
@@ -27,13 +24,15 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
             frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), m->pm10));
             frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), m->lux));
             frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), m->cct));
-            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), fmt::format("{:%Y.%m.%d %H:%M:%S} - {}", *current_tm, ++num_recv_meas)));
+            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), std::format("{:%Y.%m.%d %H:%M:%OS} - {}", now, ++num_recv_meas)));
             frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, VOC: %d, PM2.5: %d, PM10: %d, Lux: %d, CCT: %d"), m->temp, m->hum, m->co2, m->voc, m->pm25, m->pm10, m->lux, m->cct));
         }
 
         DatabaseLogic::Get()->InsertMeasurement(m);
         AddMeasurement(std::move(m));
-        if(current_time - DatabaseLogic::Get()->last_db_update > GRAPHS_REGENERATION_INTERVAL)
+
+        int64_t diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
+        if(diff > GRAPHS_REGENERATION_INTERVAL)
             DatabaseLogic::Get()->GenerateGraphs();
         else
             WriteGraphs();
@@ -150,7 +149,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
 
     try
     {
-        std::string out_str = fmt::format(template_str, min_val, max_val,
+        std::string out_str = std::vformat(template_str, std::make_format_args(min_val, max_val,
             labels_time_last, "Latest " + std::string(name) + " readings", "window.chartColors.orange", "window.chartColors.orange", data_latest,
             labels_time_day[0],
             std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_day[0],
@@ -160,7 +159,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
             std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_week[0],
             std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_week[1],
             std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_week[2],
-            "Last " + std::to_string(MAX_MEAS_QUEUE) + " measurements", "Last Day", "Last Week");
+            "Last " + std::to_string(MAX_MEAS_QUEUE) + " measurements", "Last Day", "Last Week"));
         out << out_str;
         out.close();
     }

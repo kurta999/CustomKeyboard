@@ -10,13 +10,6 @@
 #include <ctime>
 #include <fstream>
 #include <filesystem>
-#ifndef _WIN32
-    #ifndef FMT_HEADER_ONLY
-        #define FMT_HEADER_ONLY
-    #endif
-#endif
-#include <fmt/format.h>
-#include "fmt/chrono.h"
 
 DECLARE_APP(MyApp);
 
@@ -47,17 +40,13 @@ public:
     // !\param line [in] Line in source file where the call comes from
     // !\param function [in] Function name in source file where the call comes from
     // !\param msg [in] Message to log
-    // !\param args [in] va_args arguments for fmt::format
+    // !\param args [in] va_args arguments for std::format
     template<typename... Args>
-    void Log(LogLevel lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
+    void Log(LogLevel lvl, const char* file, long line, const char* function, std::string_view msg, Args &&...args)
     {
-        std::string str;
-        std::string formatted_msg = (sizeof...(args) != 0) ? fmt::format(msg, std::forward<Args>(args)...) : msg;
-        time_t current_time;
-        tm* current_tm;
-        time(&current_time);
-        current_tm = localtime(&current_time);
-        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, severity_str[lvl], formatted_msg);
+        std::string formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args(args...)) : msg.data();
+        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+        std::string str = std::format("{:%Y.%m.%d %H:%M:%OS} [{}] {}", now, severity_str[lvl], formatted_msg);
 #if DEBUG
         OutputDebugStringA(str.c_str());
         OutputDebugStringA("\n");
@@ -71,9 +60,10 @@ public:
                     break;
             }
         }
+
         if(lvl > LogLevel::Normal && lvl <= LogLevel::Critical)
         {
-            fLog << fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, severity_str[lvl], filename, line, function, formatted_msg);
+            fLog << std::format("{:%Y.%m.%d %H:%M:%OS} [{}] [{}:{} - {}] {}\n", now, severity_str[lvl], filename, line, function, formatted_msg);
             fLog.flush();
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));

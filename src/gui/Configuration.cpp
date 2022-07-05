@@ -502,12 +502,8 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			if(in)
 			{
 				std::string in_str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-
-				time_t current_time;
-				tm* current_tm;
-				time(&current_time);
-				current_tm = localtime(&current_time);
-				std::ofstream out(fmt::format("settings.ini_{:%Y.%m.%d_%H-%M-%S}.ini", *current_tm), std::ofstream::binary);
+				std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+				std::ofstream out(std::format("settings.ini_{:%Y.%m.%d_%H-%M-%OS}.ini", now), std::ofstream::binary);
 				out << in_str;
 				LOG(LogLevel::Notification, "Settings.ini has been successfully backed up");
 			}
@@ -939,7 +935,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}
@@ -951,7 +947,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}		
@@ -963,7 +959,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}
@@ -975,7 +971,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}		
@@ -987,7 +983,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}		
@@ -999,7 +995,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}		
@@ -1011,7 +1007,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			}
 			catch(std::exception& e)
 			{
-				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 			break;
 		}

@@ -46,7 +46,7 @@ MouseMovement::MouseMovement(std::string&& str)
         m_pos.y = utils::stoi<decltype(m_pos.y)>(&str[separator_pos + 1]);
     }
     else
-        throw std::invalid_argument(fmt::format("Invalid mouse movement input: {}", str));
+        throw std::invalid_argument(std::format("Invalid mouse movement input: {}", str));
 }
 
 MouseInterpolate::MouseInterpolate(std::string&& str)
@@ -59,7 +59,7 @@ MouseInterpolate::MouseInterpolate(std::string&& str)
         m_pos.y = utils::stoi<decltype(m_pos.y)>(&str[separator_pos + 1]);
     }
     else
-        throw std::invalid_argument(fmt::format("Invalid mouse interpolate input: {}", str));
+        throw std::invalid_argument(std::format("Invalid mouse interpolate input: {}", str));
 }
 
 MousePress::MousePress(const std::string&& str)
@@ -78,7 +78,7 @@ MousePress::MousePress(const std::string&& str)
     if(mouse_button != 0xFFFF)
         key = mouse_button;
     else
-        throw std::invalid_argument(fmt::format("Invalid mouse button input: {}", str));
+        throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
 }
 
 MouseRelease::MouseRelease(const std::string&& str)
@@ -97,7 +97,7 @@ MouseRelease::MouseRelease(const std::string&& str)
     if(mouse_button != 0xFFFF)
         key = mouse_button;
     else
-        throw std::invalid_argument(fmt::format("Invalid mouse button input: {}", str));
+        throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
 }
 
 MouseClick::MouseClick(const std::string&& str)
@@ -116,7 +116,7 @@ MouseClick::MouseClick(const std::string&& str)
     if(mouse_button != 0xFFFF)
         key = mouse_button;
     else
-        throw std::invalid_argument(fmt::format("Invalid mouse button input: {}", str));
+        throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
 }
 
 std::string KeyCombination::GenerateText(bool is_ini_format)
@@ -128,7 +128,7 @@ std::string KeyCombination::GenerateText(bool is_ini_format)
     }
     if(text.back() == '+')
         text.pop_back();
-    std::string&& ret = is_ini_format ? fmt::format(" KEY_SEQ[{}]", text) : text;
+    std::string&& ret = is_ini_format ? std::format(" KEY_SEQ[{}]", text) : text;
     return ret;
 }
 
@@ -137,12 +137,12 @@ std::string KeyDelay::GenerateText(bool is_ini_format)
     std::string ret;
     if(std::holds_alternative<uint32_t>(delay))
     {
-        ret = is_ini_format ? fmt::format(" DELAY[{}]", std::get<uint32_t>(delay)) : boost::lexical_cast<std::string>(std::get<uint32_t>(delay));
+        ret = is_ini_format ? std::format(" DELAY[{}]", std::get<uint32_t>(delay)) : boost::lexical_cast<std::string>(std::get<uint32_t>(delay));
     }
     else
     {
         std::array<uint32_t, 2> delays = std::get<std::array<uint32_t, 2>>(delay);
-        ret = is_ini_format ? fmt::format(" DELAY[{}-{}]", delays[0], delays[1]) : boost::lexical_cast<std::string>(delays[0]) + "-" + boost::lexical_cast<std::string>(delays[1]);
+        ret = is_ini_format ? std::format(" DELAY[{}-{}]", delays[0], delays[1]) : boost::lexical_cast<std::string>(delays[0]) + "-" + boost::lexical_cast<std::string>(delays[1]);
     }
     return ret;
 }

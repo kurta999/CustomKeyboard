@@ -27,31 +27,31 @@ namespace utils
 
 		if(fInput < 1024)
 		{
-			return fmt::format("{} B", (size_t)fInput);
+			return std::format("{} B", (size_t)fInput);
 		}
 
 		fInput /= 1024;
 		if(fInput < 1024)
 		{
-			return fmt::format("{:.2f} kB", fInput);
+			return std::format("{:.2f} kB", fInput);
 		}
 
 		fInput /= 1024;
 		if(fInput < 1024)
 		{
-			return fmt::format("{:.2f} MB", fInput);
+			return std::format("{:.2f} MB", fInput);
 		}
 
 		fInput /= 1024;
 		if(fInput < 1024)
 		{
-			return fmt::format("{:.2f} GB", fInput);
+			return std::format("{:.2f} GB", fInput);
 		}
 
 		fInput /= 1024;
 		if(fInput < 1024)
 		{
-			return fmt::format("{:.2f} TB", fInput);
+			return std::format("{:.2f} TB", fInput);
 		}
 
 		return std::string("X");
