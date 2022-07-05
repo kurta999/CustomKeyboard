@@ -76,7 +76,7 @@ public:
 	wxStaticText* m_FileInfo = nullptr;
 	wxButton* m_Generate = nullptr;
 	wxButton* m_Clear = nullptr;
-	wxTreeListCtrl* tree;
+	wxTreeListCtrl* tree = nullptr;
 	MyComparator m_comparator;
 private:
 

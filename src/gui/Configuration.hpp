@@ -30,8 +30,8 @@ public:
 protected:
 	void OnApply(wxCommandEvent& event);
 private:
-	wxRadioBox* m_RecordType;
-	wxStaticText* m_labelResult;
+	wxRadioBox* m_RecordType = nullptr;
+	wxStaticText* m_labelResult = nullptr;
 	bool m_IsApplyClicked = false;
 
 	wxDECLARE_EVENT_TABLE();
@@ -50,9 +50,9 @@ public:
 protected:
 	void OnApply(wxCommandEvent& event);
 private:
-	wxTextCtrl* m_macroName;
-	wxTextCtrl* m_macroKey;
-	wxStaticText* m_labelResult;
+	wxTextCtrl* m_macroName = nullptr;
+	wxTextCtrl* m_macroKey = nullptr;
+	wxStaticText* m_labelResult = nullptr;
 	bool m_IsApplyClicked = false;
 
 	wxDECLARE_EVENT_TABLE();
@@ -72,11 +72,11 @@ protected:
 	void OnApply(wxCommandEvent& event);
 	void OnTimer(wxTimerEvent& event);
 private:
-	wxRadioBox* m_radioBox1;
-	wxTextCtrl* m_textMsg;
-	wxStaticText* m_labelResult;
+	wxRadioBox* m_radioBox1 = nullptr;
+	wxTextCtrl* m_textMsg = nullptr;
+	wxStaticText* m_labelResult = nullptr;
 	bool m_IsApplyClicked = false;
-	wxTimer* m_timer;
+	wxTimer* m_timer = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 	wxDECLARE_NO_COPY_CLASS(MacroEditBoxDialog);
@@ -88,45 +88,45 @@ public:
 	ComTcpPanel(wxWindow* parent);
 	void UpdatePanel();
 
-	wxCheckBox* m_IsTcp;
-	wxSpinCtrl* m_TcpPortSpin;
-	wxCheckBox* m_IsPerAppMacro;
-	wxCheckBox* m_IsAdvancedMacro;
-	wxCheckBox* m_IsTcpForwarder;
-	wxTextCtrl* m_TcpForwarderIp;
-	wxSpinCtrl* m_TcpForwarderPort;
-	wxCheckBox* m_IsCom;
-	wxComboBox* m_serial;
-	wxCheckBox* m_IsCanSerial;
-	wxComboBox* m_CanSerial;
-	wxTextCtrl* m_CanDefaultTxList;
-	wxTextCtrl* m_CanDefaultRxList;
-	wxCheckBox*	m_SerialForwarderIsEnabled;
-	wxTextCtrl*	m_SerialForwarderBindIp;
-	wxSpinCtrl*	m_SerialForwarderPort;
-	wxTextCtrl* m_PathSepReplacerKey;
-	wxCheckBox* m_IsMinimizeOnExit;
-	wxCheckBox* m_IsMinimizeOnStartup;
-	wxCheckBox* m_RememberWindowSize;
-	wxCheckBox* m_AlwaysOnNumlock;
-	wxSpinCtrl* m_DefaultPage;
-	wxTextCtrl* m_ScreenshotKey;
-	wxTextCtrl* m_ScreenshotDateFmt;
-	wxTextCtrl* m_ScreenshotPath;
-	wxTextCtrl* m_BackupDateFmt;
-	wxCheckBox* m_IsSymlink;
-	wxTextCtrl* m_MarkSymlink;
-	wxTextCtrl* m_CreateSymlink;
-	wxTextCtrl* m_CreateHardlink;
-	wxCheckBox* m_IsAntiLock;
-	wxCheckBox* m_IsScreensSaverAfterLock;
-	wxSpinCtrl* m_AntiLockTimeout;
-	wxCheckBox* m_IsTerminalHotkey;
-	wxTextCtrl* m_TerminalHotkey;
+	wxCheckBox* m_IsTcp = nullptr;
+	wxSpinCtrl* m_TcpPortSpin = nullptr;
+	wxCheckBox* m_IsPerAppMacro = nullptr;
+	wxCheckBox* m_IsAdvancedMacro = nullptr;
+	wxCheckBox* m_IsTcpForwarder = nullptr;
+	wxTextCtrl* m_TcpForwarderIp = nullptr;
+	wxSpinCtrl* m_TcpForwarderPort = nullptr;
+	wxCheckBox* m_IsCom = nullptr;
+	wxComboBox* m_serial = nullptr;
+	wxCheckBox* m_IsCanSerial = nullptr;
+	wxComboBox* m_CanSerial = nullptr;
+	wxTextCtrl* m_CanDefaultTxList = nullptr;
+	wxTextCtrl* m_CanDefaultRxList = nullptr;
+	wxCheckBox*	m_SerialForwarderIsEnabled = nullptr;
+	wxTextCtrl*	m_SerialForwarderBindIp = nullptr;
+	wxSpinCtrl*	m_SerialForwarderPort = nullptr;
+	wxTextCtrl* m_PathSepReplacerKey = nullptr;
+	wxCheckBox* m_IsMinimizeOnExit = nullptr;
+	wxCheckBox* m_IsMinimizeOnStartup = nullptr;
+	wxCheckBox* m_RememberWindowSize = nullptr;
+	wxCheckBox* m_AlwaysOnNumlock = nullptr;
+	wxSpinCtrl* m_DefaultPage = nullptr;
+	wxTextCtrl* m_ScreenshotKey = nullptr;
+	wxTextCtrl* m_ScreenshotDateFmt = nullptr;
+	wxTextCtrl* m_ScreenshotPath = nullptr;
+	wxTextCtrl* m_BackupDateFmt = nullptr;
+	wxCheckBox* m_IsSymlink = nullptr;
+	wxTextCtrl* m_MarkSymlink = nullptr;
+	wxTextCtrl* m_CreateSymlink = nullptr;
+	wxTextCtrl* m_CreateHardlink = nullptr;
+	wxCheckBox* m_IsAntiLock = nullptr;
+	wxCheckBox* m_IsScreensSaverAfterLock = nullptr;
+	wxSpinCtrl* m_AntiLockTimeout = nullptr;
+	wxCheckBox* m_IsTerminalHotkey = nullptr;
+	wxTextCtrl* m_TerminalHotkey = nullptr;
 
 private:
-	wxButton* m_Ok;
-	wxButton* m_Backup;
+	wxButton* m_Ok = nullptr;
+	wxButton* m_Backup = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };
@@ -161,18 +161,18 @@ private:
 
 	std::vector<std::unique_ptr<IKey>>* GetKeyClassByItem(wxTreeListItem item, uint16_t& id);
 
-	wxTreeListCtrl* tree;
-	wxTreeListCtrl* tree_details;
-	wxBitmapButton* btn_add;
-	wxBitmapButton* btn_record;
-	wxBitmapButton* btn_copy;
-	wxBitmapButton* btn_delete;
-	wxBitmapButton* btn_up;
-	wxBitmapButton* btn_down;
-	wxButton* m_Ok;
-	MacroRecordBoxDialog* record_dlg;
-	MacroEditBoxDialog* edit_dlg;
-	MacroAddBoxDialog* add_dlg;
+	wxTreeListCtrl* tree = nullptr;
+	wxTreeListCtrl* tree_details = nullptr;
+	wxBitmapButton* btn_add = nullptr;
+	wxBitmapButton* btn_record = nullptr;
+	wxBitmapButton* btn_copy = nullptr;
+	wxBitmapButton* btn_delete = nullptr;
+	wxBitmapButton* btn_up = nullptr;
+	wxBitmapButton* btn_down = nullptr;
+	wxButton* m_Ok = nullptr;
+	MacroRecordBoxDialog* record_dlg = nullptr;
+	MacroEditBoxDialog* edit_dlg = nullptr;
+	MacroAddBoxDialog* add_dlg = nullptr;
 
 	wxString root_sel_str;
 	wxString child_sel_str;
@@ -186,10 +186,10 @@ public:
 	void Changeing(wxAuiNotebookEvent& event);
 	void UpdateSubpanels();
 
-	wxAuiNotebook* m_notebook;
-	ComTcpPanel* comtcp_panel;
-	KeybrdPanel* keybrd_panel;
-	BackupPanel* backup_panel;
+	wxAuiNotebook* m_notebook = nullptr;
+	ComTcpPanel* comtcp_panel = nullptr;
+	KeybrdPanel* keybrd_panel = nullptr;
+	BackupPanel* backup_panel = nullptr;
 
 private:
 	void OnSize(wxSizeEvent& evt);

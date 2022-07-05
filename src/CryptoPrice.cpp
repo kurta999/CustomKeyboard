@@ -3,7 +3,7 @@
 #include <atlstr.h>
 #endif
 
-constexpr uint64_t CRYPTO_PRICE_UPDATE = 30 * 60 * 1000;
+constexpr uint64_t CRYPTO_PRICE_UPDATE = 5 * 60 * 1000;
 
 CryptoPrice::CryptoPrice()
 {
@@ -122,9 +122,9 @@ void CryptoPrice::ExecuteApiRead()
                 out = std::stof(&str[pos + 10]);
             }
         }
-        catch(...)
+        catch(std::exception& e)
         {
-
+            LOG(LogLevel::Error, "Exception: {}", e.what());
         }
     };
 
@@ -132,15 +132,16 @@ void CryptoPrice::ExecuteApiRead()
     ExtractAmount(arr[1], eth_sell);
     ExtractAmount(arr[2], btc_buy);
     ExtractAmount(arr[3], btc_sell);
-    
-    LOGMSG(notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy, eth_sell, btc_buy, btc_sell);
+    is_pending = true;
+
+    LOG(LogLevel::Notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy, eth_sell, btc_buy, btc_sell);
     last_update = std::chrono::steady_clock::now();
 }
 
-void CryptoPrice::UpdatePrices()
+void CryptoPrice::UpdatePrices(bool force)
 {
     uint64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_update).count();
-    if(dif > CRYPTO_PRICE_UPDATE)
+    if(dif > CRYPTO_PRICE_UPDATE || force)
     {
         if(m_api_future.valid())
             if(m_api_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)

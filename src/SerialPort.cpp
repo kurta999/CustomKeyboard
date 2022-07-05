@@ -68,7 +68,7 @@ void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_va
             {
                 if(serial.errorStatus() || serial.isOpen() == false)
                 {
-                    LOGMSG(error, "Serial port unexpectedly closed");
+                    LOG(LogLevel::Error, "Serial port unexpectedly closed");
                     break;
                 }
                 {
@@ -80,7 +80,7 @@ void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_va
         }
         catch(std::exception& e)
         {
-            LOGMSG(error, "Exception serial {}", e.what());
+            LOG(LogLevel::Error, "Exception serial {}", e.what());
             {
                 std::unique_lock lock(m_mutex);
                 m_cv.wait_for(lock, 1000ms);

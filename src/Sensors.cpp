@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+constexpr time_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
+ 
 void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 {
     float temp, hum;
@@ -31,14 +33,14 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
 
         DatabaseLogic::Get()->InsertMeasurement(m);
         AddMeasurement(std::move(m));
-        if(current_time - DatabaseLogic::Get()->last_db_update > 10 * 60)  /* 10 minutes */
+        if(current_time - DatabaseLogic::Get()->last_db_update > GRAPHS_REGENERATION_INTERVAL)
             DatabaseLogic::Get()->GenerateGraphs();
         else
             WriteGraphs();
     }
     else
     {
-        LOGMSG(warning, "Invalid data received from {}", from_ip);
+        LOG(LogLevel::Warning, "Invalid data received from {}", from_ip);
     }
 }
 
@@ -140,6 +142,12 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
         data_week[2] += std::to_string(val) + ",";
     }
     
+    if(!out)
+    {
+        LOG(LogLevel::Error, "Failed to open {} for writing graphs!", std::string("Graphs/") + filename);
+        return;
+    }
+
     try
     {
         std::string out_str = fmt::format(template_str, min_val, max_val,
@@ -158,7 +166,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     }
     catch(std::exception& e)
     {
-        LOGMSG(critical, "Exception %s", e.what());
+        LOG(LogLevel::Error, "Exception: {}", e.what());
     }
 }
 
@@ -168,7 +176,7 @@ void Sensors::Init()
     if(!std::filesystem::exists("Graphs"))
         std::filesystem::create_directory("Graphs", ec);
     if(ec)
-        LOGMSG(error, "Error with create_directory (Graphs): {}", ec.message());
+        LOG(LogLevel::Error, "Error with create_directory (Graphs): {}", ec.message());
 
     std::ifstream t("Graphs/template.html", std::ifstream::binary);
     if(t)
@@ -183,6 +191,6 @@ void Sensors::Init()
     }
     else
     {
-        LOGMSG(error, "Missing template.html from 'Graphs' folder, disabling sensor's related module.");
+        LOG(LogLevel::Error, "Missing template.html from 'Graphs' folder, disabling sensor's related module.");
     }
 }

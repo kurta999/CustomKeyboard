@@ -9,21 +9,25 @@ public:
 	MainPanel(wxFrame* parent);
 	 
 	void UpdateKeybindings();
+	void UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell);
 
 	wxButton* m_RefreshButton = nullptr;
 	wxButton* m_GenerateGraphs = nullptr;
-	wxStaticText* m_textTemp;
-	wxStaticText* m_textHum;
-	wxStaticText* m_textCO2;
-	wxStaticText* m_textVOC;
-	wxStaticText* m_textPM25;
-	wxStaticText* m_textPM10;
-	wxStaticText* m_textLux;
-	wxStaticText* m_textCCT;
-	wxStaticText* m_textTime;
+	wxStaticText* m_textTemp = nullptr;
+	wxStaticText* m_textHum = nullptr;
+	wxStaticText* m_textCO2 = nullptr;
+	wxStaticText* m_textVOC = nullptr;
+	wxStaticText* m_textPM25 = nullptr;
+	wxStaticText* m_textPM10 = nullptr;
+	wxStaticText* m_textLux = nullptr;
+	wxStaticText* m_textCCT = nullptr;
+	wxStaticText* m_textTime = nullptr;
 	wxButton* m_OpenGraphs = nullptr;
-	wxSpinCtrl* m_GraphStartHours1;
-	wxSpinCtrl* m_GraphStartHours2;
+	wxSpinCtrl* m_GraphStartHours1 = nullptr;
+	wxSpinCtrl* m_GraphStartHours2 = nullptr;
+	wxStaticText* m_EthPrice = nullptr;
+	wxStaticText* m_BtcPrice = nullptr;
+	wxButton* m_RefreshCrypto = nullptr;
 
 private:
 	std::map<std::string, wxStaticBox*> key_map;

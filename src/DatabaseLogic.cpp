@@ -13,7 +13,7 @@ void DatabaseLogic::DoGenerateGraphs()
     DBStream db_stream(db_name, m_db);
     if(!db_stream)
     {
-        LOGMSG(critical, "Failed to open the database for measurements!");
+        LOG(LogLevel::Critical, "Failed to open the database for measurements!");
         return;
     }
     for(int i = 0; i != std::size(Sensors::Get()->last_day); i++)
@@ -43,7 +43,7 @@ void DatabaseLogic::DoGenerateGraphs()
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 #ifdef _WIN32  /* TODO: fix it */
-    LOGMSG(notification, "Executing 7 query took {:.6f} ms", (double)dif / 1000000.0);
+    LOG(LogLevel::Notification, "Executing 7 query took {:.6f} ms", (double)dif / 1000000.0);
 #endif
     time(&last_db_update);
 }
@@ -64,7 +64,7 @@ void DatabaseLogic::InsertMeasurement(std::unique_ptr<Measurement> &m)
     DBStream db_stream(db_name, m_db);
     if(!db_stream)
     {
-        LOGMSG(critical, "Failed to open the database for measurements!");
+        LOG(LogLevel::Critical, "Failed to open the database for measurements!");
         return;
     }
 

@@ -79,8 +79,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
 
     std::string hex;
     boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
-    if(hex.length() > 2)
-        utils::separate<2, ' '>(hex);
+    utils::separate<2, ' '>(hex);
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Data), hex);
 
     m_grid->SetCellValue(wxGridCellCoords(cnt, Col_Period), wxString::Format("%d", e->period));
@@ -175,13 +174,12 @@ void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxD
     try
     {
         boost::algorithm::hex(e->data.begin(), e->data.end(), std::back_inserter(hex));
-        if(hex.length() > 2)
-            utils::separate<2, ' '>(hex);
+        utils::separate<2, ' '>(hex);
         m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Data), hex);
     }
     catch(...)  /* TODO: remove it after testing */
     {
-        LOGMSG(critical, "Exception happend");
+        LOG(LogLevel::Critical, "Exception happend");
     }
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), wxString::Format("%d", e->period));
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), wxString::Format("%lld", e->count));
@@ -396,8 +394,7 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
 
                 std::string hex;
                 boost::algorithm::hex(can_grid_tx->grid_to_entry[row]->data.begin(), can_grid_tx->grid_to_entry[row]->data.end(), std::back_inserter(hex));
-                if(hex.length() > 2)
-                    utils::separate<2, ' '>(hex);
+                utils::separate<2, ' '>(hex);
                 can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_Data), wxString(hex));
                 break;
             }
@@ -415,15 +412,14 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
                 }
                 catch(...)
                 {
-                    LOGMSG(error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
+                    LOG(LogLevel::Error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
                 }
                 std::copy(hash.begin(), hash.end(), bytes);
                 can_grid_tx->grid_to_entry[row]->data.assign(bytes, bytes + (hex_str.length() / 2));
 
                 std::string hex;
                 boost::algorithm::hex(can_grid_tx->grid_to_entry[row]->data.begin(), can_grid_tx->grid_to_entry[row]->data.end(), std::back_inserter(hex));
-                if(hex.length() > 2)
-                    utils::separate<2, ' '>(hex);
+                utils::separate<2, ' '>(hex);
                 can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, col), wxString(hex));
                 can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, Col_DataSize), wxString::Format("%lld", hex_str.length() / 2));
                 break;
@@ -464,6 +460,9 @@ void CanPanel::LoadTxList()
     std::filesystem::path p = file_path_tx.ToStdString();
     can_handler->LoadTxList(p);
     RefreshTx();
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::TxListLoaded) });
 }
 
 void CanPanel::SaveTxList()
@@ -475,6 +474,9 @@ void CanPanel::SaveTxList()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_tx.ToStdString();
     can_handler->SaveTxList(p);
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::TxListSaved) });
 }
 
 void CanPanel::LoadRxList()
@@ -487,6 +489,9 @@ void CanPanel::LoadRxList()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
     can_handler->LoadRxList(p);
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoaded) });
 }
  
 void CanPanel::SaveRxList()
@@ -498,6 +503,9 @@ void CanPanel::SaveRxList()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
     can_handler->SaveRxList(p);
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListSaved) });
 }
 
 void CanPanel::OnSize(wxSizeEvent& evt)

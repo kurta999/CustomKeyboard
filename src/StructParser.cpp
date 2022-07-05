@@ -2,8 +2,6 @@
 
 size_t ClassElement::pointer_size = 4;
 
-//#define TESTING_PARSER 1
-
 size_t FindEndOfHeader(std::string& input)
 {
 	size_t pos_pack = input.find("#pragma pack", 0);
@@ -41,7 +39,7 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	std::optional<std::shared_ptr<ClassContainer>> c_exist = IsClassAlreadyExists(var_type);
 	if(!IsValidVariableType(var_type) && c_exist == std::nullopt && !is_pointer)
 	{
-		//LOGMSG(error, "Invalid type: {}", var_type);
+		//LOG(LogLevel::Error, "Invalid type: {}", var_type);
 		return false;
 	}
 
@@ -187,7 +185,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 			else
 			{
-				LOGMSG(error, "Invalid structure expression after character #");
+				LOG(LogLevel::Error, "Invalid structure expression after character #");
 			}
 		}
 
@@ -374,7 +372,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 
 	std::string elapsed_str = fmt::format("{} structure has been parsed in {:.6f} ms", classes.size(), (double)dif / 1000000.0);
 	output += "\r\n\r\n// " + elapsed_str;
-	LOGMSG(notification, elapsed_str.c_str());
+	LOG(LogLevel::Notification, elapsed_str.c_str());
 	DoCleanup();
 }
 
@@ -384,26 +382,6 @@ void StructParser::Init()
 	static_assert(sizeof(uint16_t) == 2 && sizeof(int16_t) == 2, "Invalid uint16_t or int16_t size");
 	static_assert(sizeof(uint32_t) == 4 && sizeof(int32_t) == 4, "Invalid uint32_t or int32_t size");
 	static_assert(sizeof(uint64_t) == 8 && sizeof(int64_t) == 8 && sizeof(double) == 8, "Invalid uint64_t, int64_t or double size");
-
-#ifdef TESTING_PARSER
-	std::string out_str;
-	std::ifstream f("struct_in.txt", std::ios::in | std::ios::binary);
-	if(f)
-	{
-		std::string in_str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-		try
-		{
-			ParseStructure(in_str, out_str);
-		}
-		catch(std::exception& e)
-		{
-			LOGMSG(critical, "Exception %s", e.what());
-		}
-
-		std::ofstream out("struct_out.txt", std::ofstream::binary);
-		out << out_str;
-	}
-#endif
 }
 
 void StructParser::DoCleanup()

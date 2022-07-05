@@ -41,6 +41,13 @@ public:
     bool always_on_numlock = false;
 
 private:
+    // !\brief Parse and insert macro keys from ini format to it's container 
+    // !\param id [in] ID of given entry
+    // !\param key_code [in] Reference to key code
+    // !\param str [in] String to parse
+    // !\param c [in] Reference to macro profile's unique pointer
     void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c);
+
+    // !\brief Current macro section
     std::string macro_section;
 };

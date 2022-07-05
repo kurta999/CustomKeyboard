@@ -74,7 +74,7 @@ void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition
             {
                 if(serial.errorStatus() || serial.isOpen() == false)
                 {
-                    LOGMSG(error, "Serial port can unexpectedly closed");
+                    LOG(LogLevel::Error, "Serial port can unexpectedly closed");
                     break;
                 }
 
@@ -108,7 +108,7 @@ void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition
         }
         catch(std::exception& e)
         {
-            LOGMSG(error, "Exception can serial {}", e.what());
+            LOG(LogLevel::Error, "Exception CAN serial: {}", e.what());
             {
                 std::unique_lock lock(m_mutex);
                 std::stop_callback stop_wait{ stop_token, [&cv]() { cv.notify_one(); } };

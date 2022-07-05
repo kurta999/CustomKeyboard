@@ -35,4 +35,4 @@ extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char*);
         OutputDebugStringW(__debug_format_str); \
     }
 
-#define LOGMSG(...)
+#define LOG(...)

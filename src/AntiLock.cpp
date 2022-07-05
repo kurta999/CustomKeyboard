@@ -87,7 +87,7 @@ void AntiLock::SimulateUserActivity()
 #endif
     if(is_screensaver)
         StartScreenSaver();
-    LOGMSG(normal, "AntiLock executed");
+    LOG(LogLevel::Normal, "AntiLock executed");
 }
 
 void AntiLock::StartScreenSaver()

@@ -92,15 +92,15 @@ void SerialForwarder::Init()
             {
                 tcp_server server(io_context);
                 io_context.run();
-                LOGMSG(notification, "iocontext finish");
+                LOG(LogLevel::Notification, "iocontext finish");
             }
             catch(const boost::system::system_error& e)
             {
-                LOGMSG(error, "Boost exception: {}", e.what());
+                LOG(LogLevel::Error, "Boost exception: {}", e.what());
             }
             catch(...)
             {
-                LOGMSG(error, "Unknown exception");
+                LOG(LogLevel::Error, "Unknown exception");
             }
         });
     }
@@ -120,11 +120,11 @@ void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, siz
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip, ec), port);
     boost::asio::ip::tcp::socket socket(ios);
     if(ec)
-        LOGMSG(error, "Failed to create endpoint from ip address: {}", ec.message());
+        LOG(LogLevel::Error, "Failed to create endpoint from ip address: {}", ec.message());
 
     socket.set_option(boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>{ 200 }, ec);
     if(ec)
-        LOGMSG(error, "set_option error: {}", ec.message());
+        LOG(LogLevel::Error, "set_option error: {}", ec.message());
 
     bool is_connected = false;
     socket.async_connect(endpoint, [&is_connected](const boost::system::error_code& ec)
@@ -138,11 +138,11 @@ void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, siz
     {
         socket.send(boost::asio::buffer(data, len), 0, ec);
         if(ec)
-            LOGMSG(error, "Failed to forward serial over TCP: {}", ec.message());
+            LOG(LogLevel::Error, "Failed to forward serial over TCP: {}", ec.message());
         socket.close(ec);
     }
     else
     {
-        LOGMSG(error, "Failed to connect to the remote server!");
+        LOG(LogLevel::Error, "Failed to connect to the remote server!");
     }
 }

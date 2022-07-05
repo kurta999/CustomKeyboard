@@ -26,8 +26,8 @@ class MacroPanel : public wxPanel
 {
 public:
 	MacroPanel(wxFrame* parent);
-	wxStaticText* m_MousePos;
-	wxStaticText* m_ActiveWindowTitle;
+	wxStaticText* m_MousePos = nullptr;
+	wxStaticText* m_ActiveWindowTitle = nullptr;
 
 private:
 	wxDECLARE_EVENT_TABLE();
@@ -38,6 +38,7 @@ class TrayIcon;
 enum PopupMsgIds : uint8_t
 {
 	ScreenshotSaved = 0,
+	ScreenshotSaveFailed,
 	SettingsSaved,
 	BackupCompleted,
 	BackupFailed,
@@ -49,6 +50,10 @@ enum PopupMsgIds : uint8_t
 	HardlinkCreated,
 	MacroRecordingStarted,
 	MacroRecordingStopped,
+	TxListLoaded,
+	TxListSaved,
+	RxListLoaded,
+	RxListSaved,
 };
 
 class MyFrame : public wxFrame
@@ -63,15 +68,15 @@ public:
 	void SetIconTooltip(const wxString& str);
 
 	MainPanel* main_panel = nullptr;
-	ConfigurationPanel* config_panel;
-	EditorPanel* editor_panel;
-	EscaperPanel* escape_panel;
-	MacroPanel* macro_panel;
-	ParserPanel* parser_panel;
+	ConfigurationPanel* config_panel = nullptr;
+	EditorPanel* editor_panel = nullptr;
+	EscaperPanel* escape_panel = nullptr;
+	MacroPanel* macro_panel = nullptr;
+	ParserPanel* parser_panel = nullptr;
 	FilePanel* file_panel = nullptr;
 	CanPanel* can_panel = nullptr;
 	LogPanel* log_panel = nullptr;
-	wxAuiNotebook* ctrl;
+	wxAuiNotebook* ctrl = nullptr;
 	std::mutex mtx;
 	std::deque<std::vector<std::any>> pending_msgs;
 	wxProgressDialog* backup_prog = NULL;
@@ -103,7 +108,10 @@ private:
 	void HandleBackupProgressDialog();
 
 	// \brief Handles numlock to be always on
-	void HandleAlwaysOnNumlock();
+	void HandleAlwaysOnNumlock();	
+	
+	// \brief Handles crypto price update
+	void HandleCryptoPriceUpdate();
 
 private:
 	// \brief Handles notifications
@@ -116,14 +124,14 @@ private:
 	wxIcon applicationIcon;
 
 	// \brief Tray
-	TrayIcon* tray;
+	TrayIcon* tray = nullptr;
 
 	// \brief AUI manager for subwindows
 	wxAuiManager m_mgr;
 
 	// \brief Fast main frame timer
-	wxTimer* m_10msTimer;	
+	wxTimer* m_10msTimer = nullptr;
 	
 	// \brief Main frame timer
-	wxTimer* m_100msTimer;
+	wxTimer* m_100msTimer = nullptr;
 };

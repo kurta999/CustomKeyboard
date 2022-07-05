@@ -15,8 +15,8 @@ private:
 	void OnItemContextMenu(wxTreeListEvent& evt);
 	void OnItemActivated(wxTreeListEvent& evt);
 
-	wxButton* m_Ok;
-	wxTreeListCtrl* tree;
+	wxButton* m_Ok = nullptr;
+	wxTreeListCtrl* tree = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };

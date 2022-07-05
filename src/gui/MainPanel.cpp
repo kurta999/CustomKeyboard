@@ -81,6 +81,28 @@ MainPanel::MainPanel(wxFrame* parent)
 	m_GraphStartHours2->SetValue(DatabaseLogic::Get()->GetGraphHours(1));
 	bSizer1->Add(m_GraphStartHours2, 0, wxALL, 5);
 
+	m_EthPrice = new wxStaticText(this, wxID_ANY, "ETH: 0.0 - 0.0", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_EthPrice->Wrap(-1);
+	m_EthPrice->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	m_EthPrice->SetForegroundColour(wxColor(10, 104, 245));
+	m_EthPrice->SetToolTip("ETH Buy & Sell [USD]");
+	bSizer1->Add(m_EthPrice, 0, wxALL, 5);
+
+	m_BtcPrice = new wxStaticText(this, wxID_ANY, "BTC: 0.0 - 0.0", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_BtcPrice->Wrap(-1);
+	m_BtcPrice->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	m_BtcPrice->SetForegroundColour(wxColor(240, 120, 0));
+	m_BtcPrice->SetToolTip("BTC Buy & Sell [USD]");
+	bSizer1->Add(m_BtcPrice, 0, wxALL, 5);
+
+	m_RefreshCrypto = new wxButton(this, wxID_ANY, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0);
+	m_RefreshCrypto->SetToolTip("Refresh crypto prices");
+	bSizer1->Add(m_RefreshCrypto, 0, wxALL, 5);
+	m_RefreshCrypto->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			CryptoPrice::Get()->UpdatePrices(true);
+		});
+
 	split_sizer->Add(bSizer1, wxSizerFlags(0).Top());
 
 #define ADD_KEY(display_text, internal_name, key_name) \
@@ -158,3 +180,8 @@ void MainPanel::UpdateKeybindings()
 	}
 }
 
+void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell)
+{
+	m_EthPrice->SetLabelText(wxString::Format("ETH: %.1f - %.1f", eth_buy, eth_sell));
+	m_BtcPrice->SetLabelText(wxString::Format("BTC: %.1f - %.1f", btc_buy, btc_sell));
+}

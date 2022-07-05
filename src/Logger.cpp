@@ -2,11 +2,6 @@
 
 Logger::Logger()
 {
-	fLog = fopen("logfile.txt", "w");
-	assert(fLog);
-}
-
-Logger::~Logger()
-{
-	fclose(fLog);
+    fLog.open("logfile.txt", std::ofstream::trunc);
+    assert(fLog);
 }

@@ -47,7 +47,7 @@ bool Sqlite3Database::Open(const char* db_name)
 {
     int ret = sqlite3_open(db_name, &db);
     if(ret != SQLITE_OK)
-        LOGMSG(error, "Can't open database: {}", sqlite3_errmsg(db));
+        LOG(LogLevel::Error, "Can't open database: {}", sqlite3_errmsg(db));
     return ret == SQLITE_OK;
 }
 
@@ -55,7 +55,7 @@ bool Sqlite3Database::Close()
 {
     int ret = sqlite3_close(db);
     if(ret != SQLITE_OK)
-        LOGMSG(error, "Can't close database: {}", sqlite3_errmsg(db));
+        LOG(LogLevel::Error, "Can't close database: {}", sqlite3_errmsg(db));
     return ret == SQLITE_OK;
 }
 
@@ -65,7 +65,7 @@ void Sqlite3Database::ExecuteQuery(std::string&& query)
     int ret = sqlite3_exec(db, query.c_str(), NULL, 0, &zErrMsg);
     if(ret != SQLITE_OK)
     {
-        LOGMSG(error, "SQL Error: {}", zErrMsg);
+        LOG(LogLevel::Error, "SQL Error: {}", zErrMsg);
         sqlite3_free(zErrMsg);
     }
 }

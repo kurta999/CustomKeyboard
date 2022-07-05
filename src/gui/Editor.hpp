@@ -20,29 +20,29 @@ public:
 	void OnClick(wxMouseEvent& event);
 	void UpdatePropgrid(PropgripdParams_t&& params);
 	
-	wxPGProperty* m_pgType;
-	wxPGProperty* m_pgId;
-	wxPGProperty* m_pgName;
-	wxPGProperty* m_pgLabel;
-	wxPGProperty* m_pgPos;
-	wxPGProperty* m_pgSize;
-	wxPGProperty* m_pgMinSize;
-	wxPGProperty* m_pgMaxSize;
-	wxPGProperty* m_pgForegroundColor;
-	wxPGProperty* m_pgBackgroundColor;
-	wxPGProperty* m_pgFont;
-	wxPGProperty* m_pgTooltip;
-	wxPGProperty* m_pgEnabled;
-	wxPGProperty* m_pgHidden;
-	wxPGProperty* m_pgButtonStyle;
-	wxPGProperty* m_pgSliderStyle;
-	wxPGProperty* m_pgStaticTextStyle;
-	wxPGProperty* m_pgTextCtrlStyle;
-	wxPGProperty* m_pgComboBoxStyle;
-	wxPGProperty* m_pgChoiseStyle;
-	wxPGProperty* m_pgCheckboxStyle;
-	wxPGProperty* m_pgGaugeStyle;
-	wxPropertyGrid* m_propertyGrid;
+	wxPGProperty* m_pgType = nullptr;
+	wxPGProperty* m_pgId = nullptr;
+	wxPGProperty* m_pgName = nullptr;
+	wxPGProperty* m_pgLabel = nullptr;
+	wxPGProperty* m_pgPos = nullptr;
+	wxPGProperty* m_pgSize = nullptr;
+	wxPGProperty* m_pgMinSize = nullptr;
+	wxPGProperty* m_pgMaxSize = nullptr;
+	wxPGProperty* m_pgForegroundColor = nullptr;
+	wxPGProperty* m_pgBackgroundColor = nullptr;
+	wxPGProperty* m_pgFont = nullptr;
+	wxPGProperty* m_pgTooltip = nullptr;
+	wxPGProperty* m_pgEnabled = nullptr;
+	wxPGProperty* m_pgHidden = nullptr;
+	wxPGProperty* m_pgButtonStyle = nullptr;
+	wxPGProperty* m_pgSliderStyle = nullptr;
+	wxPGProperty* m_pgStaticTextStyle = nullptr;
+	wxPGProperty* m_pgTextCtrlStyle = nullptr;
+	wxPGProperty* m_pgComboBoxStyle = nullptr;
+	wxPGProperty* m_pgChoiseStyle = nullptr;
+	wxPGProperty* m_pgCheckboxStyle = nullptr;
+	wxPGProperty* m_pgGaugeStyle = nullptr;
+	wxPropertyGrid* m_propertyGrid = nullptr;
 
 private:
 	void OnKeyDown(wxKeyEvent& event);
@@ -76,9 +76,9 @@ public:
 	void Changeing(wxAuiNotebookEvent& event);
 
 	wxAuiManager m_mgr;
-	wxAuiNotebook* m_notebook;
-	GuiEditorMain* gui_editor;
-	GuiEditorCpp* gui_cpp;
+	wxAuiNotebook* m_notebook = nullptr;
+	GuiEditorMain* gui_editor = nullptr;
+	GuiEditorCpp* gui_cpp = nullptr;
 
 private:
 	wxDECLARE_EVENT_TABLE();
