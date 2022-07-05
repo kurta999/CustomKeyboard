@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <string>
+#include "fmt/format.h"
 
 namespace utils
 {
@@ -17,9 +18,10 @@ namespace utils
     std::string GetDataUnit(size_t input);
     size_t MBStringToWString(const std::string& src, std::wstring& dest);
     size_t WStringToMBString(const std::wstring& src, std::string& dest);
+#ifndef UNIT_TESTS
     wxKeyCode GetVirtualKeyFromString(const std::string& key);
     std::string GetKeyStringFromVirtualKey(wxKeyCode key_code);
-
+#endif
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
         if constexpr(!std::is_arithmetic_v<R>)
