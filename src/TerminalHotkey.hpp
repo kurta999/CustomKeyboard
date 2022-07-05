@@ -25,5 +25,6 @@ public:
 
 private:
     // !\brief Open terminal with given path
+    // !\param path [in] Path where to open the terminal
     void OpenTerminal(std::wstring& path);
 };

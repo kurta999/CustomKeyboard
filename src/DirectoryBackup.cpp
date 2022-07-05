@@ -22,7 +22,7 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 			std::filesystem::create_directory(t, ec);
 			if(ec)
 			{
-				LOGMSG(error, "Error with create_directory ({}): {}", t.generic_string(), ec.message());
+				LOG(LogLevel::Error, "Error with create_directory ({}): {}", t.generic_string(), ec.message());
 			}
 			continue;
 		}
@@ -39,7 +39,7 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 			std::filesystem::remove_all(to_remove, ec);
 			if(ec)
 			{
-				LOGMSG(error, "Error with remove_all ({}): {}", std::string(to_remove.begin(), to_remove.end()), ec.message());
+				LOG(LogLevel::Error, "Error with remove_all ({}): {}", std::string(to_remove.begin(), to_remove.end()), ec.message());
 			}
 		}
 	}
@@ -91,7 +91,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 		std::filesystem::create_directory(destination_dir, ec);
 		if(ec)
 		{
-			LOGMSG(error, "Error with create_directory ({}): {}", destination_dir.generic_string(), ec.message());
+			LOG(LogLevel::Error, "Error with create_directory ({}): {}", destination_dir.generic_string(), ec.message());
 			fail = true;
 			break;
 		}
@@ -112,7 +112,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 				std::filesystem::create_directory(destination_path, ec);
 				if(ec)
 				{
-					LOGMSG(error, "Error with create_directory ({}): {}", destination_path.generic_string(), ec.message());
+					LOG(LogLevel::Error, "Error with create_directory ({}): {}", destination_path.generic_string(), ec.message());
 					fail = true;
 					break;
 				}
@@ -125,7 +125,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 				std::filesystem::copy_file(p.path(), destination_path, ec);
 				if(ec)
 				{
-					LOGMSG(error, "Error with copy_file ({}): {}", destination_path.generic_string(), ec.message());
+					LOG(LogLevel::Error, "Error with copy_file ({}): {}", destination_path.generic_string(), ec.message());
 					fail = true;
 					break;
 				}
@@ -173,7 +173,7 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			if(memcmp(hash_from, hash_tmp, sizeof(hash_from)) != 0)
 			{
 				DBG("Hash mismatch\n");
-				LOGMSG(critical, "Hash mismatch, destination dir: {}", t.generic_string());
+				LOG(LogLevel::Critical, "Hash mismatch, destination dir: {}", t.generic_string());
 				fail = true;
 				break;
 			}
@@ -188,9 +188,9 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	{
 		std::lock_guard lock(frame->mtx);
 		if(!fail)
-			frame->pending_msgs.push_back({ BackupCompleted, dif, file_count, files_size, &backup->to[0] });
+			frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::BackupCompleted), dif, file_count, files_size, &backup->to[0] });
 		else
-			frame->pending_msgs.push_back({ BackupFailed, &backup->to[0] });
+			frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::BackupFailed), &backup->to[0] });
 		frame->show_backup_dlg = false;
 	}
 }

@@ -35,7 +35,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
         if(not_empty_cnt > 1 || input_type == 0xFF)
         {
-            LOGMSG(error, "Error with config file macro formatting: {}", str);
+            LOG(LogLevel::Error, "Error with config file macro formatting: {}", str);
             return;
         }
 
@@ -71,7 +71,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for DELAY: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for DELAY: {} ({})", sequence, e.what());
                 }
                 break;
             }
@@ -85,7 +85,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
                 }
                 break;
             }            
@@ -99,7 +99,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
                 }
                 break;
             }
@@ -113,7 +113,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
                 }
                 break;
             }            
@@ -127,7 +127,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
                 }
                 break;
             }     
@@ -141,7 +141,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 catch(std::exception& e)
                 {
-                    LOGMSG(critical, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
                 }
                 break;
             }            
@@ -154,7 +154,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             }
             default:
             {
-                LOGMSG(error, "Invalid sequence/text format in line: {}", str.c_str());
+                LOG(LogLevel::Error, "Invalid sequence/text format in line: {}", str.c_str());
                 break;
             }
         }
@@ -163,7 +163,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
     if(c->bind_name[key_code].empty())
     {
         c->bind_name[key_code] = "Unknown macro"; /* this needed because wxTreeList won't show empty string as row */
-        LOGMSG(warning, "Macro name for key {} missing. Giving it 'Unknown macro', feel free to change it.", key_code);
+        LOG(LogLevel::Warning, "Macro name for key {} missing. Giving it 'Unknown macro', feel free to change it.", key_code);
     }
 }
 
@@ -181,7 +181,7 @@ void Settings::LoadFile()
     }
     catch(boost::property_tree::ptree_error& e)
     {
-        LOGMSG(error, "exception: {}", e.what());
+        LOG(LogLevel::Critical, "Exception: {}", e.what());
     }
 
     try
@@ -247,7 +247,7 @@ void Settings::LoadFile()
         if(remember_window_size)
         {
             if(sscanf(pt.get_child("App").find("LastWindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y) != 2)
-                LOGMSG(error, "Invalid ini format for WindowSize");
+                LOG(LogLevel::Error, "Invalid ini format for WindowSize");
 
             if(window_size.x < WINDOW_SIZE_X) 
                 window_size.x = WINDOW_SIZE_X;
@@ -265,7 +265,7 @@ void Settings::LoadFile()
         if(!std::filesystem::exists(PrintScreenSaver::Get()->screenshot_path))
             std::filesystem::create_directory(PrintScreenSaver::Get()->screenshot_path, ec);
         if(ec)
-            LOGMSG(error, "Error with create_directory ({}): {}", PrintScreenSaver::Get()->screenshot_path.generic_string(), ec.message());
+            LOG(LogLevel::Error, "Error with create_directory ({}): {}", PrintScreenSaver::Get()->screenshot_path.generic_string(), ec.message());
 
         SymlinkCreator::Get()->is_enabled = utils::stob(pt.get_child("SymlinkCreator").find("Enable")->second.data());
         SymlinkCreator::Get()->mark_key = std::move(pt.get_child("SymlinkCreator").find("MarkKey")->second.data());
@@ -283,7 +283,7 @@ void Settings::LoadFile()
             AntiLock::Get()->exclusions = std::move(ignore_list);
             for(auto& i : AntiLock::Get()->exclusions)
             {
-                LOGMSG(notification, "AntiLock exclusion: {}", i);
+                LOG(LogLevel::Notification, "AntiLock exclusion: {}", i);
             }
         }
 
@@ -292,7 +292,7 @@ void Settings::LoadFile()
         TerminalHotkey::Get()->vkey = utils::GetVirtualKeyFromString(key);
         if(TerminalHotkey::Get()->vkey == 0xFFFF)
         {
-            LOGMSG(warning, "Invalid hotkey was specified for TerminalHotkey: {}", key);
+            LOG(LogLevel::Warning, "Invalid hotkey was specified for TerminalHotkey: {}", key);
             TerminalHotkey::Get()->is_enabled = false;
         }
 
@@ -331,11 +331,11 @@ void Settings::LoadFile()
     }
     catch(boost::property_tree::ptree_error& e)
     {
-        LOGMSG(error, "Ptree exception: {}", e.what());
+        LOG(LogLevel::Critical, "Ptree exception: {}", e.what());
     }
     catch(std::exception& e)
     {
-        LOGMSG(critical, "Exception {}", e.what());
+        LOG(LogLevel::Critical, "Exception {}", e.what());
     }
 }
 
@@ -415,6 +415,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "ForwardViaTcp = " << SerialPort::Get()->IsForwardToTcp() << " # Is data have to be forwarded to remote TCP server\n";
     out << "RemoteTcpIp = " << SerialPort::Get()->GetRemoteTcpIp() << "\n";
     out << "RemoteTcpPort = " << SerialPort::Get()->GetRemoteTcpPort() << "\n";
+    out << "\n";
     out << "[COM_TcpBackend]\n";
     out << "Enable = " << SerialForwarder::Get()->is_enabled << " # Listening port from second instance where the TCP Forwarder forwards data received from COM port\n";
     out << "ListeningIp = " << SerialForwarder::Get()->bind_ip << "\n";
@@ -425,6 +426,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "DefaultRxList = " << can_handler->default_tx_list.generic_string() << "\n";
+    out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";

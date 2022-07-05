@@ -15,7 +15,7 @@ void PathSeparator::ReplaceClipboard()
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
 				std::lock_guard lock(frame->mtx);
-				frame->pending_msgs.push_back({ PathSeparatorsReplaced, std::move(input) });
+				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::PathSeparatorsReplaced), std::move(input) });
 			}
 		}
 		wxTheClipboard->Close();

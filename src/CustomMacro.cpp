@@ -14,7 +14,7 @@ KeyCombination::KeyCombination(std::string&& str)
         uint16_t key = CustomMacro::Get()->GetKeyScanCode(key_code);
         if(key == 0xFFFF) /* do not throw here! */
         {
-            LOGMSG(error, "Invalid key found in settings.ini: {}", key_code);
+            LOG(LogLevel::Error, "Invalid key found in settings.ini: {}", key_code);
         }
         seq.push_back(key);
     }

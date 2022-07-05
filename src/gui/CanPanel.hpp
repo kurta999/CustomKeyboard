@@ -30,7 +30,7 @@ public:
     void AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString comment);
     void AddRow(std::unique_ptr<CanTxEntry>& e);
     void UpdateTxCounter(uint32_t frame_id, size_t count);
-    wxGrid* m_grid;
+    wxGrid* m_grid = nullptr;
     
     std::map<uint16_t, CanTxEntry*> grid_to_entry;  /* Helper map for storing an additional ID to CanTxEntry */
 
@@ -44,7 +44,7 @@ public:
 
     void AddRow(std::unique_ptr<CanRxData>& e);
     void UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxData>& e, std::string& comment);
-    wxGrid* m_grid;
+    wxGrid* m_grid = nullptr;
     std::map<uint16_t, CanRxData*> rx_grid_to_entry;  /* Helper map for storing an additional ID to CanRxData */
 
     size_t cnt = 0;
@@ -69,15 +69,15 @@ public:
 private:
 	void OnCellValueChanged(wxGridEvent& ev);
 
-	wxTreeListCtrl* tree_receive;
-	wxDataViewCtrl* tree_t;
+	wxTreeListCtrl* tree_receive = nullptr;
+	wxDataViewCtrl* tree_t = nullptr;
 
-	wxButton* m_SingleShot;
-	wxButton* m_SendAll;
-	wxButton* m_StopAll;
-	wxButton* m_Add;
-	wxButton* m_Copy;
-	wxButton* m_Delete;
+	wxButton* m_SingleShot = nullptr;
+	wxButton* m_SendAll = nullptr;
+	wxButton* m_StopAll = nullptr;
+	wxButton* m_Add = nullptr;
+	wxButton* m_Copy = nullptr;
+	wxButton* m_Delete = nullptr;
 
     wxString file_path_tx;
     wxString file_path_rx;

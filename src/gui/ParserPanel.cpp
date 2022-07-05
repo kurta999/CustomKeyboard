@@ -126,7 +126,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			}
 			catch(std::exception& e)
 			{
-				LOGMSG(critical, "Exception {}", e.what());
+				LOG(LogLevel::Error, "Exception: {}", e.what());
 				wxMessageDialog(this, fmt::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 

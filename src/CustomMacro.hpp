@@ -680,7 +680,10 @@ public:
         return scan_codes;
     }
 
+    // !\brief Use per application macro?
     bool use_per_app_macro = true;
+
+    // !\brief Use advanced key bindings? (eg: SHIFT+NUM_1, LCTRL+NUM_2)
     bool advanced_key_binding = true;
     std::vector<std::unique_ptr<IKey>>* editing_macro = nullptr;
     IKey* editing_item = nullptr;
@@ -689,8 +692,11 @@ public:
 private:
     friend class Settings;
 
+    // !\brief Handle keypress
+    // !\param key [in] Key to press
     void PressKey(std::string key);
 
+    // !\brief Vector contains all macros
     std::vector<std::unique_ptr<MacroAppProfile>> macros;
     std::string pressed_keys;
     static const std::unordered_map<std::string, int> scan_codes;

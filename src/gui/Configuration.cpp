@@ -493,7 +493,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			Settings::Get()->SaveFile(false);
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-			frame->pending_msgs.push_back({ SettingsSaved });
+			frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SettingsSaved) });
 		});
 
 	m_Backup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
@@ -509,7 +509,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 				current_tm = localtime(&current_time);
 				std::ofstream out(fmt::format("settings.ini_{:%Y.%m.%d_%H-%M-%S}.ini", *current_tm), std::ofstream::binary);
 				out << in_str;
-				LOGMSG(notification, "Settings.ini has been successfully backed up");
+				LOG(LogLevel::Notification, "Settings.ini has been successfully backed up");
 			}
 		});
 	SetSizer(bSizer1);
@@ -1291,7 +1291,7 @@ void KeybrdPanel::TreeDetails_StartRecording()
 		MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 		{
 			std::lock_guard lock(frame->mtx);
-			frame->pending_msgs.push_back({ MacroRecordingStopped });
+			frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::MacroRecordingStopped) });
 		}
 		return;
 	}
@@ -1350,7 +1350,7 @@ void KeybrdPanel::TreeDetails_StartRecording()
 				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 				{
 					std::lock_guard lock(frame->mtx);
-					frame->pending_msgs.push_back({ MacroRecordingStarted });
+					frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::MacroRecordingStarted) });
 				}
 			}
 		}
@@ -1426,7 +1426,7 @@ KeybrdPanel::KeybrdPanel(wxWindow* parent)
 			Settings::Get()->SaveFile(false);
 
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-			frame->pending_msgs.push_back({ SettingsSaved });
+			frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SettingsSaved) });
 		});
 
 	vertical_sizer->Add(btn_add);

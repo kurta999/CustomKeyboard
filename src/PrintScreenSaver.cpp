@@ -74,17 +74,28 @@ void PrintScreenSaver::DoSave()
     unsigned long error_code = lodepng::encode(png, bmp_to_encode, BitmapInfoHeader->biWidth, BitmapInfoHeader->biHeight, LCT_RGBA, 8);
 
     std::string save_path = screenshot_path.string() + "\\" + buf;
-    lodepng::save_file(png, save_path.c_str());
+    if(!error_code)
+        error_code = lodepng::save_file(png, save_path.c_str());
 
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-
-    LOGMSG(notification, "Image saved to {}", save_path);
+    if(!error_code)
+    {
+        LOG(LogLevel::Notification, "Image saved to {}", save_path);
+    }
+    else
+    {
+        LOG(LogLevel::Error, "Failed to save image from the clipboard!");
+    }
 
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
     {
         std::lock_guard lock(frame->mtx);
-        frame->pending_msgs.push_back({ ScreenshotSaved, dif, std::move(save_path) });
+        if(!error_code)
+            frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::ScreenshotSaved), dif, std::move(save_path) });
+        else
+            frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::ScreenshotSaveFailed) });
+
     }
 #endif
 }

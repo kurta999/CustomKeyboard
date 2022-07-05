@@ -8,6 +8,7 @@
 #include "gui/MainFrame.hpp"
 #include "CustomKeyboard.hpp"
 #include <ctime>
+#include <fstream>
 #include <filesystem>
 #ifndef _WIN32
     #ifndef FMT_HEADER_ONLY
@@ -19,16 +20,16 @@
 
 DECLARE_APP(MyApp);
 
-enum severity_level
+enum LogLevel
 {
-    normal,
-    notification,
-    warning,
-    error,
-    critical
+    Normal,
+    Notification,
+    Warning,
+    Error,
+    Critical
 };
 
-#define LOGMSG(level, message, ...)      \
+#define LOG(level, message, ...)      \
     do {\
     Logger::Get()->Log(level, __FILE__, __LINE__, __FUNCTION__, message, ##__VA_ARGS__); \
 } while(0)
@@ -38,7 +39,7 @@ class Logger : public CSingleton < Logger >
     friend class CSingleton < Logger >;
 public:
     Logger();
-    ~Logger();
+    ~Logger() = default;
 
     // !\brief Write given log message to logfile.txt & LogPanel
     // !\param lvl [in] Serverity level
@@ -48,7 +49,7 @@ public:
     // !\param msg [in] Message to log
     // !\param args [in] va_args arguments for fmt::format
     template<typename... Args>
-    void Log(severity_level lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
+    void Log(LogLevel lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
     {
         std::string str;
         std::string formatted_msg = (sizeof...(args) != 0) ? fmt::format(msg, std::forward<Args>(args)...) : msg;
@@ -56,7 +57,7 @@ public:
         tm* current_tm;
         time(&current_time);
         current_tm = localtime(&current_time);
-        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, serverity_str[lvl], formatted_msg);
+        str = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] {}", *current_tm, severity_str[lvl], formatted_msg);
 #if DEBUG
         OutputDebugStringA(str.c_str());
         OutputDebugStringA("\n");
@@ -70,11 +71,10 @@ public:
                     break;
             }
         }
-        if(lvl > normal && lvl <= critical)
+        if(lvl > LogLevel::Normal && lvl <= LogLevel::Critical)
         {
-            std::string str_file = fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, serverity_str[lvl], filename, line, function, formatted_msg);
-            fwrite(str_file.c_str(), 1, str_file.length(), fLog);
-            fflush(fLog);
+            fLog << fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, severity_str[lvl], filename, line, function, formatted_msg);
+            fLog.flush();
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log)
@@ -98,13 +98,13 @@ public:
     }
 private:
     // !\brief File handle for log 
-    FILE* fLog = nullptr;
+    std::ofstream fLog;
 
     // !\brief Preinited log messages
     wxArrayString preinit_entries;
 
     // !\brief Serverity level in string format
-    static inline const char* serverity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
+    static inline const char* severity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

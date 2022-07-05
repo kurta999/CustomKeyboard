@@ -197,14 +197,14 @@ void GuiEditor::OnKeyDown(int keycode)
 	{
 		case 388: /* + */
 		{
-			LOGMSG(notification, "Move speed has increased to {}.\n", ++m_speed);
+			LOG(LogLevel::Notification, "Move speed has increased to {}.\n", ++m_speed);
 			break;
 		}
 		case 390: /* - */
 		{
 			if(!--m_speed)
 				m_speed = 1;
-			LOGMSG(notification, "Move speed has decresed to {}.\n", m_speed);
+			LOG(LogLevel::Notification, "Move speed has decresed to {}.\n", m_speed);
 			break;
 		}
 		case 'A': /* A */

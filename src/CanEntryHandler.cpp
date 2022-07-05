@@ -42,7 +42,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             }
             catch(...)
             {
-                LOGMSG(error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
+                LOG(LogLevel::Error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
             }
             std::copy(hash.begin(), hash.end(), bytes);
 
@@ -54,11 +54,11 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
     }
     catch(boost::property_tree::xml_parser_error& e)
     {
-        LOGMSG(error, "Exception thrown: {}, {}", e.filename(), e.what());
+        LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
     }
     catch(std::exception& e)
     {
-        LOGMSG(error, "Exception thrown: {}", e.what());
+        LOG(LogLevel::Error, "Exception thrown: {}", e.what());
     }
     return true;
 }
@@ -102,11 +102,11 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
     }
     catch(boost::property_tree::xml_parser_error& e)
     {
-        LOGMSG(error, "Exception thrown: {}, {}", e.filename(), e.what());
+        LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
     }
     catch(std::exception& e)
     {
-        LOGMSG(error, "Exception thrown: {}", e.what());
+        LOG(LogLevel::Error, "Exception thrown: {}", e.what());
     }
     return true;
 }

@@ -19,7 +19,7 @@ public:
 	wxStyledTextCtrl* m_StyledTextCtrl = nullptr;
 	wxTextCtrl* m_Output = nullptr;
 	wxButton* m_OkButton = nullptr;
-	wxFilePickerCtrl* m_FilePicker;
+	wxFilePickerCtrl* m_FilePicker = nullptr;
 
 	wxString path;
 private:

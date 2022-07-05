@@ -39,7 +39,8 @@ void SymlinkCreator::Mark()
 	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 	{
 		std::lock_guard lock(frame->mtx);
-		frame->pending_msgs.push_back({ !selected_items.empty() ? LinkMark : LinkMarkError, static_cast<uint32_t>(selected_items.size()) });
+		frame->pending_msgs.push_back({ !selected_items.empty() ? static_cast<uint8_t>(PopupMsgIds::LinkMark) : static_cast<uint8_t>(PopupMsgIds::LinkMarkError), 
+			static_cast<uint32_t>(selected_items.size()) });
 	}
 }
 
@@ -63,7 +64,7 @@ void SymlinkCreator::Place(bool is_symlink)
 				}
 				catch(std::filesystem::filesystem_error const& e)
 				{
-					LOGMSG(error, "Exception during creating symlinks ({}): {}", dest_with_name.generic_string(), e.what());
+					LOG(LogLevel::Error, "Exception during creating symlinks ({}): {}", dest_with_name.generic_string(), e.what());
 					break;
 				}
 			}
@@ -71,7 +72,7 @@ void SymlinkCreator::Place(bool is_symlink)
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
 				std::lock_guard lock(frame->mtx);
-				frame->pending_msgs.push_back({ SymlinkCreated, static_cast<uint32_t>(selected_items.size()) });
+				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SymlinkCreated), static_cast<uint32_t>(selected_items.size()) });
 			}
 		}
 		else
@@ -85,7 +86,7 @@ void SymlinkCreator::Place(bool is_symlink)
 				}
 				catch(std::filesystem::filesystem_error const& e)
 				{
-					LOGMSG(error, "Exception during creating hardlinks ({}): {}", dest_with_name.generic_string(), e.what());
+					LOG(LogLevel::Error, "Exception during creating hardlinks ({}): {}", dest_with_name.generic_string(), e.what());
 					break;
 				}
 			}
@@ -93,7 +94,7 @@ void SymlinkCreator::Place(bool is_symlink)
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
 			{
 				std::lock_guard lock(frame->mtx);
-				frame->pending_msgs.push_back({ HardlinkCreated, static_cast<uint32_t>(selected_items.size()) });
+				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::HardlinkCreated), static_cast<uint32_t>(selected_items.size()) });
 			}
 		}
 	}

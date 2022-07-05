@@ -90,7 +90,7 @@ void FilePanel::GenerateTree()
 	std::filesystem::path path = m_DirText->GetValue().ToStdString();
 	if(!std::filesystem::exists(path))
 	{
-		LOGMSG(error, "Destination directory doesn't exists!");
+		LOG(LogLevel::Error, "Destination directory doesn't exists!");
 		return;
 	}
 
@@ -206,7 +206,7 @@ void FilePanel::GenerateTree()
 		}
 		catch(...)
 		{
-			//LOGMSG(critical, "Exception: {}", boost::current_exception_diagnostic_information().c_str()); /* #include "boost/exception/diagnostic_information.hpp" */
+			//LOG(LogLevel::Critical, "Exception: {}", boost::current_exception_diagnostic_information().c_str()); /* #include "boost/exception/diagnostic_information.hpp" */
 			continue;
 		}
 	}
@@ -225,7 +225,7 @@ void FilePanel::GenerateTree()
 
 	std::string result_str = fmt::format("{} file in {} directory has been parsed in {:.6f} ms ({})", file_cnt, dir_cnt, (double)dif / 1000000.0, utils::GetDataUnit(file_sizes));
 	m_FileInfo->SetLabelText(result_str);
-	LOGMSG(notification, result_str.c_str());
+	LOG(LogLevel::Notification, result_str.c_str());
 }
 
 void FilePanel::ClearTree()

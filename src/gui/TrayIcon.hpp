@@ -45,9 +45,9 @@ public:
 	};
 	static int max_backups;
 protected:
-	MyFrame* mainFrame;
+	MyFrame* mainFrame = nullptr;
 private:
-	MenuEventFilter* filter;
+	MenuEventFilter* filter = nullptr;
 
 	DECLARE_EVENT_TABLE()
 };
