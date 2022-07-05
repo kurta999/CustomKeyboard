@@ -142,13 +142,6 @@
 #endif
 #include <lodepng/lodepng.h>
 
-#ifndef _WIN32
-	#ifndef FMT_HEADER_ONLY
-		#define FMT_HEADER_ONLY
-	#endif
-#endif
-#include <fmt/format.h>
-
 #include "utils/AsyncSerial.hpp"
 
 extern "C"

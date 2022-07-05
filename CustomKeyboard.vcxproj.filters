@@ -22,9 +22,6 @@
     <Filter Include="libs">
       <UniqueIdentifier>{30ed3812-466e-43d1-b8a2-367882daa7dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="libs\fmt">
-      <UniqueIdentifier>{4e1d0ea1-47f2-42c3-a382-2a75711fbe8f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="libs\sqlite">
       <UniqueIdentifier>{cf1d0355-c7e2-41b6-9a73-63801df4a88c}</UniqueIdentifier>
     </Filter>
@@ -45,42 +42,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="libs\fmt\color.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\compile.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\core.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\format.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\format-inl.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\chrono.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\locale.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\os.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\ostream.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\posix.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\printf.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\fmt\ranges.h">
-      <Filter>libs\fmt</Filter>
-    </ClInclude>
     <ClInclude Include="libs\sqlite\sqlite3.h">
       <Filter>libs\sqlite</Filter>
     </ClInclude>
@@ -241,12 +202,6 @@
     </ClCompile>
     <ClCompile Include="libs\sqlite\sqlite3.c">
       <Filter>libs\sqlite</Filter>
-    </ClCompile>
-    <ClCompile Include="libs\fmt\format.cc">
-      <Filter>libs\fmt</Filter>
-    </ClCompile>
-    <ClCompile Include="libs\fmt\os.cc">
-      <Filter>libs\fmt</Filter>
     </ClCompile>
     <ClCompile Include="libs\lodepng\lodepng.cpp">
       <Filter>libs\lodepng</Filter>

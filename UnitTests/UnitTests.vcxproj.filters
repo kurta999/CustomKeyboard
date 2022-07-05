@@ -6,9 +6,6 @@
     <ClCompile Include="EscaperTests.cpp" />
     <ClCompile Include="..\src\StructParser.cpp" />
     <ClCompile Include="..\src\Utils.cpp" />
-    <ClCompile Include="..\libs\fmt\format.cc">
-      <Filter>libs\fmt</Filter>
-    </ClCompile>
     <ClCompile Include="StructParserTests.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -20,9 +17,6 @@
   <ItemGroup>
     <Filter Include="libs">
       <UniqueIdentifier>{61978002-bc29-4421-b20f-67cdca45de6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="libs\fmt">
-      <UniqueIdentifier>{a2ffa04e-b0a1-4c07-93c3-de5d07932f5d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -36,9 +36,6 @@
     <ClInclude Include="pch.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\libs\fmt\format.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\src\StringToCEscaper.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.hpp</PrecompiledHeaderFile>
     </ClCompile>

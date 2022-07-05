@@ -304,18 +304,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="libs\enumser\enumser.h" />
-    <ClInclude Include="libs\fmt\chrono.h" />
-    <ClInclude Include="libs\fmt\color.h" />
-    <ClInclude Include="libs\fmt\compile.h" />
-    <ClInclude Include="libs\fmt\core.h" />
-    <ClInclude Include="libs\fmt\format-inl.h" />
-    <ClInclude Include="libs\fmt\format.h" />
-    <ClInclude Include="libs\fmt\locale.h" />
-    <ClInclude Include="libs\fmt\os.h" />
-    <ClInclude Include="libs\fmt\ostream.h" />
-    <ClInclude Include="libs\fmt\posix.h" />
-    <ClInclude Include="libs\fmt\printf.h" />
-    <ClInclude Include="libs\fmt\ranges.h" />
     <ClInclude Include="libs\lodepng\lodepng.h" />
     <ClInclude Include="libs\sha256\sha256.h" />
     <ClInclude Include="libs\sqlite\sqlite3.h" />
@@ -369,22 +357,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\enumser\enumser.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="libs\fmt\format.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="libs\fmt\os.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>

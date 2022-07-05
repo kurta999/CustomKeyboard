@@ -2,7 +2,6 @@
 
 #include <charconv>
 #include <string>
-#include "fmt/format.h"
 
 namespace utils
 {
@@ -36,7 +35,7 @@ namespace utils
             if(ret.ec != std::errc())
             {
                 std::error_code ecode = std::make_error_code(ret.ec);
-                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+                throw std::runtime_error(std::format("Bad stoi input ({}): {}", from_str, ecode.message()));
             }
             return int_val;
         }
@@ -48,7 +47,7 @@ namespace utils
             if(ret.ec != std::errc())
             {
                 std::error_code ecode = std::make_error_code(ret.ec);
-                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+                throw std::runtime_error(std::format("Bad stoi input ({}): {}", from_str, ecode.message()));
             }            
             return int_val;
         }
@@ -60,7 +59,7 @@ namespace utils
             if(ret.ec != std::errc())
             {
                 std::error_code ecode = std::make_error_code(ret.ec);
-                throw std::runtime_error(fmt::format("Bad stoi input ({}): {}", from_str, ecode.message()));
+                throw std::runtime_error(std::format("Bad stoi input ({}): {}", from_str, ecode.message()));
             }
             return int_val;
         }
