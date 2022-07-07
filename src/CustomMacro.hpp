@@ -689,16 +689,16 @@ public:
     IKey* editing_item = nullptr;
     void ProcessReceivedData(const char* data, unsigned int len);
 
-private:
-    friend class Settings;
-
     // !\brief Handle keypress
     // !\param key [in] Key to press
     void PressKey(std::string key);
+    std::string pressed_keys;
+
+private:
+    friend class Settings;
 
     // !\brief Vector contains all macros
     std::vector<std::unique_ptr<MacroAppProfile>> macros;
-    std::string pressed_keys;
     static const std::unordered_map<std::string, int> scan_codes;
     static const std::unordered_map<int, std::string> hid_scan_codes;
 };

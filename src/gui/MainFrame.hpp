@@ -22,17 +22,6 @@
 #include <deque>
 #include <any>
 
-class MacroPanel : public wxPanel
-{
-public:
-	MacroPanel(wxFrame* parent);
-	wxStaticText* m_MousePos = nullptr;
-	wxStaticText* m_ActiveWindowTitle = nullptr;
-
-private:
-	wxDECLARE_EVENT_TABLE();
-};
-
 class TrayIcon;
 
 enum PopupMsgIds : uint8_t
@@ -54,6 +43,8 @@ enum PopupMsgIds : uint8_t
 	TxListSaved,
 	RxListLoaded,
 	RxListSaved,
+	TxListLoadError,
+	RxListLoadError,
 };
 
 class MyFrame : public wxFrame
@@ -71,7 +62,7 @@ public:
 	ConfigurationPanel* config_panel = nullptr;
 	EditorPanel* editor_panel = nullptr;
 	EscaperPanel* escape_panel = nullptr;
-	MacroPanel* macro_panel = nullptr;
+	DebugPanel* debug_panel = nullptr;
 	ParserPanel* parser_panel = nullptr;
 	FilePanel* file_panel = nullptr;
 	CanPanel* can_panel = nullptr;
@@ -103,6 +94,9 @@ private:
 
 	// \brief Main timer for frame
 	void On100msTimer(wxTimerEvent& event);
+
+	// \brief Handles debug panel related updates
+	void HandleDebugPanelUpdate();
 
 	// \brief Handles backup progress dialog
 	void HandleBackupProgressDialog();

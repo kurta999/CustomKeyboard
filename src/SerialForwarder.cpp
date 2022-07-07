@@ -43,7 +43,7 @@ public:
 private:
     tcp::socket socket_;
     std::string message_;
-    char recv_buffer[256];
+    char recv_buffer[256] = {};
 };
 
 class tcp_server

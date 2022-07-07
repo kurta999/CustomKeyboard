@@ -9,6 +9,7 @@
 #include "gui/CanPanel.hpp"
 #include "gui/Configuration.hpp"
 #include "gui/ConfigurationBackup.hpp"
+#include "gui/DebugPanel.hpp"
 #include "gui/gui_id.hpp"
 #include "gui/Editor.hpp"
 #include "gui/EscaperPanel.hpp"

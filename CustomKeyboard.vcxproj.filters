@@ -195,6 +195,9 @@
     <ClInclude Include="src\StringToCEscaper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\DebugPanel.hpp">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -325,6 +328,9 @@
     </ClCompile>
     <ClCompile Include="src\StringToCEscaper.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\DebugPanel.cpp">
+      <Filter>Source Files\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

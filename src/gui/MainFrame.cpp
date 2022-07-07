@@ -17,13 +17,6 @@ EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 wxEND_EVENT_TABLE()
 
-
-wxBEGIN_EVENT_TABLE(MainPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
-wxBEGIN_EVENT_TABLE(MacroPanel, wxPanel)
-wxEND_EVENT_TABLE()
-
 void MyFrame::OnHelp(wxCommandEvent& event)
 {
 	wxMessageBox("This is a simple program which made for improving my coding experience.\n\
@@ -155,50 +148,23 @@ void MyFrame::On10msTimer(wxTimerEvent& event)
 
 void MyFrame::On100msTimer(wxTimerEvent& event)
 {
-#ifdef _WIN32
+	HandleDebugPanelUpdate();
+	AntiLock::Get()->Process();
+	TerminalHotkey::Get()->Process();
+	HandleNotifications();
+	HandleBackupProgressDialog();
+	HandleCryptoPriceUpdate();
+}
+
+void MyFrame::HandleDebugPanelUpdate()
+{
 	int sel = ctrl->GetSelection();
 	HWND foreground = GetForegroundWindow();
 	if((sel == 4 || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
 	{
-		POINT p;
-		if(::GetCursorPos(&p))
-		{
-			if(::ScreenToClient(foreground, &p))
-			{
-				RECT rect;
-				if(GetWindowRect(foreground, &rect))
-				{
-					int width = rect.right - rect.left;
-					int height = rect.bottom - rect.top;
-					wxString str = wxString::Format(wxT("Mouse: %d,%d - Rect: %d,%d"), p.x, p.y, width, height);
-					macro_panel->m_MousePos->SetLabelText(str);
-					if(GetAsyncKeyState(VK_SCROLL))
-					{
-						LOG(LogLevel::Normal, str.ToStdString().c_str());
-						MacroRecorder::Get()->MarkMousePosition((LPPOINT*)&p);
-					}
-				}
-			}
-		}
-
-		char window_title[256];
-		if(GetWindowTextA(foreground, window_title, sizeof(window_title)))
-		{
-			wxString str = wxString::Format(wxT("Window: \"%s\""), window_title);
-			macro_panel->m_ActiveWindowTitle->SetLabelText(str);
-		}
+		if(debug_panel)
+			debug_panel->HandleUpdate();
 	}
-#else
-
-#endif
-
-#ifdef _WIN32
-	AntiLock::Get()->Process();
-	TerminalHotkey::Get()->Process();
-#endif
-	HandleNotifications();
-	HandleBackupProgressDialog();
-	HandleCryptoPriceUpdate();
 }
 
 void MyFrame::HandleBackupProgressDialog()
@@ -310,7 +276,7 @@ MyFrame::MyFrame(const wxString& title)
 
 	main_panel = new MainPanel(this);
 	escape_panel = new EscaperPanel(this);
-	macro_panel = new MacroPanel(this);
+	debug_panel = new DebugPanel(this);
 	parser_panel = new ParserPanel(this);
 	file_panel = new FilePanel(this);
 	can_panel = new CanPanel(this);
@@ -326,7 +292,7 @@ MyFrame::MyFrame(const wxString& title)
 	editor_panel = new EditorPanel(ctrl);
 	ctrl->AddPage(editor_panel, "wxEditor page", false, wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(macro_panel, "Mouse Info", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(debug_panel, "Debug page", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(file_panel, "File browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(can_panel, "CAN sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
@@ -345,22 +311,6 @@ MyFrame::MyFrame(const wxString& title)
 	m_100msTimer = new wxTimer(this, ID_100msTimer);
 	Connect(m_100msTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On100msTimer), NULL, this);
 	m_100msTimer->Start(100, false);
-}
-
-MacroPanel::MacroPanel(wxFrame* parent)
-	: wxPanel(parent, wxID_ANY)
-{
-	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
-	
-	m_MousePos = new wxStaticText(this, wxID_ANY, "Pos: 0,0");
-	m_MousePos->SetToolTip("Mouse position relative to active window");
-	bSizer1->Add(m_MousePos);
-	m_ActiveWindowTitle = new wxStaticText(this, wxID_ANY, "Window: \"NULL\"");
-	m_ActiveWindowTitle->SetToolTip("Name of foreground (active) window");
-	bSizer1->Add(m_ActiveWindowTitle);
-
-	this->SetSizer(bSizer1);
-	this->Layout();
 }
 
 void MyFrame::HandleNotifications()
@@ -402,7 +352,7 @@ void MyFrame::HandleNotifications()
 						{
 #ifdef _WIN32
 							wchar_t work_dir[1024];
-							GetCurrentDirectory(sizeof(work_dir), work_dir);
+							GetCurrentDirectory(sizeof(work_dir) - 1, work_dir);
 							StrCatW(work_dir, L"\\settings.ini");
 							ShellExecute(NULL, L"open", work_dir, NULL, NULL, SW_SHOW);
 #endif
@@ -509,6 +459,15 @@ void MyFrame::HandleNotifications()
 				{
 					const wxString msg[] = { "TX List Loaded", "TX List Saved", "RX List Loaded", "RX List Saved" };
  					ShowNotificaiton(msg[type - TxListLoaded], msg[type - TxListLoaded], 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+						});
+					break;
+				}
+				case TxListLoadError:
+				case RxListLoadError:
+				{
+					const wxString msg[] = { "TX List Load failed", "RX List Load failed" };
+					ShowNotificaiton(msg[type - TxListLoadError], msg[type - TxListLoadError], 3, wxICON_ERROR, [this](wxCommandEvent& event)
 						{
 						});
 					break;

@@ -1,5 +1,8 @@
 #include "pch.hpp"
 
+wxBEGIN_EVENT_TABLE(MainPanel, wxPanel)
+wxEND_EVENT_TABLE()
+
 MainPanel::MainPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
 {

@@ -41,7 +41,7 @@ public:
     void ExecuteQuery(std::string&& query) override;
     void SendQueryAndFetch(std::string&& query, std::function<void(std::unique_ptr<Result>&, std::any)> function, std::any params) override;
 private:
-    sqlite3* db;
+    sqlite3* db = nullptr;
 };
 
 class DBStream

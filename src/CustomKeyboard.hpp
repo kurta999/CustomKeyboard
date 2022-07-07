@@ -19,5 +19,5 @@ public:
 
     XmlCanEntryLoader xml;
     XmlCanRxEntryLoader rx_xml;
-    CanEntryHandler* can_entry;
+    CanEntryHandler* can_entry = nullptr;
 };

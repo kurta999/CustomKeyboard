@@ -98,7 +98,7 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	Settings::Get()->LoadFile();
 	mainFrame->main_panel->UpdateKeybindings();
 	mainFrame->config_panel->UpdateSubpanels();
-	mainFrame->can_panel->Refresh();
+	mainFrame->can_panel->RefreshSubpanels();
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))
