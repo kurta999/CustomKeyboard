@@ -115,7 +115,7 @@ public:
 private:
 	void AddFlagsToPropgrid();
 
-	GuiEditorMain* panel;
+	GuiEditorMain* panel = nullptr;
 	std::unordered_map<wxObject*, Widget*> widgets;
 	wxObject* m_SelectedWidget = nullptr;
 	wxString file_path;

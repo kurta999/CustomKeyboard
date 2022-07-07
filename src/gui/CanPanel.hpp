@@ -56,8 +56,8 @@ public:
 	CanPanel(wxWindow* parent);
 
 	void On10MsTimer();
-    void RefreshTx();
-    void RefreshRx();
+    void RefreshSubpanels();
+
     void LoadTxList();
     void SaveTxList();
     void LoadRxList();
@@ -67,6 +67,10 @@ public:
     CanGrid* can_grid_tx = nullptr;
     CanGridRx* can_grid_rx = nullptr;
 private:
+    void RefreshTx();
+    void RefreshRx();
+    void RefreshGuiIconsBasedOnSettings();
+
 	void OnCellValueChanged(wxGridEvent& ev);
 
 	wxTreeListCtrl* tree_receive = nullptr;

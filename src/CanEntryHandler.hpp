@@ -79,7 +79,8 @@ public:
     
     // !\brief Load TX list from a file
     // !\param path [in] File path to load
-    void LoadTxList(std::filesystem::path& path);
+    // !\return Is load was successfull?
+    bool LoadTxList(std::filesystem::path& path);
 
     // !\brief Save TX list to a file
     // !\param path [in] File path to save
@@ -87,7 +88,8 @@ public:
 
     // !\brief Load RX list from a file
     // !\param path [in] File path to load
-    void LoadRxList(std::filesystem::path& path);
+    // !\return Is load was successfull?
+    bool LoadRxList(std::filesystem::path& path);
 
     // !\brief Save RX list to a file
     // !\param path [in] File path to save

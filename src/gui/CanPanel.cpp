@@ -290,6 +290,8 @@ CanPanel::CanPanel(wxWindow* parent)
         m_Delete->SetToolTip("Delete CAN frame");
         h_sizer->Add(m_Delete);
         
+        RefreshGuiIconsBasedOnSettings();
+
         bSizer1->Add(h_sizer);
 	}	
 
@@ -326,6 +328,13 @@ void CanPanel::On10MsTimer()
     }
 }
 
+void CanPanel::RefreshSubpanels()
+{
+    RefreshTx();
+    RefreshRx();
+    RefreshGuiIconsBasedOnSettings();
+}
+
 void CanPanel::RefreshTx()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
@@ -337,6 +346,33 @@ void CanPanel::RefreshTx()
     {
         can_grid_tx->AddRow(i);
     }
+}
+
+void CanPanel::RefreshRx()
+{
+    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::scoped_lock lock{ can_handler->m };
+
+    for(int i = 0; i != can_grid_rx->m_grid->GetNumberRows(); i++)
+    {
+        uint16_t frame_id = std::stoi(can_grid_rx->m_grid->GetCellValue(wxGridCellCoords(i, Col_Id)).ToStdString(), nullptr, 16);
+        auto it = can_handler->rx_entry_comment.find(frame_id);
+        if(it != can_handler->rx_entry_comment.end())
+        {
+            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i, Col_Comment), it->second);
+        }
+        else
+        {
+            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i, Col_Comment), "");
+        }
+    }
+}
+
+void CanPanel::RefreshGuiIconsBasedOnSettings()
+{
+    m_SingleShot->Enable(CanSerialPort::Get()->IsEnabled());
+    m_SendAll->Enable(CanSerialPort::Get()->IsEnabled());
+    m_StopAll->Enable(CanSerialPort::Get()->IsEnabled());
 }
 
 void CanPanel::OnCellValueChanged(wxGridEvent& ev)
@@ -448,7 +484,6 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
     ev.Skip();
 }
 
-
 void CanPanel::LoadTxList()
 {
     wxFileDialog openFileDialog(this, _("Open TX XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -458,11 +493,14 @@ void CanPanel::LoadTxList()
     file_path_tx = openFileDialog.GetPath();
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_tx.ToStdString();
-    can_handler->LoadTxList(p);
+    bool ret = can_handler->LoadTxList(p);
     RefreshTx();
 
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::TxListLoaded) });
+    if(ret)
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::TxListLoaded) });
+    else
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::TxListLoadError) });
 }
 
 void CanPanel::SaveTxList()
@@ -488,10 +526,14 @@ void CanPanel::LoadRxList()
     file_path_rx = openFileDialog.GetPath();
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
-    can_handler->LoadRxList(p);
+    bool ret = can_handler->LoadRxList(p);
+    RefreshRx();
 
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoaded) });
+    if(ret)
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoaded) });
+    else
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoadError) });
 }
  
 void CanPanel::SaveRxList()

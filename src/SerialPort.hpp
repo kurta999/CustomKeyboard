@@ -45,7 +45,7 @@ private:
     std::string remote_tcp_ip;
 
     // !\brief Remote TCP Server port
-    uint16_t remote_tcp_port;
+    uint16_t remote_tcp_port = 0;
 
     // !\brief Worker thread
     std::unique_ptr<std::thread> m_worker = nullptr;

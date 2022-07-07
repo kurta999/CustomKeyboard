@@ -9,8 +9,6 @@
 #endif
 #include <future>
 
-constexpr size_t max_timestamp_len = 80;
-
 class PrintScreenSaver : public CSingleton < PrintScreenSaver >
 {
     friend class CSingleton < PrintScreenSaver >;

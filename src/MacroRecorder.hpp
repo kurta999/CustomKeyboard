@@ -11,7 +11,7 @@ public:
 
     };
 
-    KeyInfo(const KeyInfo&& from)
+    KeyInfo(const KeyInfo&& from) noexcept
     {
         scanCode = from.scanCode;
         key = from.key;
@@ -36,7 +36,7 @@ public:
         return rhs.scanCode == scanCode/* && rhs.flags == flags*/; /* don't care about flags here */
     }
 
-    KeyInfo& operator= (KeyInfo&&) { return *this; }
+    KeyInfo& operator= (KeyInfo&&) noexcept { return *this; }
     uint32_t scanCode;
     std::string key;
     uint32_t flags;

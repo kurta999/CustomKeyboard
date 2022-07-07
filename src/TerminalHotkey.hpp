@@ -15,7 +15,7 @@ public:
     void Process();
 
     // !\brief Is enabled?
-    bool is_enabled;
+    bool is_enabled = true;
 
     // !\brief wxKeyCode for trigger key
     wxKeyCode vkey;

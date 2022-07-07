@@ -2,6 +2,8 @@
 
 //#define SAVE_BMP_TOO
 
+constexpr size_t MAX_TIMESTAMP_LEN = 80;
+
 void PrintScreenSaver::Init()
 {
     //SaveScreenshot();
@@ -13,7 +15,7 @@ void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
     struct tm* timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    strftime(buf, len, timestamp_format.c_str(), timeinfo);
+    strftime(buf, len - 5, timestamp_format.c_str(), timeinfo);
     strncat(buf, ".png", 5);
 }
 
@@ -46,8 +48,8 @@ void PrintScreenSaver::DoSave()
     CloseClipboard();
     GlobalUnlock(BitmapInfoHeader);
 
-    char buf[max_timestamp_len];
-    FormatTimestamp(buf, max_timestamp_len);
+    char buf[MAX_TIMESTAMP_LEN];
+    FormatTimestamp(buf, MAX_TIMESTAMP_LEN);
 #ifdef SAVE_BMP_TOO
     HANDLE FileHandle = CreateFileA((std::string(buf) + ".bmp").c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if(FileHandle != INVALID_HANDLE_VALUE)

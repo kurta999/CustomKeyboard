@@ -470,6 +470,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[TerminalHotkey]\n";
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
     out << "Key = " << utils::GetKeyStringFromVirtualKey(TerminalHotkey::Get()->vkey) << "\n";
+    out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";
     if(!write_default_macros)

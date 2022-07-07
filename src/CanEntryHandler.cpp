@@ -20,6 +20,7 @@ XmlCanRxEntryLoader::~XmlCanRxEntryLoader()
 
 bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
 {
+    bool ret = true;
     boost::property_tree::ptree pt;
     try
     {
@@ -55,12 +56,14 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
     catch(boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
+        ret = false;
     }
     catch(std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
+        ret = false;
     }
-    return true;
+    return ret;
 }
 
 bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
@@ -87,6 +90,7 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
 
 bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e)
 {
+    bool ret = true;
     boost::property_tree::ptree pt;
     try
     {
@@ -103,12 +107,14 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
     catch(boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
+        ret = false;
     }
     catch(std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
+        ret = false;
     }
-    return true;
+    return ret;
 }
 
 bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e)
@@ -206,14 +212,15 @@ CanEntryHandler::~CanEntryHandler()
         t->join();
 }
 
-void CanEntryHandler::LoadTxList(std::filesystem::path& path)
+bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
 {
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_tx_list;
     
     entries.clear();
-    m_CanEntryLoader.Load(path, entries);
+    bool ret = m_CanEntryLoader.Load(path, entries);
+    return ret;
 }
 
 void CanEntryHandler::SaveTxList(std::filesystem::path& path)
@@ -224,15 +231,15 @@ void CanEntryHandler::SaveTxList(std::filesystem::path& path)
     m_CanEntryLoader.Save(path, entries);
 }
 
-void CanEntryHandler::LoadRxList(std::filesystem::path& path)
+bool CanEntryHandler::LoadRxList(std::filesystem::path& path)
 {
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_rx_list;
 
     rx_entry_comment.clear();
-    m_CanRxEntryLoader.Load(path, rx_entry_comment);
-    /* TODO: Update GUI */
+    bool ret = m_CanRxEntryLoader.Load(path, rx_entry_comment);
+    return ret;
 }
 
 void CanEntryHandler::SaveRxList(std::filesystem::path& path)
