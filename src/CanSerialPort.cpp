@@ -46,14 +46,18 @@ void CanSerialPort::OnUartDataReceived(const char* data, unsigned int len)
     UartCanData* d = (UartCanData*)data;
     crc16_modbus_t calc_result;
     calc_result.process_bytes((void*)data, len - 2);
-    if(d->magic_number == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
+    uint16_t crc = calc_result.checksum();
+    if(crc == d->crc)
     {
-        AddToRxQueue(d->frame_id, d->data_len, d->data);
-    }
-    else if(d->magic_number == MAGIC_NUMBER_RECV_DATA_ERR)
-    {
-        if(!m_TxQueue.empty())
-            m_TxQueue.pop_front();
+        if(d->magic_number == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
+        {
+            AddToRxQueue(d->frame_id, d->data_len, d->data);
+        }
+        else if(d->magic_number == MAGIC_NUMBER_RECV_DATA_ERR)
+        {
+            if(!m_TxQueue.empty())
+                m_TxQueue.pop_front();
+        }
     }
 }
 
@@ -82,16 +86,16 @@ void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition
                 {
                     std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
 
-                    crc16_modbus_t calc_result;
-                    calc_result.process_bytes((void*)&data_ptr->frame_id, sizeof(CanData));
-                    uint16_t crc = calc_result.checksum();
-
                     UartCanData d;
                     d.magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
                     d.frame_id = data_ptr->frame_id;
                     d.data_len = data_ptr->data_len;
                     memcpy(d.data, data_ptr->data, d.data_len);
-                    d.crc = crc;
+                    
+                    crc16_modbus_t calc_result;
+                    calc_result.process_bytes((void*)&d, sizeof(d) - 2);
+
+                    d.crc = calc_result.checksum();
 
                     serial.write((const char*)&d, sizeof(UartCanData));
 
