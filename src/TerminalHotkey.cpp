@@ -150,10 +150,9 @@ void TerminalHotkey::Process()
 
 void TerminalHotkey::OpenTerminal(std::wstring& path)
 {
-#ifdef _WIN32
-	path.insert(0, L"/d ");
 	last_execution = std::chrono::steady_clock::now();
-	ShellExecute(NULL, L"open", L"wt", path.c_str(), NULL, SW_SHOW);
+#ifdef _WIN32
+	ShellExecute(NULL, L"open", L"wt", std::format(L"/d \"{}\"", path).c_str(), NULL, SW_SHOW);
 #endif
 
 	/* swprintf(buf, L"/k cd /d %s", str.c_str()); - for cmd */
