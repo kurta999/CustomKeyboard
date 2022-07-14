@@ -34,7 +34,7 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 		}
 		if(files.size() >= (size_t)backup->max_backups)
 		{
-			auto to_remove = *files.begin();
+			auto& to_remove = *files.begin();
 			std::error_code ec;
 			std::filesystem::remove_all(to_remove, ec);
 			if(ec)

@@ -40,15 +40,6 @@ private:
     // !\param is_symlink [in] true = symlink, false = hardlink
     void Place(bool is_symlink);
 
-    // !\brief Retreives selected items from file explorer
-    void GetSelectedItemsFromFileExplorer();
-
-    // !\brief Get current directory path from file explorer
-    // !\return Current directory path from file explorer
-    std::wstring GetDestinationPathFromFileExplorer();
-#ifdef _WIN32
-    IFolderView2* GetFolderView2();
-#endif
     // !\brief Selected item's path
-    std::vector<wchar_t*> selected_items;
+    std::vector<std::wstring> m_SelectedItems;
 };

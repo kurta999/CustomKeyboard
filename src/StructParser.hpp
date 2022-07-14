@@ -10,22 +10,6 @@
 #include <memory>
 #include <optional>
 
-const std::unordered_map < std::string, size_t> types =
-{
-	{"char", sizeof(char), },
-	{"uint8_t", sizeof(uint8_t), },
-	{"int8_t", sizeof(int8_t)},
-	{"uint16_t", sizeof(uint16_t)},
-	{"int16_t", sizeof(int16_t)},
-	{"uint32_t", sizeof(uint32_t)},
-	{"int32_t", sizeof(int32_t)},
-	{"int", sizeof(int32_t)},
-	{"uint64_t", sizeof(uint64_t)},
-	{"int64_t", sizeof(int64_t)},
-	{"float", sizeof(float)},
-	{"double", sizeof(double)},
-};
-
 class ClassBase : private boost::noncopyable
 {
 public:
@@ -44,7 +28,7 @@ public:
 	}
 
 public:
-	std::string type_name; /* TODO: improve this in the future, it's waste of memory */
+	std::string type_name;
 	bool is_pointer = false;
 	size_t array_size = std::numeric_limits<size_t>::max();  /* std::numeric_limits<size_t>::max() if isn't array */
 	std::string name; /* variable name */
@@ -65,25 +49,14 @@ public:
 
 	}
 
-	size_t GetSize()
-	{
-		size_t ret = 0;
-		if(is_pointer)
-			ret = pointer_size;
-		else
-			ret = types.at(type_name);
-
-		if(array_size != std::numeric_limits<size_t>::max())
-			ret *= array_size;
-		return ret;
-	}
+	size_t GetSize();
 
 	static size_t pointer_size;
+	static const std::unordered_map<std::string, size_t> types;
+	static bool IsValidVariableType(std::string& type);
 private:
 
 };
-
-bool IsValidVariableType(std::string& type);
 
 class ClassContainer : public ClassBase /* holds a class and expands the further ones when a duplicated one found */
 {
@@ -116,8 +89,13 @@ public:
 	void ParseStructure(std::string& input, std::string& output, uint32_t default_packing = 1, size_t ptr_size = 4);
 
 private:
+	std::optional<std::shared_ptr<ClassContainer>> IsClassAlreadyExists(std::string& class_name);
+	size_t FindEndOfHeader(std::string& input);
 	bool ParseElement(std::string& str_input, size_t& line_counter, std::shared_ptr<ClassContainer>& c);
 	void GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset);
+	void PreParseStructure(std::string& input, std::string& output);
+	void ConstructStuctureInMemory(std::string& input, uint32_t default_packing, size_t ptr_size);
+	void GenerateOutput(std::string& output);
 
 	void DoCleanup();
 	void TrimStructure(std::string& str_in, std::string& str_out);
@@ -125,13 +103,4 @@ private:
 	std::unordered_map<std::string, int32_t> definitions;
 	std::vector<std::shared_ptr<ClassContainer>> classes;  /* all classes in a container */
 
-	std::optional<std::shared_ptr<ClassContainer>> IsClassAlreadyExists(std::string& class_name)
-	{
-		for(auto &i : classes)
-		{
-			if(i->type_name == class_name)
-				return i;
-		}
-		return std::nullopt;
-	}
 };

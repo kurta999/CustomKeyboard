@@ -115,6 +115,158 @@ namespace utils
 		}
 		return key_name;
 	}
+
+#ifdef _WIN32
+	IFolderView2* GetFolderView2()
+	{
+		IFolderView2* pfv = NULL;
+		static bool inited = false;
+		if(!inited)
+		{
+			if(SUCCEEDED(CoInitialize(0)))
+				inited = true;
+		}
+		HWND hwndFind = GetForegroundWindow();
+		IShellWindows* psw;
+		if(SUCCEEDED(CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_LOCAL_SERVER, IID_IShellWindows, (void**)&psw)) && inited)
+		{
+			VARIANT v;
+			V_VT(&v) = VT_I4;
+			IDispatch* pdisp;
+			BOOL fFound = FALSE;
+			for(V_I4(&v) = 0; !fFound && psw->Item(v, &pdisp) == S_OK; V_I4(&v)++)
+			{
+				IWebBrowserApp* pwba;
+				if(SUCCEEDED(pdisp->QueryInterface(IID_IWebBrowserApp, (void**)&pwba)))
+				{
+					HWND hwndWBA;
+					if(SUCCEEDED(pwba->get_HWND((LONG_PTR*)&hwndWBA)) && hwndWBA == hwndFind)
+					{
+						fFound = TRUE;
+						IServiceProvider* psp;
+						if(SUCCEEDED(pwba->QueryInterface(IID_IServiceProvider, (void**)&psp)))
+						{
+							IShellBrowser* psb;
+							if(SUCCEEDED(psp->QueryService(SID_STopLevelBrowser, IID_IShellBrowser, (void**)&psb)))
+							{
+								IShellView* psv;
+								if(SUCCEEDED(psb->QueryActiveShellView(&psv)))
+								{
+									if(SUCCEEDED(psv->QueryInterface(IID_IFolderView2, (void**)&pfv)))
+									{
+
+									}
+								}
+								SAFE_RELEASE(psv);
+							}
+							SAFE_RELEASE(psb);
+						}
+						SAFE_RELEASE(psp);
+					}
+					SAFE_RELEASE(pwba);
+				}
+				SAFE_RELEASE(pwba);
+			}
+			SAFE_RELEASE(pdisp);
+		}
+		SAFE_RELEASE(psw);
+		return pfv;
+	}
+#endif
+
+	std::vector<std::wstring> GetSelectedItemsFromFileExplorer()
+	{
+		std::vector<std::wstring> selected_items;
+#ifdef _WIN32
+		IFolderView2* pfv = GetFolderView2();  /* null if clicked on desktop and not in file explorer */
+		if(pfv)
+		{
+			IShellItemArray* sia = NULL;
+			if(FAILED(pfv->GetSelection(FALSE, &sia)))
+			{
+				pfv->Release();
+				return {};
+			}
+			DWORD	num = 0;
+			if(FAILED(sia->GetCount(&num)))
+			{
+				pfv->Release();
+				sia->Release();
+				return {};
+			}
+			for(DWORD i = 0; i < num; i++)
+			{
+				IShellItem* si = NULL;
+				if(FAILED(sia->GetItemAt(i, &si)))
+				{
+					pfv->Release();
+					sia->Release();
+					return {};
+				}
+
+				PWSTR path = NULL;
+				if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+				{
+					pfv->Release();
+					si->Release();
+					continue;
+				}
+
+				if(path)
+					selected_items.push_back(path);
+			}
+			pfv->Release();
+		}
+		return selected_items;
+#endif
+	}
+
+	std::wstring GetDestinationPathFromFileExplorer()
+	{
+		std::wstring ret;
+#ifdef _WIN32
+		IFolderView2* pfv = GetFolderView2();
+		if(pfv)
+		{
+			IShellItemArray* sia = NULL;
+			if(FAILED(pfv->GetSelection(TRUE, &sia)))
+			{
+				pfv->Release();
+				return ret;
+			}
+
+			DWORD num = 0;
+			if(FAILED(sia->GetCount(&num)))
+			{
+				pfv->Release();
+				sia->Release();
+				return ret;
+			}
+
+			IShellItem* si = NULL;
+			if(FAILED(sia->GetItemAt(0, &si)))
+			{
+				pfv->Release();
+				sia->Release();
+				return ret;
+			}
+
+			PWSTR path = NULL;
+			if(FAILED(si->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+			{
+				pfv->Release();
+				si->Release();
+				return ret;
+			}
+			pfv->Release();
+
+			if(path)
+				ret = path;
+		}
+#endif
+		return ret;
+	}
+
 #endif
 	/*
 	template<typename _Rep, typename _Period>

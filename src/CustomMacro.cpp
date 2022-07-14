@@ -3,6 +3,42 @@
 using namespace std::chrono_literals;
 using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
 
+void KeyText::Execute()
+{
+#ifdef _WIN32
+    for(size_t i = 0; i < seq.length(); i++)
+    {
+        TypeCharacter(seq[i] & 0xFF);
+    }
+#else
+    system(fmt::format("xte 'str {}'", seq).c_str());
+#endif
+}
+
+std::string KeyText::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" KEY_TYPE[{}]", seq) : seq;
+    return ret;
+}
+
+#ifdef _WIN32
+void KeyText::TypeCharacter(uint16_t character)
+{
+    int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
+    wchar_t wide_char;
+    MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
+    INPUT input = { 0 };
+    input.type = INPUT_KEYBOARD;
+    input.ki.wScan = wide_char;
+    input.ki.dwFlags = KEYEVENTF_UNICODE;
+    if((wide_char & 0xFF00) == 0xE000)
+        input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+    SendInput(1, &input, sizeof(input));
+    input.ki.dwFlags |= KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(input));
+}
+#endif
+
 KeyCombination::KeyCombination(std::string&& str)
 {
     boost::erase_all(str, " ");
@@ -18,6 +54,42 @@ KeyCombination::KeyCombination(std::string&& str)
         }
         seq.push_back(key);
     }
+}
+
+void KeyCombination::Execute()
+{
+    for(size_t i = 0; i < seq.size(); i++)
+        PressReleaseKey(seq[i]);
+    for(size_t i = 0; i < seq.size(); i++)
+        PressReleaseKey(seq[i], false);
+}
+
+std::string KeyCombination::GenerateText(bool is_ini_format)
+{
+    std::string text;
+    for(auto& i : seq)
+    {
+        text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
+    }
+    if(text.back() == '+')
+        text.pop_back();
+    std::string ret = is_ini_format ? std::format(" KEY_SEQ[{}]", text) : text;
+    return ret;
+}
+
+void KeyCombination::PressReleaseKey(uint16_t scancode, bool press)
+{
+#ifdef _WIN32
+    INPUT input = { 0 };
+    input.type = INPUT_KEYBOARD;
+    input.ki.wScan = scancode;
+    input.ki.dwFlags = (press ? 0 : KEYEVENTF_KEYUP) | KEYEVENTF_SCANCODE;
+    if((scancode & 0xFF00) == 0xE000)
+        input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+    SendInput(1, &input, sizeof(input));
+#else
+
+#endif
 }
 
 KeyDelay::KeyDelay(std::string&& str)
@@ -36,6 +108,40 @@ KeyDelay::KeyDelay(std::string&& str)
     }
 }
 
+void KeyDelay::Execute()
+{
+    std::visit([](auto&& arg)
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr(std::is_same_v<T, uint32_t>)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(arg));
+            }
+            else if constexpr(std::is_same_v<T, std::array<uint32_t, 2>>)
+            {
+                int ret = utils::random_mt(arg[0], arg[1]);
+                std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+            }
+            else
+                static_assert(always_false_v<T>, "bad visitor!");
+        }, delay);
+}
+
+std::string KeyDelay::GenerateText(bool is_ini_format)
+{
+    std::string ret;
+    if(std::holds_alternative<uint32_t>(delay))
+    {
+        ret = is_ini_format ? std::format(" DELAY[{}]", std::get<uint32_t>(delay)) : boost::lexical_cast<std::string>(std::get<uint32_t>(delay));
+    }
+    else
+    {
+        std::array<uint32_t, 2> delays = std::get<std::array<uint32_t, 2>>(delay);
+        ret = is_ini_format ? std::format(" DELAY[{}-{}]", delays[0], delays[1]) : boost::lexical_cast<std::string>(delays[0]) + "-" + boost::lexical_cast<std::string>(delays[1]);
+    }
+    return ret;
+}
+
 MouseMovement::MouseMovement(std::string&& str)
 {
     size_t separator_pos = str.find(",");
@@ -49,6 +155,27 @@ MouseMovement::MouseMovement(std::string&& str)
         throw std::invalid_argument(std::format("Invalid mouse movement input: {}", str));
 }
 
+void MouseMovement::Execute()
+{
+#ifdef _WIN32
+    POINT to_screen;
+    HWND hwnd = GetForegroundWindow();
+    memcpy(&to_screen, &m_pos, sizeof(to_screen));
+    ClientToScreen(hwnd, &to_screen);
+    ShowCursor(FALSE);
+    SetCursorPos(to_screen.x, to_screen.y);
+    ShowCursor(TRUE);
+#else
+    system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
+#endif
+}
+
+std::string MouseMovement::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" MOUSE_MOVE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
+    return ret;
+}
+
 MouseInterpolate::MouseInterpolate(std::string&& str)
 {
     size_t separator_pos = str.find(",");
@@ -60,6 +187,38 @@ MouseInterpolate::MouseInterpolate(std::string&& str)
     }
     else
         throw std::invalid_argument(std::format("Invalid mouse interpolate input: {}", str));
+}
+
+void MouseInterpolate::Execute()
+{
+#ifdef _WIN32
+    POINT to_screen;
+    HWND hwnd = GetForegroundWindow();
+    memcpy(&to_screen, &m_pos, sizeof(to_screen));
+    ClientToScreen(hwnd, &to_screen);
+
+    POINT curr_pos;
+    GetCursorPos(&curr_pos);
+
+    int steps = utils::random_mt(4000, 8000);
+    for(int i = 0; i <= steps; i++)
+    {
+        int pos_x = std::round(std::lerp(static_cast<float>(curr_pos.x), static_cast<float>(to_screen.x), static_cast<float>(i) / static_cast<float>(steps)));
+        int pos_y = std::round(std::lerp(static_cast<float>(curr_pos.y), static_cast<float>(to_screen.y), static_cast<float>(i) / static_cast<float>(steps)));
+        ShowCursor(FALSE);
+        SetCursorPos(pos_x, pos_y);
+        ShowCursor(TRUE);
+        std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+    }
+#else
+    system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
+#endif
+}
+
+std::string MouseInterpolate::GenerateText(bool is_ini_format)
+{
+    std::string&& ret = is_ini_format ? std::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
+    return ret;
 }
 
 MousePress::MousePress(const std::string&& str)
@@ -81,6 +240,46 @@ MousePress::MousePress(const std::string&& str)
         throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
 }
 
+void MousePress::Execute()
+{
+    PressMouse(key);
+}
+
+std::string MousePress::GenerateText(bool is_ini_format)
+{
+    std::string text;
+#ifdef _WIN32
+    switch(key)
+    {
+    case MOUSEEVENTF_LEFTDOWN:
+        text = "LEFT";
+        break;
+    case MOUSEEVENTF_RIGHTDOWN:
+        text = "RIGHT";
+        break;
+    case MOUSEEVENTF_MIDDLEDOWN:
+        text = "MIDDLE";
+        break;
+    default:
+        assert(0);
+    }
+#endif
+    std::string&& ret = is_ini_format ? std::format(" MOUSE_PRESS[{}]", text) : text;
+    return ret;
+}
+
+void MousePress::PressMouse(uint16_t mouse_button)
+{
+#ifdef _WIN32
+    INPUT input = { 0 };
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = mouse_button;
+    SendInput(1, &input, sizeof(input));
+#else
+
+#endif
+}
+
 MouseRelease::MouseRelease(const std::string&& str)
 {
     uint16_t mouse_button = 0xFFFF;
@@ -98,6 +297,46 @@ MouseRelease::MouseRelease(const std::string&& str)
         key = mouse_button;
     else
         throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
+}
+
+void MouseRelease::Execute()
+{
+    ReleaseMouse(key);
+}
+
+std::string MouseRelease::GenerateText(bool is_ini_format)
+{
+    std::string text;
+#ifdef _WIN32
+    switch(key)
+    {
+    case MOUSEEVENTF_LEFTDOWN:
+        text = "LEFT";
+        break;
+    case MOUSEEVENTF_RIGHTDOWN:
+        text = "RIGHT";
+        break;
+    case MOUSEEVENTF_MIDDLEDOWN:
+        text = "MIDDLE";
+        break;
+    default:
+        assert(0);
+    }
+#endif
+    std::string&& ret = is_ini_format ? std::format(" MOUSE_RELEASE[{}]", text) : text;
+    return ret;
+}
+
+void MouseRelease::ReleaseMouse(uint16_t mouse_button)
+{
+#ifdef _WIN32
+    INPUT input = { 0 };
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = mouse_button << (uint16_t)1;
+    SendInput(1, &input, sizeof(input));
+#else
+
+#endif
 }
 
 MouseClick::MouseClick(const std::string&& str)
@@ -119,31 +358,62 @@ MouseClick::MouseClick(const std::string&& str)
         throw std::invalid_argument(std::format("Invalid mouse button input: {}", str));
 }
 
-std::string KeyCombination::GenerateText(bool is_ini_format)
+void MouseClick::Execute()
+{
+    PressReleaseMouse(key);
+}
+
+std::string MouseClick::GenerateText(bool is_ini_format)
 {
     std::string text;
-    for(auto& i : seq)
+#ifdef _WIN32
+    switch(key)
     {
-        text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
+    case MOUSEEVENTF_LEFTDOWN:
+        text = "LEFT";
+        break;
+    case MOUSEEVENTF_RIGHTDOWN:
+        text = "RIGHT";
+        break;
+    case MOUSEEVENTF_MIDDLEDOWN:
+        text = "MIDDLE";
+        break;
+    default:
+        assert(0);
     }
-    if(text.back() == '+')
-        text.pop_back();
-    std::string&& ret = is_ini_format ? std::format(" KEY_SEQ[{}]", text) : text;
+#endif
+    std::string ret = is_ini_format ? std::format(" MOUSE_CLICK[{}]", text) : text;
     return ret;
 }
 
-std::string KeyDelay::GenerateText(bool is_ini_format)
+void MouseClick::PressReleaseMouse(uint16_t mouse_button)
 {
-    std::string ret;
-    if(std::holds_alternative<uint32_t>(delay))
-    {
-        ret = is_ini_format ? std::format(" DELAY[{}]", std::get<uint32_t>(delay)) : boost::lexical_cast<std::string>(std::get<uint32_t>(delay));
-    }
-    else
-    {
-        std::array<uint32_t, 2> delays = std::get<std::array<uint32_t, 2>>(delay);
-        ret = is_ini_format ? std::format(" DELAY[{}-{}]", delays[0], delays[1]) : boost::lexical_cast<std::string>(delays[0]) + "-" + boost::lexical_cast<std::string>(delays[1]);
-    }
+#ifdef _WIN32
+    INPUT input = { 0 };
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = mouse_button;
+    SendInput(1, &input, sizeof(input));
+    input.mi.dwFlags = mouse_button << (uint16_t)1;
+    SendInput(1, &input, sizeof(input));
+#else
+
+#endif
+}
+
+void CommandExecute::Execute()
+{
+#ifdef _WIN32
+    std::wstring param(cmd.begin(), cmd.end());
+    std::wstring command = L"/k " + param;
+    ShellExecuteW(NULL, L"open", L"cmd", command.c_str(), NULL, SW_NORMAL);
+#else
+
+#endif
+}
+
+std::string CommandExecute::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" CMD[{}]", cmd) : cmd;
     return ret;
 }
 

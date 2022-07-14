@@ -42,9 +42,7 @@ void DatabaseLogic::DoGenerateGraphs()
     Sensors::Get()->WriteGraphs();
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-#ifdef _WIN32  /* TODO: fix it */
     LOG(LogLevel::Notification, "Executing 7 query took {:.6f} ms", (double)dif / 1000000.0);
-#endif
     last_db_update = std::chrono::steady_clock::now();
 }
 

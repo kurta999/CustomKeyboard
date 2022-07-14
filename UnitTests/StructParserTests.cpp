@@ -94,6 +94,20 @@ TEST(StructParserTest, EmbeddedStructure)
     EXPECT_TRUE(output.find("Size: 123, Pack: 1") != std::string::npos);
 }
 
+TEST(StructParserTest, TestVoidPointer)
+{
+    std::string input = "typedef struct\r\n\
+{\r\n\
+    void* p;\r\n\
+    float x;\r\n\
+} Vector3;\r\n";
+    std::string output;
+    StructParser::Get()->ParseStructure(input, output, 1, 8);
+    EXPECT_TRUE(output.find("void* p [0 - 7]") != std::string::npos);
+    EXPECT_TRUE(output.find("float x [8 - 11]") != std::string::npos);
+    EXPECT_TRUE(output.find("Size: 12, Pack: 1") != std::string::npos);
+}
+
 /* float a [0 - 3]
 float b [4 - 7]
 float c [8 - 11]

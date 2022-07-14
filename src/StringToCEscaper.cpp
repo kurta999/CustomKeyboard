@@ -1,4 +1,3 @@
-
 #include "pch.hpp"
 
 void StringEscaper::EscapeString(std::string& input, bool escape_percent, bool insert_backslash_to_end)

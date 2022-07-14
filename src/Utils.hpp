@@ -3,6 +3,10 @@
 #include <charconv>
 #include <string>
 
+#define SAFE_RELEASE(name) \
+	if(name) \
+		name->Release();
+
 namespace utils
 {
     template<class> inline constexpr bool always_false_v = false;
@@ -21,6 +25,18 @@ namespace utils
     wxKeyCode GetVirtualKeyFromString(const std::string& key);
     std::string GetKeyStringFromVirtualKey(wxKeyCode key_code);
 #endif
+    // !\brief Get folder view 2
+    // !\return IFolderView2 pointer
+    IFolderView2* GetFolderView2();
+
+    // !\brief Retreives selected items from file explorer
+    // !\return Vector of selected items
+    std::vector<std::wstring> GetSelectedItemsFromFileExplorer();
+
+    // !\brief Get current directory path from file explorer
+    // !\return Current directory path from file explorer
+    std::wstring GetDestinationPathFromFileExplorer();
+
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
         if constexpr(!std::is_arithmetic_v<R>)
@@ -90,5 +106,13 @@ namespace utils
             std::advance(it, num);
             it = input.insert(it, separator);
         }
+    }
+
+    template<typename T> T random_mt(T min_val, T max_val)
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<T> distr(min_val, max_val);
+        return distr(gen);
     }
 }

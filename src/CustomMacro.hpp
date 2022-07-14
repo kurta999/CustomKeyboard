@@ -14,9 +14,6 @@
 #include "Logger.hpp"
 #include <thread>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
 #include <boost/tokenizer.hpp>
 #include <random>
 
@@ -58,72 +55,33 @@ class IKey
 {
 public:
     IKey() {}
-    virtual ~IKey() {}
     IKey(const IKey&) {}
+    virtual ~IKey() {}
+    virtual IKey* Clone() = 0;
     virtual void Execute() = 0;
     virtual std::string GenerateText(bool is_ini_format) = 0;
     virtual const char* GetName() = 0;
-    virtual IKey* Clone() = 0;
 };
 
 class KeyText final : public IKey
 {
 public:
-    KeyText(std::string&& keys)
-    {
-        seq = std::move(keys);
-    }
-    KeyText(const KeyText& from)
-    {
-        seq = from.seq;
-    }
+    KeyText(std::string&& keys) { seq = std::move(keys); }
+    KeyText(const KeyText& from) { seq = from.seq; }
     virtual ~KeyText() { }
-    KeyText* Clone() override
-    {
-        return new KeyText(*this);
-    }
-
-    void Execute() override
-    {
-#ifdef _WIN32
-        for(size_t i = 0; i < seq.length(); i++)
-        {
-            TypeCharacter(seq[i] & 0xFF);
-        }
-#else
-        system(fmt::format("xte 'str {}'", seq).c_str());
-#endif
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string &&ret = is_ini_format ? std::format(" KEY_TYPE[{}]", seq) : seq;
-        return ret;
-    }
+    KeyText* Clone() override { return new KeyText(*this); }
+    void Execute() override;
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     std::string& GetString()
     {
         return seq;
     }
-private:
 
+private:
 #ifdef _WIN32
-    void TypeCharacter(uint16_t character)
-    {
-        int count = MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, NULL, 0);
-        wchar_t wide_char;
-        MultiByteToWideChar(CP_ACP, 0, (char*)&character, 1, &wide_char, count);
-        INPUT input = { 0 };
-        input.type = INPUT_KEYBOARD;
-        input.ki.wScan = wide_char;
-        input.ki.dwFlags = KEYEVENTF_UNICODE;
-        if((wide_char & 0xFF00) == 0xE000)
-            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-        SendInput(1, &input, sizeof(input));
-        input.ki.dwFlags |= KEYEVENTF_KEYUP;
-        SendInput(1, &input, sizeof(input));
-    }
+    void TypeCharacter(uint16_t character);
 #endif
     std::string seq; /* characters to press and release*/
     static inline const char* name = "TEXT";
@@ -132,28 +90,12 @@ private:
 class KeyCombination final : public IKey
 {
 public:
-    KeyCombination(std::vector<uint16_t>&& keys)
-    {
-        seq = std::move(keys);
-    }    
+    KeyCombination(std::vector<uint16_t>&& keys) { seq = std::move(keys); }    
     KeyCombination(std::string&& str);
-    KeyCombination(const KeyCombination& from)
-    {
-        seq = from.seq;
-    }
+    KeyCombination(const KeyCombination& from) { seq = from.seq; }
     virtual ~KeyCombination() { }
-    KeyCombination* Clone() override
-    {
-        return new KeyCombination(*this);
-    }
-
-    void Execute() override
-    {
-        for(size_t i = 0; i < seq.size(); i++)
-            PressReleaseKey(seq[i]);
-        for(size_t i = 0; i < seq.size(); i++)
-            PressReleaseKey(seq[i], false);
-    }
+    KeyCombination* Clone() override { return new KeyCombination(*this); }
+    void Execute() override;
 
     std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
@@ -162,21 +104,9 @@ public:
     {
         return seq;
     }
-private:
-    void PressReleaseKey(uint16_t scancode, bool press = true)
-    {
-#ifdef _WIN32
-        INPUT input = { 0 };
-        input.type = INPUT_KEYBOARD;
-        input.ki.wScan = scancode;
-        input.ki.dwFlags = (press ? 0 : KEYEVENTF_KEYUP) | KEYEVENTF_SCANCODE;
-        if((scancode & 0xFF00) == 0xE000)
-            input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-        SendInput(1, &input, sizeof(input));
-#else
 
-#endif
-    }
+private:
+    void PressReleaseKey(uint16_t scancode, bool press = true);
 
     std::vector<uint16_t> seq; /* scan codes to press and release*/
     static inline const char* name = "SEQUENCE";
@@ -191,49 +121,17 @@ public:
     {
         
     }    
-    KeyDelay(uint32_t start_, uint32_t end_) : delay(std::array<uint32_t, 2>{start_, end_})
-    {
-        //delay = ;
-    }
+    KeyDelay(uint32_t start_, uint32_t end_) : delay(std::array<uint32_t, 2>{start_, end_}) { }
     KeyDelay(std::string&& str);
-    KeyDelay(const KeyDelay& from)
-    {
-        delay = from.delay;
-    }
+    KeyDelay(const KeyDelay& from) { delay = from.delay; }
     virtual ~KeyDelay() { }
-    KeyDelay* Clone() override
-    {
-        return new KeyDelay(*this);
-    }
+    KeyDelay* Clone() override { return new KeyDelay(*this); }
 
-    void Execute() override
-    {
-        std::visit([](auto&& arg) 
-            {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr(std::is_same_v<T, uint32_t>)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(arg));
-                }
-                else if constexpr(std::is_same_v<T, std::array<uint32_t, 2>>)
-                {
-                    static boost::mt19937 gen;  /* TODO: one time replace this with std random, just make sure which is really better before */
-                    boost::uniform_int<> dist(arg[0], arg[1]);
-                    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(gen, dist);
-                    int ret = die();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(ret));
-                }
-                else
-                    static_assert(always_false_v<T>, "bad visitor!");
-            }, delay);
-    }
+    void Execute() override;
     std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return std::holds_alternative<uint32_t>(delay) ? name_delay : name_random; }
     
-    std::variant<uint32_t, std::array<uint32_t, 2>>& GetDelay()
-    {
-        return delay;
-    }
+    std::variant<uint32_t, std::array<uint32_t, 2>>& GetDelay() { return delay; }
 
 private:
     std::variant<uint32_t, std::array<uint32_t, 2>> delay;
@@ -244,41 +142,14 @@ private:
 class MouseMovement final : public IKey
 {
 public:
-    MouseMovement(LPPOINT* pos_)
-    {
-        memcpy(&m_pos, pos_, sizeof(m_pos));
-    }
-    MouseMovement(const MouseMovement& from)
-    {
-        memcpy(&m_pos, &from.m_pos, sizeof(m_pos));
-    }
+    MouseMovement(LPPOINT* pos_) { memcpy(&m_pos, pos_, sizeof(m_pos)); }
+    MouseMovement(const MouseMovement& from) { memcpy(&m_pos, &from.m_pos, sizeof(m_pos)); }
     MouseMovement(std::string&& str);
     virtual ~MouseMovement() { }
-    MouseMovement* Clone() override
-    {
-        return new MouseMovement(*this);
-    }
+    MouseMovement* Clone() override { return new MouseMovement(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-#ifdef _WIN32
-        POINT to_screen;
-        HWND hwnd = GetForegroundWindow();
-        memcpy(&to_screen, &m_pos, sizeof(to_screen));
-        ClientToScreen(hwnd, &to_screen);
-        ShowCursor(FALSE);
-        SetCursorPos(to_screen.x, to_screen.y);
-        ShowCursor(TRUE);
-#else
-        system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
-#endif
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string&& ret = is_ini_format ? std::format(" MOUSE_MOVE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     POINT& GetPos()
@@ -294,56 +165,14 @@ private:
 class MouseInterpolate final : public IKey
 {
 public:
-    MouseInterpolate(LPPOINT* pos_)
-    {
-        memcpy(&m_pos, pos_, sizeof(m_pos));
-    }
-    MouseInterpolate(const MouseInterpolate& from)
-    {
-        memcpy(&m_pos, &from.m_pos, sizeof(m_pos));
-    }
+    MouseInterpolate(LPPOINT* pos_) { memcpy(&m_pos, pos_, sizeof(m_pos)); }
+    MouseInterpolate(const MouseInterpolate& from) { memcpy(&m_pos, &from.m_pos, sizeof(m_pos)); }
     MouseInterpolate(std::string&& str);
     virtual ~MouseInterpolate() { }
-    MouseInterpolate* Clone() override
-    {
-        return new MouseInterpolate(*this);
-    }
+    MouseInterpolate* Clone() override { return new MouseInterpolate(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-#ifdef _WIN32
-        POINT to_screen;
-        HWND hwnd = GetForegroundWindow();
-        memcpy(&to_screen, &m_pos, sizeof(to_screen));
-        ClientToScreen(hwnd, &to_screen);
-
-        POINT curr_pos;
-        GetCursorPos(&curr_pos);
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> random_steps(4000, 8000);
-
-        int steps = random_steps(gen);
-        for(int i = 0; i <= steps; i++)
-        {
-            int pos_x = std::round(std::lerp(static_cast<float>(curr_pos.x), static_cast<float>(to_screen.x), static_cast<float>(i) / static_cast<float>(steps)));
-            int pos_y = std::round(std::lerp(static_cast<float>(curr_pos.y), static_cast<float>(to_screen.y), static_cast<float>(i) / static_cast<float>(steps)));
-            ShowCursor(FALSE);
-            SetCursorPos(pos_x, pos_y);
-            ShowCursor(TRUE);
-            std::this_thread::sleep_for(std::chrono::nanoseconds(100));
-        }
-#else
-        system(fmt::format("xte 'mousemove {} {}'", 0, 0).c_str());
-#endif
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string&& ret = is_ini_format ? std::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     POINT& GetPos()
@@ -359,46 +188,14 @@ private:
 class MousePress final : public IKey
 {
 public:
-    MousePress(uint16_t key_) : key(key_)
-    {}
-    MousePress(const MousePress& from)
-    {
-        key = from.key;
-    }
+    MousePress(uint16_t key_) : key(key_) {}
+    MousePress(const MousePress& from) { key = from.key; }
     MousePress(const std::string&& str);
     virtual ~MousePress() { }
-    MousePress* Clone() override
-    {
-        return new MousePress(*this);
-    }
+    MousePress* Clone() override { return new MousePress(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-        PressMouse(key);
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string text;
-#ifdef _WIN32
-        switch(key)
-        {
-        case MOUSEEVENTF_LEFTDOWN:
-            text = "LEFT";
-            break;
-        case MOUSEEVENTF_RIGHTDOWN:
-            text = "RIGHT";
-            break;
-        case MOUSEEVENTF_MIDDLEDOWN:
-            text = "MIDDLE";
-            break;
-        default:
-            assert(0);
-        }
-#endif
-        std::string&& ret = is_ini_format ? std::format(" MOUSE_PRESS[{}]", text) : text;
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     uint16_t GetKey()
@@ -406,17 +203,7 @@ public:
         return key;
     }
 private:
-    void PressMouse(uint16_t mouse_button)
-    {
-#ifdef _WIN32
-        INPUT input = { 0 };
-        input.type = INPUT_MOUSE;
-        input.mi.dwFlags = mouse_button;
-        SendInput(1, &input, sizeof(input));
-#else
-
-#endif
-    }
+    void PressMouse(uint16_t mouse_button);
 
     uint16_t key;
     static inline const char* name = "MOUSE PRESS";
@@ -425,46 +212,14 @@ private:
 class MouseRelease final : public IKey
 {
 public:
-    MouseRelease(uint16_t key_) : key(key_)
-    {}
-    MouseRelease(const MouseRelease& from)
-    {
-        key = from.key;
-    }
+    MouseRelease(uint16_t key_) : key(key_) {}
+    MouseRelease(const MouseRelease& from) { key = from.key; }
     MouseRelease(const std::string&& str);
     virtual ~MouseRelease() { }
-    MouseRelease* Clone() override
-    {
-        return new MouseRelease(*this);
-    }
+    MouseRelease* Clone() override { return new MouseRelease(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-        ReleaseMouse(key);
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string text;
-#ifdef _WIN32
-        switch(key)
-        {
-        case MOUSEEVENTF_LEFTDOWN:
-            text = "LEFT";
-            break;
-        case MOUSEEVENTF_RIGHTDOWN:
-            text = "RIGHT";
-            break;
-        case MOUSEEVENTF_MIDDLEDOWN:
-            text = "MIDDLE";
-            break;
-        default:
-            assert(0);
-        }
-#endif
-        std::string&& ret = is_ini_format ? std::format(" MOUSE_RELEASE[{}]", text) : text;
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     uint16_t GetKey()
@@ -472,17 +227,7 @@ public:
         return key;
     }
 private:
-    void ReleaseMouse(uint16_t mouse_button)
-    {
-#ifdef _WIN32
-        INPUT input = { 0 };
-        input.type = INPUT_MOUSE;
-        input.mi.dwFlags = mouse_button << (uint16_t)1;
-        SendInput(1, &input, sizeof(input));
-#else
-
-#endif
-    }
+    void ReleaseMouse(uint16_t mouse_button);
 
     uint16_t key;
     static inline const char* name = "MOUSE RELEASE";
@@ -491,46 +236,14 @@ private:
 class MouseClick final : public IKey
 {
 public:
-    MouseClick(uint16_t key_) : key(key_)
-    {}
-    MouseClick(const MouseClick& from)
-    {
-        key = from.key;
-    }
+    MouseClick(uint16_t key_) : key(key_) {}
+    MouseClick(const MouseClick& from) { key = from.key; }
     MouseClick(const std::string&& str);
     virtual ~MouseClick() { }
-    MouseClick* Clone() override
-    {
-        return new MouseClick(*this);
-    }
+    MouseClick* Clone() override { return new MouseClick(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-        PressReleaseMouse(key);
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string text;
-#ifdef _WIN32
-        switch(key)
-        {
-            case MOUSEEVENTF_LEFTDOWN:
-                text = "LEFT";
-                break;
-            case MOUSEEVENTF_RIGHTDOWN:
-                text = "RIGHT";
-                break;
-            case MOUSEEVENTF_MIDDLEDOWN:
-                text = "MIDDLE";
-                break;
-            default:
-                assert(0);
-        }
-#endif
-        std::string&& ret = is_ini_format ? std::format(" MOUSE_CLICK[{}]", text) : text;
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     uint16_t GetKey()
@@ -538,19 +251,7 @@ public:
         return key;
     }
 private:
-    void PressReleaseMouse(uint16_t mouse_button)
-    {
-#ifdef _WIN32
-        INPUT input = { 0 };
-        input.type = INPUT_MOUSE;
-        input.mi.dwFlags = mouse_button;
-        SendInput(1, &input, sizeof(input));
-        input.mi.dwFlags = mouse_button << (uint16_t)1;
-        SendInput(1, &input, sizeof(input));
-#else
-        
-#endif
-    }
+    void PressReleaseMouse(uint16_t mouse_button);
 
     uint16_t key;
     static inline const char* name = "MOUSE CLICK";
@@ -559,36 +260,15 @@ private:
 class CommandExecute final : public IKey
 {
 public:
-    CommandExecute(std::string cmd_) : cmd(cmd_)
-    {}
-    CommandExecute(const CommandExecute& from)
-    {
-        cmd = from.cmd;
-    }
+    CommandExecute(std::string cmd_) : cmd(cmd_) {}
+    CommandExecute(const CommandExecute& from) { cmd = from.cmd; }
     /*CommandExecute(const std::string&& str) : cmd(str)
     {}*/
     virtual ~CommandExecute() { }
-    CommandExecute* Clone() override
-    {
-        return new CommandExecute(*this);
-    }
+    CommandExecute* Clone() override { return new CommandExecute(*this); }
+    void Execute() override;
 
-    void Execute() override
-    {
-#ifdef _WIN32
-        std::wstring param(cmd.begin(), cmd.end());
-        std::wstring command = L"/k " + param;
-        ShellExecuteW(NULL, L"open", L"cmd", command.c_str(), NULL, SW_NORMAL);
-#else
-
-#endif
-    }
-
-    std::string GenerateText(bool is_ini_format) override
-    {
-        std::string&& ret = is_ini_format ? std::format(" CMD[{}]", cmd) : cmd;
-        return ret;
-    }
+    std::string GenerateText(bool is_ini_format) override;
     const char* GetName() override { return name; }
 
     std::string GetCmd()
@@ -596,6 +276,7 @@ public:
         return cmd;
     }
 
+private:
     std::string cmd;
     static inline const char* name = "CMD";
 };

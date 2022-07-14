@@ -7,6 +7,11 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
 
+    for(int i = 0; i != 50; i++)
+    {
+        LOG(LogLevel::Warning, "random: {}", utils::random_mt(10, 100));
+    }
+
     can_entry = new CanEntryHandler(xml, rx_xml);
 
     Settings::Get()->Init();

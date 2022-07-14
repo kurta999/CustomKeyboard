@@ -2,7 +2,51 @@
 
 size_t ClassElement::pointer_size = 4;
 
-size_t FindEndOfHeader(std::string& input)
+const std::unordered_map<std::string, size_t> ClassElement::types =
+{
+	{"char", sizeof(char), },
+	{"uint8_t", sizeof(uint8_t), },
+	{"int8_t", sizeof(int8_t)},
+	{"uint16_t", sizeof(uint16_t)},
+	{"int16_t", sizeof(int16_t)},
+	{"uint32_t", sizeof(uint32_t)},
+	{"int32_t", sizeof(int32_t)},
+	{"int", sizeof(int32_t)},
+	{"uint64_t", sizeof(uint64_t)},
+	{"int64_t", sizeof(int64_t)},
+	{"float", sizeof(float)},
+	{"double", sizeof(double)},
+};
+
+bool ClassElement::IsValidVariableType(std::string& type)
+{
+	auto it = types.find(type);
+	bool ret = it != types.end();
+	return ret;
+}
+
+size_t ClassElement::GetSize()
+{
+	size_t ret = 0;
+	if(is_pointer)
+		ret = pointer_size;
+	else
+		ret = types.at(type_name);
+
+	if(array_size != std::numeric_limits<size_t>::max())
+		ret *= array_size;
+	return ret;
+}
+
+std::optional<std::shared_ptr<ClassContainer>> StructParser::IsClassAlreadyExists(std::string& class_name)
+{
+	auto ret = std::find_if(classes.cbegin(), classes.cend(), [&](const auto& item) { return item->type_name == class_name; });
+	if(ret == classes.cend())
+		return std::nullopt;
+	return *ret;
+}
+
+size_t StructParser::FindEndOfHeader(std::string& input)
 {
 	size_t pos_pack = input.find("#pragma pack", 0);
 	size_t pos_struct = input.find("typedef struct", 0);
@@ -10,16 +54,9 @@ size_t FindEndOfHeader(std::string& input)
 	return min_pos;
 }
 
-bool IsValidVariableType(std::string& type)
-{
-	auto it = types.find(type);
-	bool ret = it != types.end();
-	return ret;
-}
-
 bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, std::shared_ptr<ClassContainer>& c)
 {
-	std::string str_in = str_input;// str_input.substr(line_counter, str_input.length() - line_counter);
+	std::string str_in = str_input;
 	boost::trim_left(str_in);
 
 	size_t trim_space_pos = str_in.find_first_not_of(" ", line_counter);
@@ -37,9 +74,8 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	bool is_pointer = var_type.find("*", 0) != std::string::npos || var_name.find("*", 0) != std::string::npos;
 
 	std::optional<std::shared_ptr<ClassContainer>> c_exist = IsClassAlreadyExists(var_type);
-	if(!IsValidVariableType(var_type) && c_exist == std::nullopt && !is_pointer)
+	if(!ClassElement::IsValidVariableType(var_type) && c_exist == std::nullopt && !is_pointer)
 	{
-		//LOG(LogLevel::Error, "Invalid type: {}", var_type);
 		return false;
 	}
 
@@ -91,15 +127,6 @@ bool StructParser::ParseElement(std::string& str_input, size_t& line_counter, st
 	return true;
 }
 
-size_t FindStructEnd(std::string str_in, size_t& input_len)
-{
-	bool ret = false;
-	size_t struct_begin = str_in.rfind("};", input_len);
-	if(struct_begin != std::string::npos)
-		ret = true;
-	return ret;
-}
-
 void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassContainer>& c, std::shared_ptr<ClassElement>& e, size_t& offset)
 {
 	size_t elem_size = e->GetSize();
@@ -118,12 +145,9 @@ void StructParser::GenerateOffsets(std::string& output, std::shared_ptr<ClassCon
 		offset += real_size;
 }
 
-void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing, size_t ptr_size)
+void StructParser::PreParseStructure(std::string& input, std::string& output)
 {
-	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-	std::string str_in;
 	std::string header;
-
 	size_t header_end = FindEndOfHeader(input);
 	if(header_end > 0)
 	{
@@ -144,8 +168,11 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 		}
 	}
-	TrimStructure(input, str_in);  /* trim structure to be able to parser it */
+	TrimStructure(input, output);  /* trim structure to be able to parser it */
+}
 
+void StructParser::ConstructStuctureInMemory(std::string& input, uint32_t default_packing, size_t ptr_size)
+{
 	ClassElement::pointer_size = ptr_size;
 	size_t packing = default_packing;
 	size_t push_start = 1;
@@ -154,33 +181,33 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 	std::stack<std::shared_ptr<ClassContainer>> pointer_stack;
 
 	bool try_parse_element = 0;
-	while(input_len < str_in.length() - 1)
+	while(input_len < input.length() - 1)
 	{
-		if(str_in[input_len] == '#')
+		if(input[input_len] == '#')
 		{
 			try_parse_element = 0;
-			if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack(push, "), "#pragma pack(push, "))
+			if(!input.compare(input_len, std::char_traits<char>::length("#pragma pack(push, "), "#pragma pack(push, "))
 			{
-				packing = utils::stoi<size_t>(&str_in[input_len + std::char_traits<char>::length("#pragma pack(push, ")]);
-				size_t pos = str_in.find(')', input_len);
+				packing = utils::stoi<size_t>(&input[input_len + std::char_traits<char>::length("#pragma pack(push, ")]);
+				size_t pos = input.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
-			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack()"), "#pragma pack()"))  /* end */
+			else if(!input.compare(input_len, std::char_traits<char>::length("#pragma pack()"), "#pragma pack()"))  /* end */
 			{
 				packing = default_packing;
-				size_t pos = str_in.find(')', input_len);
+				size_t pos = input.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
-			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack(pop)"), "#pragma pack(pop)"))  /* end */
+			else if(!input.compare(input_len, std::char_traits<char>::length("#pragma pack(pop)"), "#pragma pack(pop)"))  /* end */
 			{
 				packing = default_packing;
-				size_t pos = str_in.find(')', input_len);
+				size_t pos = input.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
-			else if(!str_in.compare(input_len, std::char_traits<char>::length("#pragma pack("), "#pragma pack("))
+			else if(!input.compare(input_len, std::char_traits<char>::length("#pragma pack("), "#pragma pack("))
 			{
-				packing = utils::stoi<size_t>(&str_in[input_len + std::char_traits<char>::length("#pragma pack(")]);
-				size_t pos = str_in.find(')', input_len);
+				packing = utils::stoi<size_t>(&input[input_len + std::char_traits<char>::length("#pragma pack(")]);
+				size_t pos = input.find(')', input_len);
 				input_len += pos - input_len + 1;
 			}
 			else
@@ -198,13 +225,13 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 
 			std::shared_ptr<ClassContainer> c = pointer_stack.top();
-			bool parse_ok = ParseElement(str_in, input_len, c);
+			bool parse_ok = ParseElement(input, input_len, c);
 			if(!parse_ok)
 				try_parse_element = 0;
 			continue;
 		}
 
-		else if(str_in[input_len] == '}')
+		else if(input[input_len] == '}')
 		{
 			if(pointer_stack.empty())
 			{
@@ -213,11 +240,11 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			}
 
 			std::shared_ptr<ClassContainer> c = pointer_stack.top();
-			if(str_in[input_len + 1] != ';')  /* structure has a name */
+			if(input[input_len + 1] != ';')  /* structure has a name */
 			{
-				size_t pos = str_in.find(";", input_len);
+				size_t pos = input.find(";", input_len);
 
-				c->type_name = str_in.substr(input_len + 2, pos - input_len - 2);
+				c->type_name = input.substr(input_len + 2, pos - input_len - 2);
 				DBG("go back 2 %s\n", c->type_name.c_str());
 
 				input_len += (pos - input_len) + 1;
@@ -233,7 +260,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 				DBG("union - %s\n", c->type_name.c_str());
 				size_t offset = 0;
 				std::shared_ptr<ClassContainer> p;
-				size_t biggest_element = 0;					
+				size_t biggest_element = 0;
 				p = c;
 				while(p != nullptr)
 				{
@@ -271,7 +298,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			try_parse_element = 1;
 
 			pointer_stack.pop();
-			
+
 			if(pointer_stack.empty())
 				classes.push_back(c);
 			else
@@ -282,13 +309,13 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 			continue;
 		}
 
-		size_t struct_start = str_in.find("struct{", input_len);
-		size_t union_start = str_in.find("union{", input_len);
+		size_t struct_start = input.find("struct{", input_len);
+		size_t union_start = input.find("union{", input_len);
 		if(struct_start < union_start && struct_start != std::string::npos && !try_parse_element)
 		{
 			try_parse_element = 1;
 			DBG("struct found %zu\n", struct_start);
-			
+
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
 			pointer_stack.push(c);
 
@@ -298,17 +325,20 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		{
 			try_parse_element = 1;
 			DBG("union found %zu\n", union_start);
-			
+
 			std::shared_ptr<ClassContainer> c = std::make_shared<ClassContainer>("", packing);
 			c->is_union = 1;
 			pointer_stack.push(c);
 
 			input_len += ((union_start - input_len)) + std::char_traits<char>::length("union");
 		}
-		
+
 		input_len++;
 	}
+}
 
+void StructParser::GenerateOutput(std::string& output)
+{
 	std::stack<std::shared_ptr<ClassContainer>> out_stack;
 	for(auto& c : classes)
 	{
@@ -318,7 +348,7 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 		std::shared_ptr<ClassContainer> p = c;
 		out_stack.push(p);
 		while(p != nullptr)
-		{ 
+		{
 			int was_container = 0;
 			auto m = p->members.begin();
 			while(m != p->members.end())
@@ -366,6 +396,15 @@ void StructParser::ParseStructure(std::string& input, std::string& output, uint3
 
 		output += std::format("\r\nSize: {}, Pack: {}\r\n\r\n", offset, c->packing);
 	}
+}
+
+void StructParser::ParseStructure(std::string& input, std::string& output, uint32_t default_packing, size_t ptr_size)
+{
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+	std::string str_in;
+	PreParseStructure(input, str_in);
+	ConstructStuctureInMemory(input, default_packing, ptr_size);
+	GenerateOutput(output);
 
 	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
