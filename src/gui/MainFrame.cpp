@@ -25,8 +25,8 @@ wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
 {
-	wxMessageBox("This is a simple program which made for improving my coding experience.\n\
-		Feel free to re(use) it in any way what you want.", "Help");
+	wxMessageBox("This is a personal project for myself to improve my daily computer usage.\n\
+I've implemented things what I really needed to be more productive and accomplish things faster", "Help");
 }
 
 void MyFrame::OnAbout(wxCommandEvent& event)
@@ -59,6 +59,7 @@ SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
 "wxWidgets: " + wxwidgets_version + "\n" +
 "boost: " + BOOST_LIB_VERSION + "\n" +
 "lodepng: " + LODEPNG_VERSION_STRING + "\n" +
+"HIDAPI: " + HID_API_VERSION_STR + "\n" +
 "Build info:\n" +
 "Compiler: " + BOOST_COMPILER + "\n"
 "Built on: " + __TIMESTAMP__, "OK");

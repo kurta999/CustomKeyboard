@@ -75,7 +75,7 @@ void TerminalHotkey::OpenTerminal(std::wstring& path)
 			ShellExecute(NULL, L"open", L"powershell", std::format(L"-NoExit -command \"& {{Set-Location {}}}\"", path).c_str(), NULL, SW_SHOW);
 			break;
 		}		
-		case TerminalType::BASH_TERMINAl:
+		case TerminalType::BASH_TERMINAL:
 		{
 			ShellExecute(NULL, L"open", L"wsl", std::format(L"--cd \"{}\"", path).c_str(), NULL, SW_SHOW);
 			break;

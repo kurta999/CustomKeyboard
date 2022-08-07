@@ -433,6 +433,7 @@ std::string CommandExecute::GenerateText(bool is_ini_format)
 
 void CustomMacro::PressKey(std::string key)
 {
+    std::scoped_lock lock(executor_mtx);
     if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
     {
         PrintScreenSaver::Get()->SaveScreenshot();

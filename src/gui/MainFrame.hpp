@@ -59,7 +59,7 @@ public:
 
 	void SetIconTooltip(const wxString& str);
 
-	// \brief Register terminal systemwide hotkey
+	// !\brief Register terminal systemwide hotkey
 	void RegisterTerminalHotkey(int vkey);
 
 	MainPanel* main_panel = nullptr;
@@ -96,42 +96,43 @@ private:
 	void OnKeyDown(wxKeyEvent& event);
 	void OnHotkey(wxKeyEvent& evt);
 
-	// \brief Fast timer for frame
+	// !\brief Fast timer for frame
 	void On10msTimer(wxTimerEvent& event);
 
-	// \brief Main timer for frame
+	// !\brief Main timer for frame
 	void On100msTimer(wxTimerEvent& event);
 
-	// \brief Handles debug panel related updates
+	// !\brief Handles debug panel related updates
 	void HandleDebugPanelUpdate();
 
-	// \brief Handles backup progress dialog
+	// !\brief Handles backup progress dialog
 	void HandleBackupProgressDialog();
 
-	// \brief Handles numlock to be always on
+	// !\brief Handles numlock to be always on
 	void HandleAlwaysOnNumlock();	
 	
-	// \brief Handles crypto price update
+	// !\brief Handles crypto price update
 	void HandleCryptoPriceUpdate();
+
 private:
-	// \brief Handles notifications
+	// !\brief Handles notifications
 	void HandleNotifications();
 
-	// \brief Show notification
+	// !\brief Show notification
 	template<typename T> void ShowNotificaiton(const wxString& title, const wxString& message, int timeout, int flags, T&& fptr);
 
-	// \brief Application icon
+	// !\brief Application icon
 	wxIcon applicationIcon;
 
-	// \brief Tray
+	// !\brief Tray
 	TrayIcon* tray = nullptr;
 
-	// \brief AUI manager for subwindows
+	// !\brief AUI manager for subwindows
 	wxAuiManager m_mgr;
 
-	// \brief Fast main frame timer
+	// !\brief Fast main frame timer
 	wxTimer* m_10msTimer = nullptr;
 	
-	// \brief Main frame timer
+	// !\brief Main frame timer
 	wxTimer* m_100msTimer = nullptr;
 };

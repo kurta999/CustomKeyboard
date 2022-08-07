@@ -7,11 +7,6 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
 
-    for(int i = 0; i != 50; i++)
-    {
-        LOG(LogLevel::Warning, "random: {}", utils::random_mt(10, 100));
-    }
-
     can_entry = new CanEntryHandler(xml, rx_xml);
 
     Settings::Get()->Init();
@@ -25,6 +20,7 @@ bool MyApp::OnInit()
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
     SerialForwarder::Get()->Init();
+    CorsairHid::Get()->Init();
 
     can_entry->Init();
 
@@ -54,6 +50,7 @@ int MyApp::OnExit()
     SerialPort::CSingleton::Destroy();
     CanSerialPort::CSingleton::Destroy();
     ModbusMasterSerialPort::CSingleton::Destroy();
+    CorsairHid::CSingleton::Destroy();
     Logger::CSingleton::Destroy();
     return true;
 }

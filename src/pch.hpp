@@ -45,6 +45,7 @@
 #include "ModbusMasterSerialPort.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
+#include "CorsairHid.hpp"
 #include "StringToCEscaper.hpp"
 #include "Utils.hpp"
 

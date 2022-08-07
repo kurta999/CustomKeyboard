@@ -40,6 +40,9 @@
     <Filter Include="libs\sha256">
       <UniqueIdentifier>{234ba694-100f-4adb-9649-c1f75f35be86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\hidapi">
+      <UniqueIdentifier>{ecbd72f2-6710-4abc-b8c5-74c0bcc1de70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\sqlite\sqlite3.h">
@@ -204,6 +207,15 @@
     <ClInclude Include="src\gui\ModbusMasterPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+    <ClInclude Include="libs\hidapi\hidapi.h">
+      <Filter>libs\hidapi</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\hidapi\hidapi_winapi.h">
+      <Filter>libs\hidapi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CorsairHid.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -344,6 +356,9 @@
     <ClCompile Include="src\gui\ModbusMasterPanel.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
+    <ClCompile Include="src\CorsairHid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">
@@ -363,6 +378,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

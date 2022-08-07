@@ -482,6 +482,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[TerminalHotkey]\n";
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
     out << "Key = " << TerminalHotkey::Get()->GetKey() << "\n";
+    out << "Type = " << static_cast<uint32_t>(TerminalHotkey::Get()->type) << " # 0 = WINDOWS_TERMINAL, 1 = cmd.exe, 2 = POWER_SHELL, 3 = BASH_TERMINAL" << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";

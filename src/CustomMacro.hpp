@@ -402,6 +402,8 @@ public:
 private:
     friend class Settings;
 
+    std::mutex executor_mtx;
+
     // !\brief Vector contains all macros
     std::vector<std::unique_ptr<MacroAppProfile>> macros;
     static const std::unordered_map<std::string, int> scan_codes;

@@ -9,7 +9,7 @@ typedef enum : uint8_t
     WINDOWS_TERMINAL,
     COMMAND_LINE,
     POWER_SHELL,
-    BASH_TERMINAl,
+    BASH_TERMINAL,
 } TerminalType;
 
 class TerminalHotkey : public CSingleton < TerminalHotkey >
@@ -28,10 +28,14 @@ public:
     // !\brief Type of terminal which one to open
     TerminalType type{TerminalType::WINDOWS_TERMINAL};
 
+    // !\brief Set key
+    // !\param key_str [in] Key as string
     void SetKey(const std::string& key_str);
 
+    // !\brief Return key as string
     std::string GetKey();
 
+    // !\brief Updates hotkey registration in main frame
     void UpdateHotkeyRegistration();
 
 private:

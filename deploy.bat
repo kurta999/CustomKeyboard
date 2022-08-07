@@ -34,44 +34,44 @@ SET /A TestVal="%UserInput%"*1
 IF %TestVal%==%UserInput% (
   IF %TestVal% == 1 (
     copy /y Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y Debug\wxbase317ud_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase317ud_vc_custom.dll
-    copy /y Debug\wxmsw317ud_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_aui_vc_custom.dll
-    copy /y Debug\wxmsw317ud_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_core_vc_custom.dll
-    copy /y Debug\wxmsw317ud_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_stc_vc_custom.dll
-    copy /y Debug\wxmsw317ud_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_propgrid_vc_custom.dll
+    copy /y Debug\wxbase320ud_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase320ud_vc_custom.dll
+    copy /y Debug\wxmsw320ud_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_aui_vc_custom.dll
+    copy /y Debug\wxmsw320ud_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_core_vc_custom.dll
+    copy /y Debug\wxmsw320ud_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_stc_vc_custom.dll
+    copy /y Debug\wxmsw320ud_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_propgrid_vc_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Debug x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 2 (
 	copy /y Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y Release\wxbase317u_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase317u_vc_custom.dll
-    copy /y Release\wxmsw317u_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_aui_vc_custom.dll
-    copy /y Release\wxmsw317u_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_core_vc_custom.dll
-    copy /y Release\wxmsw317u_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_stc_vc_custom.dll
-    copy /y Release\wxmsw317u_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_propgrid_vc_custom.dll
+    copy /y Release\wxbase320u_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase320u_vc_custom.dll
+    copy /y Release\wxmsw320u_aui_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_aui_vc_custom.dll
+    copy /y Release\wxmsw320u_core_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_core_vc_custom.dll
+    copy /y Release\wxmsw320u_stc_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_stc_vc_custom.dll
+    copy /y Release\wxmsw320u_propgrid_vc_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_propgrid_vc_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Release x86 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
   ) ELSE IF %TestVal% == 3 (
 	copy /y x64\Debug\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y x64\Debug\wxbase317ud_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase317ud_vc_x64_custom.dll
-    copy /y x64\Debug\wxmsw317ud_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_aui_vc_x64_custom.dll
-    copy /y x64\Debug\wxmsw317ud_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_core_vc_x64_custom.dll
-    copy /y x64\Debug\wxmsw317ud_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_stc_vc_x64_custom.dll
-    copy /y x64\Debug\wxmsw317ud_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317ud_propgrid_vc_x64_custom.dll
+    copy /y x64\Debug\wxbase320ud_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase320ud_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw320ud_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_aui_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw320ud_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_core_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw320ud_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_stc_vc_x64_custom.dll
+    copy /y x64\Debug\wxmsw320ud_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320ud_propgrid_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Debug x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
 	goto INFINITY_LOOP
    ) ELSE IF %TestVal% == 4 (
 	copy /y x64\Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\%PROJECT_NAME%.exe
-    copy /y x64\Release\wxbase317u_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase317u_vc_x64_custom.dll
-    copy /y x64\Release\wxmsw317u_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_aui_vc_x64_custom.dll
-    copy /y x64\Release\wxmsw317u_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_core_vc_x64_custom.dll
-    copy /y x64\Release\wxmsw317u_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_stc_vc_x64_custom.dll
-    copy /y x64\Release\wxmsw317u_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw317u_propgrid_vc_x64_custom.dll
+    copy /y x64\Release\wxbase320u_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxbase320u_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw320u_aui_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_aui_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw320u_core_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_core_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw320u_stc_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_stc_vc_x64_custom.dll
+    copy /y x64\Release\wxmsw320u_propgrid_vc_x64_custom.dll %EXPORT_APP_DIR%\%PROJECT_NAME%\wxmsw320u_propgrid_vc_x64_custom.dll
     copy /y Graphs\template.html %EXPORT_APP_DIR%\%PROJECT_NAME%\Graphs\template.html
 
 	ECHO Release x64 successfully deployed to %EXPORT_APP_DIR%\%PROJECT_NAME%
