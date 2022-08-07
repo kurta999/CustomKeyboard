@@ -4,6 +4,14 @@
 #include <string>
 #include <chrono>
 
+typedef enum : uint8_t
+{
+    WINDOWS_TERMINAL,
+    COMMAND_LINE,
+    POWER_SHELL,
+    BASH_TERMINAl,
+} TerminalType;
+
 class TerminalHotkey : public CSingleton < TerminalHotkey >
 {
     friend class CSingleton < TerminalHotkey >;
@@ -17,13 +25,19 @@ public:
     // !\brief Is enabled?
     bool is_enabled = true;
 
-    // !\brief wxKeyCode for trigger key
-    wxKeyCode vkey;
+    // !\brief Type of terminal which one to open
+    TerminalType type{TerminalType::WINDOWS_TERMINAL};
 
-    // !\brief Last execution timepoint (used for avoid debouncing)
-    std::chrono::steady_clock::time_point last_execution;
+    void SetKey(const std::string& key_str);
+
+    std::string GetKey();
+
+    void UpdateHotkeyRegistration();
 
 private:
+    // !\brief VK key code for trigger key
+    int vkey;
+
     // !\brief Open terminal with given path
     // !\param path [in] Path where to open the terminal
     void OpenTerminal(std::wstring& path);

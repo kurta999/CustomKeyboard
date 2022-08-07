@@ -8,6 +8,7 @@
 #include "Configuration.hpp"
 #include "FilePanel.hpp"
 #include "CanPanel.hpp"
+#include "ModbusMasterPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -58,6 +59,9 @@ public:
 
 	void SetIconTooltip(const wxString& str);
 
+	// \brief Register terminal systemwide hotkey
+	void RegisterTerminalHotkey(int vkey);
+
 	MainPanel* main_panel = nullptr;
 	ConfigurationPanel* config_panel = nullptr;
 	EditorPanel* editor_panel = nullptr;
@@ -66,6 +70,7 @@ public:
 	ParserPanel* parser_panel = nullptr;
 	FilePanel* file_panel = nullptr;
 	CanPanel* can_panel = nullptr;
+	ModbusMasterPanel* modbus_master_panel = nullptr;
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl = nullptr;
 	std::mutex mtx;
@@ -88,6 +93,8 @@ private:
 	void OnCanSaveRxList(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
+	void OnKeyDown(wxKeyEvent& event);
+	void OnHotkey(wxKeyEvent& evt);
 
 	// \brief Fast timer for frame
 	void On10msTimer(wxTimerEvent& event);
@@ -106,7 +113,6 @@ private:
 	
 	// \brief Handles crypto price update
 	void HandleCryptoPriceUpdate();
-
 private:
 	// \brief Handles notifications
 	void HandleNotifications();

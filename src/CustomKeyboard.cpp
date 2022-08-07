@@ -17,6 +17,7 @@ bool MyApp::OnInit()
     Settings::Get()->Init();
     SerialPort::Get()->Init();
     CanSerialPort::Get()->Init();
+    ModbusMasterSerialPort::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
     StructParser::Get()->Init();
@@ -32,6 +33,7 @@ bool MyApp::OnInit()
     MyFrame* frame = new MyFrame(wxT("CustomKeyboard"));
     SetTopWindow(frame);
     is_init_finished = true;
+    TerminalHotkey::Get()->UpdateHotkeyRegistration();
     return true;
 }
 
@@ -51,6 +53,7 @@ int MyApp::OnExit()
     SerialForwarder::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
     CanSerialPort::CSingleton::Destroy();
+    ModbusMasterSerialPort::CSingleton::Destroy();
     Logger::CSingleton::Destroy();
     return true;
 }

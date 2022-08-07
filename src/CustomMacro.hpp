@@ -48,7 +48,7 @@ typedef struct
 
 enum MacroTypes : uint8_t
 {
-    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, COMMAND, MAX
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, BASH, CMD, MAX
 };
 
 class IKey
@@ -257,12 +257,36 @@ private:
     static inline const char* name = "MOUSE CLICK";
 };
 
+class BashCommand final : public IKey
+{
+public:
+    BashCommand(std::string cmd_) : cmd(cmd_) {}
+    BashCommand(const BashCommand& from) { cmd = from.cmd; }
+    /*BashCommand(const std::string&& str) : cmd(str)
+    {}*/
+    virtual ~BashCommand() { }
+    BashCommand* Clone() override { return new BashCommand(*this); }
+    void Execute() override;
+
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name; }
+
+    std::string GetCmd()
+    {
+        return cmd;
+    }
+
+private:
+    std::string cmd;
+    static inline const char* name = "BASH";
+};
+
 class CommandExecute final : public IKey
 {
 public:
     CommandExecute(std::string cmd_) : cmd(cmd_) {}
     CommandExecute(const CommandExecute& from) { cmd = from.cmd; }
-    /*CommandExecute(const std::string&& str) : cmd(str)
+    /*BashCommand(const std::string&& str) : cmd(str)
     {}*/
     virtual ~CommandExecute() { }
     CommandExecute* Clone() override { return new CommandExecute(*this); }

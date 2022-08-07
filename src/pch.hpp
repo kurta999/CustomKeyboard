@@ -19,6 +19,7 @@
 #include "gui/TrayIcon.hpp"
 #include "gui/MainPanel.hpp"
 #include "gui/MainFrame.hpp"
+#include "gui/ModbusMasterPanel.hpp"
 
 #include "Logger.hpp"
 #include "CustomMacro.hpp"
@@ -41,6 +42,7 @@
 #include "TerminalHotkey.hpp"
 #include "SerialPort.hpp"
 #include "CanSerialPort.hpp"
+#include "ModbusMasterSerialPort.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
 #include "StringToCEscaper.hpp"
@@ -153,3 +155,5 @@ extern "C"
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+
+using namespace std::chrono_literals;

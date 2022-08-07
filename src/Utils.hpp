@@ -2,6 +2,9 @@
 
 #include <charconv>
 #include <string>
+#ifdef _WIN32
+#include <atlstr.h>
+#endif
 
 #define SAFE_RELEASE(name) \
 	if(name) \
@@ -21,9 +24,10 @@ namespace utils
     std::string GetDataUnit(size_t input);
     size_t MBStringToWString(const std::string& src, std::wstring& dest);
     size_t WStringToMBString(const std::wstring& src, std::string& dest);
+    uint16_t crc16_modbus(void* data, size_t len);
 #ifndef UNIT_TESTS
-    wxKeyCode GetVirtualKeyFromString(const std::string& key);
-    std::string GetKeyStringFromVirtualKey(wxKeyCode key_code);
+    int GetVirtualKeyFromString(const std::string& key);
+    std::string GetKeyStringFromVirtualKey(int key_code);
 #endif
     // !\brief Get folder view 2
     // !\return IFolderView2 pointer
@@ -36,6 +40,12 @@ namespace utils
     // !\brief Get current directory path from file explorer
     // !\return Current directory path from file explorer
     std::wstring GetDestinationPathFromFileExplorer();
+
+#ifdef _WIN32
+    CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout = std::numeric_limits<uint32_t>::min());
+#else
+    std::string exec(const char* cmd);
+#endif
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
@@ -115,4 +125,5 @@ namespace utils
         std::uniform_int_distribution<T> distr(min_val, max_val);
         return distr(gen);
     }
+
 }

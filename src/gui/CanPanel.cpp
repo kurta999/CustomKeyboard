@@ -5,8 +5,6 @@ EVT_GRID_CELL_CHANGED(CanPanel::OnCellValueChanged)
 EVT_SIZE(CanPanel::OnSize)
 wxEND_EVENT_TABLE()
 
-using namespace std::chrono_literals;
-
 CanGrid::CanGrid(wxWindow* parent)
 {
     m_grid = new wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(800, 250), 0);

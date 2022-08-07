@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-using namespace std::chrono_literals;
-
 CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader) :
     m_CanEntryLoader(loader), m_CanRxEntryLoader(rx_loader)
 {

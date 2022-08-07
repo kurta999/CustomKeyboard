@@ -332,11 +332,13 @@
     <ClInclude Include="src\gui\LogPanel.hpp" />
     <ClInclude Include="src\gui\MainPanel.hpp" />
     <ClInclude Include="src\gui\MainFrame.hpp" />
+    <ClInclude Include="src\gui\ModbusMasterPanel.hpp" />
     <ClInclude Include="src\gui\ParserPanel.hpp" />
     <ClInclude Include="src\gui\pch.hpp" />
     <ClInclude Include="src\gui\TrayIcon.hpp" />
     <ClInclude Include="src\Logger.hpp" />
     <ClInclude Include="src\MacroRecorder.hpp" />
+    <ClInclude Include="src\ModbusMasterSerialPort.hpp" />
     <ClInclude Include="src\PathSeparator.hpp" />
     <ClInclude Include="src\pch.hpp" />
     <ClInclude Include="src\PrintScreenSaver.hpp" />
@@ -436,10 +438,12 @@
     <ClCompile Include="src\gui\LogPanel.cpp" />
     <ClCompile Include="src\gui\MainPanel.cpp" />
     <ClCompile Include="src\gui\MainFrame.cpp" />
+    <ClCompile Include="src\gui\ModbusMasterPanel.cpp" />
     <ClCompile Include="src\gui\ParserPanel.cpp" />
     <ClCompile Include="src\gui\TrayIcon.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\MacroRecorder.cpp" />
+    <ClCompile Include="src\ModbusMasterSerialPort.cpp" />
     <ClCompile Include="src\PathSeparator.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

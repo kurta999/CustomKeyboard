@@ -1,6 +1,9 @@
 #include "pch.hpp"
 #include "../commitid.h"
 
+#define HOTKEY_ID_TERMINAL 0x3000		/* any value between 0 and 0xBFFF */
+//#define HOTKEY_ID_NUM_LOCK 0x3001		/* any value between 0 and 0xBFFF */
+
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 EVT_MENU(ID_Help, MyFrame::OnHelp)
 EVT_MENU(ID_About, MyFrame::OnAbout)
@@ -15,6 +18,9 @@ EVT_MENU(ID_CanLoadRxList, MyFrame::OnCanLoadRxList)
 EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
+//EVT_CHAR_HOOK(MyFrame::OnKeyDown)
+EVT_HOTKEY(HOTKEY_ID_TERMINAL, MyFrame::OnHotkey)
+//EVT_HOTKEY(HOTKEY_ID_NUM_LOCK, MyFrame::OnHotkey)
 wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
@@ -69,6 +75,37 @@ void MyFrame::OnClose(wxCloseEvent& event)
 		Hide();
 	else
 		wxExit();
+}
+
+void MyFrame::OnKeyDown(wxKeyEvent& event)
+{
+	LOG(LogLevel::Notification, "OnKeyDown");
+}
+
+void MyFrame::OnHotkey(wxKeyEvent& evt)
+{
+	if(evt.GetId() == HOTKEY_ID_TERMINAL)
+	{
+		TerminalHotkey::Get()->Process();
+	}
+	/*
+	else if(evt.GetId() == HOTKEY_ID_NUM_LOCK)
+	{
+		if(!wxGetKeyState(WXK_NUMLOCK))
+		{
+			int flags = evt.GetRawKeyFlags();
+#ifdef _WIN32
+			INPUT input = { 0 };
+			input.type = INPUT_KEYBOARD;
+			input.ki.wVk = VK_NUMLOCK;
+			input.ki.dwFlags = 0;
+			SendInput(1, &input, sizeof(input));
+			input.ki.dwFlags = KEYEVENTF_KEYUP;
+			SendInput(1, &input, sizeof(input));
+#endif
+		}
+	}
+	*/
 }
 
 void MyFrame::OnSize(wxSizeEvent& event)
@@ -150,7 +187,6 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 {
 	HandleDebugPanelUpdate();
 	AntiLock::Get()->Process();
-	TerminalHotkey::Get()->Process();
 	HandleNotifications();
 	HandleBackupProgressDialog();
 	HandleCryptoPriceUpdate();
@@ -195,7 +231,8 @@ void MyFrame::HandleBackupProgressDialog()
 }
 
 void MyFrame::HandleAlwaysOnNumlock()
-{    /* TODO: rewrite this with LL Keyboard Hook in future */
+{   
+	/* TODO: rewrite this with LL Keyboard Hook in future */
 	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))
 	{
 		#ifdef _WIN32
@@ -221,6 +258,15 @@ void MyFrame::HandleCryptoPriceUpdate()
 			main_panel->UpdateCryptoPrices(CryptoPrice::Get()->eth_buy, CryptoPrice::Get()->eth_sell, CryptoPrice::Get()->btc_buy, CryptoPrice::Get()->btc_sell);
 		CryptoPrice::Get()->is_pending = false;
 	}
+}
+
+void MyFrame::RegisterTerminalHotkey(int vkey)
+{
+#ifdef _WIN32
+	wxWindow::UnregisterHotKey(HOTKEY_ID_TERMINAL);
+	if(vkey != 0xFFFF)  /* Register hotkey only if specified key is valid */
+		wxWindow::RegisterHotKey(HOTKEY_ID_TERMINAL, wxMOD_NONE, vkey);
+#endif
 }
 
 void MyFrame::SetIconTooltip(const wxString &str)
@@ -280,6 +326,7 @@ MyFrame::MyFrame(const wxString& title)
 	parser_panel = new ParserPanel(this);
 	file_panel = new FilePanel(this);
 	can_panel = new CanPanel(this);
+	modbus_master_panel = new ModbusMasterPanel(this);
 	log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
 
@@ -296,6 +343,7 @@ MyFrame::MyFrame(const wxString& title)
 	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(file_panel, "File browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(can_panel, "CAN sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	ctrl->AddPage(modbus_master_panel, "Modbus Master", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 
@@ -311,6 +359,8 @@ MyFrame::MyFrame(const wxString& title)
 	m_100msTimer = new wxTimer(this, ID_100msTimer);
 	Connect(m_100msTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(MyFrame::On100msTimer), NULL, this);
 	m_100msTimer->Start(100, false);
+
+	//wxWindow::RegisterHotKey(HOTKEY_ID_NUM_LOCK, wxMOD_NONE, VK_NUMLOCK);
 }
 
 void MyFrame::HandleNotifications()

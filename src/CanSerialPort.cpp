@@ -1,8 +1,5 @@
 #include "pch.hpp"
 
-using namespace std::chrono_literals;
-using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
-
 constexpr uint32_t MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS = 0xAABBCCDD;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_ERR = 0xAABBCCDF;
@@ -44,9 +41,7 @@ void CanSerialPort::OnUartDataReceived(const char* data, unsigned int len)
     if(len != sizeof(UartCanData))
         return;
     UartCanData* d = (UartCanData*)data;
-    crc16_modbus_t calc_result;
-    calc_result.process_bytes((void*)data, len - 2);
-    uint16_t crc = calc_result.checksum();
+    uint16_t crc = utils::crc16_modbus((void*)data, len - 2);
     if(crc == d->crc)
     {
         if(d->magic_number == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
@@ -91,11 +86,7 @@ void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition
                     d.frame_id = data_ptr->frame_id;
                     d.data_len = data_ptr->data_len;
                     memcpy(d.data, data_ptr->data, d.data_len);
-                    
-                    crc16_modbus_t calc_result;
-                    calc_result.process_bytes((void*)&d, sizeof(d) - 2);
-
-                    d.crc = calc_result.checksum();
+                    d.crc = utils::crc16_modbus((void*)&d, sizeof(d) - 2);
 
                     serial.write((const char*)&d, sizeof(UartCanData));
 
@@ -108,7 +99,14 @@ void CanSerialPort::UartReceiveThread(std::stop_token stop_token, std::condition
                 std::stop_callback stop_wait{ stop_token, [&cv]() { cv.notify_one(); } };
                 cv.wait_for(lock, 10ms, [&stop_token]() { return stop_token.stop_requested(); });
             }
-            serial.close();
+            try
+            {
+                serial.close();
+            }
+            catch(...)
+            {
+
+            }
         }
         catch(std::exception& e)
         {

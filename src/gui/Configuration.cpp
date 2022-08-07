@@ -95,7 +95,7 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Macro settings");
 
 	const wxString choices[] = { wxT("Sequence"), wxT("Text"), wxT("Delay"), wxT("Mouse move"), 
-		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click"), wxT("Execute command")};
+		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click"), wxT("Bash terminal"), wxT("Execute command") };
 	m_radioBox1 = new wxRadioBox(this, wxID_ANY, wxT("Action type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices, 1, wxRA_SPECIFY_COLS);
 	sizerMsgs->Add(m_radioBox1, wxSizerFlags().Left());
 	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro text:"));
@@ -488,7 +488,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			AntiLock::Get()->is_screensaver = m_IsScreensSaverAfterLock->GetValue();
 			AntiLock::Get()->timeout = static_cast<uint32_t>(m_AntiLockTimeout->GetValue());
 			TerminalHotkey::Get()->is_enabled = m_IsTerminalHotkey->GetValue();
-			TerminalHotkey::Get()->vkey = utils::GetVirtualKeyFromString(m_TerminalHotkey->GetValue().ToStdString());
+			TerminalHotkey::Get()->SetKey(m_TerminalHotkey->GetValue().ToStdString());
 
 			Settings::Get()->SaveFile(false);
 
@@ -573,7 +573,7 @@ void ComTcpPanel::UpdatePanel()
 	m_IsScreensSaverAfterLock->SetValue(AntiLock::Get()->is_screensaver);
 	m_AntiLockTimeout->SetValue(AntiLock::Get()->timeout);
 	m_IsTerminalHotkey->SetValue(TerminalHotkey::Get()->is_enabled);
-	m_TerminalHotkey->SetValue(utils::GetKeyStringFromVirtualKey(TerminalHotkey::Get()->vkey));
+	m_TerminalHotkey->SetValue(TerminalHotkey::Get()->GetKey());
 }
 
 void KeybrdPanel::UpdateMainTree()
@@ -885,8 +885,10 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 			sel = 6;		
 		else if(type_str == "MOUSE CLICK")
 			sel = 7;
+		else if(type_str == "BASH")
+			sel = 8;		
 		else if(type_str == "CMD")
-			sel = 8;
+			sel = 9;
 		edit_dlg->ShowDialog(item_str, sel);
 	}
 }
@@ -1000,6 +1002,18 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			break;
 		}		
 		case 8:
+		{
+			try
+			{
+				AddOrModifyMacro<BashCommand>(x, id, add, std::move(edit_str));
+			}
+			catch(std::exception& e)
+			{
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}		
+		case 9:
 		{
 			try
 			{

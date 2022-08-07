@@ -1,20 +1,40 @@
 #include "pch.hpp"
 
+void TerminalHotkey::SetKey(const std::string& key_str)
+{
+#ifdef _WIN32
+	vkey = utils::GetVirtualKeyFromString(key_str);
+	if(vkey == 0xFFFF)
+	{
+		LOG(LogLevel::Warning, "Invalid hotkey was specified for TerminalHotkey: {}", vkey);
+		TerminalHotkey::Get()->is_enabled = false;
+	}
+#endif
+	UpdateHotkeyRegistration();
+}
+
+std::string TerminalHotkey::GetKey()
+{
+	return utils::GetKeyStringFromVirtualKey(vkey);
+}
+
+void TerminalHotkey::UpdateHotkeyRegistration()
+{
+	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+	if(frame)
+		frame->RegisterTerminalHotkey(vkey);
+}
+
 void TerminalHotkey::Process()
 {
 #ifdef _WIN32 /* This is already done in Linux, so this implementation is Windows only */
-	if(is_enabled && wxGetKeyState(vkey))
+	if(is_enabled)
 	{
-		std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-		int64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - last_execution).count();
-		if(dif < 500)  /* Avoid bouncing */
-			return;
-
 		std::wstring str = utils::GetDestinationPathFromFileExplorer();
 		if(!str.empty())  /* User is in file explorer */
 		{
 			std::filesystem::path p(str);
-			if(p.has_extension())  /* If file is selected in explorer, it has to be removed */
+			if(p.has_extension() && std::filesystem::is_regular_file(p))  /* If file is selected in explorer, it has to be removed */
 				p.remove_filename();
 			str = p.generic_wstring();
 		}
@@ -25,7 +45,7 @@ void TerminalHotkey::Process()
 			{
 				char window_title[256];
 				GetWindowTextA(foreground, window_title, sizeof(window_title));
-				if(!strncmp(window_title, "Program Manager", 16))  /* User has desktop in focus */
+				if(!strncmp(window_title, "Program Manager", 16) || std::strlen(window_title) == 0)  /* User has desktop in focus or clicked on system tray*/
 				{
 					std::string dekstop_str = getenv("USERPROFILE") + std::string("/Desktop");
 					str += std::wstring(dekstop_str.begin(), dekstop_str.end());
@@ -42,11 +62,28 @@ void TerminalHotkey::Process()
 
 void TerminalHotkey::OpenTerminal(std::wstring& path)
 {
-	last_execution = std::chrono::steady_clock::now();
 #ifdef _WIN32
-	ShellExecute(NULL, L"open", L"wt", std::format(L"/d \"{}\"", path).c_str(), NULL, SW_SHOW);
+	switch(type)
+	{
+		case TerminalType::COMMAND_LINE:
+		{
+			ShellExecute(NULL, L"open", L"cmd", std::format(L"/k cd /d \"{}\"", path).c_str(), NULL, SW_SHOW);
+			break;
+		}		
+		case TerminalType::POWER_SHELL:
+		{
+			ShellExecute(NULL, L"open", L"powershell", std::format(L"-NoExit -command \"& {{Set-Location {}}}\"", path).c_str(), NULL, SW_SHOW);
+			break;
+		}		
+		case TerminalType::BASH_TERMINAl:
+		{
+			ShellExecute(NULL, L"open", L"wsl", std::format(L"--cd \"{}\"", path).c_str(), NULL, SW_SHOW);
+			break;
+		}
+		default:  /* WINDOWS_TERMINAL */
+		{
+			ShellExecute(NULL, L"open", L"wt", std::format(L"/d \"{}\"", path).c_str(), NULL, SW_SHOW);
+		}
+	}
 #endif
-
-	/* swprintf(buf, L"/k cd /d %s", str.c_str()); - for cmd */
-	/* swprintf(buf, L"/d %s", str.c_str()); - for wt */
 }

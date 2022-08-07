@@ -4,11 +4,12 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 {
     constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[", 
-        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "CMD[" };
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[" };
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
         std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
-        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]) };
+        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]),
+        std::char_traits<char>::length(start_str_arr[10]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -44,27 +45,27 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::BIND_NAME:
             {
                 pos = first_end;
-                c->bind_name[key_code] = utils::extract_string(str, first_pos[BIND_NAME], first_end, start_str_arr_lens[BIND_NAME]);
+                c->bind_name[key_code] = utils::extract_string(str, first_pos[MacroTypes::BIND_NAME], first_end, start_str_arr_lens[MacroTypes::BIND_NAME]);
                 break;
             }
             case MacroTypes::KEY_SEQ:
             {
                 pos = first_end;
-                std::string &&sequence = utils::extract_string(str, first_pos[KEY_SEQ], first_end, start_str_arr_lens[KEY_SEQ]);
+                std::string &&sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_SEQ], first_end, start_str_arr_lens[MacroTypes::KEY_SEQ]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
                 break;
             }
             case MacroTypes::KEY_TYPE:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[KEY_TYPE], first_end, start_str_arr_lens[KEY_TYPE]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_TYPE], first_end, start_str_arr_lens[MacroTypes::KEY_TYPE]);
                 c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
                 break;
             }
             case MacroTypes::DELAY:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[DELAY], first_end, start_str_arr_lens[DELAY]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::DELAY], first_end, start_str_arr_lens[MacroTypes::DELAY]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
@@ -78,7 +79,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_MOVE:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MOUSE_MOVE], first_end, start_str_arr_lens[MOUSE_MOVE]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_MOVE], first_end, start_str_arr_lens[MacroTypes::MOUSE_MOVE]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
@@ -92,7 +93,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_INTERPOLATE:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MOUSE_INTERPOLATE], first_end, start_str_arr_lens[MOUSE_INTERPOLATE]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_INTERPOLATE], first_end, start_str_arr_lens[MacroTypes::MOUSE_INTERPOLATE]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseInterpolate>(std::move(sequence)));
@@ -106,7 +107,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_PRESS:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MOUSE_PRESS], first_end, start_str_arr_lens[MOUSE_PRESS]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_PRESS], first_end, start_str_arr_lens[MacroTypes::MOUSE_PRESS]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MousePress>(std::move(sequence)));
@@ -120,7 +121,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_RELEASE:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MOUSE_RELEASE], first_end, start_str_arr_lens[MOUSE_RELEASE]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_RELEASE], first_end, start_str_arr_lens[MacroTypes::MOUSE_RELEASE]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseRelease>(std::move(sequence)));
@@ -134,7 +135,7 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
             case MacroTypes::MOUSE_CLICK:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MOUSE_CLICK], first_end, start_str_arr_lens[MOUSE_CLICK]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_CLICK], first_end, start_str_arr_lens[MacroTypes::MOUSE_CLICK]);
                 try
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
@@ -145,10 +146,17 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
                 }
                 break;
             }            
-            case MacroTypes::COMMAND:
+            case MacroTypes::BASH:
             {
                 pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[COMMAND], first_end, start_str_arr_lens[COMMAND]);
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::BASH], first_end, start_str_arr_lens[MacroTypes::BASH]);
+                c->key_vec[key_code].push_back(std::make_unique<BashCommand>(std::move(sequence)));
+                break;
+            }            
+            case MacroTypes::CMD:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD], first_end, start_str_arr_lens[MacroTypes::CMD]);
                 c->key_vec[key_code].push_back(std::make_unique<CommandExecute>(std::move(sequence)));
                 break;
             }
@@ -240,6 +248,9 @@ void Settings::LoadFile()
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
 
+        ModbusMasterSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("ModbusMaster").find("Enable")->second.data()));
+        ModbusMasterSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("COM")->second.data()));
+
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
         default_page = utils::stoi<decltype(default_page)>(pt.get_child("App").find("DefaultPage")->second.data());
@@ -289,12 +300,8 @@ void Settings::LoadFile()
 
         TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
         const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
-        TerminalHotkey::Get()->vkey = utils::GetVirtualKeyFromString(key);
-        if(TerminalHotkey::Get()->vkey == 0xFFFF)
-        {
-            LOG(LogLevel::Warning, "Invalid hotkey was specified for TerminalHotkey: {}", key);
-            TerminalHotkey::Get()->is_enabled = false;
-        }
+        TerminalHotkey::Get()->SetKey(key);
+        TerminalHotkey::Get()->type = static_cast<TerminalType>(utils::stoi<uint8_t>(pt.get_child("TerminalHotkey").find("Type")->second.data()));  /* TDOO: move this function to TerminalHotkey */
 
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
@@ -354,7 +361,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "# MOUSE_PRESS[key] = Press given mouse key\n";
     out << "# MOUSE_RELEASE[key] = Release given mouse key\n";
     out << "# MOUSE_CLICK[key] = Click (press and release) with mouse\n";
-    out << "# CMD[key] = Execute specified command with command line\n";
+    out << "# BASH[key] = Execute specified command(s) with command line and keeps terminal shown\n";
+    out << "# CMD[key] = Execute specified command(s) with command line without terminal\n";
     out << "\n";
     out << "[Macro_Config]\n";
     out << "# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n";
@@ -427,6 +435,10 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "DefaultRxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "\n";
+    out << "[ModbusMaster]\n";
+    out << "Enable = " << ModbusMasterSerialPort::Get()->IsEnabled() << "\n";
+    out << "COM = " << ModbusMasterSerialPort::Get()->GetComPort() << " # Com port for Modbus Master UART where data is received/sent from/to Modbus\n";
+    out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
@@ -469,7 +481,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "\n";
     out << "[TerminalHotkey]\n";
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
-    out << "Key = " << utils::GetKeyStringFromVirtualKey(TerminalHotkey::Get()->vkey) << "\n";
+    out << "Key = " << TerminalHotkey::Get()->GetKey() << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";

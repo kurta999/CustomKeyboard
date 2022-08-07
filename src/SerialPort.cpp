@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-using namespace std::chrono_literals;
-
 SerialPort::~SerialPort()
 {
     DestroyWorkingThread();
@@ -76,7 +74,14 @@ void SerialPort::UartReceiveThread(std::atomic<bool>& to_exit, std::condition_va
                     m_cv.wait_for(lock, 1000ms);
                 }
             }
-            serial.close();
+            try
+            {
+                serial.close();
+            }
+            catch(...)
+            {
+
+            }
         }
         catch(std::exception& e)
         {

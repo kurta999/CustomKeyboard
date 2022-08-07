@@ -1,8 +1,5 @@
 #include "pch.hpp"
 
-using namespace std::chrono_literals;
-using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
-
 void KeyText::Execute()
 {
 #ifdef _WIN32
@@ -217,7 +214,7 @@ void MouseInterpolate::Execute()
 
 std::string MouseInterpolate::GenerateText(bool is_ini_format)
 {
-    std::string&& ret = is_ini_format ? std::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
+    std::string ret = is_ini_format ? std::format(" MOUSE_INTERPOLATE[{},{}]", m_pos.x, m_pos.y) : std::format("{},{}", m_pos.x, m_pos.y);
     return ret;
 }
 
@@ -264,7 +261,7 @@ std::string MousePress::GenerateText(bool is_ini_format)
         assert(0);
     }
 #endif
-    std::string&& ret = is_ini_format ? std::format(" MOUSE_PRESS[{}]", text) : text;
+    std::string ret = is_ini_format ? std::format(" MOUSE_PRESS[{}]", text) : text;
     return ret;
 }
 
@@ -323,7 +320,7 @@ std::string MouseRelease::GenerateText(bool is_ini_format)
         assert(0);
     }
 #endif
-    std::string&& ret = is_ini_format ? std::format(" MOUSE_RELEASE[{}]", text) : text;
+    std::string ret = is_ini_format ? std::format(" MOUSE_RELEASE[{}]", text) : text;
     return ret;
 }
 
@@ -400,12 +397,29 @@ void MouseClick::PressReleaseMouse(uint16_t mouse_button)
 #endif
 }
 
-void CommandExecute::Execute()
+void BashCommand::Execute()
 {
 #ifdef _WIN32
     std::wstring param(cmd.begin(), cmd.end());
     std::wstring command = L"/k " + param;
     ShellExecuteW(NULL, L"open", L"cmd", command.c_str(), NULL, SW_NORMAL);
+#else
+
+#endif
+}
+
+std::string BashCommand::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" BASH[{}]", cmd) : cmd;
+    return ret;
+}
+
+void CommandExecute::Execute()
+{
+#ifdef _WIN32
+    std::wstring param(cmd.begin(), cmd.end());
+    std::wstring command = L"/k " + param;
+    utils::ExecuteCmdWithoutWindow(command.c_str());
 #else
 
 #endif
@@ -491,9 +505,7 @@ void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
     if(len != sizeof(KeyData_t))
         return;
     KeyData_t* k = (KeyData_t*)data;
-    crc16_modbus_t calc_result;
-    calc_result.process_bytes((void*)data, len - 2);
-    uint16_t crc = calc_result.checksum();
+    uint16_t crc = utils::crc16_modbus((void*)data, len - 2);
     if(!strncmp(data, "reset", 5) && crc == 0x6bd8) /* in case of suddenly reset of STM32 */
     {
         pressed_keys.clear();

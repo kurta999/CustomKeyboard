@@ -76,33 +76,43 @@ namespace utils
 		delete[] str;
 		return ret;
 	}
-#ifndef UNIT_TESTS
-	static std::map<std::string, wxKeyCode> vkey_lookup  /* Only Fx keys for now */
+
+	uint16_t crc16_modbus(void* data, size_t len)
 	{
-		{"F1", WXK_F1},
-		{"F2", WXK_F2},
-		{"F3", WXK_F3},
-		{"F4", WXK_F4},
-		{"F5", WXK_F5},
-		{"F6", WXK_F6},
-		{"F7", WXK_F7},
-		{"F8", WXK_F8},
-		{"F9", WXK_F9},
-		{"F10", WXK_F10},
-		{"F11", WXK_F11},
-		{"F12", WXK_F12},
+		using crc16_modbus_t = boost::crc_optimal<16, 0x8005, 0xFFFF, 0, true, true>;
+		crc16_modbus_t calc_result;
+		calc_result.process_bytes(reinterpret_cast<void*>(data), len);
+		uint16_t crc = calc_result.checksum();
+		return crc;
+	}
+
+#ifndef UNIT_TESTS
+	static std::map<std::string, int> vkey_lookup  /* Only Fx keys for now */
+	{
+		{"F1", VK_F1},
+		{"F2", VK_F2},
+		{"F3", VK_F3},
+		{"F4", VK_F4},
+		{"F5", VK_F5},
+		{"F6", VK_F6},
+		{"F7", VK_F7},
+		{"F8", VK_F8},
+		{"F9", VK_F9},
+		{"F10", VK_F10},
+		{"F11", VK_F11},
+		{"F12", VK_F12},
 	};
 
-	wxKeyCode GetVirtualKeyFromString(const std::string& key)
+	int GetVirtualKeyFromString(const std::string& key)
 	{
-		wxKeyCode ret = WXK_NONE;
+		int ret = 0xFFFF;
 		auto it = vkey_lookup.find(key);
 		if(it != vkey_lookup.end())
 			ret = it->second;
 		return ret;
 	}
 
-	std::string GetKeyStringFromVirtualKey(wxKeyCode key_code)
+	std::string GetKeyStringFromVirtualKey(int key_code)
 	{
 		std::string key_name = "INVALID";
 		for(auto& i : vkey_lookup)
@@ -268,6 +278,99 @@ namespace utils
 	}
 
 #endif
+
+#ifdef _WIN32
+	CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout)
+	{
+		CStringA strResult;
+		HANDLE hPipeRead, hPipeWrite;
+
+		SECURITY_ATTRIBUTES saAttr = { sizeof(SECURITY_ATTRIBUTES) };
+		saAttr.bInheritHandle = TRUE; // Pipe handles are inherited by child process.
+		saAttr.lpSecurityDescriptor = NULL;
+
+		// Create a pipe to get results from child's stdout.
+		if(!CreatePipe(&hPipeRead, &hPipeWrite, &saAttr, 0))
+			return strResult;
+
+		STARTUPINFOW si = { sizeof(STARTUPINFOW) };
+		si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+		si.hStdOutput = hPipeWrite;
+		si.hStdError = hPipeWrite;
+		si.wShowWindow = SW_HIDE; // Prevents cmd window from flashing.
+								  // Requires STARTF_USESHOWWINDOW in dwFlags.
+
+		PROCESS_INFORMATION pi = { 0 };
+		BOOL fSuccess = CreateProcessW(L"C:\\windows\\system32\\cmd.exe", (LPWSTR)cmd, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+		if(!fSuccess)
+		{
+			CloseHandle(hPipeWrite);
+			CloseHandle(hPipeRead);
+			return strResult;
+		}
+
+		if(timeout != std::numeric_limits<uint32_t>::min())
+		{
+			bool bProcessEnded = false;
+			for(; !bProcessEnded;)
+			{
+				// Give some timeslice (50 ms), so we won't waste 100% CPU.
+				bProcessEnded = WaitForSingleObject(pi.hProcess, 50) == WAIT_OBJECT_0;
+
+				// Even if process exited - we continue reading, if
+				// there is some data available over pipe.
+				for(;;)
+				{
+					char buf[1024];
+					DWORD dwRead = 0;
+					DWORD dwAvail = 0;
+
+					if(!::PeekNamedPipe(hPipeRead, NULL, 0, NULL, &dwAvail, NULL))
+						break;
+
+					if(!dwAvail) // No data available, return
+						break;
+
+					if(!::ReadFile(hPipeRead, buf, std::min((DWORD)sizeof(buf) - 1, dwAvail), &dwRead, NULL) || !dwRead)
+						// Error, the child process might ended
+						break;
+
+					buf[dwRead] = 0;
+					strResult += buf;
+				}
+			}
+		}
+
+		CloseHandle(hPipeWrite);
+		CloseHandle(hPipeRead);
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		return strResult;
+	} //ExecCmd
+#else
+	std::string exec(const char* cmd)
+	{
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#define WEXITSTATUS
+#endif
+
+		std::array<char, 512> buffer;
+		std::string result;
+		std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+		if(!pipe)
+		{
+			throw std::runtime_error("popen() failed!");
+		}
+		while(fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+		{
+			result += buffer.data();
+		}
+		return result;
+	}
+#endif
+
 	/*
 	template<typename _Rep, typename _Period>
 	void sleep_for(const std::chrono::duration<_Rep, _Period>& duration, const std::mutex& mutex, const std::condition_variable& cv, const std::stop_token& stop_token)
