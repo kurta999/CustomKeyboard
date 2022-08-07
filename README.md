@@ -1,39 +1,41 @@
-This is a personal project for myself to improve my coding experience. It's open source, because why not, maybe somebody will benefit from it one day.
+This is a personal project for myself to improve my daily computer usage. I've implemented things what I really needed to be more productive and accomplish things faster. It's open source, because why not, maybe somebody will benefit from it one day.
 
 If you want to use/resuse some part(s) of the project and you have a question, feel free to open a Pull Request.
 
 ## Features
-1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing (WIP recording mode)
-2. **CAN-USB** - Send CAN Frames to CAN bus from computer - see more info below
-3. **StructParser** - Generate offsets of C structures
-4. **ScreenshotSaver** - Saving screenshot to .png from clipboard
-5. **DirectoryBackup** - Backup folders to another place(s) from tray menu
-6. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
-7. **Sensors** - Backend for sensors with SQLite database for measurements & graphs generation to .html file
-8. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support
-9. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
-10. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
-11. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be started from Windows Explorer and from Desktop
+1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
+2. **Backend for Corsair's G Keys** - Bind macros to G keys as those were on second keyboard, without even installing iCUE
+3. **CAN-USB Transreceiver** - Send and Receive CAN Frames to/from CAN bus via computer trough USB - see more info below
+4. **StructParser** - Generate offsets of C structures
+5. **ScreenshotSaver** - Saving screenshot to .png from clipboard
+6. **DirectoryBackup** - Backup folders to another place(s) from tray menu
+7. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
+8. **Sensors** - Backend for sensors with SQLite database for measurements & graphs generation to .html file
+9. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support
+10. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
+11. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
+12. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
 
 ## Explanation
 1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for transmitting keypresses to PC. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
 
-2. **CAN-USB** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
+2. **Backend for Corsair's G Keys** - Corsair pretty well fucked up it's iCUE, sometimes memory usage can grow to 500MB. That's enormeous for an application which runs in background and executes macro for binded keys. It's possible to use CustomMacro feature to bind everything to Corsair's G keys (beside second keyboard, of coruse). This is a simple HID API which receives keypresses for G keys. Supports K95 RGB (18 G keys, older one) and K95 RGB Platinum.
 
-3. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
+2. **CAN-USB Transreceiver** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver. Supports both standard and extended CAN frames. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
 
-4. **ScreenshotSaver** - Press screenshot save key (F12 by default, on second keyboard) and screenshot from the clipboard will be saved to (app path)/Screenshots folder by default as .png file. Can be changed in configuration.
+4. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 
-5. **DirectoryBackup** - Setup backups in configuration or in settings.ini manually and those will appear in tray menu of this application. Click on them, and backing up files will start. Supports ignore list & SHA-256 checksum for backed up files for more secure backups. 
+5. **ScreenshotSaver** - Press the screenshot save key (F12 by default, on second keyboard) and the screenshot from the clipboard will be saved to (app path)/Screenshots folder by default as .png file. Can be changed in configuration.
 
-6. **LinkCreator** - Select desired files from File Explorer and click the mark key (key down on second keyboard by default) and files (directories too) will be marked for link creation. Go to target directory where you want to place the links for marked files, press symlink key (KEY UP) by default for symlink or hardlink key (KEY RIGHT) by default for hardlinks. That's all, symlink or hardlink is created from marked files in target directory.
+6. **DirectoryBackup** - Setup backups in configuration or in settings.ini manually and those will appear in tray menu of this application. Click on them, and backing up files will start. Supports ignore list & SHA-256 checksum for backed up files for more secure backups. 
 
-7. **Sensors** - Backend means simple TCP server with boost asio where sensor conencts and sends measurements. Each measurement is inserted to a local SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel.
+7. **LinkCreator** - Select desired files from File Explorer and click the mark key (key down on second keyboard by default) and files (directories too) will be marked for link creation. Go to target directory where you want to place the links for marked files, press symlink key (KEY UP) by default for symlink or hardlink key (KEY RIGHT) by default for hardlinks. That's all, symlink or hardlink is created from marked files in target directory.
 
-8. **wxWidget's GUI editor** - Oversimplified GUI editor which sometimes can be useful beside [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder "wxFormBuilder's Homepage"). GUI items are movable & resizable - directly without sizers. C++ code generation also implemented, current workspace can be saved & loaded to/from XML file.
+8. **Sensors** - Backend means simple TCP server with boost asio where sensor conencts and sends measurements. Each measurement is inserted to a local SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel.
+
+9. **wxWidget's GUI editor** - Oversimplified GUI editor which sometimes can be useful beside [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder "wxFormBuilder's Homepage"). GUI items are movable & resizable - directly without sizers. C++ code generation also implemented, current workspace can be saved & loaded to/from XML file.
 
 ## Libraries
-- [fmt](https://fmt.dev/latest/index.html "fmt's Homepage")
 - [lodepng](https://lodev.org/lodepng/ "lodepng's Homepage")
 - [sqlite3](https://www.sqlite.org/index.html "sqlite3's Homepage")
 - [enumser](http://www.naughter.com/enumser.html "enumser's Homepage")
@@ -43,14 +45,16 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 
 Required external depencencies:
 - [Boost 1.79.0](https://www.boost.org/ "Boost's Homepage")
-- [wxWidgets 3.1.7](https://www.wxwidgets.org/ "wxWidgets' Homepage")
+- [wxWidgets 3.2.0](https://www.wxwidgets.org/ "wxWidgets' Homepage")
+- [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
 ## Building
 
 **Windows**
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
 - boost: C:\Program Files\boost\boost_1_79_0
-- wxWidgets: C:\wxWidgets-3.1.7
+- wxWidgets: C:\wxWidgets-3.2.0
+- HIDAPI: C:\hidapi
 
 Feel free to change, but don't forget to change them too in Visual Studio's project file.
 
@@ -61,11 +65,13 @@ Available build configurations:
 - x64 - Debug, Release, Static Release
 
 If you want to go with CMake, you can use this command as a starting point:
-cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.1.7 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 
 **Linux**
 
-1. Install boost 1.79.0, wxWidgets 3.17.0, fmt 8.1.1
+Currently linux build is abandoned beucase I didn't need it on daily basis. std::format isn't supported by GCC yet, so if you want to build this on linux you have to do a few tweaks to the code.
+
+1. Install boost 1.79.0, wxWidgets 3.2.0
 2. Execute these commands in project root directory:
 mkdir build
 cd build
