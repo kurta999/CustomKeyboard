@@ -26,10 +26,8 @@ bool CorsairHid::Init()
     hid_device_info* device_info = hid_enumerate(0, 0);  /* Enumerate over all HID devices */
     while(device_info != NULL)
     {
-        std::string str_log;
-        utils::WStringToMBString(device_info->product_string, str_log);
-        LOG(LogLevel::Normal, "HID Device: \"{}\", VID: 0x{:X}, PID: 0x{:X}, UsagePage: {:X}, Usage: {:X}\n", 
-            str_log.c_str(), device_info->vendor_id, device_info->product_id, device_info->usage_page, device_info->usage);
+        LOGW(LogLevel::Normal, L"HID Device: \"{}\", VID: 0x{:X}, PID: 0x{:X}, UsagePage: 0x{:X}, Usage: 0x{:X}\n", 
+            device_info->product_string, device_info->vendor_id, device_info->product_id, device_info->usage_page, device_info->usage);
 
         if(device_info->vendor_id == 0x1B1C && device_info->product_id == 0x1B11 && device_info->usage_page == 0xFFC0 && device_info->usage == 2)  /* K95 RGB (older) with 18 macro keys */
         {
@@ -89,9 +87,7 @@ void CorsairHid::ThreadFunc()
         int read_bytes = hid_read_timeout(hid_handle, recv_data, sizeof(recv_data), HID_READ_TIMEOUT);
         if(read_bytes == 0xFFFFFFFF)
         {
-            std::string error_str;
-            utils::WStringToMBString(hid_error(hid_handle), error_str);
-            LOG(LogLevel::Error, "HID read error: {}", error_str);
+            LOGW(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
         }
         else if(read_bytes > MIN_READ_DATA_SIZE)
         {

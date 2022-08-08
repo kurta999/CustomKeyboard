@@ -22,9 +22,17 @@ enum LogLevel
     Critical
 };
 
-#define LOG(level, message, ...)      \
+#define WIDEN(quote) WIDEN2(quote)
+#define WIDEN2(quote) L##quote
+
+#define LOG(level, message, ...) \
     do {\
     Logger::Get()->Log(level, __FILE__, __LINE__, __FUNCTION__, message, ##__VA_ARGS__); \
+} while(0)
+
+#define LOGW(level, message, ...) \
+    do {\
+    Logger::Get()->Log(level, WIDEN(__FILE__), __LINE__, WIDEN(__FUNCTION__), message, ##__VA_ARGS__); \
 } while(0)
 
 class Logger : public CSingleton < Logger >
@@ -34,36 +42,90 @@ public:
     Logger();
     ~Logger() = default;
 
-    // !\brief Write given log message to logfile.txt & LogPanel
-    // !\param lvl [in] Serverity level
-    // !\param file [in] Filename where the call comes from
-    // !\param line [in] Line in source file where the call comes from
-    // !\param function [in] Function name in source file where the call comes from
-    // !\param msg [in] Message to log
-    // !\param args [in] va_args arguments for std::format
-    template<typename... Args>
-    void Log(LogLevel lvl, const char* file, long line, const char* function, std::string_view msg, Args &&...args)
+#define LOG_GUI_FORMAT "{:%Y.%m.%d %H:%M:%OS} [{}] {}"
+#define LOG_FILE_FORMAT "{:%Y.%m.%d %H:%M:%OS} [{}] [{}:{} - {}] {}\n"
+
+    template <class T>
+    struct HelperTraits
     {
-        std::string formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args(args...)) : msg.data();
-        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
-        std::string str = std::format("{:%Y.%m.%d %H:%M:%OS} [{}] {}", now, severity_str[lvl], formatted_msg);
-#if DEBUG
-        OutputDebugStringA(str.c_str());
-        OutputDebugStringA("\n");
-#endif
-        const char* filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
-        for(int i = strlen(file); i > 0; i--)
+        static_assert(always_false_v<T>, "Invalid type. Only std::string and std::wstring are accepted!");
+    };
+
+    template <>
+    struct HelperTraits<std::string>
+    {
+        static constexpr std::string_view serverities[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
+        static constexpr char slash = '/';
+        static constexpr char backslash = '\\';
+        static constexpr std::string_view gui_str = LOG_GUI_FORMAT;
+        static constexpr std::string_view log_str = LOG_FILE_FORMAT;
+    };
+     
+    template <>
+    struct HelperTraits<std::wstring>
+    {
+        static constexpr std::wstring_view serverities[] = { L"Normal", L"Notification", L"Warning", L"Error", L"Critical" };
+        static constexpr wchar_t slash = L'/';
+        static constexpr wchar_t backslash = L'\\';
+        static constexpr std::wstring_view gui_str = WIDEN(LOG_GUI_FORMAT);
+        static constexpr std::wstring_view log_str = WIDEN(LOG_FILE_FORMAT);
+    };
+
+    template<typename T>
+    size_t strlen_helper(T input)
+    {
+        using X = std::decay_t<decltype(input)>;
+        if constexpr(std::is_same_v<X, const char*>)
         {
-            if(file[i] == '/' || file[i] == '\\')
+            return strlen(input);
+        }
+        else if constexpr(std::is_same_v<X, const wchar_t*>)
+        {
+            return std::wstring(input).length();
+        }
+        else
+        {
+            static_assert(always_false_v<X>, "Invalid type. Only const char* and const wchar_t* are accepted!");
+        }
+    }
+
+    template <typename T> struct get_fmt_mkarg_type;
+    template <> struct get_fmt_mkarg_type<const wchar_t*> { using type = std::wformat_context; };
+    template <> struct get_fmt_mkarg_type<const wchar_t> { using type = std::wformat_context; };
+    template <> struct get_fmt_mkarg_type<wchar_t> { using type = std::wformat_context; };
+    template <> struct get_fmt_mkarg_type<const char*> { using type = std::format_context; };
+    template <> struct get_fmt_mkarg_type<const char> { using type = std::format_context; };
+    template <> struct get_fmt_mkarg_type<char> { using type = std::format_context; };
+
+    template <typename T> struct get_fmt_ret_string_type;
+    template <> struct get_fmt_ret_string_type<const wchar_t*> { using type = std::wstring; };
+    template <> struct get_fmt_ret_string_type<const wchar_t> { using type = std::wstring; };
+    template <> struct get_fmt_ret_string_type<wchar_t> { using type = std::wstring; };
+    template <> struct get_fmt_ret_string_type<const char*> { using type = std::string; };
+    template <> struct get_fmt_ret_string_type<const char> { using type = std::string; };
+    template <> struct get_fmt_ret_string_type<char> { using type = std::string; };
+
+    template<typename F = const char*, typename G = const char*, class T, typename... Args>
+    void LogInternal(LogLevel lvl, F file, long line, G function, std::basic_string_view<T> msg, Args &&...args)
+    {
+        using string_type = get_fmt_ret_string_type<T>::type;
+        typename get_fmt_ret_string_type<T>::type formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(args...)) : msg.data();
+        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+        typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now, HelperTraits<string_type>::serverities[lvl], formatted_msg));
+
+        F filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
+        for(int i = strlen_helper(file); i > 0; i--)
+        {
+            if(file[i] == HelperTraits<string_type>::slash || file[i] == HelperTraits<string_type>::backslash)
             {
                 filename = &file[i + 1];
-                    break;
+                break;
             }
         }
 
         if(lvl > LogLevel::Normal && lvl <= LogLevel::Critical)
         {
-            fLog << std::format("{:%Y.%m.%d %H:%M:%OS} [{}] [{}:{} - {}] {}\n", now, severity_str[lvl], filename, line, function, formatted_msg);
+            fLog << std::format(HelperTraits<string_type>::log_str, now, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
             fLog.flush();
         }
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -74,6 +136,43 @@ public:
         }
         else
             preinit_entries.Add(str);
+    }
+
+    template<typename F = const char*, typename G = const char*, typename... Args>
+    void LogM(LogLevel lvl, F file, long line, G function, std::string_view msg, Args &&...args)
+    {
+        LogInternal(lvl, file, line, function, msg, std::forward<Args>(args)...);
+    }
+
+    template<typename F = const char*, typename G = const char*, typename... Args>
+    void LogW(LogLevel lvl, F file, long line, G function, std::wstring_view msg, Args &&...args)
+    {
+        LogInternal(lvl, file, line, function, msg, std::forward<Args>(args)...);
+    }
+
+    // !\brief Write given log message to logfile.txt & LogPanel
+    // !\param lvl [in] Serverity level
+    // !\param file [in] Filename where the call comes from
+    // !\param line [in] Line in source file where the call comes from
+    // !\param function [in] Function name in source file where the call comes from
+    // !\param msg [in] Message to log
+    // !\param args [in] va_args arguments for std::format
+    template<typename F = const char*, typename G = const char*, class T, typename... Args>
+    void Log(LogLevel lvl, F file, long line, G function, T msg, Args &&...args)
+    {
+        using X = std::decay_t<decltype(msg)>;
+        if constexpr(std::is_same_v<X, const char*>)
+        {
+            LogM(lvl, file, line, function, msg, std::forward<Args>(args)...);
+        }
+        else if constexpr(std::is_same_v<X, const wchar_t*>)
+        {
+            LogW(lvl, file, line, function, msg, std::forward<Args>(args)...);
+        }
+        else
+        {
+            static_assert(always_false_v<X>, "Invalid type. Only const char* and const wchar_t* are accepted!");
+        }
     }
 
     // !\brief Append log messages to log panel which were logged before log panel was constructor
