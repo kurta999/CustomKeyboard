@@ -18,9 +18,11 @@ public:
     CorsairHid() = default;
     ~CorsairHid();
 
+    // !\brief Initialize HID polling for Corsair G-Keys
     bool Init();
 
 private:
+    // !\brief Map with G-Key values and it's name
     std::map<int, std::string> corsair_GKeys =
     {
         { 1 << 0, "G1" },
@@ -43,12 +45,21 @@ private:
         { 1 << 23, "G18" },
     };
 
+    // !\brief Destroys working thread
     void DestroyWorkingThread();
 
+    // !\brief Thread function
     void ThreadFunc();
 
+    // !\brief Is HID inited?
     bool hid_inited = false;
+
+    // !\brief HID Handle
     hid_device* hid_handle = nullptr;
+
+    // !\brief Exit polling thread when set to true
     std::atomic<bool> m_exit = false;
+
+    // !\brief Pointer to worker thread
     std::unique_ptr<std::thread> m_worker = nullptr;
 };

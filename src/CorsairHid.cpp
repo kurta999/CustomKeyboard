@@ -2,6 +2,7 @@
 
 constexpr int HID_READ_TIMEOUT = 100;
 constexpr int READ_DATA_BUFFER_SIZE = 64;
+constexpr int MIN_READ_DATA_SIZE = 20;
 
 CorsairHid::~CorsairHid()
 {
@@ -36,14 +37,13 @@ bool CorsairHid::Init()
             LOG(LogLevel::Normal, "Corsair K95 18 macro key found");
             break;
         }
-#if 0
+
         if(std::wstring(device_info->product_string).find(L"Corsair Gaming K95") != std::string::npos)  /* Corsair Gaming K95 RGB PLATINUM Keyboard */
         {
             hid_path = device_info->path;
             LOG(LogLevel::Normal, "Corsair K95 Platinum found");
             break;
         }
-#endif
         device_info = device_info->next;
     }
 
@@ -93,9 +93,9 @@ void CorsairHid::ThreadFunc()
             utils::WStringToMBString(hid_error(hid_handle), error_str);
             LOG(LogLevel::Error, "HID read error: {}", error_str);
         }
-        else if(read_bytes > 0)
+        else if(read_bytes > MIN_READ_DATA_SIZE)
         {
-            uint32_t gkey_code = *reinterpret_cast<uint32_t*>(recv_data + 16); //*(uint32_t*)&recv_data[16];//recv_data[16] | recv_data[17] << 8 | recv_data[18] << 16 | recv_data[19] << 24;
+            uint32_t gkey_code = *reinterpret_cast<uint32_t*>(recv_data + 16);
             auto it = corsair_GKeys.find(gkey_code);
             if(it != corsair_GKeys.end())
             {
