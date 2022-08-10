@@ -277,8 +277,6 @@ namespace utils
 		return ret;
 	}
 
-#endif
-
 #ifdef _WIN32
 	CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout)
 	{
@@ -369,6 +367,7 @@ namespace utils
 		}
 		return result;
 	}
+#endif
 #endif
 
 	/*

@@ -5,6 +5,8 @@
 #ifdef _WIN32
 #include <atlstr.h>
 #endif
+#include <limits>
+#include <random>
 
 #define SAFE_RELEASE(name) \
 	if(name) \
@@ -28,7 +30,7 @@ namespace utils
 #ifndef UNIT_TESTS
     int GetVirtualKeyFromString(const std::string& key);
     std::string GetKeyStringFromVirtualKey(int key_code);
-#endif
+
     // !\brief Get folder view 2
     // !\return IFolderView2 pointer
     IFolderView2* GetFolderView2();
@@ -41,12 +43,13 @@ namespace utils
     // !\return Current directory path from file explorer
     std::wstring GetDestinationPathFromFileExplorer();
 
+
 #ifdef _WIN32
     CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout = std::numeric_limits<uint32_t>::min());
 #else
     std::string exec(const char* cmd);
 #endif
-
+#endif
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
         if constexpr(!std::is_arithmetic_v<R>)

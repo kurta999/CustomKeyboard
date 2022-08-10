@@ -4,22 +4,21 @@
 
 #pragma once
 
+#define NOMINMAX
+
 #include "gtest/gtest.h"
 
 #include <chrono>
 #include <stack>
+#include <iostream>
+#include <limits>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/crc.hpp>
 
 #include "../src/StringToCEscaper.hpp"
 #include "../src/StructParser.hpp"
 #include "../src/Utils.hpp"
-
-#include "../libs/fmt/format.h"
-#include "../libs/fmt/os.h"
-
-extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char*);
-#define OutputDebugString OutputDebugStringA
 
 #define DBG(str, ...) \
     {\
@@ -36,3 +35,4 @@ extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char*);
     }
 
 #define LOG(...)
+#define LOGW(...)
