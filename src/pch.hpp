@@ -47,6 +47,7 @@
 #include "CanEntryHandler.hpp"
 #include "CorsairHid.hpp"
 #include "StringToCEscaper.hpp"
+#include "TcpMessageExecutor.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

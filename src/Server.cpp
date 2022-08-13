@@ -50,6 +50,7 @@ void Server::StopAsync()
 {
     if(is_enabled)
     {
+        std::scoped_lock lock(mutex);
         if(acceptor)
         {
             acceptor->close();
@@ -57,14 +58,14 @@ void Server::StopAsync()
 
             for(const auto& c : sessions)
             {
-                c->StopAsync();
+                c->StopAsync(false);
             }
             sessions.clear();
         }
         io_service.stop();
     }
 }
-
+ 
 bool Server::CreateAcceptor(unsigned short port)
 {
     boost::system::error_code error;

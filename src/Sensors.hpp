@@ -44,7 +44,7 @@ public:
     // \brief Process incomming data
     // \param recv_data [in] - received data C string
     // \param from_ip [in] - sender ip C string
-    void ProcessIncommingData(char* recv_data, const char* from_ip);
+    bool ProcessIncommingData(const char* recv_data, const char* from_ip);
 
     // \brief Write graphs from memory to .html files
     void WriteGraphs();
@@ -71,6 +71,10 @@ public:
     // \brief Vector of last week's measurement, array order is: avg, max, min
     std::vector<std::unique_ptr<Measurement>> last_week[3];
 private:
+    template<typename T> T GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset);
+    template<int i, typename T1, typename T2> int CalculateMinMaxAvg_Final(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
+    template< int i, typename T1, typename T2> int CalculateMinMaxAvg(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
+    template<typename T1, typename T2> void WriteDataToHtmlFromContainer(std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<typename T1> void WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
 
     // \brief Dequeue for last X measurement

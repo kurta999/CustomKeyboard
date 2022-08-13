@@ -339,7 +339,9 @@
     <ClInclude Include="src\gui\ParserPanel.hpp" />
     <ClInclude Include="src\gui\pch.hpp" />
     <ClInclude Include="src\gui\TrayIcon.hpp" />
+    <ClInclude Include="src\interface\IDatabase.hpp" />
     <ClInclude Include="src\interface\ILogHelper.hpp" />
+    <ClInclude Include="src\interface\ITcpMessageExecutor.hpp" />
     <ClInclude Include="src\Logger.hpp" />
     <ClInclude Include="src\MacroRecorder.hpp" />
     <ClInclude Include="src\ModbusMasterSerialPort.hpp" />
@@ -357,6 +359,7 @@
     <ClInclude Include="src\StructParser.hpp" />
     <ClInclude Include="src\SymlinkCreator.hpp" />
     <ClInclude Include="src\targetver.hpp" />
+    <ClInclude Include="src\TcpMessageExecutor.hpp" />
     <ClInclude Include="src\TerminalHotkey.hpp" />
     <ClInclude Include="src\Utils.hpp" />
     <ClInclude Include="src\utils\AsyncSerial.hpp" />
@@ -468,6 +471,7 @@
     <ClCompile Include="src\StringToCEscaper.cpp" />
     <ClCompile Include="src\StructParser.cpp" />
     <ClCompile Include="src\SymlinkCreator.cpp" />
+    <ClCompile Include="src\TcpMessageExecutor.cpp" />
     <ClCompile Include="src\TerminalHotkey.cpp" />
     <ClCompile Include="src\Utils.cpp" />
     <ClCompile Include="src\utils\AsyncSerial.cpp">

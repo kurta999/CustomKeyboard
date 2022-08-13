@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "TcpMessageExecutor.hpp"
+
 class Session : public std::enable_shared_from_this<Session>
 {
 	friend class Server;
@@ -23,7 +25,8 @@ public:
 	void StartAsync();
 
 	// !\brief Stop async operations
-	void StopAsync();
+	// !\param remove_from_session_list [in] Remove this session from session list?
+	void StopAsync(bool remove_from_session_list = true);
 
 	// !\brief Read handler for async_read_some
 	// !\param error [in] Boost error code

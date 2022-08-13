@@ -2,7 +2,18 @@
 
 constexpr int64_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
  
-void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
+template <std::size_t N>
+struct type_of_size
+{
+    typedef char type[N];
+};
+
+template <typename T, std::size_t Size>
+typename type_of_size<Size>::type& sizeof_array_helper(T(&)[Size]);
+
+#define sizeof_array(pArray) sizeof(sizeof_array_helper(pArray))
+
+bool Sensors::ProcessIncommingData(const char* recv_data, const char* from_ip)
 {
     float temp, hum;
     int send_interval, co2, voc, pm25, pm10, lux, cct;
@@ -10,7 +21,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     int ret = sscanf(recv_data, "%d|%f,%f,%d,%d,%d,%d,%d,%d,%*d,%*d,%*d", &send_interval, &temp, &hum, &co2, &voc, &pm25, &pm10, &lux, &cct);
     if(ret == 9)
     {
-        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+        const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 
         std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(std::format("{:%H:%M:%OS}", now)));
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -41,12 +52,7 @@ void Sensors::ProcessIncommingData(char* recv_data, const char* from_ip)
     {
         LOG(LogLevel::Warning, "Invalid data received from {}", from_ip);
     }
-}
-
-template<typename T> T GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset)
-{
-    T retval = *(T*)(((char*)meas.get() + (char)offset));
-    return retval;
+    return ret == 9;
 }
 
 void Sensors::WriteGraphs()
@@ -60,6 +66,66 @@ void Sensors::WriteGraphs()
     WriteGraph<decltype(Measurement::lux)>("Lux.html", 0, 10000, "Lux", offsetof(Measurement, lux));
     WriteGraph<decltype(Measurement::cct)>("CCT.html", 0, 10000, "CCT", offsetof(Measurement, cct));
 }
+
+template<typename T> T Sensors::GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset)
+{
+    T retval = *(T*)(((char*)meas.get() + (char)offset));
+    return retval;
+}
+
+template<int i, typename T1, typename T2> int Sensors::CalculateMinMaxAvg_Final(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset)
+{
+    DBG("final %d, %p, %p\n", i, labels, data_values);
+    WriteDataToHtmlFromContainer<T1, T2>(&labels[(ai - 1) - i], &data_values[(ai - 1) - i], &container[(ai - 1) - i], offset);
+    return i;
+}
+
+template< int i, typename T1, typename T2> int Sensors::CalculateMinMaxAvg(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset)
+{
+    if(i < ai) 
+    {
+        DBG("generated function: %d, %d, %p, %p\n", ai, i, labels, data_values);
+        /*return*/ CalculateMinMaxAvg_Final<i, T1>(ai, labels, data_values, container, offset);
+    }
+    {
+        DBG("r_dispatch labels %d, %d: result: %d\n\n", ai, i, ai - i);
+
+        if constexpr(i > 0)
+        {
+            DBG("bigger %p, %p, %p, %lld\n", labels, data_values, container, offset);
+            DBG("\n\nadd size: %lld\n\n", sizeof(std::string))
+            return CalculateMinMaxAvg< i - 1, T1, T2 >(ai, labels, data_values, container, offset);
+        }
+        else
+        {
+            DBG("smaller %d, %d\n", ai, i);
+            return -1;
+        }
+    }
+}
+
+template<typename T1, typename T2> void Sensors::WriteDataToHtmlFromContainer(std::string* labels, std::string* data_values, T2* container, size_t offset)
+{
+    for(const auto& it : *container)
+    {
+        *labels += "'" + it->time + "',";
+    }
+    for(const auto& it : *container)
+    {
+        T1 val = GetValueFromDequeue<T1>(it, offset);
+        *data_values += std::to_string(val) + ",";
+    }
+}
+
+#define CALCULATE_MINMAXAVG(labels, data, input, offset) \
+    {\
+        constexpr size_t arr_size = sizeof_array(labels); \
+        CalculateMinMaxAvg<arr_size, T1>(arr_size, labels, data, input, offset);\
+    }
+#define CALCULATE_MINMAXAVG2(labels, data, input, offset) \
+    {\
+        CalculateMinMaxAvg<1, T1>(1, &labels, &data, &input, offset);\
+    }
 
 template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
 {
@@ -76,71 +142,18 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     std::string labels_time_week[3];
     std::string data_week[3];
     
-    for(const auto& it : last_meas)
+    try
     {
-        labels_time_last += "'" + it->time + "',";
+        CALCULATE_MINMAXAVG2(labels_time_last, data_latest, last_meas, offset_1);
+        CALCULATE_MINMAXAVG(labels_time_day, data_day, last_day, offset_1);
+        CALCULATE_MINMAXAVG(labels_time_week, data_week, last_week, offset_1);
+
     }
-    for(const auto& it : last_meas)
+    catch(...)
     {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_latest += std::to_string(val) + ",";
-    }
-    for(const auto& it : last_day[0])
-    {
-        labels_time_day[0] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_day[0])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_day[0] += std::to_string(val) + ",";
-    }
-    for(const auto& it : last_day[1])
-    {
-        labels_time_day[1] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_day[1])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_day[1] += std::to_string(val) + ",";
-    }
-    for(const auto& it : last_day[2])
-    {
-        labels_time_day[2] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_day[2])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_day[2] += std::to_string(val) + ",";
+        DBG("exception");
     }
 
-    for(const auto& it : last_week[0])
-    {
-        labels_time_week[0] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_week[0])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_week[0] += std::to_string(val) + ",";
-    }
-    for(const auto& it : last_week[1])
-    {
-        labels_time_week[1] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_week[1])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_week[1] += std::to_string(val) + ",";
-    }
-    for(const auto& it : last_week[2])
-    {
-        labels_time_week[2] += "'" + it->time + "',";
-    }
-    for(const auto& it : last_week[2])
-    {
-        T1 val = GetValueFromDequeue<T1>(it, offset_1);
-        data_week[2] += std::to_string(val) + ",";
-    }
-    
     if(!out)
     {
         LOG(LogLevel::Error, "Failed to open {} for writing graphs!", std::string("Graphs/") + filename);

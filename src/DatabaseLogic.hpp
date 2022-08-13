@@ -3,6 +3,7 @@
 #include "utils/CSingleton.hpp"
 
 #include "Logger.hpp"
+#include "IDatabase.hpp"
 
 #include <inttypes.h>
 #include <map>
@@ -14,7 +15,6 @@
 
 class Measurement;
 class Result;
-class IDatabase;
 
 class DatabaseLogic : public CSingleton < DatabaseLogic >
 {

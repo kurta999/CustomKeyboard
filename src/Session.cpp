@@ -13,8 +13,11 @@ void Session::HandleRead(const boost::system::error_code& error, std::size_t byt
 	if(!error)
 	{
 		receivedData[bytesTransferred] = 0;
-		Sensors::Get()->ProcessIncommingData(receivedData, sessionSocket.remote_endpoint().address().to_string().c_str());
-		StopAsync();
+
+		TcpMessageExecutor m_msgExecutor(sessionSocket.remote_endpoint().address().to_string().c_str(), receivedData, bytesTransferred); /* TODO: this is against OO, refactor it */
+		const auto [close_socket, succcess] = m_msgExecutor.Process();
+		if(close_socket)
+			StopAsync();
 	}
 }
 
@@ -77,26 +80,29 @@ void Session::StartAsync()
 	sessionAddress = remoteEndpoint.address().to_string(); 
 	sessionPort = remoteEndpoint.port();
 	
-	for(const auto &c : Server::Get()->sessions)
-	{
-		if(boost::algorithm::equals(c->sessionAddress, sessionAddress))
-		{
-			Server::Get()->sessions.erase(c);
-			return;
-		}
-	}
-	
 	sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)), 
 		std::bind(&Session::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 	Server::Get()->sessions.emplace(shared_from_this());
 }
 
-void Session::StopAsync()
+void Session::StopAsync(bool remove_from_session_list)
 {
 	if(sessionSocket.is_open())
 	{
 		boost::system::error_code error;
 		sessionSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
 		sessionSocket.close(error);
+		
+		if(remove_from_session_list)
+		{
+			for(const auto& c : Server::Get()->sessions)
+			{
+				if(boost::algorithm::equals(c->sessionAddress, sessionAddress))
+				{
+					Server::Get()->sessions.erase(c);
+					return;
+				}
+			}
+		}
 	}
 }
