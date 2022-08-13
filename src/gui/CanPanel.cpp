@@ -355,14 +355,7 @@ void CanPanel::RefreshRx()
     {
         uint16_t frame_id = std::stoi(can_grid_rx->m_grid->GetCellValue(wxGridCellCoords(i, Col_Id)).ToStdString(), nullptr, 16);
         auto it = can_handler->rx_entry_comment.find(frame_id);
-        if(it != can_handler->rx_entry_comment.end())
-        {
-            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i, Col_Comment), it->second);
-        }
-        else
-        {
-            can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i, Col_Comment), "");
-        }
+        can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(i, Col_Comment), it != can_handler->rx_entry_comment.end() ? it->second : "");
     }
 }
 
@@ -378,7 +371,7 @@ void CanPanel::OnCellValueChanged(wxGridEvent& ev)
     int row = ev.GetRow(), col = ev.GetCol();
     if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_rx->m_grid))
     {
-        wxString new_value = can_grid_tx->m_grid->GetCellValue(row, col);
+        wxString new_value = can_grid_rx->m_grid->GetCellValue(row, col);
         switch(col)
         {
             case Col_Comment:

@@ -266,7 +266,11 @@ void MyFrame::RegisterTerminalHotkey(int vkey)
 #ifdef _WIN32
 	wxWindow::UnregisterHotKey(HOTKEY_ID_TERMINAL);
 	if(vkey != 0xFFFF)  /* Register hotkey only if specified key is valid */
-		wxWindow::RegisterHotKey(HOTKEY_ID_TERMINAL, wxMOD_NONE, vkey);
+	{
+		bool ret = wxWindow::RegisterHotKey(HOTKEY_ID_TERMINAL, wxMOD_NONE, vkey);
+		if(!ret)
+			LOG(LogLevel::Error, "Failed to register terminal hotkey!");
+	}
 #endif
 }
 

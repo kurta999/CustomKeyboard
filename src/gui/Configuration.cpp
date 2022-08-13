@@ -502,7 +502,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			if(in)
 			{
 				std::string in_str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-				std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+				const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 				std::ofstream out(std::format("settings.ini_{:%Y.%m.%d_%H-%M-%OS}.ini", now), std::ofstream::binary);
 				out << in_str;
 				LOG(LogLevel::Notification, "Settings.ini has been successfully backed up");
