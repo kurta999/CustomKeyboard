@@ -22,8 +22,13 @@ public:
     bool Init();
 
 private:
+    // !\brief Execute init sequence for HID
+    // !\details Initialization can't be in main thread because sometime hid_open_path take more than 1 minute to finish
+    //            and entrie app will be blocked
+    bool ExecuteInitSequence();
+
     // !\brief Map with G-Key values and it's name
-    std::map<int, std::string> corsair_GKeys =
+    const std::map<int, std::string> corsair_GKeys =
     {
         { 1 << 0, "G1" },
         { 1 << 1, "G2" },
@@ -59,6 +64,9 @@ private:
 
     // !\brief Exit polling thread when set to true
     std::atomic<bool> m_exit = false;
+
+    // !\brief Future for executing HID initialization
+    std::future<bool> m_hid_init_future;
 
     // !\brief Pointer to worker thread
     std::unique_ptr<std::thread> m_worker = nullptr;
