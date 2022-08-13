@@ -11,6 +11,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include "ILogHelper.hpp"
+
 DECLARE_APP(MyApp);
 
 enum LogLevel
@@ -41,6 +43,8 @@ class Logger : public CSingleton < Logger >
 public:
     Logger();
     ~Logger() = default;
+    void SetLogHelper(ILogHelper* helper);
+    bool SearchInLogFile(std::string_view filter, std::string_view log_level);
 
 #define LOG_GUI_FORMAT "{:%Y.%m.%d %H:%M:%OS} [{}] {}"
 #define LOG_FILE_FORMAT "{:%Y.%m.%d %H:%M:%OS} [{}] [{}:{} - {}] {}\n"
@@ -60,7 +64,7 @@ public:
         static constexpr std::string_view gui_str = LOG_GUI_FORMAT;
         static constexpr std::string_view log_str = LOG_FILE_FORMAT;
     };
-     
+
     template <>
     struct HelperTraits<std::wstring>
     {
@@ -110,7 +114,7 @@ public:
     {
         using string_type = get_fmt_ret_string_type<T>::type;
         typename get_fmt_ret_string_type<T>::type formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(args...)) : msg.data();
-        std::chrono::sys_time<std::chrono::nanoseconds> now = std::chrono::system_clock::now();
+        const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
         typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now, HelperTraits<string_type>::serverities[lvl], formatted_msg));
 
         F filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
@@ -123,7 +127,7 @@ public:
             }
         }
 
-        if(lvl > LogLevel::Normal && lvl <= LogLevel::Critical)
+        if(lvl >= LogLevel::Normal && lvl <= LogLevel::Critical)
         {
             fLog << std::format(HelperTraits<string_type>::log_str, now, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
             fLog.flush();
@@ -194,6 +198,9 @@ private:
 
     // !\brief Serverity level in string format
     static inline const char* severity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
+
+    // !\brief Pointer to LogPanel
+    ILogHelper* m_helper;
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

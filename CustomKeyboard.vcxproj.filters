@@ -43,6 +43,9 @@
     <Filter Include="libs\hidapi">
       <UniqueIdentifier>{ecbd72f2-6710-4abc-b8c5-74c0bcc1de70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\interface">
+      <UniqueIdentifier>{9c6a47d6-f75b-4e2b-8481-01238fbe0e0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\sqlite\sqlite3.h">
@@ -215,6 +218,9 @@
     </ClInclude>
     <ClInclude Include="src\CorsairHid.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\ILogHelper.hpp">
+      <Filter>Header Files\interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

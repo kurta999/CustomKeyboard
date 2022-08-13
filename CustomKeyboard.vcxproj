@@ -218,7 +218,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_x64_lib;C:\Program Files\boost\boost_1_80_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_x64_lib;C:\Program Files\boost\boost_1_80_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -246,7 +246,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_x64_dll;C:\Program Files\boost\boost_1_80_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_x64_dll;C:\Program Files\boost\boost_1_80_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -278,7 +278,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\Program Files\boost\boost_1_80_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\Program Files\boost\boost_1_80_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -339,6 +339,7 @@
     <ClInclude Include="src\gui\ParserPanel.hpp" />
     <ClInclude Include="src\gui\pch.hpp" />
     <ClInclude Include="src\gui\TrayIcon.hpp" />
+    <ClInclude Include="src\interface\ILogHelper.hpp" />
     <ClInclude Include="src\Logger.hpp" />
     <ClInclude Include="src\MacroRecorder.hpp" />
     <ClInclude Include="src\ModbusMasterSerialPort.hpp" />
