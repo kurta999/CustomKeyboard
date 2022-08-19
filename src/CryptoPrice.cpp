@@ -18,31 +18,46 @@ void CryptoPrice::ExecuteApiRead()
     std::string buy_price_str = exec("curl https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell");
     boost::algorithm::split_regex(arr, buy_price_str, boost::regex("{\"data\":{\"base\":\""));
 #endif
-    arr.erase(arr.begin());
 
-    auto ExtractAmount = [](std::string& str, std::atomic<float>& out)
+    if(arr[0].find("not recognized") == std::string::npos) /* 'curl' is not recognized as an internal or external command, operable program or batch file. */
     {
-        try
+        if(arr.begin() != arr.end())
+            arr.erase(arr.begin());
+        if(arr.size() == 4)
         {
-            size_t pos = str.find("\"amount\":\"");
-            if(pos != std::string::npos)
+            auto ExtractAmount = [](std::string& str, std::atomic<float>& out)
             {
-                out = std::stof(&str[pos + 10]);
-            }
+                try
+                {
+                    size_t pos = str.find("\"amount\":\"");
+                    if(pos != std::string::npos)
+                    {
+                        out = std::stof(&str[pos + 10]);
+                    }
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Exception: {}", e.what());
+                }
+            };
+
+            ExtractAmount(arr[0], eth_buy);
+            ExtractAmount(arr[1], eth_sell);
+            ExtractAmount(arr[2], btc_buy);
+            ExtractAmount(arr[3], btc_sell);
+            is_pending = true;
+
+            LOG(LogLevel::Notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy, eth_sell, btc_buy, btc_sell);
         }
-        catch(std::exception& e)
+        else
         {
-            LOG(LogLevel::Error, "Exception: {}", e.what());
+            LOG(LogLevel::Error, "Invalid number of requrests received from curl.");
         }
-    };
-
-    ExtractAmount(arr[0], eth_buy);
-    ExtractAmount(arr[1], eth_sell);
-    ExtractAmount(arr[2], btc_buy);
-    ExtractAmount(arr[3], btc_sell);
-    is_pending = true;
-
-    LOG(LogLevel::Notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy, eth_sell, btc_buy, btc_sell);
+    }
+    else
+    {
+        LOG(LogLevel::Error, "curl is not found on the system, coin price requests won't work!");
+    }
     last_update = std::chrono::steady_clock::now();
 }
 
