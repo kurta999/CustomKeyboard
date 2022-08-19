@@ -6,6 +6,13 @@
 class CanTxEntry
 {
 public:
+    CanTxEntry() = default;
+    ~CanTxEntry() = default;
+    CanTxEntry(const CanTxEntry& from) : 
+        id(from.id + 1), data(from.data), period(from.period), comment(from.comment)
+    { 
+
+    }
     uint32_t id{};
     std::vector<uint8_t> data{};
     uint32_t period{};

@@ -200,7 +200,7 @@ private:
     static inline const char* severity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
 
     // !\brief Pointer to LogPanel
-    ILogHelper* m_helper;
+    ILogHelper* m_helper = nullptr;
 };
 
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */

@@ -93,6 +93,16 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     cnt++;
 }
 
+void CanGrid::RemoveLastRow()
+{
+    int num_rows = m_grid->GetNumberRows();
+    if(num_rows < 1)
+        return;
+    m_grid->DeleteRows(m_grid->GetNumberRows() - 1, 1);
+    cnt--;
+    grid_to_entry.erase(cnt);
+}
+
 void CanGrid::UpdateTxCounter(uint32_t frame_id, size_t count)
 {
     for(auto& i : grid_to_entry)
@@ -151,7 +161,6 @@ void CanGridRx::AddRow(std::unique_ptr<CanRxData>& e)
     int num_row = m_grid->GetNumberRows() - 1;
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), "0");
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), "1");
-    //can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Comment), entry.second->comment); // TODO: add RX list
     rx_grid_to_entry[num_row] = e.get();
 
     m_grid->SetReadOnly(num_row, Col_Id);
@@ -263,7 +272,7 @@ CanPanel::CanPanel(wxWindow* parent)
         h_sizer->Add(m_StopAll);
 
         m_Add = new wxButton(this, wxID_ANY, "Add", wxDefaultPosition, wxDefaultSize);
-        m_Add->SetToolTip("Add CAN frame to TX list");
+        m_Add->SetToolTip("Add CAN frame to the end TX list");
         m_Add->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 CanEntryHandler* can_handler = wxGetApp().can_entry;
@@ -272,20 +281,50 @@ CanPanel::CanPanel(wxWindow* parent)
                 std::unique_ptr<CanTxEntry> entry = std::make_unique<CanTxEntry>();
                 entry->data = { 0, 0, 0, 0, 0, 0, 0, 0 };
                 entry->id = 0x123;
+                can_grid_tx->AddRow(entry);
                 {
                     std::scoped_lock lock{ can_handler->m };
                     can_handler->entries.push_back(std::move(entry));
                 }
-                RefreshTx();
             });
         h_sizer->Add(m_Add);
 
         m_Copy = new wxButton(this, wxID_ANY, "Copy", wxDefaultPosition, wxDefaultSize);
-        m_Copy->SetToolTip("Copy CAN frame");
+        m_Copy->SetToolTip("Copy CAN frame to the end of TX list");
+        m_Copy->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                for(auto& i : rows)
+                {
+                    const CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    std::unique_ptr<CanTxEntry> new_entry = std::make_unique<CanTxEntry>(*entry);
+                    can_grid_tx->AddRow(new_entry);
+                    {
+                        std::scoped_lock lock{ can_handler->m };
+                        can_handler->entries.push_back(std::move(new_entry));
+                    }
+                }
+            });
         h_sizer->Add(m_Copy);
 
         m_Delete = new wxButton(this, wxID_ANY, "Delete", wxDefaultPosition, wxDefaultSize);
-        m_Delete->SetToolTip("Delete CAN frame");
+        m_Delete->SetToolTip("Delete CAN frame from the END of TX list");
+        m_Delete->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                can_grid_tx->RemoveLastRow();
+                {
+                    std::scoped_lock lock{ can_handler->m };
+                    can_handler->entries.pop_back();
+                }
+            });
         h_sizer->Add(m_Delete);
         
         RefreshGuiIconsBasedOnSettings();

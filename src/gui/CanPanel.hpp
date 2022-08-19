@@ -29,6 +29,7 @@ public:
 
     void AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString comment);
     void AddRow(std::unique_ptr<CanTxEntry>& e);
+    void RemoveLastRow();
     void UpdateTxCounter(uint32_t frame_id, size_t count);
     wxGrid* m_grid = nullptr;
     
