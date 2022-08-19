@@ -12,10 +12,11 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 7. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
 8. **Sensors** - Backend for sensors with SQLite database for measurements & graphs generation to .html file
 9. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
-10. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
-11. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
-12. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
-12. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
+10. **Filesystem browser** - List files and directories recursively by size starting from specific path - useful for finding bloat on storage
+11. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
+12. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
+13. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
+14. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
 
 *(1) This is an outdated part of this project, it doesn't support sizers. It's not recommended to create GUI without sizers, only use it if you know what you are doing.
 
@@ -38,7 +39,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 
 9. **wxWidget's GUI editor** - Oversimplified GUI editor which sometimes can be useful beside [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder "wxFormBuilder's Homepage"). GUI items are movable & resizable - directly without sizers. C++ code generation also implemented, current workspace can be saved & loaded to/from XML file.
 
-10. **File explorer opener** - This function can be useful if you work with VirtualBox or WSL and using samba for accessing specific parts on guest OS filesystem. First you have to map the network drive in Windows, let's say to Z: - also don't forget to enable TCP_Backend in settings.ini. Here is an example command for opening the file explorer on Windows: "echo expw$(pwd) | netcat <ip address of host os> <TCP_Backend port from settings.ini>". For the best experience, I recommend creating an alias for this command.
+10. **File explorer opener** - This function can be useful if you work with VirtualBox or WSL and using samba for accessing specific parts on guest OS filesystem. First you have to map the network drive in Windows, default drive character is Z: (can be changed in settings.ini - "SharedDriveLetter"), also don't forget to enable TCP_Backend in settings.ini. Here is an example command for opening the file explorer on Windows: "echo expw$(pwd) | netcat <ip address of host os> <TCP_Backend port from settings.ini>". For the best experience, I recommend creating an alias for this command.
 
 ## Libraries
 - [lodepng](https://lodev.org/lodepng/ "lodepng's Homepage")
@@ -99,6 +100,10 @@ make  (or "make -j$(nproc)" for faster build)
 **Structure parser**
 
 ![Alt text](/github_screens/struct_parser.png?raw=true "C Structure parser (offset generation)")
+
+**Filesystem browser**
+
+![Alt text](/github_screens/file_browser.png?raw=true "Filesystem browser")
 
 **Configuration**
 
