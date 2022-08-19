@@ -40,6 +40,8 @@ public:
     // !\brief Num lock always on status
     bool always_on_numlock = false;
 
+    // !\bried Shared drive mapped letter
+    char shared_drive_letter = 'Z';
 private:
     // !\brief Parse and insert macro keys from ini format to it's container 
     // !\param id [in] ID of given entry

@@ -266,6 +266,7 @@ void Settings::LoadFile()
                 window_size.y = WINDOW_SIZE_Y;
         }
         always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());
+        shared_drive_letter = pt.get_child("App").find("SharedDriveLetter")->second.data()[0];
 
         PrintScreenSaver::Get()->screenshot_key = std::move(pt.get_child("Screenshot").find("ScreenshotKey")->second.data());
         PrintScreenSaver::Get()->timestamp_format = std::move(pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data());
@@ -451,6 +452,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     }
     out << "LastWindowSize = " << std::format("{}, {}", window_size.x, window_size.y) << "\n";
     out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
+    out << "SharedDriveLetter = " << shared_drive_letter << "\n";
     out << "\n";
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";
