@@ -5,6 +5,44 @@ EVT_SIZE(FilePanel::OnSize)
 EVT_TREELIST_ITEM_ACTIVATED(ID_DirList, FilePanel::OnItemActivated)
 wxEND_EVENT_TABLE()
 
+int MyComparator::Compare(wxTreeListCtrl* treelist, unsigned column, wxTreeListItem item1, wxTreeListItem item2)
+{
+	wxString text1 = treelist->GetItemText(item1, column), text2 = treelist->GetItemText(item2, column);
+	switch(column)
+	{
+		case 0:
+			return text1.CmpNoCase(text2);
+
+		case 1:
+		{
+			int64_t result = GetSizeFromText(text1) - GetSizeFromText(text2);
+			if(result > 0)
+				result = 1;
+			else if(result < 0)
+				result = -1;
+			return result;
+		}
+	}
+	return 0;
+}
+
+int64_t MyComparator::GetSizeFromText(const wxString& text) const
+{
+	wxString size;
+	int64_t factor = 1;
+	if(text.EndsWith(" GB", &size))
+		factor = (int64_t)((int64_t)8 * (int64_t)1024 * (int64_t)1024 * (int64_t)1024);
+	else if(text.EndsWith(" MB", &size))
+		factor = (int64_t)((int64_t)8 * (int64_t)1024 * (int64_t)1024);
+	else if(!text.EndsWith(" kB", &size))
+		factor = (int64_t)((int64_t)8 * (int64_t)1024);
+	else if(!text.EndsWith(" B", &size))
+		factor = 8;
+	unsigned long long n = 0;
+	size.ToULongLong(&n);
+	return n * factor;
+}
+
 void FilePanel::OnSize(wxSizeEvent& evt)
 {
 	evt.Skip();
@@ -50,7 +88,7 @@ FilePanel::FilePanel(wxFrame* parent)
 {
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
-	m_DirText = new wxTextCtrl(this, wxID_ANY, "C:\\wxWidgets-3.1.5\\samples", wxDefaultPosition, wxSize(200, 20));
+	m_DirText = new wxTextCtrl(this, wxID_ANY, "C:\\wxWidgets-3.2.0\\samples", wxDefaultPosition, wxSize(200, 20));
 	bSizer1->Add(m_DirText);
 	m_FileInfo = new wxStaticText(this, wxID_ANY, "No info available", wxDefaultPosition, wxSize(400, 20));
 	bSizer1->Add(m_FileInfo);
