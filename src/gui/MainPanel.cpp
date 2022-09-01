@@ -158,7 +158,7 @@ MainPanel::MainPanel(wxFrame* parent)
 
 	split_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(3, 800), wxLI_VERTICAL), wxSizerFlags(0));
 
-#define ADD_GKEY(display_text, internal_name, key_name) \
+#define ADD_GKEY(display_text, internal_name, key_name, dest_sizer) \
 	{\
 		wxStaticBox* st_box = new wxStaticBox(this, wxID_ANY, wxT("N/A"));\
 		key_map.emplace(internal_name, st_box); \
@@ -166,34 +166,40 @@ MainPanel::MainPanel(wxFrame* parent)
 		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
 		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
 		num->Add(button_num, 0, wxALL, 5); \
-		g_key_box_sizer->Add(num, 1, wxEXPAND, 5); \
+		dest_sizer->Add(num, 1, wxEXPAND, 5); \
 	}
 	
 	wxBoxSizer* third_vertical = new wxBoxSizer(wxVERTICAL);
-	wxGridSizer* g_key_box_sizer = new wxGridSizer(6, 3, 0, 0);
 
-	ADD_GKEY("G1",	"G1",	g1);
-	ADD_GKEY("G2",	"G2",	g2);
-	ADD_GKEY("G3",	"G3",	g3);
-	ADD_GKEY("G4",	"G4",	g4);
-	ADD_GKEY("G5",	"G5",	g5);
-	ADD_GKEY("G6",	"G6",	g6);
-	//g_key_box_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(3, 600), wxLI_HORIZONTAL), wxSizerFlags(0));
-	ADD_GKEY("G7",	"G7",	g7);
-	ADD_GKEY("G8",	"G8",	g8);
-	ADD_GKEY("G9",	"G9",	g9);
-	ADD_GKEY("G10", "G10",	g10);
-	ADD_GKEY("G11",	"G11",	g11);
-	ADD_GKEY("G12",	"G12",	g12);
-	//g_key_box_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(3, 600), wxLI_HORIZONTAL), wxSizerFlags(0));
-	ADD_GKEY("G13", "G13",	g13);
-	ADD_GKEY("G14", "G14",	g14);
-	ADD_GKEY("G15", "G15",	g15);
-	ADD_GKEY("G16", "G16",	g16);
-	ADD_GKEY("G17", "G17",	g17);
-	ADD_GKEY("G18", "G18",	g18);
+	wxGridSizer* g_key_box_sizer_1 = new wxGridSizer(2, 3, 0, 0);
+	ADD_GKEY("G1",	"G1",	g1, g_key_box_sizer_1);
+	ADD_GKEY("G2",	"G2",	g2, g_key_box_sizer_1);
+	ADD_GKEY("G3",	"G3",	g3, g_key_box_sizer_1);
+	ADD_GKEY("G4",	"G4",	g4, g_key_box_sizer_1);
+	ADD_GKEY("G5",	"G5",	g5, g_key_box_sizer_1);
+	ADD_GKEY("G6",	"G6",	g6, g_key_box_sizer_1);
+	third_vertical->Add(g_key_box_sizer_1);
+	third_vertical->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL), wxSizerFlags(0));
+	
+	wxGridSizer* g_key_box_sizer_2 = new wxGridSizer(2, 3, 0, 0);
+	ADD_GKEY("G7",	"G7",	g7, g_key_box_sizer_2);
+	ADD_GKEY("G8",	"G8",	g8, g_key_box_sizer_2);
+	ADD_GKEY("G9",	"G9",	g9, g_key_box_sizer_2);
+	ADD_GKEY("G10", "G10",	g10, g_key_box_sizer_2);
+	ADD_GKEY("G11",	"G11",	g11, g_key_box_sizer_2);
+	ADD_GKEY("G12",	"G12",	g12, g_key_box_sizer_2);
+	third_vertical->Add(g_key_box_sizer_2);
+	third_vertical->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL), wxSizerFlags(0));
 
-	third_vertical->Add(g_key_box_sizer);
+	wxGridSizer* g_key_box_sizer_3 = new wxGridSizer(2, 3, 0, 0);
+	ADD_GKEY("G13", "G13",	g13, g_key_box_sizer_3);
+	ADD_GKEY("G14", "G14",	g14, g_key_box_sizer_3);
+	ADD_GKEY("G15", "G15",	g15, g_key_box_sizer_3);
+	ADD_GKEY("G16", "G16",	g16, g_key_box_sizer_3);
+	ADD_GKEY("G17", "G17",	g17, g_key_box_sizer_3);
+	ADD_GKEY("G18", "G18",	g18, g_key_box_sizer_3);
+	third_vertical->Add(g_key_box_sizer_3);
+	
 	split_sizer->Add(third_vertical, wxSizerFlags(0));
 
 	UpdateKeybindings();
