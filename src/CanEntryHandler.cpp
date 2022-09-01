@@ -66,24 +66,31 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
 
 bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
 {
-    std::ofstream out(path.generic_string(), std::ofstream::binary);
-    out << "<CanUsbXml>\n";
-
-    for(auto& i : e)
+    bool ret = true;
+    std::ofstream out(path, std::ofstream::binary);
+    if(out.is_open())
     {
-        out << "\t<Frame>\n";
-        out << std::format("\t\t<ID>{:X}</ID>\n", i->id);
-        std::string hex;
-        boost::algorithm::hex(i->data.begin(), i->data.end(), std::back_inserter(hex));
-        if(hex.length() > 2)
-            utils::separate<2, ' '>(hex);
-        out << std::format("\t\t<Data>{}</Data>\n", hex);
-        out << std::format("\t\t<Period>{}</Period>\n", i->period);
-        out << std::format("\t\t<Comment>{}</Comment>\n", i->comment);
-        out << "\t</Frame>\n";
+        out << "<CanUsbXml>\n";
+        for(auto& i : e)
+        {
+            out << "\t<Frame>\n";
+            out << std::format("\t\t<ID>{:X}</ID>\n", i->id);
+            std::string hex;
+            boost::algorithm::hex(i->data.begin(), i->data.end(), std::back_inserter(hex));
+            if(hex.length() > 2)
+                utils::separate<2, ' '>(hex);
+            out << std::format("\t\t<Data>{}</Data>\n", hex);
+            out << std::format("\t\t<Period>{}</Period>\n", i->period);
+            out << std::format("\t\t<Comment>{}</Comment>\n", i->comment);
+            out << "\t</Frame>\n";
+        }
+        out << "</CanUsbXml>\n";
     }
-    out << "</CanUsbXml>\n";
-    return true;
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e)
@@ -117,18 +124,25 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
 
 bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e)
 {
-    std::ofstream out(path.generic_string(), std::ofstream::binary);
-    out << "<CanUsbRxXml>\n";
-
-    for(auto& i : e)
+    bool ret = true;
+    std::ofstream out(path, std::ofstream::binary);
+    if(out.is_open())
     {
-        out << "\t<Frame>\n";
-        out << std::format("\t\t<ID>{:X}</ID>\n", i.first);
-        out << std::format("\t\t<Comment>{}</Comment>\n", i.second);
-        out << "\t</Frame>\n";
+        out << "<CanUsbRxXml>\n";
+        for(auto& i : e)
+        {
+            out << "\t<Frame>\n";
+            out << std::format("\t\t<ID>{:X}</ID>\n", i.first);
+            out << std::format("\t\t<Comment>{}</Comment>\n", i.second);
+            out << "\t</Frame>\n";
+        }
+        out << "</CanUsbRxXml>\n";
     }
-    out << "</CanUsbRxXml>\n";
-    return true;
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 void CanEntryHandler::Init()
@@ -221,12 +235,13 @@ bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
     return ret;
 }
 
-void CanEntryHandler::SaveTxList(std::filesystem::path& path)
+bool CanEntryHandler::SaveTxList(std::filesystem::path& path)
 {
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_tx_list;
-    m_CanEntryLoader.Save(path, entries);
+    bool ret = m_CanEntryLoader.Save(path, entries);
+    return ret;
 }
 
 bool CanEntryHandler::LoadRxList(std::filesystem::path& path)
@@ -240,10 +255,11 @@ bool CanEntryHandler::LoadRxList(std::filesystem::path& path)
     return ret;
 }
 
-void CanEntryHandler::SaveRxList(std::filesystem::path& path)
+bool CanEntryHandler::SaveRxList(std::filesystem::path& path)
 {
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_rx_list;
-    m_CanRxEntryLoader.Save(path, rx_entry_comment);
+    bool ret = m_CanRxEntryLoader.Save(path, rx_entry_comment);
+    return ret;
 }

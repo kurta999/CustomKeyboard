@@ -91,7 +91,7 @@ public:
 
     // !\brief Save TX list to a file
     // !\param path [in] File path to save
-    void SaveTxList(std::filesystem::path& path);
+    bool SaveTxList(std::filesystem::path& path);
 
     // !\brief Load RX list from a file
     // !\param path [in] File path to load
@@ -100,7 +100,7 @@ public:
 
     // !\brief Save RX list to a file
     // !\param path [in] File path to save
-    void SaveRxList(std::filesystem::path& path);
+    bool SaveRxList(std::filesystem::path& path);
 
     // !\brief Vector of CAN TX entries
     std::vector<std::unique_ptr<CanTxEntry>> entries;
