@@ -9,13 +9,23 @@ MainPanel::MainPanel(wxFrame* parent)
 	wxBoxSizer* split_sizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
+	wxBoxSizer* horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
 	m_RefreshButton->SetToolTip("Request new measurements");
-	bSizer1->Add(m_RefreshButton, 0, wxALL, 5);
+	horizontal_sizer->Add(m_RefreshButton, 0);
 	m_RefreshButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
 		});
+
+	m_ResetButton = new wxButton(this, wxID_ANY, wxT("Reset"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ResetButton->SetToolTip("Restart device");
+	horizontal_sizer->Add(m_ResetButton, 0);
+	m_ResetButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			Server::Get()->BroadcastMessage("RESET");
+		});
+	bSizer1->Add(horizontal_sizer, 0, wxALL, 5);
 
 	m_GenerateGraphs = new wxButton(this, wxID_ANY, wxT("Generate graphs"), wxDefaultPosition, wxDefaultSize, 0);
 	m_GenerateGraphs->SetToolTip("Generate graphs from SQLite database");

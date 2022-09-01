@@ -12,6 +12,7 @@ public:
 	void UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell);
 
 	wxButton* m_RefreshButton = nullptr;
+	wxButton* m_ResetButton = nullptr;
 	wxButton* m_GenerateGraphs = nullptr;
 	wxStaticText* m_textTemp = nullptr;
 	wxStaticText* m_textHum = nullptr;
