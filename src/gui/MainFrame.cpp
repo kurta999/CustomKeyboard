@@ -206,7 +206,7 @@ void MyFrame::HandleDebugPanelUpdate()
 
 void MyFrame::HandleBackupProgressDialog()
 {
-	if(show_backup_dlg && backup_prog == NULL)
+	if(show_backup_dlg && backup_prog == NULL && !DirectoryBackup::Get()->is_cancelled)
 	{
 		backup_prog = new wxProgressDialog("Backing up files", 
 			"Please wait while files being backed up\nIt can take a few minutes...Be patient", 100, 0, wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
@@ -220,6 +220,7 @@ void MyFrame::HandleBackupProgressDialog()
 		{
 			backup_prog->Destroy();
 			backup_prog = NULL;
+			DirectoryBackup::Get()->is_cancelled = true;
 		}
 	}
 
@@ -436,8 +437,10 @@ void MyFrame::HandleNotifications()
 					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 					size_t file_count = std::any_cast<decltype(file_count)>(ret[2]);
 					size_t files_size = std::any_cast<decltype(files_size)>(ret[3]);
-					std::filesystem::path* p = std::any_cast<decltype(p)>(ret[4]);
-					ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files (%s) in %.3fms", file_count, utils::GetDataUnit(files_size), (double)time_elapsed / 1000000.0),
+					size_t dest_count = std::any_cast<decltype(files_size)>(ret[4]);
+					std::filesystem::path* p = std::any_cast<decltype(p)>(ret[5]);
+					ShowNotificaiton("Backup complete", wxString::Format("Backed up %zu files (%s) to %zu places in %.3fms", file_count, utils::GetDataUnit(files_size), dest_count,
+						(double)time_elapsed / 1000000.0),
 						3, wxICON_INFORMATION, [this, p](wxCommandEvent& event)
 						{
 #ifdef _WIN32
