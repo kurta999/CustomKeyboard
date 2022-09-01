@@ -11,6 +11,7 @@
 #include <chrono>
 #include <stack>
 #include <iostream>
+#include <fstream>
 #include <limits>
 
 #include <boost/algorithm/string.hpp>
@@ -18,7 +19,13 @@
 
 #include "../src/StringToCEscaper.hpp"
 #include "../src/StructParser.hpp"
+#include "../src/DirectoryBackup.hpp"
 #include "../src/Utils.hpp"
+
+extern "C"
+{
+#include "../libs/sha256/sha256.h"
+}
 
 #define DBG(str, ...) \
     {\

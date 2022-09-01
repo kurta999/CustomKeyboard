@@ -8,9 +8,17 @@
     <ClCompile Include="..\src\Utils.cpp" />
     <ClCompile Include="StructParserTests.cpp" />
     <ClCompile Include="LoggerTests.cpp" />
+    <ClCompile Include="DirectoryBackupTests.cpp" />
+    <ClCompile Include="..\src\DirectoryBackup.cpp" />
+    <ClCompile Include="..\libs\sha256\sha256.c">
+      <Filter>libs\sha256</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
+    <ClInclude Include="..\libs\sha256\sha256.h">
+      <Filter>libs\sha256</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -18,6 +26,9 @@
   <ItemGroup>
     <Filter Include="libs">
       <UniqueIdentifier>{61978002-bc29-4421-b20f-67cdca45de6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\sha256">
+      <UniqueIdentifier>{ce6c0f5d-8e77-4284-ab3d-e35409fea8af}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
