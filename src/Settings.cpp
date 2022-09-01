@@ -434,7 +434,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";
     out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
-    out << "DefaultRxList = " << can_handler->default_tx_list.generic_string() << "\n";
+    out << "DefaultRxList = " << can_handler->default_rx_list.generic_string() << "\n";
     out << "\n";
     out << "[ModbusMaster]\n";
     out << "Enable = " << ModbusMasterSerialPort::Get()->IsEnabled() << "\n";

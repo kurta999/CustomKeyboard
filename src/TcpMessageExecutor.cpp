@@ -18,7 +18,7 @@ std::tuple<bool, bool> TcpMessageExecutor::Process()
 		std::string shared_drv_letter(1, Settings::Get()->shared_drive_letter);
 		//std::wstring(shared_drv_letter.begin(), shared_drv_letter.end());
 
-		std::wstring params = std::wstring(m_recv_data + FILE_EXPLORER_OPEN_FRAME_LEN, m_recv_data + (strlen(m_recv_data) - FILE_EXPLORER_OPEN_FRAME_LEN));
+		std::wstring params = std::wstring(m_recv_data + FILE_EXPLORER_OPEN_FRAME_LEN, m_recv_data + (strlen(m_recv_data)));
 		std::wstring cmdline = std::wstring(shared_drv_letter + ":" + params);
 		ShellExecuteW(NULL, L"open", L"explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
 #else
