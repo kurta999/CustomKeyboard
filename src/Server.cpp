@@ -34,7 +34,7 @@ void Server::HandleAccept(const boost::system::error_code& error, SharedSession 
 
 void Server::StartAccept()
 {
-    SharedSession session = std::make_shared<Session>(io_service);
+    SharedSession session = std::make_shared<Session>(io_service, std::make_unique<TcpMessageExecutor>());
     acceptor->async_accept(session->sessionSocket, std::bind(&Server::HandleAccept, this, std::placeholders::_1, session));
 }
 

@@ -2,7 +2,13 @@
 
 std::mutex mutex;
 
-Session::Session(boost::asio::io_service& io_service) : sessionSocket(io_service), transferTimer(io_service)
+Session::Session(boost::asio::io_service& io_service, std::unique_ptr<ITcpMessageExecutor>&& executor) : 
+	sessionSocket(io_service), transferTimer(io_service), m_msgExecutor(std::move(executor))
+{
+
+}
+
+Session::~Session()
 {
 
 }
@@ -14,10 +20,23 @@ void Session::HandleRead(const boost::system::error_code& error, std::size_t byt
 	{
 		receivedData[bytesTransferred] = 0;
 
-		TcpMessageExecutor m_msgExecutor(sessionSocket.remote_endpoint().address().to_string().c_str(), receivedData, bytesTransferred); /* TODO: this is against OO, refactor it */
-		const auto [close_socket, succcess] = m_msgExecutor.Process();
-		if(close_socket)
-			StopAsync();
+		std::tuple<bool, bool, std::string> ret_val;
+		{
+			TcpMessageInjector msg_executor(*m_msgExecutor, shared_from_this(), bytesTransferred);
+			ret_val = msg_executor.GetResult();
+
+			if(!std::get<2>(ret_val).empty())
+			{
+				SendAsync(std::get<2>(ret_val));
+				if(std::get<0>(ret_val))
+					is_close_pending = true;
+			}
+			else
+			{
+				if(std::get<0>(ret_val))
+					StopAsync();
+			}
+		}
 	}
 }
 
@@ -31,6 +50,13 @@ void Session::HandleTransferTimer(const boost::system::error_code& error)
 			SendAsync(pendingMessages.front());
 			pendingMessages.pop();
 		}
+		else
+		{
+			if(is_close_pending)
+			{
+				StopAsync();
+			}
+		}
 	}
 }
 
@@ -43,6 +69,13 @@ void Session::HandleWrite(const boost::system::error_code& error)
 		{
 			SendAsync(pendingMessages.front());
 			pendingMessages.pop();
+		}
+		else
+		{
+			if(is_close_pending)
+			{
+				StopAsync();
+			}
 		}
 	}
 	else

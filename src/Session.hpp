@@ -11,11 +11,15 @@
 
 #include "TcpMessageExecutor.hpp"
 
+constexpr size_t SESSION_RECV_BUF_LEN = 1024;
+
 class Session : public std::enable_shared_from_this<Session>
 {
 	friend class Server;
 public:
-	Session(boost::asio::io_service& io_service);
+	Session(boost::asio::io_service& io_service, std::unique_ptr<ITcpMessageExecutor>&& executor);
+
+	~Session();
 
 	// !\brief Send async message
 	// !\param buffer [in] String buffer to send
@@ -45,7 +49,7 @@ public:
 	std::queue<std::string> pendingMessages;
 
 	// !\brief Buffer for received data
-	char receivedData[256];
+	char receivedData[SESSION_RECV_BUF_LEN];
 
 	// !\brief Last sent data
 	std::string sentData;
@@ -62,6 +66,12 @@ public:
 	// !\brief Is write in progress?
 	bool writeInProgress = false;
 
+	// !\brief Is session close pending?
+	bool is_close_pending = false;
+
 	// !\brief ASIO Deadline Timer for sending message chunks
 	boost::asio::deadline_timer transferTimer;
+	
+	// !\brief Pointer to TCP message executor
+	std::unique_ptr<ITcpMessageExecutor> m_msgExecutor;
 };
