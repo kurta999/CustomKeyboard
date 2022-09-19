@@ -3,6 +3,7 @@
 wxBEGIN_EVENT_TABLE(CanPanel, wxPanel)
 EVT_GRID_CELL_CHANGED(CanPanel::OnCellValueChanged)
 EVT_SIZE(CanPanel::OnSize)
+EVT_CHAR_HOOK(CanPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 CanGrid::CanGrid(wxWindow* parent)
@@ -18,7 +19,7 @@ CanGrid::CanGrid(wxWindow* parent)
 
     m_grid->SetColLabelValue(Col_Id, "ID");
     m_grid->SetColLabelValue(Col_DataSize, "Size");
-    m_grid->SetColLabelValue(Col_Data, "Received Data");
+    m_grid->SetColLabelValue(Col_Data, "Data");
     m_grid->SetColLabelValue(Col_Period, "Period");
     m_grid->SetColLabelValue(Col_Count, "Count");
     m_grid->SetColLabelValue(Col_Comment, "Comment");
@@ -128,7 +129,7 @@ CanGridRx::CanGridRx(wxWindow* parent)
 
     m_grid->SetColLabelValue(Col_Id, "ID");
     m_grid->SetColLabelValue(Col_DataSize, "Size");
-    m_grid->SetColLabelValue(Col_Data, "Received Data");
+    m_grid->SetColLabelValue(Col_Data, "Data");
     m_grid->SetColLabelValue(Col_Period, "Period");
     m_grid->SetColLabelValue(Col_Count, "Count");
     m_grid->SetColLabelValue(Col_Comment, "Comment");
@@ -184,9 +185,9 @@ void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxD
         utils::separate<2, ' '>(hex);
         m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Data), hex);
     }
-    catch(...)  /* TODO: remove it after testing */
+    catch(...)
     {
-        LOG(LogLevel::Critical, "Exception happend");
+        LOG(LogLevel::Error, "Exception with boost::algorithm::hex");
     }
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Period), wxString::Format("%d", e->period));
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), wxString::Format("%lld", e->count));
@@ -219,6 +220,8 @@ CanPanel::CanPanel(wxWindow* parent)
 
         can_grid_tx = new CanGrid(this);
         RefreshTx();
+
+        Bind(wxEVT_CHAR_HOOK, &CanPanel::OnKeyDown, this);
 
         static_box_sizer->Add(can_grid_tx->m_grid, 0, wxALL, 5);
         bSizer1->Add(static_box_sizer, 0, wxALL, 5);
@@ -288,7 +291,7 @@ CanPanel::CanPanel(wxWindow* parent)
                 }
             });
         h_sizer->Add(m_Add);
-
+        
         m_Copy = new wxButton(this, wxID_ANY, "Copy", wxDefaultPosition, wxDefaultSize);
         m_Copy->SetToolTip("Copy CAN frame to the end of TX list");
         m_Copy->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -340,27 +343,59 @@ void CanPanel::On10MsTimer()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
-    for(auto& entry : can_handler->m_rxData)
-    {
-        bool found_in_grid = false;
-        for(auto& i : can_grid_rx->rx_grid_to_entry)
-        {
-            if(can_grid_rx->rx_grid_to_entry[i.first] == entry.second.get())
-            {
-                std::string comment;
-                auto it = can_handler->rx_entry_comment.find(entry.first);
-                if(it != can_handler->rx_entry_comment.end())
-                    comment = it->second;
-                can_grid_rx->UpdateRow(i.first, entry.first, entry.second, comment);
 
-                found_in_grid = true;
-                break;
+    if(search_pattern_rx.empty())
+    {
+        for(auto& entry : can_handler->m_rxData)
+        {
+            bool found_in_grid = false;
+            for(auto& i : can_grid_rx->rx_grid_to_entry)
+            {
+                if(can_grid_rx->rx_grid_to_entry[i.first] == entry.second.get())
+                {
+                    std::string comment;
+                    auto it = can_handler->rx_entry_comment.find(entry.first);
+                    if(it != can_handler->rx_entry_comment.end())
+                        comment = it->second;
+                    can_grid_rx->UpdateRow(i.first, entry.first, entry.second, comment);
+
+                    found_in_grid = true;
+                    break;
+                }
+            }
+
+            if(!found_in_grid)
+            {
+                can_grid_rx->AddRow(entry.second);
             }
         }
-
-        if(!found_in_grid)
+    }
+    else
+    {
+        for(auto& entry : can_handler->m_rxData)
         {
-            can_grid_rx->AddRow(entry.second);
+            std::string comment;
+            auto it = can_handler->rx_entry_comment.find(entry.first);
+            if(it != can_handler->rx_entry_comment.end())
+                comment = it->second;
+            if(boost::icontains(comment, search_pattern_rx))
+            {
+                bool found_in_grid = false;
+                for(auto& i : can_grid_rx->rx_grid_to_entry)
+                {
+                    if(can_grid_rx->rx_grid_to_entry[i.first] == entry.second.get())
+                    {
+                        can_grid_rx->UpdateRow(i.first, entry.first, entry.second, comment);
+                        found_in_grid = true;
+                        break;
+                    }
+                }
+
+                if(!found_in_grid)
+                {
+                    can_grid_rx->AddRow(entry.second);
+                }
+            }
         }
     }
 }
@@ -376,12 +411,23 @@ void CanPanel::RefreshTx()
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
-    can_grid_tx->m_grid->DeleteRows(0, can_grid_tx->m_grid->GetNumberRows());
+    if(can_grid_tx->m_grid->GetNumberRows())
+        can_grid_tx->m_grid->DeleteRows(0, can_grid_tx->m_grid->GetNumberRows());
     can_grid_tx->cnt = 0;
     can_grid_tx->grid_to_entry.clear();
-    for(auto& i : can_handler->entries)
+
+    if(search_pattern_tx.empty())
     {
-        can_grid_tx->AddRow(i);
+        for(auto& i : can_handler->entries)
+            can_grid_tx->AddRow(i);
+    }
+    else
+    {
+        for(auto& i : can_handler->entries)
+        {
+            if(boost::icontains(i->comment, search_pattern_tx))
+                can_grid_tx->AddRow(i);
+        }
     }
 }
 
@@ -583,4 +629,43 @@ void CanPanel::SaveRxList()
 void CanPanel::OnSize(wxSizeEvent& evt)
 {
     evt.Skip();
+}
+
+void CanPanel::OnKeyDown(wxKeyEvent& evt)
+{
+    if(evt.ControlDown())
+    {
+        switch(evt.GetKeyCode())
+        {
+            case 'F':
+            {
+                wxWindow* focus = wxWindow::FindFocus();
+                if(focus == can_grid_tx->m_grid)
+                {
+                    wxTextEntryDialog d(this, "Enter TX frame name for what you want to filter", "Search for frame");
+                    int ret = d.ShowModal();
+                    if(ret == wxID_OK)
+                    {
+                        search_pattern_tx = d.GetValue().ToStdString();
+                        RefreshTx();
+                    }
+                }
+                else if(focus == can_grid_rx->m_grid)
+                {
+                    wxTextEntryDialog d(this, "Enter RX frame name for what you want to filter", "Search for frame");
+                    int ret = d.ShowModal();
+                    if(ret == wxID_OK)
+                    {
+                        search_pattern_rx = d.GetValue().ToStdString();
+                        if(can_grid_rx->m_grid->GetNumberRows())
+                            can_grid_rx->m_grid->DeleteRows(0, can_grid_rx->m_grid->GetNumberRows());
+                        can_grid_rx->cnt = 0;
+                        can_grid_rx->rx_grid_to_entry.clear();
+                        RefreshRx();
+                    }
+                }
+                break;
+            }
+        }
+    }
 }

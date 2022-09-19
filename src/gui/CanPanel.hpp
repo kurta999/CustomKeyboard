@@ -64,6 +64,7 @@ public:
     void LoadRxList();
     void SaveRxList();
     void OnSize(wxSizeEvent& evt);
+    void OnKeyDown(wxKeyEvent& evt);
 
     CanGrid* can_grid_tx = nullptr;
     CanGridRx* can_grid_rx = nullptr;
@@ -86,5 +87,8 @@ private:
 
     wxString file_path_tx;
     wxString file_path_rx;
+
+    std::string search_pattern_tx;
+    std::string search_pattern_rx;
 	wxDECLARE_EVENT_TABLE();
 };
