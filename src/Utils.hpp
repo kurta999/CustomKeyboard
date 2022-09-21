@@ -47,9 +47,13 @@ namespace utils
 #ifdef _WIN32
     CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout = std::numeric_limits<uint32_t>::min());
 #else
+    
+#endif
     std::string exec(const char* cmd);
 #endif
-#endif
+
+    uint32_t ColorStringToInt(std::string& in);
+
     template <typename R, typename S> inline R stoi(const S& from_str)
     {
         if constexpr(!std::is_arithmetic_v<R>)

@@ -346,6 +346,9 @@ namespace utils
 		return strResult;
 	} //ExecCmd
 #else
+
+#endif
+
 	std::string exec(const char* cmd)
 	{
 #ifdef _WIN32
@@ -367,7 +370,7 @@ namespace utils
 		}
 		return result;
 	}
-#endif
+
 #endif
 
 	/*
@@ -379,4 +382,34 @@ namespace utils
 		cv.wait_for(lock, 10ms, [&stop_token]() { return stop_token.stop_requested(); });
 	}
 	*/
+
+	uint32_t ColorStringToInt(std::string& in)
+	{
+		uint32_t ret = 0;
+		if(in == "red")
+			ret = 0xFF0000;
+		else if(in == "green")
+			ret = 0x33FF33;
+		else if(in == "blue")
+			ret = 0x6495ED;
+		else if(in == "orange")
+			ret = 0xFF7F50;
+		else if(in == "white")
+			ret = 0xFFFFFF;
+		else if(in == "black")
+			ret = 0;
+		else if(in == "pink")
+			ret = 0xFF10F0;
+		else
+		{
+			size_t offset = 0;
+			if(in[0] == '#')
+				offset = 1;
+			if(sscanf(&in.c_str()[offset], "%x", &ret) != 1)
+			{
+				LOG(LogLevel::Error, "Invalid color format: {}", in);
+			}
+		}
+		return ret;
+	}
 }

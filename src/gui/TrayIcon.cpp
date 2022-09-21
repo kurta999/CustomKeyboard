@@ -99,6 +99,8 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	mainFrame->main_panel->UpdateKeybindings();
 	mainFrame->config_panel->UpdateSubpanels();
 	mainFrame->can_panel->RefreshSubpanels();
+	mainFrame->cmd_panel->ReloadCommands();
+	LOG(LogLevel::Normal, "Settings has been reloaded");
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))

@@ -6,6 +6,7 @@
 
 #include <wx/wx.h>
 #include "CanEntryHandler.hpp"
+#include "CmdExecutor.hpp"
 
 class MyApp : public wxApp
 {
@@ -20,4 +21,5 @@ public:
     XmlCanEntryLoader xml;
     XmlCanRxEntryLoader rx_xml;
     CanEntryHandler* can_entry = nullptr;
+    CmdExecutor* cmd_executor = nullptr;
 };

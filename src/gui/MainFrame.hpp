@@ -9,6 +9,7 @@
 #include "FilePanel.hpp"
 #include "CanPanel.hpp"
 #include "ModbusMasterPanel.hpp"
+#include "CmdExecutorPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -69,6 +70,7 @@ public:
 	DebugPanel* debug_panel = nullptr;
 	ParserPanel* parser_panel = nullptr;
 	FilePanel* file_panel = nullptr;
+	CmdExecutorPanel* cmd_panel = nullptr;
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
 	LogPanel* log_panel = nullptr;

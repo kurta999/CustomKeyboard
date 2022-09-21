@@ -6,8 +6,9 @@ bool MyApp::OnInit()
 {
     if(!wxApp::OnInit())
         return false;
-
+    
     can_entry = new CanEntryHandler(xml, rx_xml);
+    cmd_executor = new CmdExecutor();
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();
@@ -23,6 +24,7 @@ bool MyApp::OnInit()
     CorsairHid::Get()->Init();
 
     can_entry->Init();
+    cmd_executor->Init();
 
     if(!wxTaskBarIcon::IsAvailable())
         LOG(LogLevel::Warning, "There appears to be no system tray support in your current environment. This app may not behave as expected.");

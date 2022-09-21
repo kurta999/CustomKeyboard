@@ -20,6 +20,7 @@
 #include "gui/MainPanel.hpp"
 #include "gui/MainFrame.hpp"
 #include "gui/ModbusMasterPanel.hpp"
+#include "gui/CmdExecutorPanel.hpp"
 
 #include "Logger.hpp"
 #include "CustomMacro.hpp"
@@ -48,6 +49,7 @@
 #include "CorsairHid.hpp"
 #include "StringToCEscaper.hpp"
 #include "TcpMessageExecutor.hpp"
+#include "CmdExecutor.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
