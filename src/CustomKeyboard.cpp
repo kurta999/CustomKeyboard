@@ -38,6 +38,7 @@ bool MyApp::OnInit()
 int MyApp::OnExit()
 {
     is_init_finished = false;
+    IdlePowerSaver::CSingleton::Destroy();  /* Restore CPU power to 100%, this has to be destructed before Logger */
     Settings::CSingleton::Destroy();
     CustomMacro::CSingleton::Destroy();
     Server::CSingleton::Destroy();

@@ -304,6 +304,10 @@ void Settings::LoadFile()
         TerminalHotkey::Get()->SetKey(key);
         TerminalHotkey::Get()->type = static_cast<TerminalType>(utils::stoi<uint8_t>(pt.get_child("TerminalHotkey").find("Type")->second.data()));  /* TDOO: move this function to TerminalHotkey */
 
+        IdlePowerSaver::Get()->is_enabled = utils::stob(pt.get_child("IdlePowerSaver").find("Enable")->second.data());
+        IdlePowerSaver::Get()->timeout = utils::stob(pt.get_child("IdlePowerSaver").find("Timeout")->second.data());
+        IdlePowerSaver::Get()->reduced_power_percent = utils::stoi<uint8_t>(pt.get_child("IdlePowerSaver").find("ReducedPowerPercent")->second.data());
+
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
         /* load backup configs */
@@ -485,6 +489,11 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";
     out << "Key = " << TerminalHotkey::Get()->GetKey() << "\n";
     out << "Type = " << static_cast<uint32_t>(TerminalHotkey::Get()->type) << " # 0 = WINDOWS_TERMINAL, 1 = cmd.exe, 2 = POWER_SHELL, 3 = BASH_TERMINAL" << "\n";
+    out << "\n";
+    out << "[IdlePowerSaver]\n";
+    out << "Enable = " << IdlePowerSaver::Get()->is_enabled << "\n";
+    out << "Timeout = " << IdlePowerSaver::Get()->timeout << "\n";
+    out << "ReducedPowerPercent = " << static_cast<int>(IdlePowerSaver::Get()->reduced_power_percent) << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";

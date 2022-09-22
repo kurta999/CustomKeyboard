@@ -40,6 +40,7 @@
 #include "SymlinkCreator.hpp"
 #include "MacroRecorder.hpp"
 #include "AntiLock.hpp"
+#include "IdlePowerSaver.hpp"
 #include "TerminalHotkey.hpp"
 #include "SerialPort.hpp"
 #include "CanSerialPort.hpp"
@@ -107,6 +108,7 @@
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/range/adaptor/reversed.hpp>
+#include <boost/endian.hpp>
 
 #include <assert.h>
 
@@ -115,6 +117,7 @@
 #include <shlobj.h>
 #include <exdisp.h>
 #include <shlwapi.h>
+#include <powrprof.h>
 #include "Wtsapi32.h"
 #endif
 

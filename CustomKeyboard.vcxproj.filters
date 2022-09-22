@@ -240,6 +240,9 @@
     <ClInclude Include="src\interface\ICmdHelper.hpp">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
+    <ClInclude Include="src\IdlePowerSaver.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -390,6 +393,9 @@
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\CmdExecutor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IdlePowerSaver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
