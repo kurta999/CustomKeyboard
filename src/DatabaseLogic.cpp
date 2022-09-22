@@ -7,6 +7,11 @@ DatabaseLogic::DatabaseLogic()
     m_db = std::make_unique<Sqlite3Database>();
 }
 
+DatabaseLogic::~DatabaseLogic()
+{
+    m_destructing = true;
+}
+
 void DatabaseLogic::DoGenerateGraphs()
 {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -86,7 +91,7 @@ time            INT     NOT NULL);";
 void DatabaseLogic::Query_Latest(std::unique_ptr<Result>& result, std::any param)
 {
     int cols = result->GetColumnCount();
-    while(1)
+    while(!m_destructing)
     {
         bool is_ok = result->StepNext();
         if(!is_ok)
@@ -101,7 +106,8 @@ void DatabaseLogic::Query_Latest(std::unique_ptr<Result>& result, std::any param
         int lux = result->GetColumnInt(8);
         int cct = result->GetColumnInt(9);
         std::string time{ reinterpret_cast<const char*>(result->GetColumnText(10)) };
-        Sensors::Get()->AddMeasurement(std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time)));
+        if(!m_destructing)
+            Sensors::Get()->AddMeasurement(std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time)));
     }
 }
 
@@ -109,7 +115,7 @@ void DatabaseLogic::Query_MeasFromPast(std::unique_ptr<Result>& result, std::any
 {
     int cols = result->GetColumnCount();
     std::vector<std::unique_ptr<Measurement>>* vector_ptr = std::any_cast<decltype(vector_ptr)>(param);
-    while(1)
+    while(!m_destructing)
     {
         bool is_ok = result->StepNext();
         if(!is_ok)
@@ -124,6 +130,7 @@ void DatabaseLogic::Query_MeasFromPast(std::unique_ptr<Result>& result, std::any
         int lux = result->GetColumnInt(6);
         int cct = result->GetColumnInt(7);
         std::string time{ reinterpret_cast<const char*>(result->GetColumnText(8)) };
-        vector_ptr->push_back(std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time)));
+        if(!m_destructing)
+            vector_ptr->push_back(std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(time)));
     }
 }

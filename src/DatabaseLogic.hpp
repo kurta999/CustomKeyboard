@@ -22,7 +22,7 @@ class DatabaseLogic : public CSingleton < DatabaseLogic >
 
 public:
     DatabaseLogic();
-    ~DatabaseLogic() = default;
+    ~DatabaseLogic();
 
     // !\brief Execute graph generation
     void DoGenerateGraphs();
@@ -79,4 +79,7 @@ private:
 
     // !\brief Interval for graph 2
     uint32_t m_graphs_hours_2 = 168;  /* One week */
+
+    // !\brief Is destruction in progess?
+    bool m_destructing = false;
 };
