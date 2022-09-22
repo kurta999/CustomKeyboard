@@ -75,6 +75,9 @@ private:
 
 	void OnCellValueChanged(wxGridEvent& ev);
 
+    wxStaticBoxSizer* static_box_tx = nullptr;
+    wxStaticBoxSizer* static_box_rx = nullptr;
+
 	wxTreeListCtrl* tree_receive = nullptr;
 	wxDataViewCtrl* tree_t = nullptr;
 

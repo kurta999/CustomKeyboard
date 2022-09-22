@@ -89,6 +89,9 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     m_grid->SetCellEditor(cnt, Col_Period, new wxGridCellNumberEditor);
 
     m_grid->SetReadOnly(cnt, Col_Count, true);
+    
+    for(uint8_t i = 0; i != Col_Max; i++)
+        m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
 
     grid_to_entry[cnt] = e.get();
     cnt++;
@@ -164,6 +167,9 @@ void CanGridRx::AddRow(std::unique_ptr<CanRxData>& e)
     m_grid->SetCellValue(wxGridCellCoords(num_row, Col_Count), "1");
     rx_grid_to_entry[num_row] = e.get();
 
+    for(uint8_t i = 0; i != Col_Max; i++)
+        m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
+
     m_grid->SetReadOnly(num_row, Col_Id);
     m_grid->SetReadOnly(num_row, Col_DataSize);
     m_grid->SetReadOnly(num_row, Col_Data);
@@ -200,31 +206,31 @@ CanPanel::CanPanel(wxWindow* parent)
     wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	{
-		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Receive");
-		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
-		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxBLUE);
+        static_box_rx = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Receive");
+        static_box_rx->GetStaticBox()->SetFont(static_box_rx->GetStaticBox()->GetFont().Bold());
+        static_box_rx->GetStaticBox()->SetForegroundColour(*wxBLUE);
 
         can_grid_rx = new CanGridRx(this);
 
         can_grid_rx->m_grid->DeleteRows(0, can_grid_rx->m_grid->GetNumberRows());
         can_grid_rx->cnt = 0;
 
-        static_box_sizer->Add(can_grid_rx->m_grid, 0, wxALL, 5);
-        bSizer1->Add(static_box_sizer, wxSizerFlags(0).Top());
+        static_box_rx->Add(can_grid_rx->m_grid, 0, wxALL, 5);
+        bSizer1->Add(static_box_rx, wxSizerFlags(0).Top());
 	}
 
 	{
-        wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Transmit");
-        static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
-        static_box_sizer->GetStaticBox()->SetForegroundColour(*wxBLUE);
+        static_box_tx = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Transmit");
+        static_box_tx->GetStaticBox()->SetFont(static_box_tx->GetStaticBox()->GetFont().Bold());
+        static_box_tx->GetStaticBox()->SetForegroundColour(*wxBLUE);
 
         can_grid_tx = new CanGrid(this);
         RefreshTx();
 
         Bind(wxEVT_CHAR_HOOK, &CanPanel::OnKeyDown, this);
 
-        static_box_sizer->Add(can_grid_tx->m_grid, 0, wxALL, 5);
-        bSizer1->Add(static_box_sizer, 0, wxALL, 5);
+        static_box_tx->Add(can_grid_tx->m_grid, 0, wxALL, 5);
+        bSizer1->Add(static_box_tx, 0, wxALL, 5);
 
         wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_SingleShot = new wxButton(this, wxID_ANY, "One Shot", wxDefaultPosition, wxDefaultSize);
@@ -647,6 +653,11 @@ void CanPanel::OnKeyDown(wxKeyEvent& evt)
                     if(ret == wxID_OK)
                     {
                         search_pattern_tx = d.GetValue().ToStdString();
+                        if(search_pattern_tx.empty())
+                            static_box_tx->GetStaticBox()->SetLabelText("Transmit");
+                        else
+                            static_box_tx->GetStaticBox()->SetLabelText(wxString::Format("Transmit - Search filter: %s", search_pattern_tx));
+
                         RefreshTx();
                     }
                 }
@@ -657,6 +668,11 @@ void CanPanel::OnKeyDown(wxKeyEvent& evt)
                     if(ret == wxID_OK)
                     {
                         search_pattern_rx = d.GetValue().ToStdString();
+                        if(search_pattern_rx.empty())
+                            static_box_rx->GetStaticBox()->SetLabelText("Receive");
+                        else
+                            static_box_rx->GetStaticBox()->SetLabelText(wxString::Format("Receive - Search filter: %s", search_pattern_rx));
+
                         if(can_grid_rx->m_grid->GetNumberRows())
                             can_grid_rx->m_grid->DeleteRows(0, can_grid_rx->m_grid->GetNumberRows());
                         can_grid_rx->cnt = 0;
