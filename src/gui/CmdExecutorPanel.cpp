@@ -113,8 +113,8 @@ void CmdExecutorPanel::OnCommandLoaded(uint8_t col, CommandTypes cmd)
         std::shared_ptr<Command> c = std::get<std::shared_ptr<Command>>(cmd);
         
         wxButton* btn = new wxButton(this, wxID_ANY, !c->name.empty() ? c->name : c->cmd.substr(0, MAX_CMD_LEN_FOR_BUTTON), wxDefaultPosition, wxDefaultSize);
-        btn->SetForegroundColour(wxColor(c->color));
-        btn->SetBackgroundColour(wxColor(c->bg_color));
+        btn->SetForegroundColour(wxColour(boost::endian::endian_reverse(c->color << 8)));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
+        btn->SetBackgroundColour(wxColour(boost::endian::endian_reverse(c->bg_color << 8)));
         if(c->is_bold)
         {
             wxFont font = btn->GetFont();
