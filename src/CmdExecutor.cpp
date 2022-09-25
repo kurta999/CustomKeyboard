@@ -48,6 +48,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                     boost::optional<std::string> color;
                     boost::optional<std::string> bg_color;
                     boost::optional<std::string> is_bold;
+                    boost::optional<std::string> scale;
 
                     auto is_name_present = v.second.get_child_optional("Name");
                     if(is_name_present.has_value())
@@ -58,6 +59,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         color = v.second.get_child("Color").get_value_optional<std::string>();
                         bg_color = v.second.get_child("BackgroundColor").get_value_optional<std::string>();
                         is_bold = v.second.get_child("Bold").get_value_optional<std::string>();
+                        scale = v.second.get_child("Scale").get_value_optional<std::string>();
                     }
                     else
                     {
@@ -67,6 +69,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         color = v.second.get_optional<std::string>("<xmlattr>.color");
                         bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
                         is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
+                        scale = v.second.get_optional<std::string>("<xmlattr>.scale");
                     }
 
                     std::shared_ptr<Command> command = std::make_shared<Command>(
@@ -74,7 +77,8 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         cmd,
                         color.has_value() ? utils::ColorStringToInt(*color) : 0,
                         bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
-                        is_bold.has_value() ? utils::stob(*is_bold) : false);
+                        is_bold.has_value() ? utils::stob(*is_bold) : false,
+                        scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0);
 
                     if(command)
                     {

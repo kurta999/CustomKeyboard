@@ -115,12 +115,23 @@ void CmdExecutorPanel::OnCommandLoaded(uint8_t col, CommandTypes cmd)
         wxButton* btn = new wxButton(this, wxID_ANY, !c->name.empty() ? c->name : c->cmd.substr(0, MAX_CMD_LEN_FOR_BUTTON), wxDefaultPosition, wxDefaultSize);
         btn->SetForegroundColour(wxColour(boost::endian::endian_reverse(c->color << 8)));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
         btn->SetBackgroundColour(wxColour(boost::endian::endian_reverse(c->bg_color << 8)));
+        
+        wxFont font = btn->GetFont();
+        bool reapply_font = false;
         if(c->is_bold)
         {
-            wxFont font = btn->GetFont();
             font.SetWeight(wxFONTWEIGHT_BOLD);
-            btn->SetFont(font);
+            reapply_font = true;
         }
+        if(c->scale != 1.0f)
+        {
+            font.Scale(c->scale);
+            reapply_font = true;
+        }
+
+        if(reapply_font)
+            btn->SetFont(font);
+
         btn->SetClientData((void*)&c->cmd);
         btn->Bind(wxEVT_BUTTON, &CmdExecutorPanel::OnClick, this);
 

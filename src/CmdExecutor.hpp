@@ -11,8 +11,8 @@
 class Command
 {
 public:
-    Command(std::string name_, std::string cmd_, uint32_t color_, uint32_t bg_color_, bool is_bold_) :
-        name(name_), cmd(cmd_), color(color_), bg_color(bg_color_), is_bold(is_bold_)
+    Command(std::string name_, std::string cmd_, uint32_t color_, uint32_t bg_color_, bool is_bold_, float scale_) :
+        name(name_), cmd(cmd_), color(color_), bg_color(bg_color_), is_bold(is_bold_), scale(scale_)
     {
 
     }
@@ -22,6 +22,7 @@ public:
     uint32_t color;
     uint32_t bg_color;
     bool is_bold;
+    float scale;
 };
 
 class Separator
