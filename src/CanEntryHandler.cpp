@@ -161,7 +161,7 @@ void CanEntryHandler::Init()
                     {
                         if(i->single_shot)  /* Do not check time in case of singleshot */
                         {
-                            CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), (uint8_t*)i->data.data());
+                            CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), i->data.data());
                             i->single_shot = false;
                         }
                         else
@@ -169,7 +169,7 @@ void CanEntryHandler::Init()
                             uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - i->last_execution).count();
                             if(elapsed > i->period)
                             {
-                                CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), (uint8_t*)i->data.data());
+                                CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), i->data.data());
                                 i->last_execution = std::chrono::steady_clock::now();
                             }
                         }
@@ -217,6 +217,11 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
     m_rxData[frame_id]->last_execution = std::chrono::steady_clock::now();
 }
 
+void CanEntryHandler::ToggleAutoSend(bool toggle)
+{
+    auto_send = toggle;
+}
+
 CanEntryHandler::~CanEntryHandler()
 {
     to_exit = true;
@@ -232,6 +237,17 @@ bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
     
     entries.clear();
     bool ret = m_CanEntryLoader.Load(path, entries);
+    if(ret)
+    {
+        if(auto_send)
+        {
+            for(auto& i : entries)
+            {
+                i->single_shot = false;
+                i->send = true;
+            }
+        }
+    }
     return ret;
 }
 

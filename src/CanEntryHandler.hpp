@@ -69,6 +69,7 @@ public:
     bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) override;
     bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) override;
 };
+
 class CanEntryHandler
 {
 public:
@@ -84,6 +85,10 @@ public:
     // !\brief Called when a can frame was received
     void OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8_t* data);
     
+    // !\brief Toggle automatic sending of all CAN frames which period isn't null
+    // !\param toggle [in] Toggle auto send?
+    void ToggleAutoSend(bool toggle);
+
     // !\brief Load TX list from a file
     // !\param path [in] File path to load
     // !\return Is load was successfull?
@@ -126,6 +131,9 @@ private:
 
     // !\brief Reference to can RX entry loader
     ICanRxEntryLoader& m_CanRxEntryLoader;
+
+    // !\brief Sending every can frame automatically at startup which period is not null? 
+    bool auto_send = false;
 
     // !\brief Exit working thread?
     std::atomic<bool> to_exit = false;

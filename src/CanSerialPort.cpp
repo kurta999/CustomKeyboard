@@ -5,6 +5,7 @@ constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_ERR = 0xAABBCCDF;
 
 constexpr uint32_t RX_QUEUE_MAX_SIZE = 1000;
+constexpr uint32_t TX_QUEUE_MAX_SIZE = 1000;
 
 #pragma pack(push, 1)
 typedef struct
@@ -145,6 +146,9 @@ void CanSerialPort::AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
     if(!data || !data_len)
         return;
     m_TxQueue.push_back(std::make_unique<CanData>(frame_id, data_len, data));
+
+    if(m_TxQueue.size() > TX_QUEUE_MAX_SIZE)
+        m_TxQueue.pop_front();
 }
 
 void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data)
@@ -155,5 +159,5 @@ void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
     can_handler->OnFrameReceived(frame_id, data_len, data);
 
     if(m_RxQueue.size() > RX_QUEUE_MAX_SIZE)  /* TODO: once logging is added, move this to settings.ini */
-        m_RxQueue.pop_back();
+        m_RxQueue.pop_front();
 }

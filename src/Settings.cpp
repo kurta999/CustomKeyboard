@@ -245,9 +245,9 @@ void Settings::LoadFile()
         CanEntryHandler* can_handler = wxGetApp().can_entry;
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
         CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
+        can_handler->ToggleAutoSend(utils::stob(pt.get_child("CANSender").find("AutoSend")->second.data()));
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
-
         ModbusMasterSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("ModbusMaster").find("Enable")->second.data()));
         ModbusMasterSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("COM")->second.data()));
 
