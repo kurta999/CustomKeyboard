@@ -117,27 +117,38 @@ bool AntiLock::IsAnExclusion(std::string&& p)
 
 void AntiLock::Process()
 {
+    //LOG(LogLevel::Normal, "first");
 	if(is_enabled)
 	{
 #ifdef _WIN32
 		LASTINPUTINFO linput_info;
 		linput_info.cbSize = sizeof(LASTINPUTINFO);
 		linput_info.dwTime = 0;
+        //LOG(LogLevel::Normal, "after is_enabled");
 		if(GetLastInputInfo(&linput_info) != 0)
 		{
+            //LOG(LogLevel::Normal, "GetLastInputInfo");
 			DWORD last_activity_time = GetTickCount() - linput_info.dwTime;
+            IdlePowerSaver::Get()->Process(last_activity_time);
 			if(last_activity_time > (timeout * 1000))
 			{
+                //LOG(LogLevel::Normal, "last_activity_time > (timeout * 1000)");
                 HWND foreground = GetForegroundWindow();
                 if(foreground)
                 {
+                    //LOG(LogLevel::Normal, "foreground");
                     char window_title[256];
                     if(GetWindowTextA(foreground, window_title, sizeof(window_title)))
                     {
+                        //LOG(LogLevel::Normal, "GetWindowTextA");
                         if(!IsAnExclusion(window_title))
                         {
+                            //LOG(LogLevel::Normal, "IsAnExclusion");
                             if(IsSessionActive())
+                            {
+                                //LOG(LogLevel::Normal, "IsSessionActive");
                                 SimulateUserActivity();
+                            }
                         }
                     }
                 }

@@ -305,7 +305,7 @@ void Settings::LoadFile()
         TerminalHotkey::Get()->type = static_cast<TerminalType>(utils::stoi<uint8_t>(pt.get_child("TerminalHotkey").find("Type")->second.data()));  /* TDOO: move this function to TerminalHotkey */
 
         IdlePowerSaver::Get()->is_enabled = utils::stob(pt.get_child("IdlePowerSaver").find("Enable")->second.data());
-        IdlePowerSaver::Get()->timeout = utils::stob(pt.get_child("IdlePowerSaver").find("Timeout")->second.data());
+        IdlePowerSaver::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("IdlePowerSaver").find("Timeout")->second.data());
         IdlePowerSaver::Get()->reduced_power_percent = utils::stoi<uint8_t>(pt.get_child("IdlePowerSaver").find("ReducedPowerPercent")->second.data());
 
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
