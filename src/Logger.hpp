@@ -15,8 +15,28 @@
 
 DECLARE_APP(MyApp);
 
+#ifdef _DEBUG /* this is only for debugging, it remains oldschool */
+#define DBG(str, ...) \
+    {\
+        char __debug_format_str[64]; \
+        snprintf(__debug_format_str, sizeof(__debug_format_str), str, __VA_ARGS__); \
+        OutputDebugStringA(__debug_format_str); \
+    }
+
+#define DBGW(str, ...) \
+    {\
+        wchar_t __debug_format_str[128]; \
+        wsprintfW(__debug_format_str, str, __VA_ARGS__); \
+        OutputDebugStringW(__debug_format_str); \
+    }
+#else
+#define DBG(str, ...)
+#define DBGW(str, ...)
+#endif
+
 enum LogLevel
 {
+    Verbose,
     Normal,
     Notification,
     Warning,
@@ -58,7 +78,7 @@ public:
     template <>
     struct HelperTraits<std::string>
     {
-        static constexpr std::string_view serverities[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
+        static constexpr std::string_view serverities[] = { "Verbose", "Normal", "Notification", "Warning", "Error", "Critical" };
         static constexpr char slash = '/';
         static constexpr char backslash = '\\';
         static constexpr std::string_view gui_str = LOG_GUI_FORMAT;
@@ -68,7 +88,7 @@ public:
     template <>
     struct HelperTraits<std::wstring>
     {
-        static constexpr std::wstring_view serverities[] = { L"Normal", L"Notification", L"Warning", L"Error", L"Critical" };
+        static constexpr std::wstring_view serverities[] = { L"Verbose", L"Normal", L"Notification", L"Warning", L"Error", L"Critical" };
         static constexpr wchar_t slash = L'/';
         static constexpr wchar_t backslash = L'\\';
         static constexpr std::wstring_view gui_str = WIDEN(LOG_GUI_FORMAT);
@@ -127,19 +147,29 @@ public:
             }
         }
 
-        if(lvl >= LogLevel::Normal && lvl <= LogLevel::Critical)
+        if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
         {
             fLog << std::format(HelperTraits<string_type>::log_str, now, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
             fLog.flush();
         }
+
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log)
         {
-            frame->log_panel->m_Log->Append(wxString(str));
-            frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
+            bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(1000));
+            if(ret)
+            {
+                frame->log_panel->m_Log->Append(wxString(str));
+                frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
+                m_mutex.unlock();
+            }
+            else
+            {
+                DBG("mutex lock fail\n");
+            }
         }
         else
-            preinit_entries.Add(str);
+            preinit_entries.push_back(wxString(str));
     }
 
     template<typename F = const char*, typename G = const char*, typename... Args>
@@ -185,39 +215,26 @@ public:
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame && frame->log_panel)
         {
-            frame->log_panel->m_Log->Append(preinit_entries);
-            preinit_entries.Clear();
+            m_mutex.lock();
+            for(auto& i : preinit_entries)
+            {
+                frame->log_panel->m_Log->Append(i);
+            }
+            preinit_entries.clear();
+            m_mutex.unlock();
         }
     }
+
 private:
     // !\brief File handle for log 
     std::ofstream fLog;
 
     // !\brief Preinited log messages
-    wxArrayString preinit_entries;
-
-    // !\brief Serverity level in string format
-    static inline const char* severity_str[] = { "Normal", "Notification", "Warning", "Error", "Critical" };
+    std::vector<wxString> preinit_entries;
 
     // !\brief Pointer to LogPanel
     ILogHelper* m_helper = nullptr;
+
+    // !\brief Logger's mutex
+    std::recursive_timed_mutex m_mutex;
 };
-
-#ifdef _DEBUG /* this is only for debugging, it remains oldschool */
-#define DBG(str, ...) \
-    {\
-        char __debug_format_str[64]; \
-        snprintf(__debug_format_str, sizeof(__debug_format_str), str, __VA_ARGS__); \
-        OutputDebugStringA(__debug_format_str); \
-    }
-
-#define DBGW(str, ...) \
-    {\
-        wchar_t __debug_format_str[128]; \
-        wsprintfW(__debug_format_str, str, __VA_ARGS__); \
-        OutputDebugStringW(__debug_format_str); \
-    }
-#else
-#define DBG(str, ...)
-#define DBGW(str, ...)
-#endif
