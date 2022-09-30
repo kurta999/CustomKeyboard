@@ -17,15 +17,15 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/crc.hpp>
 
-#include "../src/StringToCEscaper.hpp"
-#include "../src/StructParser.hpp"
-#include "../src/DirectoryBackup.hpp"
-#include "../src/Utils.hpp"
-
-extern "C"
+enum LogLevel
 {
-#include "../libs/sha256/sha256.h"
-}
+    Verbose,
+    Normal,
+    Notification,
+    Warning,
+    Error,
+    Critical
+};
 
 #define DBG(str, ...) \
     {\
@@ -43,3 +43,13 @@ extern "C"
 
 #define LOG(...)
 #define LOGW(...)
+
+#include "../src/StringToCEscaper.hpp"
+#include "../src/StructParser.hpp"
+#include "../src/DirectoryBackup.hpp"
+#include "../src/Utils.hpp"
+
+extern "C"
+{
+#include "../libs/sha256/sha256.h"
+}
