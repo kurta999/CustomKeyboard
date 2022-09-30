@@ -2,6 +2,9 @@
 #include <atomic>
 #include <condition_variable>
 #include <string>
+#include <boost/circular_buffer.hpp>
+
+constexpr size_t MAX_CAN_FRAME_DATA_LEN = 8;
 
 #pragma pack(push, 1)
 class CanData
@@ -19,31 +22,59 @@ public:
     }
     uint32_t frame_id;
     uint8_t data_len;
-    uint8_t data[8];
+    uint8_t data[MAX_CAN_FRAME_DATA_LEN];
 };
 #pragma pack(pop)
 
 /* TODO: create asbtraction for this & SerialPort because it's the same - but no time currently */
+class CallbackAsyncSerial;
 class CanSerialPort : public CSingleton < CanSerialPort >
 {
     friend class CSingleton < CanSerialPort >;
 
 public:
-    CanSerialPort() = default;
+    CanSerialPort();
     ~CanSerialPort();
 
+    // !\brief Initialize CanSerialPort
     void Init();
-    void OnUartDataReceived(const char* data, unsigned int len);
-    void UartReceiveThread(std::stop_token stop_token, std::condition_variable_any& cv, std::mutex& m);
 
+    // !\brief Set this module enabled
     void SetEnabled(bool enable);
+
+    // !\brief Is this module enabled?
     bool IsEnabled();
+
+    // !\brief Set serial port
     void SetComPort(uint16_t port);
+
+    // !\brief Get serial port
     uint16_t GetComPort();
 
+    // !\brief Add CAN frame to TX queue
     void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
+
+    // !\brief Add CAN frame to RX queue
     void AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
+
 private:
+    // !\brief Stops worker thread
+    void DestroyWorkerThread();
+
+    // !\brief Worker thread
+    void WorkerThread();
+
+    // !\brief Called when data was received via serial port (called by boost::asio::read_some)
+    // !\param serial_port [in] Pointer to received data
+    // !\param len [in] Received data length
+    void OnDataReceived(const char* data, unsigned int len);
+
+    // !\brief Process received CAN frames
+    void ProcessReceivedFrames();
+
+    // !\brief Send pending CAN frames from message queue
+    // !\param serial_port [in] Reference to async serial port
+    void SendPendingCanFrames(CallbackAsyncSerial& serial_port);
 
     // !\brief Is serial port data receiving enabled?
     bool is_enabled = true;
@@ -51,23 +82,23 @@ private:
     // !\brief COM port number
     uint16_t com_port = 5;
 
-    // !\brief Forward received data from COM to a remote TCP server?
-    bool forward_serial_to_tcp = false;
-
-    // !\brief Remote TCP Server IP
-    std::string remote_tcp_ip;
-
-    // !\brief Remote TCP Server port
-    uint16_t remote_tcp_port;
-
     // !\brief Worker thread
-    std::unique_ptr<std::jthread> m_worker = nullptr;
+    std::unique_ptr<std::thread> m_worker = nullptr;
+
+    // !\brief Exit working thread?
+    std::atomic<bool> to_exit = false;
 
     // !\brief Conditional variable for main thread exiting
-    std::condition_variable_any m_cv;
+    std::condition_variable m_cv;
 
-    // !\brief Mutex
+    // !\brief Mutex for main thread
     std::mutex m_mutex;
+
+    // !\brief Mutex for received data processing
+    std::mutex m_RxMutex;
+
+    // !\brief Circular buffer for received data
+    boost::circular_buffer<char> m_CircBuff;
 
     // !\brief CAN Tx Queue
     std::deque<std::shared_ptr<CanData>> m_TxQueue;
