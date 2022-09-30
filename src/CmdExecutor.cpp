@@ -55,11 +55,11 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                     {
                         cmd = v.second.get_child("Execute").get_value<std::string>();
 
-                        name = v.second.get_child("Name").get_value_optional<std::string>();
-                        color = v.second.get_child("Color").get_value_optional<std::string>();
-                        bg_color = v.second.get_child("BackgroundColor").get_value_optional<std::string>();
-                        is_bold = v.second.get_child("Bold").get_value_optional<std::string>();
-                        scale = v.second.get_child("Scale").get_value_optional<std::string>();
+                        utils::xml::ReadChildIfexists<std::string>(v, "Name", name);
+                        utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
+                        utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
+                        utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
+                        utils::xml::ReadChildIfexists<std::string>(v, "Scale", scale);
                     }
                     else
                     {

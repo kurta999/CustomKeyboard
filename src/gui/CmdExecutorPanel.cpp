@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(CmdExecutorPanel, wxPanel)
+EVT_SIZE(CmdExecutorPanel::OnSize)
 wxEND_EVENT_TABLE()
 
 constexpr size_t MAX_CMD_LEN_FOR_BUTTON = 16;
@@ -12,6 +13,11 @@ CmdExecutorPanel::CmdExecutorPanel(wxFrame* parent)
     cmd->SetMediator(this);
     ReloadCommands();
     Show();
+}
+
+void CmdExecutorPanel::OnSize(wxSizeEvent& evt)
+{
+    evt.Skip(true);
 }
 
 void CmdExecutorPanel::ToggleAllButtonClickability(bool toggle)
@@ -73,9 +79,8 @@ void CmdExecutorPanel::OnPreReload(uint8_t cols)
 {
     if(m_BaseGrid != nullptr)
     {
-        //delete m_BaseGrid;
-        //m_BaseGrid = nullptr;
-
+        m_BaseGrid->Clear(true);
+        /*
         for(auto& i : m_ButtonMap)
         {
             if(std::holds_alternative<wxButton*>(i.second))
@@ -89,13 +94,13 @@ void CmdExecutorPanel::OnPreReload(uint8_t cols)
                 bool ret = btn->Destroy();
             }
         }
+        */
 
         m_VertialBoxes.clear();
         m_ButtonMap.clear();
     }
 
     m_BaseGrid = new wxGridSizer(cols);
-    SetSizer(m_BaseGrid);
     m_BaseGrid->Layout();
     for(uint8_t i = 0; i != cols; i++)
     {
@@ -150,9 +155,12 @@ void CmdExecutorPanel::OnCommandLoaded(uint8_t col, CommandTypes cmd)
 
 void CmdExecutorPanel::OnPostReload(uint8_t cols)
 {
+    wxSize old_size = GetSize();
     for(auto& i : m_VertialBoxes)
     {
         i->Layout();
     }
     m_BaseGrid->Layout();
+    SetSizerAndFit(m_BaseGrid);
+    SetSize(old_size);  /* Size has to be set, because if isn't, only the first column will appear in the base grid after reloading */
 }

@@ -7,6 +7,14 @@
 #endif
 #include <limits>
 #include <random>
+#include <span>
+#include <boost/algorithm/hex.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+
+#ifndef UNIT_TESTS
+#include "Logger.hpp"
+#endif
 
 #define SAFE_RELEASE(name) \
 	if(name) \
@@ -43,7 +51,6 @@ namespace utils
     // !\return Current directory path from file explorer
     std::wstring GetDestinationPathFromFileExplorer();
 
-
 #ifdef _WIN32
     CStringA ExecuteCmdWithoutWindow(const wchar_t* cmd, uint32_t timeout = std::numeric_limits<uint32_t>::min());
 #else
@@ -51,6 +58,28 @@ namespace utils
 #endif
     std::string exec(const char* cmd);
 #endif
+    void ConvertHexBufferToString(const std::vector<uint8_t>& in, std::string& out);
+    void ConvertHexBufferToString(const char* in, size_t len, std::string& out);
+
+    template<typename T, std::size_t length>
+    void ConvertHexStringToBuffer(const std::string& in, std::span<T, length> out)
+    {
+        std::string hash;
+        try
+        {
+            hash = boost::algorithm::unhex(in);
+        }
+        catch(...)
+        {
+            LOG(LogLevel::Error, "Exception with boost::algorithm::unhex, str: {}", in);
+        }
+        if(hash.size() < out.size_bytes())
+            std::copy(hash.begin(), hash.end(), out.data());
+        else
+        {
+            LOG(LogLevel::Error, "Output buffer size is smaller than required! hash size: {}, out size: {}", out.size_bytes(), hash.size());
+        }
+    }
 
     uint32_t ColorStringToInt(std::string& in);
 
@@ -133,4 +162,14 @@ namespace utils
         return distr(gen);
     }
 
+}
+
+namespace utils::xml
+{
+    template <typename T, typename U> void ReadChildIfexists(const boost::property_tree::ptree::value_type& v, const std::string& child_name, U& out)
+    {
+        auto child_val = v.second.get_child_optional(child_name);
+        if(child_val)
+            out = child_val->get_value<T>();
+    }
 }

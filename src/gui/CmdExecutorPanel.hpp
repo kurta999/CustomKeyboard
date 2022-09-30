@@ -17,6 +17,7 @@ public:
 private:
 	void ToggleAllButtonClickability(bool toggle);
 
+	void OnSize(wxSizeEvent& evt);
 	void OnClick(wxCommandEvent& event);
 
 	void OnPreReload(uint8_t cols) override;

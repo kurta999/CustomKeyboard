@@ -383,6 +383,34 @@ namespace utils
 	}
 	*/
 
+	void ConvertHexBufferToString(const std::vector<uint8_t>& in, std::string& out)
+	{
+		std::string hex;
+		try
+		{
+			boost::algorithm::hex(in.begin(), in.end(), std::back_inserter(out));
+			utils::separate<2, ' '>(out);
+		}
+		catch(...)
+		{
+			LOG(LogLevel::Error, "Exception with boost::algorithm::hex");
+		}
+	}
+
+	void ConvertHexBufferToString(const char* in, size_t len, std::string& out)
+	{
+		std::string hex;
+		try
+		{
+			boost::algorithm::hex(in, in + len, std::back_inserter(out));
+			utils::separate<2, ' '>(out);
+		}
+		catch(...)
+		{
+			LOG(LogLevel::Error, "Exception with boost::algorithm::hex");
+		}
+	}
+
 	uint32_t ColorStringToInt(std::string& in)
 	{
 		uint32_t ret = 0;
