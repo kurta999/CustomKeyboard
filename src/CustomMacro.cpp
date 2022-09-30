@@ -431,7 +431,7 @@ std::string CommandExecute::GenerateText(bool is_ini_format)
     return ret;
 }
 
-void CustomMacro::PressKey(std::string key)
+void CustomMacro::ExecuteKeypresses()
 {
     std::scoped_lock lock(executor_mtx);
     if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
@@ -501,14 +501,29 @@ void CustomMacro::PressKey(std::string key)
     }
 }
 
+void CustomMacro::SimulateKeypress(const std::string& key)
+{
+    pressed_keys = key;
+    ExecuteKeypresses();
+    pressed_keys.clear();
+}
+
 void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
 {
     if(len != sizeof(KeyData_t))
+    {
+        LOG(LogLevel::Verbose, "Data received with invalid length! ({}), expected: {}", len, sizeof(KeyData_t));
+        std::string hex;
+        utils::ConvertHexBufferToString(data, len, hex);
+        LOG(LogLevel::Verbose, "Full Data buffer: {}", hex);
         return;
+    }
+
     KeyData_t* k = (KeyData_t*)data;
     uint16_t crc = utils::crc16_modbus((void*)data, len - 2);
     if(!strncmp(data, "reset", 5) && crc == 0x6bd8) /* in case of suddenly reset of STM32 */
     {
+        LOG(LogLevel::Verbose, "Reset received");
         pressed_keys.clear();
     }
 
@@ -561,8 +576,15 @@ void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
                     pressed_keys += key_str->second;
                 }
             }
-            PressKey(pressed_keys);
+            ExecuteKeypresses();
         }
+    }
+    else
+    {
+        LOG(LogLevel::Verbose, "CRC mismatch, received {:X} != {:X}", k->crc, crc);
+        std::string hex;
+        utils::ConvertHexBufferToString(data, len, hex);
+        LOG(LogLevel::Verbose, "Full Data buffer: {}", hex);
     }
 }
 

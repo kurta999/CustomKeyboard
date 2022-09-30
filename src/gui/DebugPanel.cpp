@@ -43,8 +43,7 @@ DebugPanel::DebugPanel(wxFrame* parent)
 
 			keypress_future = std::async([key = m_KeyTopress->GetValue().ToStdString()] {
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-				CustomMacro::Get()->pressed_keys = key;
-				CustomMacro::Get()->PressKey(key);
+				CustomMacro::Get()->SimulateKeypress(key);
 				});
 
         });

@@ -109,6 +109,7 @@
 #include <boost/optional.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/endian.hpp>
+#include <boost/circular_buffer.hpp>
 
 #include <assert.h>
 

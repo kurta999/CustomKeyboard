@@ -390,18 +390,31 @@ public:
 
     // !\brief Use advanced key bindings? (eg: SHIFT+NUM_1, LCTRL+NUM_2)
     bool advanced_key_binding = true;
+
+    // !\brief Pointer to macro container which is being edited
     std::vector<std::unique_ptr<IKey>>* editing_macro = nullptr;
+
+    // !\brief Pointer to key entry which is being edited
     IKey* editing_item = nullptr;
+
+    // !\brief Process received data
     void ProcessReceivedData(const char* data, unsigned int len);
 
-    // !\brief Handle keypress
-    // !\param key [in] Key to press
-    void PressKey(std::string key);
-    std::string pressed_keys;
+    // !\brief Simulate keypress (blocking function!)
+    // !\param key [in] Key sequence to simulate
+    void SimulateKeypress(const std::string& key);
 
 private:
     friend class Settings;
 
+    // !\brief Execute keypresses
+    // !\param key [in] Key to press
+    void ExecuteKeypresses();
+
+    // !\brief Pressed keys sequence
+    std::string pressed_keys;
+
+    // !\brief Mutex for protecting the executor
     std::mutex executor_mtx;
 
     // !\brief Vector contains all macros

@@ -108,8 +108,7 @@ void CorsairHid::ThreadFunc()
             auto it = corsair_GKeys.find(gkey_code);
             if(it != corsair_GKeys.end())
             {
-                CustomMacro::Get()->pressed_keys = it->second;
-                CustomMacro::Get()->PressKey(it->second);
+                CustomMacro::Get()->SimulateKeypress(it->second);
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

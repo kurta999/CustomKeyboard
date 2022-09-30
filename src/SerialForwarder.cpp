@@ -36,7 +36,7 @@ public:
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
             socket_.close(error);
 
-            SerialPort::Get()->OnUartDataReceived(recv_buffer, bytes_transferred);
+            SerialPort::Get()->SimulateDataReception(recv_buffer, bytes_transferred);
         }
     }
     
@@ -111,6 +111,7 @@ SerialForwarder::~SerialForwarder()
     io_context.stop();
     if(m_worker && m_worker->joinable())
         m_worker->join();
+    m_worker.reset(nullptr);
 }
 
 void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, size_t len)
