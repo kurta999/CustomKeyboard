@@ -123,7 +123,7 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
 
 void CmdExecutor::Init()
 {
-    ReloadCommandsFromFile();
+
 }
 
 void CmdExecutor::SetMediator(ICmdHelper* mediator)

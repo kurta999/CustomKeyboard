@@ -9,6 +9,14 @@ void PrintScreenSaver::Init()
     //SaveScreenshot();
 }
 
+void PrintScreenSaver::SaveScreenshot()
+{
+    if(screenshot_future.valid())
+        screenshot_future.get();
+
+    screenshot_future = std::async(&PrintScreenSaver::DoSave, this);
+}
+
 void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
 {
     time_t rawtime;
@@ -102,13 +110,6 @@ void PrintScreenSaver::DoSave()
 #endif
 }
 
-void PrintScreenSaver::SaveScreenshot()
-{
-    if(screenshot_future.valid())
-        screenshot_future.get();
-
-    screenshot_future = std::async(&PrintScreenSaver::DoSave, this);
-}
 #ifdef _WIN32
 // Returns the offset, in bytes, from the start of the BITMAPINFO, to the start of the pixel data array, for a packed DIB.
 INT PrintScreenSaver::GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader)

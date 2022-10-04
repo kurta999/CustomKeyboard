@@ -31,10 +31,6 @@ public:
     // !\brief Start async operations
     void StartAsync();
 
-    // !\brief Create TCP acceptor
-    // !\param port [in] TCP Server port
-    bool CreateAcceptor(unsigned short port);
-
     // !\brief Broadcast message to every session
     // !\param msg [in] TCP Server port
     void BroadcastMessage(const std::string& msg);
@@ -46,10 +42,15 @@ public:
     uint16_t tcp_port = 2005;
 
 private:
+    
+    // !\brief Create TCP acceptor
+    // !\param port [in] TCP Server port
+    bool CreateAcceptor(unsigned short port);
+
     // !\brief Stop async operations
     void StopAsync();
-    void HandleAccept(const boost::system::error_code& error, SharedSession session);
     void StartAccept();
+    void HandleAccept(const boost::system::error_code& error, SharedSession session);
 
     // !\brief Set of active sessions
     std::set<SharedSession> sessions;

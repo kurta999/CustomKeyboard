@@ -95,6 +95,7 @@ void CanSerialPort::DestroyWorkerThread()
         }
         if(m_worker->joinable())
             m_worker->join();
+        m_worker.reset(nullptr);
     }
 }
 

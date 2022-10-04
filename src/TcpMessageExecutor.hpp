@@ -25,10 +25,9 @@ public:
 private:
     TcpMessageReturn HandleOpenExplorer(std::any param);
     TcpMessageReturn HandleGraphs(std::any param);
-    TcpMessageReturn HandleSensorsMeasurements(std::any param);
 
-    char* m_recv_data;
-    size_t m_len;
+    char* m_recv_data = nullptr;
+    size_t m_len = 0;
     SharedSession m_session;
 
     std::map<std::string, std::function<TcpMessageReturn(std::any)>> m_cmds;

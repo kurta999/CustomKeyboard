@@ -27,7 +27,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 
 2. **Backend for Corsair's G Keys** - Corsair pretty well fucked up it's iCUE, sometimes memory usage can grow to 500MB. That's enormeous for an application which runs in background and executes macro for binded keys. It's possible to use CustomMacro feature to bind everything to Corsair's G keys (beside second keyboard, of coruse). This is a simple HID API which receives keypresses for G keys. Supports K95 RGB (18 G keys, older one) and K95 RGB Platinum.
 
-3. **CAN-USB Transreceiver** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver. Supports both standard and extended CAN frames. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
+3. **CAN-USB Transreceiver** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver. Supports both standard and extended CAN frames, logging and searching between frames. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
 
 4. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml, this cann't be done in GUI right now. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias.
 

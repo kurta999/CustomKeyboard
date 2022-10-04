@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-using boost::asio::ip::tcp;
-
 extern std::mutex mutex;
 
 Server::Server()
@@ -16,26 +14,23 @@ Server::~Server()
     {
         if(m_worker->joinable())
             m_worker->join();
+        m_worker.reset(nullptr);
     }
 }
 
-void Server::HandleAccept(const boost::system::error_code& error, SharedSession session)
+void Server::Init(void)
 {
-    std::scoped_lock lock(mutex);
-    if(acceptor)
+    if(is_enabled)
     {
-        if(!error)
+        std::scoped_lock lock(mutex);
+        if(!CreateAcceptor(tcp_port))
         {
-            session->StartAsync();
-            StartAccept();
+            LOG(LogLevel::Error, "createAcceptor fail!");
+            return;
         }
+        m_worker = std::make_unique <std::thread>(&Server::StartAsync, this);
+        DatabaseLogic::Get()->GenerateGraphs();
     }
-}
-
-void Server::StartAccept()
-{
-    SharedSession session = std::make_shared<Session>(io_service, std::make_unique<TcpMessageExecutor>());
-    acceptor->async_accept(session->sessionSocket, std::bind(&Server::HandleAccept, this, std::placeholders::_1, session));
 }
 
 void Server::StartAsync()
@@ -44,28 +39,21 @@ void Server::StartAsync()
     io_service.reset();
     boost::system::error_code error;
     io_service.run(error);
+    LOG(LogLevel::Verbose, "tcp backend io_service finish");
 }
 
-void Server::StopAsync()
+void Server::BroadcastMessage(const std::string& msg)
 {
     if(is_enabled)
     {
         std::scoped_lock lock(mutex);
-        if(acceptor)
+        for(auto& i : sessions)
         {
-            acceptor->close();
-            acceptor.reset();
-
-            for(const auto& c : sessions)
-            {
-                c->StopAsync(false);
-            }
-            sessions.clear();
+            i->SendAsync(msg);
         }
-        io_service.stop();
     }
 }
- 
+
 bool Server::CreateAcceptor(unsigned short port)
 {
     boost::system::error_code error;
@@ -78,7 +66,7 @@ bool Server::CreateAcceptor(unsigned short port)
         acceptor.reset();
         return false;
     }
-    
+
     acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), error);
     if(error)
     {
@@ -104,29 +92,41 @@ bool Server::CreateAcceptor(unsigned short port)
     return true;
 }
 
-void Server::Init(void)
+void Server::StopAsync()
 {
     if(is_enabled)
     {
         std::scoped_lock lock(mutex);
-        if(!CreateAcceptor(tcp_port))
+        if(acceptor)
         {
-            LOG(LogLevel::Error, "createAcceptor fail!");
-            return;
+            acceptor->close();
+            acceptor.reset();
+
+            for(const auto& c : sessions)
+            {
+                c->StopAsync(false);
+            }
+            sessions.clear();
         }
-        m_worker = std::make_unique <std::thread> (&Server::StartAsync, this);
-        DatabaseLogic::Get()->GenerateGraphs();
+        io_service.stop();
     }
 }
 
-void Server::BroadcastMessage(const std::string& msg)
+void Server::StartAccept()
 {
-    if(is_enabled)
+    SharedSession session = std::make_shared<Session>(io_service, std::make_unique<TcpMessageExecutor>());
+    acceptor->async_accept(session->sessionSocket, std::bind(&Server::HandleAccept, this, std::placeholders::_1, session));
+}
+
+void Server::HandleAccept(const boost::system::error_code& error, SharedSession session)
+{
+    std::scoped_lock lock(mutex);
+    if(acceptor)
     {
-        std::scoped_lock lock(mutex);
-        for(auto& i : sessions)
+        if(!error)
         {
-            i->SendAsync(msg);
+            session->StartAsync();
+            StartAccept();
         }
     }
 }

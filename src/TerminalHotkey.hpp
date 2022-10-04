@@ -19,9 +19,6 @@ class TerminalHotkey : public CSingleton < TerminalHotkey >
 public:
     TerminalHotkey() = default;
 
-    // !\brief Process function
-    void Process();
-
     // !\brief Is enabled?
     bool is_enabled = true;
 
@@ -38,9 +35,12 @@ public:
     // !\brief Updates hotkey registration in main frame
     void UpdateHotkeyRegistration();
 
+    // !\brief Process function
+    void Process();
+
 private:
     // !\brief VK key code for trigger key
-    int vkey;
+    int vkey = VK_F7;
 
     // !\brief Open terminal with given path
     // !\param path [in] Path where to open the terminal

@@ -16,7 +16,7 @@ public:
     // \brief Initialize function
     void Init();
 
-    // \brief Execute screenshot saving
+    // \brief Start screenshot saving
     void SaveScreenshot();
 
     // \brief Screenshot timestamp format in filename
@@ -27,13 +27,19 @@ public:
 
     // \brief Screenshot key
     std::string screenshot_key = "F12";
-private:
-    void DoSave();
-    std::future<void> screenshot_future;
 
+private:
+    // \brief Format screenshot filename timestamp
     void FormatTimestamp(char* buf, uint8_t len);
+
+    // \brief Screenshot saving logic
+    void DoSave();
+
 #ifdef _WIN32
     INT GetPixelDataOffsetForPackedDIB(const BITMAPINFOHEADER* BitmapInfoHeader);
     unsigned decodeBMP(std::vector<unsigned char>& image, unsigned& w, unsigned& h, const std::vector<unsigned char>& bmp);
 #endif
+
+    // \brief Future for screenshot saving
+    std::future<void> screenshot_future;
 };

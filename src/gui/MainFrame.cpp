@@ -114,21 +114,40 @@ void MyFrame::OnSize(wxSizeEvent& event)
 	wxSize a = event.GetSize();
 	if(main_panel)
 	{
-		main_panel->SetSize(a);
-		config_panel->SetSize(a);
-		config_panel->m_notebook->SetSize(a);
-		config_panel->comtcp_panel->SetSize(a);
-		config_panel->keybrd_panel->SetSize(a);
-		config_panel->backup_panel->SetSize(a);
-		editor_panel->SetSize(a);
-		editor_panel->m_notebook->SetSize(a);
-		editor_panel->gui_editor->SetSize(a);
-		editor_panel->gui_cpp->SetSize(a);
-		escape_panel->SetSize(a);
-		parser_panel->SetSize(a);
-		log_panel->SetSize(a);
-		file_panel->SetSize(a);
-		can_panel->SetSize(a);
+		if(main_panel)
+			main_panel->SetSize(a);
+		if(config_panel)
+		{
+			config_panel->SetSize(a);
+			if(config_panel->m_notebook)
+				config_panel->m_notebook->SetSize(a);
+			if(config_panel->comtcp_panel)
+				config_panel->comtcp_panel->SetSize(a);
+			if(config_panel->keybrd_panel)
+				config_panel->keybrd_panel->SetSize(a);
+			if(config_panel->backup_panel)
+				config_panel->backup_panel->SetSize(a);
+		}
+		if(editor_panel)
+		{
+			editor_panel->SetSize(a);
+			if(editor_panel->m_notebook)
+				editor_panel->m_notebook->SetSize(a);
+			if(editor_panel->gui_editor)
+				editor_panel->gui_editor->SetSize(a);
+			if(editor_panel->gui_cpp)
+				editor_panel->gui_cpp->SetSize(a);
+		}
+		if(escape_panel)
+			escape_panel->SetSize(a);
+		if(parser_panel)
+			parser_panel->SetSize(a);
+		if(log_panel)
+			log_panel->SetSize(a);
+		if(file_panel)
+			file_panel->SetSize(a);
+		if(can_panel)
+			can_panel->SetSize(a);
 	}
 	event.Skip(true);
 }
@@ -369,6 +388,8 @@ MyFrame::MyFrame(const wxString& title)
 	m_100msTimer->Start(100, false);
 
 	//wxWindow::RegisterHotKey(HOTKEY_ID_NUM_LOCK, wxMOD_NONE, VK_NUMLOCK);
+
+	is_initialized = true;
 }
 
 void MyFrame::HandleNotifications()
@@ -532,6 +553,21 @@ void MyFrame::HandleNotifications()
 						});
 					break;
 				}
+				case CanLogSaved:
+				{
+					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
+					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
+					ShowNotificaiton("Screenshot saved", wxString::Format("Can log saved in %.3fms\nPath: %s",
+						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
+						{
+#ifdef _WIN32
+							std::string cmdline = std::string("/select,\"" + filename);
+							ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#endif
+						});
+					break;
+				}
+
 			}
 		}
 		catch(std::exception& e)

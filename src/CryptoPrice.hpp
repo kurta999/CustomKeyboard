@@ -12,9 +12,6 @@ public:
     CryptoPrice();
     ~CryptoPrice() = default;
  
-    // !\brief Get coin price from web API
-    void ExecuteApiRead(void);
-
     // !\brief Update prices
     // !\param force [in] Force update even if timeout isn't happend
     void UpdatePrices(bool force = false);
@@ -39,4 +36,8 @@ public:
 
     // !\brief Is new data pending? (used by GUI - main panel)
     std::atomic<bool> is_pending;
+
+private:
+    // !\brief Get coin price from web API
+    void ExecuteApiRead(void);
 };

@@ -37,42 +37,32 @@ bool BackupEntry::IsInIgnoreList(std::wstring&& p)
 	return false;
 }
 
-void DirectoryBackup::BackupRotation(BackupEntry* backup)
+void DirectoryBackup::Init()
 {
-	for(auto& t : backup->to)
+
+}
+
+void DirectoryBackup::BackupFile(int id)
+{
+	if(id < backups.size())
 	{
-		if(!std::filesystem::exists(t))  /* not needed to go file checking when even the directory doesns't exists */
-		{
-			std::error_code ec;
-			std::filesystem::create_directory(t, ec);
-			if(ec)
-			{
-				LOG(LogLevel::Error, "Error with create_directory ({}): {}", t.generic_string(), ec.message());
-			}
-			continue;
-		}
-
-		std::vector<std::wstring> files;
-		for(auto& f : std::filesystem::directory_iterator(t))
-		{
-			std::filesystem::path folder_name = f.path().filename();
-			std::filesystem::path src_folder_name = backup->from.filename();
-
-			if(folder_name.generic_wstring().starts_with(src_folder_name.generic_wstring()))  /* Add only directories, which starts with backup source folder name */
-				files.push_back(f.path().generic_wstring());
-		}
-		if(files.size() >= static_cast<size_t>(backup->max_backups))
-		{
-			std::sort(files.begin(), files.end());
-			auto& to_remove = *files.begin();
-			std::error_code ec;
-			std::filesystem::remove_all(to_remove, ec);
-			if(ec)
-			{
-				LOG(LogLevel::Error, "Error with remove_all ({}): {}", std::string(to_remove.begin(), to_remove.end()), ec.message());
-			}
-		}
+		if(backup_future.valid())
+			backup_future.get();
+		backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id].get());
 	}
+}
+
+bool DirectoryBackup::IsInProgress()
+{
+	bool ret = false;
+	if(backup_future.valid())
+		ret = backup_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready;
+	return ret;
+}
+
+void DirectoryBackup::Clear()
+{
+	backups.clear();
 }
 
 void DirectoryBackup::DoBackup(BackupEntry* backup)
@@ -292,30 +282,40 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 #endif
 }
 
-void DirectoryBackup::Init()
+void DirectoryBackup::BackupRotation(BackupEntry* backup)
 {
-
-}
-
-void DirectoryBackup::BackupFile(int id)
-{
-	if(id < backups.size())
+	for(auto& t : backup->to)
 	{
-		if(backup_future.valid())
-			backup_future.get();
-		backup_future = std::async(&DirectoryBackup::DoBackup, this, backups[id].get());
+		if(!std::filesystem::exists(t))  /* not needed to go file checking when even the directory doesns't exists */
+		{
+			std::error_code ec;
+			std::filesystem::create_directory(t, ec);
+			if(ec)
+			{
+				LOG(LogLevel::Error, "Error with create_directory ({}): {}", t.generic_string(), ec.message());
+			}
+			continue;
+		}
+
+		std::vector<std::wstring> files;
+		for(auto& f : std::filesystem::directory_iterator(t))
+		{
+			std::filesystem::path folder_name = f.path().filename();
+			std::filesystem::path src_folder_name = backup->from.filename();
+
+			if(folder_name.generic_wstring().starts_with(src_folder_name.generic_wstring()))  /* Add only directories, which starts with backup source folder name */
+				files.push_back(f.path().generic_wstring());
+		}
+		if(files.size() >= static_cast<size_t>(backup->max_backups))
+		{
+			std::sort(files.begin(), files.end());
+			auto& to_remove = *files.begin();
+			std::error_code ec;
+			std::filesystem::remove_all(to_remove, ec);
+			if(ec)
+			{
+				LOG(LogLevel::Error, "Error with remove_all ({}): {}", std::string(to_remove.begin(), to_remove.end()), ec.message());
+			}
+		}
 	}
-}
-
-bool DirectoryBackup::IsInProgress()
-{
-	bool ret = false;
-	if(backup_future.valid())
-		ret = backup_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready;
-	return ret;
-}
-
-void DirectoryBackup::Clear()
-{
-	backups.clear();
 }

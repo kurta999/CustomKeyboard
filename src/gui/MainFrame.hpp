@@ -47,6 +47,7 @@ enum PopupMsgIds : uint8_t
 	RxListSaved,
 	TxListLoadError,
 	RxListLoadError,
+	CanLogSaved,
 };
 
 class MyFrame : public wxFrame
@@ -79,6 +80,7 @@ public:
 	std::deque<std::vector<std::any>> pending_msgs;
 	wxProgressDialog* backup_prog = NULL;
 	std::atomic<bool> show_backup_dlg = false;
+	bool is_initialized = false;
 
 	wxDECLARE_EVENT_TABLE();
 private:

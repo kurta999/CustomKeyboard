@@ -49,7 +49,7 @@ public:
 	std::queue<std::string> pendingMessages;
 
 	// !\brief Buffer for received data
-	char receivedData[SESSION_RECV_BUF_LEN];
+	char receivedData[SESSION_RECV_BUF_LEN] = {};
 
 	// !\brief Last sent data
 	std::string sentData;
