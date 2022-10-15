@@ -38,14 +38,27 @@ LogPanel::LogPanel(wxFrame* parent)
 			}
 			event.Skip();
 		});
-	m_Filter = new wxButton(this, wxID_ANY, wxT("Filter"), wxDefaultPosition, wxDefaultSize, 0);
-	m_Filter->SetToolTip("Filter log messages from logfile");
-	v_sizer->Add(m_Filter, 0, wxALL, 5);
-	bSizer1->Add(v_sizer, 0, wxALL, 5);
+	m_ApplyFilter = new wxButton(this, wxID_ANY, wxT("Filter"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ApplyFilter->SetToolTip("Filter log messages from logfile");
+	v_sizer->Add(m_ApplyFilter, 0, wxALL, 5);
 
-	m_Filter->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+	m_ApplyFilter->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			ExecuteSearchInLogfile();
+		});
+
+	m_Pause = new wxButton(this, wxID_ANY, wxT("Toggle auto-scroll"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Pause->SetToolTip("Disable auto-scroll");
+	v_sizer->Add(m_Pause, 0, wxALL, 5);
+	bSizer1->Add(v_sizer, 0, wxALL, 5);
+
+	m_Pause->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			m_AutoScroll ^= 1;
+			if(m_AutoScroll)
+				m_Pause->SetBackgroundColour(wxNullColour);
+			else
+				m_Pause->SetBackgroundColour(*wxRED);
 		});
 
 	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
@@ -89,7 +102,16 @@ void LogPanel::ClearEntries()
 	m_Log->Clear();
 }
 
-void LogPanel::AppendLog(std::string& line)
+void LogPanel::AppendLog(const std::string& line, bool scroll_to_end)
 {
 	m_Log->Append(wxString(line));
+	if(scroll_to_end && m_AutoScroll)
+		m_Log->ScrollLines(m_Log->GetCount());
+}
+
+void LogPanel::AppendLog(const std::wstring& line, bool scroll_to_end)
+{
+	m_Log->Append(wxString(line));
+	if(scroll_to_end && m_AutoScroll)
+		m_Log->ScrollLines(m_Log->GetCount());
 }

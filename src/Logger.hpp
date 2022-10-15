@@ -15,6 +15,8 @@
 
 DECLARE_APP(MyApp);
 
+//template<class> inline constexpr bool always_false_v = false;
+
 #ifdef _DEBUG /* this is only for debugging, it remains oldschool */
 #define DBG(str, ...) \
     {\
@@ -154,13 +156,12 @@ public:
         }
 
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log)
+        if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log && m_helper)
         {
             bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(1000));
             if(ret)
             {
-                frame->log_panel->m_Log->Append(wxString(str));
-                frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
+                m_helper->AppendLog(str, true);
                 m_mutex.unlock();
             }
             else
@@ -213,15 +214,18 @@ public:
     void AppendPreinitedEntries()
     {
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame && frame->log_panel)
+        if(frame && frame->log_panel && m_helper)
         {
-            m_mutex.lock();
-            for(auto& i : preinit_entries)
+            bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(1000));
+            if(ret)
             {
-                frame->log_panel->m_Log->Append(i);
+                for(auto& i : preinit_entries)
+                {
+                    m_helper->AppendLog(i.ToStdString());
+                }
+                preinit_entries.clear();
+                m_mutex.unlock();
             }
-            preinit_entries.clear();
-            m_mutex.unlock();
         }
     }
 

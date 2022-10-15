@@ -6,5 +6,6 @@ class ILogHelper
 {
 public:
     virtual void ClearEntries() = 0;
-    virtual void AppendLog(std::string& line) = 0;
+    virtual void AppendLog(const std::string& line, bool scroll_to_end = false) = 0;
+    virtual void AppendLog(const std::wstring& line, bool scroll_to_end = false) = 0;
 };
