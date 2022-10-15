@@ -8,15 +8,26 @@
 
 #include <map>
 
-enum
+enum CanSenderGridCol : int
 {
-    Col_Id,
-    Col_DataSize,
-    Col_Data,
-    Col_Period,
-    Col_Count,
-    Col_Comment,
-    Col_Max
+    Sender_Id,
+    Sender_DataSize,
+    Sender_Data,
+    Sender_Period,
+    Sender_Count,
+    Sender_Comment,
+    Sender_Max
+};
+
+enum CanLogGridCol : int
+{
+    Log_Time,
+    Log_Direction,
+    Log_Id,
+    Log_DataSize,
+    Log_Data,
+    Log_Comment,
+    Log_Max
 };
 
 class CanTxEntry;
@@ -51,47 +62,108 @@ public:
     size_t cnt = 0;
 };
 
-class CanPanel : public wxPanel
+class CanSenderPanel : public wxPanel
 {
 public:
-	CanPanel(wxWindow* parent);
+    CanSenderPanel(wxWindow* parent);
+    void UpdatePanel();
 
-	void On10MsTimer();
+    void On10MsTimer();
     void RefreshSubpanels();
 
     void LoadTxList();
     void SaveTxList();
     void LoadRxList();
     void SaveRxList();
-    void OnSize(wxSizeEvent& evt);
     void OnKeyDown(wxKeyEvent& evt);
 
     CanGrid* can_grid_tx = nullptr;
     CanGridRx* can_grid_rx = nullptr;
-private:
+
+private:    
     void RefreshTx();
     void RefreshRx();
     void RefreshGuiIconsBasedOnSettings();
 
-	void OnCellValueChanged(wxGridEvent& ev);
+    void OnCellValueChanged(wxGridEvent& ev);
 
     wxStaticBoxSizer* static_box_tx = nullptr;
     wxStaticBoxSizer* static_box_rx = nullptr;
 
-	wxTreeListCtrl* tree_receive = nullptr;
-	wxDataViewCtrl* tree_t = nullptr;
+    wxTreeListCtrl* tree_receive = nullptr;
+    wxDataViewCtrl* tree_t = nullptr;
 
-	wxButton* m_SingleShot = nullptr;
-	wxButton* m_SendAll = nullptr;
-	wxButton* m_StopAll = nullptr;
-	wxButton* m_Add = nullptr;
-	wxButton* m_Copy = nullptr;
-	wxButton* m_Delete = nullptr;
+    wxButton* m_SingleShot = nullptr;
+    wxButton* m_SendAll = nullptr;
+    wxButton* m_StopAll = nullptr;
+    wxButton* m_Add = nullptr;
+    wxButton* m_Copy = nullptr;
+    wxButton* m_Delete = nullptr;
 
     wxString file_path_tx;
     wxString file_path_rx;
 
     std::string search_pattern_tx;
     std::string search_pattern_rx;
+
+    wxDECLARE_EVENT_TABLE();
+};
+
+class CanLogEntry;
+class CanLogPanel : public wxPanel
+{
+public:
+    CanLogPanel(wxWindow* parent);
+    
+    void On10MsTimer();
+    void InsertRow(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint32_t id, std::vector<uint8_t>& data, std::string& comment);
+    void UpdatePanel();
+
+    wxGrid* m_grid = nullptr;
+
+private:
+    void OnKeyDown(wxKeyEvent& evt);
+    void ClearRecordingsFromGrid();
+
+    std::chrono::steady_clock::time_point start_time;
+    bool is_something_inserted = false;
+    std::size_t inserted_until = 0;
+    wxStaticBoxSizer* static_box = nullptr;
+    wxButton* m_RecordingStart = nullptr;
+    wxButton* m_RecordingPause = nullptr;
+    wxButton* m_RecordingStop = nullptr;
+    wxButton* m_RecordingClear = nullptr;
+    wxButton* m_RecordingSave = nullptr;
+    size_t cnt = 0;
+    std::string search_pattern;
+
+    wxDECLARE_EVENT_TABLE();
+};
+
+class CanPanel : public wxPanel
+{
+public:
+	CanPanel(wxWindow* parent);
+    ~CanPanel();
+
+    void On10MsTimer();
+    void LoadTxList();
+    void SaveTxList();
+    void LoadRxList();
+    void SaveRxList();
+    void RefreshSubpanels();
+
+    CanSenderPanel* sender = nullptr;
+    CanLogPanel* log = nullptr;
+
+private:
+    void OnSize(wxSizeEvent& evt);
+    void Changeing(wxAuiNotebookEvent& event);
+
+    // !\brief AUI manager for subwindows
+    wxAuiManager m_mgr;
+
+    wxAuiNotebook* m_notebook = nullptr;
+
 	wxDECLARE_EVENT_TABLE();
 };

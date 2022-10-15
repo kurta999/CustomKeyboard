@@ -40,8 +40,11 @@ public:
 
 private:
     // !\brief VK key code for trigger key
+#ifdef _WIN32
     int vkey = VK_F7;
-
+#else
+    int vkey = 0;
+#endif
     // !\brief Open terminal with given path
     // !\param path [in] Path where to open the terminal
     void OpenTerminal(std::wstring& path);

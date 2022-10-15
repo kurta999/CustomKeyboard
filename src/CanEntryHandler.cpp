@@ -3,7 +3,17 @@
 CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader) :
     m_CanEntryLoader(loader), m_CanRxEntryLoader(rx_loader)
 {
+    start_time = std::chrono::steady_clock::now();
+}
 
+CanEntryHandler::~CanEntryHandler()
+{
+    to_exit = true;
+    if(m_worker && m_worker->joinable())
+    {
+        m_worker->join();
+        m_worker.reset(nullptr);
+    }
 }
 
 XmlCanEntryLoader::~XmlCanEntryLoader()
@@ -34,17 +44,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             boost::algorithm::erase_all(hex_str, " ");
             if(hex_str.length() > 16)
                 hex_str.erase(16, hex_str.length() - 16);
-            std::string hash;
-            try
-            {
-                hash = boost::algorithm::unhex(hex_str);
-            }
-            catch(...)
-            {
-                LOG(LogLevel::Error, "Exception with boost::algorithm::unhex, str: {}", hex_str);
-            }
-            std::copy(hash.begin(), hash.end(), bytes);
-
+            utils::ConvertHexStringToBuffer(hex_str, std::span{ bytes });
             local_entry->data.assign(bytes, bytes + (hex_str.length() / 2));
             local_entry->period = v.second.get_child("Period").get_value<int>();
             local_entry->comment = v.second.get_child("Comment").get_value<std::string>();
@@ -76,9 +76,7 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
             out << "\t<Frame>\n";
             out << std::format("\t\t<ID>{:X}</ID>\n", i->id);
             std::string hex;
-            boost::algorithm::hex(i->data.begin(), i->data.end(), std::back_inserter(hex));
-            if(hex.length() > 2)
-                utils::separate<2, ' '>(hex);
+            utils::ConvertHexBufferToString(i->data, hex);
             out << std::format("\t\t<Data>{}</Data>\n", hex);
             out << std::format("\t\t<Period>{}</Period>\n", i->period);
             out << std::format("\t\t<Comment>{}</Comment>\n", i->comment);
@@ -149,7 +147,7 @@ void CanEntryHandler::Init()
 {
     LoadTxList(default_tx_list);
     LoadRxList(default_rx_list);
-    t = std::make_unique<std::thread>([this] {
+    m_worker = std::make_unique<std::thread>([this] {
         while(!to_exit)
         {
             {
@@ -169,8 +167,8 @@ void CanEntryHandler::Init()
                             uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - i->last_execution).count();
                             if(elapsed > i->period)
                             {
-                                CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), i->data.data());
                                 i->last_execution = std::chrono::steady_clock::now();
+                                CanSerialPort::Get()->AddToTxQueue(i->id, i->data.size(), i->data.data());
                             }
                         }
                     }
@@ -189,12 +187,21 @@ void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* 
     {
         if(i->id == frame_id)
         {
-            i->count++;
-            MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-            frame->can_panel->can_grid_tx->UpdateTxCounter(frame_id, i->count);
+            if((MyFrame*)(wxGetApp().is_init_finished))
+            {
+                i->count++;
+                MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                if(frame && frame->is_initialized)
+                {
+                    frame->can_panel->sender->can_grid_tx->UpdateTxCounter(frame_id, i->count);
+                    if(is_recoding)
+                        m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_TX, frame_id, data, data_len, i->last_execution));
+                }
+            }
             break;
         }
     }
+    tx_frame_cnt++;
 }
 
 void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8_t* data)
@@ -208,13 +215,15 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
     }
     else
     {
-        m_rxData[frame_id]->data.resize(data_len);
         m_rxData[frame_id]->data.assign(data, data + data_len);
         uint32_t elapsed = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(time_now - m_rxData[frame_id]->last_execution).count());
         m_rxData[frame_id]->period = elapsed;
         m_rxData[frame_id]->count++;
     }
     m_rxData[frame_id]->last_execution = std::chrono::steady_clock::now();
+    rx_frame_cnt++;
+    if(is_recoding)
+        m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_RX, frame_id, data, data_len, m_rxData[frame_id]->last_execution));
 }
 
 void CanEntryHandler::ToggleAutoSend(bool toggle)
@@ -222,11 +231,22 @@ void CanEntryHandler::ToggleAutoSend(bool toggle)
     auto_send = toggle;
 }
 
-CanEntryHandler::~CanEntryHandler()
+void CanEntryHandler::ToggleRecording(bool toggle, bool is_pause)
 {
-    to_exit = true;
-    if(t && t->joinable())
-        t->join();
+    std::scoped_lock lock{ m };
+    is_recoding = toggle;
+
+    if(!is_pause && !toggle)
+    {
+        tx_frame_cnt = rx_frame_cnt = 0;
+        m_LogEntries.clear();
+    }
+}
+
+void CanEntryHandler::ClearRecording()
+{
+    std::scoped_lock lock{ m };
+    m_LogEntries.clear();
 }
 
 bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
@@ -277,5 +297,41 @@ bool CanEntryHandler::SaveRxList(std::filesystem::path& path)
     if(path.empty())
         path = default_rx_list;
     bool ret = m_CanRxEntryLoader.Save(path, rx_entry_comment);
+    return ret;
+}
+
+bool CanEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
+{
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    std::scoped_lock lock{ m };
+    bool ret = false;
+    if(!m_LogEntries.empty())
+    {
+        std::ofstream out(path, std::ofstream::binary);
+        if(out.is_open())
+        {
+            out << "Time,Direction,FrameID,DatSize,Data,Comment\n";
+            for(auto& i : m_LogEntries)
+            {
+                std::string hex;
+                utils::ConvertHexBufferToString(i->data, hex);
+                uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(i->last_execution - start_time).count();
+                out << std::format("{:.3},{},{:X},{},{},{}\n", static_cast<double>(elapsed) / 1000.0, i->direction == 0 ? "TX" : "RX", static_cast<uint32_t>(i->frame_id), i->data.size(),
+                    hex, "");
+            }
+            out.flush();
+            ret = true;
+        }
+    }
+
+    if(ret)
+    {
+        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+        int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        std::lock_guard lock(frame->mtx);
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CanLogSaved), dif, path.generic_string()});
+    }
     return ret;
 }
