@@ -32,7 +32,7 @@ public:
 };
 #pragma pack(pop)
 
-constexpr size_t MAX_MEAS_QUEUE = 100;
+constexpr size_t MAX_MEAS_QUEUE = 150;
 
 class Sensors : public CSingleton < Sensors >
 {
@@ -51,29 +51,21 @@ public:
 
     // \brief Add measurement to last_meas queue
     // \param meas [in] - pointer to measure to add
-    void AddMeasurement(std::unique_ptr<Measurement>&& meas)
-    {
-        size_t size = last_meas.size();
-        if(size >= MAX_MEAS_QUEUE)
-            last_meas.pop_front();
+    void AddMeasurement(std::unique_ptr<Measurement>&& meas);
 
-        last_meas.push_back(std::move(meas));
-    }
-
-    const std::deque<std::unique_ptr<Measurement>>& GetMeasurements()
-    {
-        return last_meas;
-    }
+    // \brief Returns last X measurements
+    const std::deque<std::unique_ptr<Measurement>>& GetMeasurements() { return last_meas; }
 
     // \brief Vector of last day's measurement, array order is: avg, max, min
     std::vector<std::unique_ptr<Measurement>> last_day[3];
 
     // \brief Vector of last week's measurement, array order is: avg, max, min
     std::vector<std::unique_ptr<Measurement>> last_week[3];
+
 private:
     template<typename T> T GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset);
     template<int i, typename T1, typename T2> int CalculateMinMaxAvg_Final(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
-    template< int i, typename T1, typename T2> int CalculateMinMaxAvg(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
+    template<int i, typename T1, typename T2> int CalculateMinMaxAvg(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<typename T1, typename T2> void WriteDataToHtmlFromContainer(std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<typename T1> void WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
 

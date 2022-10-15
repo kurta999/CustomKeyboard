@@ -1,17 +1,31 @@
 #include "pch.hpp"
 
 constexpr int64_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
- 
-template <std::size_t N>
-struct type_of_size
+
+void Sensors::Init()
 {
-    typedef char type[N];
-};
+    std::error_code ec;
+    if(!std::filesystem::exists("Graphs"))
+        std::filesystem::create_directory("Graphs", ec);
+    if(ec)
+        LOG(LogLevel::Error, "Error with create_directory (Graphs): {}", ec.message());
 
-template <typename T, std::size_t Size>
-typename type_of_size<Size>::type& sizeof_array_helper(T(&)[Size]);
+    std::ifstream t("Graphs/template.html", std::ifstream::binary);
+    if(t)
+    {
+        t.seekg(0, std::ios::end);
+        size_t size = t.tellg();
+        t.seekg(0);
+        template_str.resize(size);
 
-#define sizeof_array(pArray) sizeof(sizeof_array_helper(pArray))
+        t.read(&template_str[0], size);
+        t.close();
+    }
+    else
+    {
+        LOG(LogLevel::Error, "Missing template.html from 'Graphs' folder, disabling sensor's related module.");
+    }
+}
 
 bool Sensors::ProcessIncommingData(const char* recv_data, const char* from_ip)
 {
@@ -67,6 +81,15 @@ void Sensors::WriteGraphs()
     WriteGraph<decltype(Measurement::cct)>("CCT.html", 0, 10000, "CCT", offsetof(Measurement, cct));
 }
 
+void Sensors::AddMeasurement(std::unique_ptr<Measurement>&& meas)
+{
+    size_t size = last_meas.size();
+    if(size >= MAX_MEAS_QUEUE)
+        last_meas.pop_front();
+
+    last_meas.push_back(std::move(meas));
+}
+
 template<typename T> T Sensors::GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset)
 {
     T retval = *(T*)(((char*)meas.get() + (char)offset));
@@ -119,12 +142,11 @@ template<typename T1, typename T2> void Sensors::WriteDataToHtmlFromContainer(st
 
 #define CALCULATE_MINMAXAVG(labels, data, input, offset) \
     {\
-        constexpr size_t arr_size = sizeof_array(labels); \
-        CalculateMinMaxAvg<arr_size, T1>(arr_size, labels, data, input, offset);\
-    }
-#define CALCULATE_MINMAXAVG2(labels, data, input, offset) \
-    {\
-        CalculateMinMaxAvg<1, T1>(1, &labels, &data, &input, offset);\
+        constexpr size_t arr_size = pp_sizeof_array(labels); \
+        if constexpr (arr_size == 1) \
+            CalculateMinMaxAvg<1, T1>(1, &labels, &data, &input, offset); \
+        else\
+            CalculateMinMaxAvg<arr_size, T1>(arr_size, labels, data, input, offset);\
     }
 
 template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1)
@@ -144,10 +166,9 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     
     try
     {
-        CALCULATE_MINMAXAVG2(labels_time_last, data_latest, last_meas, offset_1);
+        CALCULATE_MINMAXAVG(labels_time_last, data_latest, last_meas, offset_1);
         CALCULATE_MINMAXAVG(labels_time_day, data_day, last_day, offset_1);
         CALCULATE_MINMAXAVG(labels_time_week, data_week, last_week, offset_1);
-
     }
     catch(...)
     {
@@ -179,30 +200,5 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     catch(std::exception& e)
     {
         LOG(LogLevel::Error, "Exception: {}", e.what());
-    }
-}
-
-void Sensors::Init()
-{
-    std::error_code ec;
-    if(!std::filesystem::exists("Graphs"))
-        std::filesystem::create_directory("Graphs", ec);
-    if(ec)
-        LOG(LogLevel::Error, "Error with create_directory (Graphs): {}", ec.message());
-
-    std::ifstream t("Graphs/template.html", std::ifstream::binary);
-    if(t)
-    {
-        t.seekg(0, std::ios::end);
-        size_t size = t.tellg();
-        t.seekg(0);
-        template_str.resize(size);
-
-        t.read(&template_str[0], size);
-        t.close();
-    }
-    else
-    {
-        LOG(LogLevel::Error, "Missing template.html from 'Graphs' folder, disabling sensor's related module.");
     }
 }

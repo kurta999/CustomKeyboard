@@ -175,3 +175,23 @@ namespace utils::xml
             out = child_val->get_value<T>();
     }
 }
+
+namespace utils
+{
+    template <std::size_t N>
+    struct type_of_size
+    {
+        typedef char type[N];
+    };
+    struct type_of_size_nonarray
+    {
+        typedef char type;
+    };
+
+    template <typename T, std::size_t Size>
+    typename type_of_size<Size>::type& sizeof_array_helper(T(&)[Size]);
+    template <typename T>
+    typename type_of_size_nonarray::type& sizeof_array_helper(T&);
+}
+
+#define pp_sizeof_array(pArray) sizeof(utils::sizeof_array_helper(pArray))
