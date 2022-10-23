@@ -116,6 +116,12 @@ MainPanel::MainPanel(wxFrame* parent)
 			CryptoPrice::Get()->UpdatePrices(true);
 		});
 
+	m_WeekNumber = new wxStaticText(this, wxID_ANY, FormatCurrentWeekNumber(), wxDefaultPosition, wxSize(-1, -1), 0);
+	m_WeekNumber->SetToolTip("Week number in the year");
+	m_WeekNumber->SetForegroundColour(*wxBLUE);
+	m_WeekNumber->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	bSizer1->Add(m_WeekNumber, 0, wxALL, 5);
+
 	split_sizer->Add(bSizer1, wxSizerFlags(0).Top());
 
 #define ADD_KEY(display_text, internal_name, key_name) \
@@ -243,4 +249,18 @@ void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy,
 {
 	m_EthPrice->SetLabelText(wxString::Format("ETH: %.1f - %.1f", eth_buy, eth_sell));
 	m_BtcPrice->SetLabelText(wxString::Format("BTC: %.1f - %.1f", btc_buy, btc_sell));
+	UpdateCurrentWeekNumber();
+}
+
+wxString MainPanel::FormatCurrentWeekNumber()
+{
+	boost::gregorian::date current_date(boost::gregorian::day_clock::local_day());
+	int week_number = current_date.week_number();
+	wxString week_str = wxString::Format("Week: %d", week_number);
+	return week_str;
+}
+
+void MainPanel::UpdateCurrentWeekNumber()
+{
+	m_WeekNumber->SetLabelText(FormatCurrentWeekNumber());
 }

@@ -29,8 +29,12 @@ public:
 	wxStaticText* m_EthPrice = nullptr;
 	wxStaticText* m_BtcPrice = nullptr;
 	wxButton* m_RefreshCrypto = nullptr;
+	wxStaticText* m_WeekNumber = nullptr;
 
 private:
+	void UpdateCurrentWeekNumber();
+	wxString FormatCurrentWeekNumber();
+
 	std::map<std::string, wxStaticBox*> key_map;
 
 	wxDECLARE_EVENT_TABLE();
