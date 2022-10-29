@@ -442,12 +442,15 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     m_RecordingSave->SetToolTip("Save recording");
     m_RecordingSave->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+#ifdef _WIN32
             const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+
             std::string log_format = std::format("CanLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
             std::filesystem::path p(log_format);
 
             CanEntryHandler* can_handler = wxGetApp().can_entry;
             can_handler->SaveRecordingToFile(p);
+#endif
         });
 
     v_sizer->Add(h_sizer);

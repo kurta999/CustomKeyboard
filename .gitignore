@@ -76,3 +76,6 @@ build/
 
 # Unit tests
 UnitTests/x64
+
+#Special
+tools/

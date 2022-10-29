@@ -57,6 +57,7 @@ void CmdExecutorPanel::OnClick(wxCommandEvent& event)
     //utils::exec(retval->c_str());
 
     ToggleAllButtonClickability(false);
+#ifdef _WIN32 
     STARTUPINFOA si = { sizeof(STARTUPINFOA) };
     si.dwFlags = STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_SHOW; // Prevents cmd window from flashing.
@@ -64,7 +65,7 @@ void CmdExecutorPanel::OnClick(wxCommandEvent& event)
 
     PROCESS_INFORMATION pi = { 0 };
     BOOL fSuccess = CreateProcessA(NULL, (LPSTR)std::format("C:\\windows\\system32\\cmd.exe /c {}", *retval).c_str(), NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
-
+#endif
     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     ToggleAllButtonClickability(true);
 }

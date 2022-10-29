@@ -13,9 +13,13 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF) 
 find_package(Boost REQUIRED system program_options)
 
+find_package(fmt REQUIRED)
+#find_package(hidapi REQUIRED)
+
 add_subdirectory(libs)
 
 include_directories(libs)
+include_directories(src/interface)
 include_directories(wxWidgets_INCLUDE_DIRS)
 
 set(src_SOURCES_pch
@@ -24,12 +28,15 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CanEntryHandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CanSerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CryptoPrice.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CmdExecutor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CustomKeyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CustomMacro.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CorsairHid.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DatabaseImpl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DatabaseLogic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryBackup.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/GuiEditor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/IdlePowerSaver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Logger.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/MacroRecorder.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/PathSeparator.cpp
@@ -41,19 +48,25 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StructParser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SymlinkCreator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/TerminalHotkey.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/TcpMessageExecutor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ModbusMasterSerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialForwarder.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/StringToCEscaper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Utils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/Configuration.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ConfigurationBackup.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CmdExecutorPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/Editor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EscaperPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/FilePanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/LogPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainFrame.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ModbusMasterPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ParserPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/DebugPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/TrayIcon.cpp
 )
  
@@ -81,11 +94,14 @@ if(MSVC)
 	
 	# Create the source groups for source tree with root at VD_SRC.
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${src_SOURCES_pch})
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type")
 endif()
 
 #message("wxWidgets_LIBRARIES: " ${wxWidgets_LIBRARIES})
 
 add_executable(${PROJECT_NAME} WIN32 ${src_SOURCES_pch} ${src_SOURCES})
-target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})
+target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} fmt::fmt)
+# hidapi::hidapi
 
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

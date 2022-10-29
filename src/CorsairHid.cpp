@@ -24,6 +24,7 @@ bool CorsairHid::Init()
 
 bool CorsairHid::ExecuteInitSequence()
 {
+#ifdef _WIN32
     LOG(LogLevel::Notification, "CorsairHid::ExecuteInitSequence");
     int ret = hid_init();  /* Initialize the hidapi library */
     if(ret)
@@ -34,8 +35,8 @@ bool CorsairHid::ExecuteInitSequence()
 
     hid_inited = true;
     const char* hid_path = nullptr;
-    hid_device_info* device_info = hid_enumerate(0, 0);  /* Enumerate over all HID devices */
 
+    hid_device_info* device_info = hid_enumerate(0, 0);  /* Enumerate over all HID devices */
     while(device_info != NULL)
     {
         LOGW(LogLevel::Normal, L"HID Device: \"{}\", VID: 0x{:X}, PID: 0x{:X}, UsagePage: 0x{:X}, Usage: 0x{:X}",
@@ -74,18 +75,20 @@ bool CorsairHid::ExecuteInitSequence()
         LOG(LogLevel::Error, "Unable to find Corsair K95");
         return false;
     }
+#endif
     return true;
 }
 
 void CorsairHid::DestroyWorkingThread()
 {
+#ifdef _WIN32
     if(hid_handle)
         hid_close(hid_handle);
     hid_handle = nullptr;
     hid_inited = false;
 
     bool ret = hid_exit();
-
+#endif
     m_exit = true;
     if(m_worker && m_worker->joinable())
         m_worker->join();
@@ -93,6 +96,7 @@ void CorsairHid::DestroyWorkingThread()
 
 void CorsairHid::ThreadFunc()
 {
+#ifdef _WIN32
     LOG(LogLevel::Notification, "ThreadFunc");
     while(!m_exit)
     {
@@ -113,4 +117,5 @@ void CorsairHid::ThreadFunc()
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+#endif
 }

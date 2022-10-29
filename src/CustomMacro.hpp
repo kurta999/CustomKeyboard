@@ -112,8 +112,6 @@ private:
     static inline const char* name = "SEQUENCE";
 };
 
-template<class> inline constexpr bool always_false_v = false;
-
 class KeyDelay final : public IKey
 {
 public:

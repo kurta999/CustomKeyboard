@@ -62,7 +62,7 @@ Required external depencencies:
 
 **Windows**
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_79_0
+- boost: C:\Program Files\boost\boost_1_80_0
 - wxWidgets: C:\wxWidgets-3.2.0
 - HIDAPI: C:\hidapi
 
@@ -74,19 +74,27 @@ Available build configurations:
 - x86 - Debug, Release, Static Release
 - x64 - Debug, Release, Static Release
 
-If you want to go with CMake, you can use this command as a starting point:
-cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_79_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_79_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_79_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
+CMake support for windows is available, hovewer I'm not using it so it's abandoned. Up to date version is only for Linux, use .sln files when using Windows! Example command for CMake on Windows:
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_80_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_80_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_80_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 
 **Linux**
 
-Currently linux build is abandoned beucase I didn't need it on daily basis. std::format isn't supported by GCC yet, so if you want to build this on linux you have to do a few tweaks to the code.
+The project is using C++20 features, so I recommend using the newest compilers. I'm using clang15 because it's faster for me than GCC.
 
-1. Install boost 1.80.0, wxWidgets 3.2.0
+1. Install boost 1.80.0, wxWidgets 3.2.0, fmt 8.0.0
 2. Execute these commands in project root directory:
+
+With Make:
 mkdir build
 cd build
 cmake ..
 make  (or "make -j$(nproc)" for faster build)
+
+With ninja:
+mkdir build
+cd build
+cmake -GNinja ..
+ninja
 
 ## Screenshots
 **Main Page**

@@ -87,6 +87,7 @@ namespace utils
 	}
 
 #ifndef UNIT_TESTS
+#ifdef _WIN32
 	static std::map<std::string, int> vkey_lookup  /* Only Fx keys for now */
 	{
 		{"F1", VK_F1},
@@ -102,19 +103,22 @@ namespace utils
 		{"F11", VK_F11},
 		{"F12", VK_F12},
 	};
-
+#endif
 	int GetVirtualKeyFromString(const std::string& key)
 	{
 		int ret = 0xFFFF;
+#ifdef _WIN32
 		auto it = vkey_lookup.find(key);
 		if(it != vkey_lookup.end())
 			ret = it->second;
+#endif
 		return ret;
 	}
 
 	std::string GetKeyStringFromVirtualKey(int key_code)
 	{
 		std::string key_name = "INVALID";
+#ifdef _WIN32
 		for(auto& i : vkey_lookup)
 		{
 			if(i.second == key_code)
@@ -123,6 +127,7 @@ namespace utils
 				break;
 			}
 		}
+#endif
 		return key_name;
 	}
 

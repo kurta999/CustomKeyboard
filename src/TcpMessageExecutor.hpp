@@ -9,6 +9,7 @@ using TcpMessageReturn = std::tuple<bool, bool, std::string>;
 class ITcpMessageExecutor
 {
 public:
+    virtual ~ITcpMessageExecutor() {}
     virtual void SetCurrentSession(SharedSession session, size_t len) = 0;
     virtual TcpMessageReturn Process(std::any param) = 0;
 };
@@ -41,7 +42,7 @@ public:
     {
         m_injector.SetCurrentSession(session, len);
         m_result = m_injector.Process(std::placeholders::_1);
-        m_injector.SetCurrentSession(nullptr, NULL);
+        m_injector.SetCurrentSession(nullptr, 0ULL);
     }
 
     TcpMessageReturn& GetResult()

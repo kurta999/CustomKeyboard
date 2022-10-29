@@ -6,6 +6,26 @@
 #include <urlmon.h>
 #endif
 
+
+#ifndef _WIN32
+#include <fmt/format.h>
+namespace std
+{
+	template <typename... T>
+	std::string format(fmt::format_string<T...> fmt_, T&&... args)
+	{
+		return fmt::format(fmt_, std::forward<T>(args)...);
+	}
+
+	/*
+	std::string vformat(std::string_view format_arg, fmt::format_args args)
+	{
+		//return fmt::vformat(format_arg, args);
+	}
+	*/
+}
+#endif
+
 #include "gui/CanPanel.hpp"
 #include "gui/Configuration.hpp"
 #include "gui/ConfigurationBackup.hpp"

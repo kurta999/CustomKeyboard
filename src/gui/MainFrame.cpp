@@ -19,7 +19,9 @@ EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 //EVT_CHAR_HOOK(MyFrame::OnKeyDown)
+#ifdef _WIN32
 EVT_HOTKEY(HOTKEY_ID_TERMINAL, MyFrame::OnHotkey)
+#endif
 //EVT_HOTKEY(HOTKEY_ID_NUM_LOCK, MyFrame::OnHotkey)
 wxEND_EVENT_TABLE()
 
@@ -215,7 +217,11 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 void MyFrame::HandleDebugPanelUpdate()
 {
 	int sel = ctrl->GetSelection();
+#ifdef _WIN32
 	HWND foreground = GetForegroundWindow();
+#else
+	bool foreground = true;
+#endif
 	if((sel == 4 || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
 	{
 		if(debug_panel)

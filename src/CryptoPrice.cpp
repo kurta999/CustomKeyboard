@@ -15,7 +15,7 @@ void CryptoPrice::ExecuteApiRead()
   
     boost::algorithm::split_regex(arr, str.GetString(), boost::regex("{\"data\":{\"base\":\""));
 #else
-    std::string buy_price_str = exec("curl https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell");
+    std::string buy_price_str = utils::exec("curl https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell");
     boost::algorithm::split_regex(arr, buy_price_str, boost::regex("{\"data\":{\"base\":\""));
 #endif
 

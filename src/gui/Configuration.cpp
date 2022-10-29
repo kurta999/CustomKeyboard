@@ -501,11 +501,13 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			std::ifstream in("settings.ini", std::ios::in | std::ios::binary);
 			if(in)
 			{
+#ifdef _WIN32
 				std::string in_str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 				const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 				std::ofstream out(std::format("settings.ini_{:%Y.%m.%d_%H-%M-%OS}.ini", now), std::ofstream::binary);
 				out << in_str;
 				LOG(LogLevel::Notification, "Settings.ini has been successfully backed up");
+#endif
 			}
 		});
 	SetSizer(bSizer1);

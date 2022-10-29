@@ -39,4 +39,10 @@ private:
 
     // \brief Is CPU frequency reduced?
     bool is_power_reduced = false;
+
+    std::chrono::steady_clock::time_point m_lastExec{};
+
+    std::vector<uint8_t> m_powerPercents;
+
+    uint8_t median_load = 0;
 };
