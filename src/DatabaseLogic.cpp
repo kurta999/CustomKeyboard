@@ -31,7 +31,7 @@ void DatabaseLogic::DoGenerateGraphs()
     
     db_stream.SendQueryAndFetch(std::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, m_graphs_hours_1 * 3600),
         std::bind(&DatabaseLogic::Query_MeasFromPast, this, std::placeholders::_1, std::placeholders::_2), &Sensors::Get()->last_day[0]);
-    db_stream.SendQueryAndFetch(std::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%d. %H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, m_graphs_hours_2 * 3600),
+    db_stream.SendQueryAndFetch(std::format("SELECT AVG(temp), AVG(hum), AVG(co2), AVG(voc), AVG(pm25), AVG(pm10), AVG(lux), AVG(cct), strftime('%Y-%m-%d %H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, m_graphs_hours_2 * 3600),
         std::bind(&DatabaseLogic::Query_MeasFromPast, this, std::placeholders::_1, std::placeholders::_2), &Sensors::Get()->last_week[0]);
 
     db_stream.SendQueryAndFetch(std::format("SELECT MAX(temp), MAX(hum), MAX(co2), MAX(voc), MAX(pm25), MAX(pm10), MAX(lux), MAX(cct), strftime('%H:%M:%S', time, 'unixepoch') FROM (SELECT *, NTILE({}) OVER (ORDER BY time) grp FROM data WHERE time > (strftime('%s', 'now')- {})) GROUP BY grp", MAX_MEAS_QUEUE, m_graphs_hours_1 * 3600),
