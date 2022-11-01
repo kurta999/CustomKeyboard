@@ -23,6 +23,9 @@ private:
 	void OnPreReload(uint8_t cols) override;
 	void OnCommandLoaded(uint8_t col, CommandTypes cmd) override;
 	void OnPostReload(uint8_t cols) override;
+	
+	void AddCommandElement(uint8_t col, Command* c);
+	void AddSeparatorElement(uint8_t col, Separator s);
 
 	wxGridSizer* m_BaseGrid = nullptr;
 	std::vector<wxBoxSizer*> m_VertialBoxes;
