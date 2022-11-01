@@ -69,6 +69,19 @@ enum LogLevel
 #define LOGW(str, ...)
 #endif
 
+class LogEntry
+{
+public:
+    LogEntry(wxString file_, wxString message_) :
+        file(file_), message(message_)
+    {
+
+    }
+
+    wxString file;
+    wxString message;
+};
+
 class Logger : public CSingleton < Logger >
 {
     friend class CSingleton < Logger >;
@@ -160,55 +173,29 @@ public:
             }
         }
 
-        uint8_t retry_count = 0;
-        while(++retry_count < 5)
+        if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
         {
-            DBG("\n\n");
-            //DBG("mutex try lock pre %s\n", function);
-            bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(10));
-            DBG("mutex try lock post\n");
-            if(ret)
-            {
-                if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
-                {
-#ifdef _WIN32
-                    const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
-                    fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
-#else
-                    fLog << fmt::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
-#endif
-                    fLog.flush();
-                    DBG("write file\n");
-                }
-                 
-                MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-                if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log && m_helper)
-                {
-                    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-
-                    m_helper->AppendLog(str, true);
-                    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-                    int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-                    DBG("append %.3f\n", (float)dif / 1000000.0);
-                }
-                else
-                    preinit_entries.push_back(wxString(str));
-            }
-            else
-            {
-                std::this_thread::yield();
-                DBG("mutex lock fail\n");
-            }
-
-            if(ret)
-            {
-                m_mutex.unlock();
-                DBG("mutex unlock, OK\n");
-                break;
-            }
+            const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
+            fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
+            fLog.flush();
         }
 
-        DBG("mutex try lock release\n");
+        bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(10));
+        if(ret)
+        {
+            MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+            if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log && m_helper)
+            {
+                m_helper->AppendLog(file, str, true);
+            }
+            else
+                preinit_entries.push_back({ wxString(file), wxString(str) });
+        }
+
+        if(ret)
+            m_mutex.unlock();
+        else
+            preinit_entries.push_back({ wxString(file), wxString(str) });
     }
 
     template<typename F = const char*, typename G = const char*, typename... Args>
@@ -301,8 +288,8 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
             {
                 for(auto& i : preinit_entries)
                 {
-                    if(!i.empty())
-                        m_helper->AppendLog(i.ToStdString());
+                    if(!i.message.empty())
+                        m_helper->AppendLog(i.file.ToStdString(), i.message.ToStdString(), false);
                 }
                 preinit_entries.clear();
                 m_mutex.unlock();
@@ -315,7 +302,7 @@ private:
     std::ofstream fLog;
 
     // !\brief Preinited log messages
-    std::vector<wxString> preinit_entries;
+    std::vector<LogEntry> preinit_entries;
 
     // !\brief Pointer to LogPanel
     ILogHelper* m_helper = nullptr;

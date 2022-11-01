@@ -81,6 +81,8 @@ LogPanel::LogPanel(wxFrame* parent)
 			m_Log->Clear();
 		});
 
+	m_LogFilters.push_back({ "IdlePowerSaver" });
+
 	this->SetSizerAndFit(bSizer1);
 	this->Layout();
 }
@@ -97,21 +99,40 @@ void LogPanel::ExecuteSearchInLogfile()
 		m_Log->ScrollLines(m_Log->GetCount());
 }
 
+template<typename T> bool LogPanel::IsFilterered(const T& file)
+{
+	for(auto& i : m_LogFilters)
+	{
+		if(i.empty()) continue;
+		if(std::search(file.begin(), file.end(), i.begin(), i.end()) != file.end())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void LogPanel::ClearEntries()
 {
 	m_Log->Clear();
 }
 
-void LogPanel::AppendLog(const std::string& line, bool scroll_to_end)
+void LogPanel::AppendLog(const std::string& file, const std::string& line, bool scroll_to_end)
 {
-	m_Log->Append(wxString(line));
-	if(scroll_to_end && m_AutoScroll)
-		m_Log->ScrollLines(m_Log->GetCount());
+	if(!IsFilterered(file))
+	{
+		m_Log->Append(wxString(line));
+		if(scroll_to_end && m_AutoScroll)
+			m_Log->ScrollLines(m_Log->GetCount());
+	}
 }
 
-void LogPanel::AppendLog(const std::wstring& line, bool scroll_to_end)
+void LogPanel::AppendLog(const std::wstring& file, const std::wstring& line, bool scroll_to_end)
 {
-	m_Log->Append(wxString(line));
-	if(scroll_to_end && m_AutoScroll)
-		m_Log->ScrollLines(m_Log->GetCount());
+	if(!IsFilterered(file))
+	{
+		m_Log->Append(wxString(line));
+		if(scroll_to_end && m_AutoScroll)
+			m_Log->ScrollLines(m_Log->GetCount());
+	}
 }

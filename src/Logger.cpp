@@ -45,7 +45,7 @@ bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level
 
 			if(!filter.empty() && boost::algorithm::ifind_first(logline, filter).begin() == logline.end()) continue;  /* Skip if no match */
 			if(!log_level.empty() && boost::algorithm::ifind_first(levelline, log_level).begin() == levelline.end()) continue;  /* Skip if no match */
-			m_helper->AppendLog(line);
+			m_helper->AppendLog(cppfile, line);
 		}
 	}
 	return true;
