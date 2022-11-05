@@ -3,7 +3,6 @@
 constexpr uint32_t MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS = 0xAABBCCDD;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
 
-constexpr uint32_t RX_QUEUE_MAX_SIZE = 100;
 constexpr uint32_t TX_QUEUE_MAX_SIZE = 100;
 
 constexpr uint32_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
@@ -67,21 +66,17 @@ void CanSerialPort::AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
     if(!data || !data_len)
         return;
     std::unique_lock lock(m_mutex);
-    m_TxQueue.push_back(std::make_unique<CanData>(frame_id, data_len, data));
+    m_TxQueue.push(std::make_unique<CanData>(frame_id, data_len, data));
 
     if(m_TxQueue.size() > TX_QUEUE_MAX_SIZE)
-        m_TxQueue.pop_front();
+        m_TxQueue.pop();
 }
 
 void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data)
 {
     //std::unique_lock lock(m_mutex);
-    m_RxQueue.push_back(std::make_unique<CanData>(frame_id, data_len, data));
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     can_handler->OnFrameReceived(frame_id, data_len, data);
-
-    if(m_RxQueue.size() > RX_QUEUE_MAX_SIZE)
-        m_RxQueue.pop_front();
 }
 
 void CanSerialPort::DestroyWorkerThread()
@@ -103,6 +98,7 @@ void CanSerialPort::WorkerThread()
 {
     while(!to_exit)
     {
+        std::string err_msg;
         try
         {
 #ifdef _WIN32
@@ -137,13 +133,18 @@ void CanSerialPort::WorkerThread()
 
             }
         }
-        catch(std::exception& e)  /* Run-Time Check Failure #2 - Stack around the variable 'stop_wait' was corrupted. */
+        catch(std::exception& e)
         {
-            LOG(LogLevel::Error, "Exception CAN serial: {}", e.what());
-            {
-                std::unique_lock lock(m_mutex);
-                m_cv.wait_for(lock, 1000ms);
-            }
+            err_msg = e.what();
+        }
+
+        if(!err_msg.empty())
+        {
+            LOG(LogLevel::Error, "Exception CAN serial {}", err_msg);
+            err_msg.clear();
+
+            std::unique_lock lock(m_mutex);
+            m_cv.wait_for(lock, 1000ms);
         }
     }
 }
@@ -210,6 +211,6 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 
         CanEntryHandler* can_handler = wxGetApp().can_entry;
         can_handler->OnFrameSent(d.frame_id, d.data_len, d.data);
-        m_TxQueue.pop_front();
+        m_TxQueue.pop();
     }
 }

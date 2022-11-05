@@ -22,7 +22,7 @@ EVT_CLOSE(MyFrame::OnClose)
 #ifdef _WIN32
 EVT_HOTKEY(HOTKEY_ID_TERMINAL, MyFrame::OnHotkey)
 #endif
-//EVT_HOTKEY(HOTKEY_ID_NUM_LOCK, MyFrame::OnHotkey)
+//EVT_HOTKEY(HOTKEY_ID_NUM_LOCK, MyFrame::OnHotkey)  /* Numlock toggling doesn't work in this way */
 wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
@@ -259,7 +259,7 @@ void MyFrame::HandleBackupProgressDialog()
 
 void MyFrame::HandleAlwaysOnNumlock()
 {   
-	/* TODO: rewrite this with LL Keyboard Hook in future */
+	/* TODO: consider rewriting this with LL Keyboard Hook in future */
 	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))
 	{
 		#ifdef _WIN32

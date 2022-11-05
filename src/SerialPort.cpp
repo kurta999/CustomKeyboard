@@ -109,6 +109,7 @@ void SerialPort::WorkerThread()
 {
     while(!to_exit)
     {
+        std::string err_msg;
         try
         {
 #ifdef _WIN32
@@ -141,7 +142,14 @@ void SerialPort::WorkerThread()
         }
         catch(std::exception& e)
         {
-            LOG(LogLevel::Error, "Exception keyboard serial {}", e.what());
+            err_msg = e.what();
+        }
+
+        if(!err_msg.empty())
+        {
+            LOG(LogLevel::Error, "Exception keyboard serial {}", err_msg);
+            err_msg.clear();
+
             std::unique_lock lock(m_mutex);
             m_cv.wait_for(lock, 1000ms);
         }

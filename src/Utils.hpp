@@ -140,6 +140,9 @@ namespace utils
         }
         else if constexpr(std::is_same_v<T, const char*>)
         {
+            if(from_str == nullptr)
+                return false;
+
             return !(!strcmp(from_str, "false") || from_str[0] == '0');
         }
         else

@@ -101,8 +101,5 @@ private:
     boost::circular_buffer<char> m_CircBuff;
 
     // !\brief CAN Tx Queue
-    std::deque<std::shared_ptr<CanData>> m_TxQueue;
-
-    // !\brief CAN Rx Queue
-    std::deque<std::shared_ptr<CanData>> m_RxQueue;
+    std::queue<std::shared_ptr<CanData>> m_TxQueue;
 };

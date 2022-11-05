@@ -120,7 +120,7 @@ void KeyDelay::Execute()
                 std::this_thread::sleep_for(std::chrono::milliseconds(ret));
             }
             else
-                static_assert(always_false_v<T>, "bad visitor!");
+                static_assert(always_false_v<T>, "KeyDelay::Execute Bad visitor!");
         }, delay);
 }
 

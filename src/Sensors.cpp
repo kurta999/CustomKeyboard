@@ -35,6 +35,7 @@ bool Sensors::ProcessIncommingData(const char* recv_data, const char* from_ip)
     int ret = sscanf(recv_data, "%d|%f,%f,%d,%d,%d,%d,%d,%d,%*d,%*d,%*d", &send_interval, &temp, &hum, &co2, &voc, &pm25, &pm10, &lux, &cct);
     if(ret == 9)
     {
+#ifdef _WIN32 /* TODO: remove once std::chrono::current_zone() support is added to clang */
         const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 
         std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, pm25, pm10, lux, cct, std::move(std::format("{:%H:%M:%OS}", now)));
@@ -55,7 +56,7 @@ bool Sensors::ProcessIncommingData(const char* recv_data, const char* from_ip)
 
         DatabaseLogic::Get()->InsertMeasurement(m);
         AddMeasurement(std::move(m));
-
+#endif
         int64_t diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
         if(diff > GRAPHS_REGENERATION_INTERVAL)
             DatabaseLogic::Get()->GenerateGraphs();
@@ -180,7 +181,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
         LOG(LogLevel::Error, "Failed to open {} for writing graphs!", std::string("Graphs/") + filename);
         return;
     }
-
+#ifdef _WIN32  /* TODO: remove once std::format support is added to clang */
     try
     {
         std::string out_str = std::vformat(template_str, std::make_format_args(min_val, max_val,
@@ -201,4 +202,5 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
     {
         LOG(LogLevel::Error, "Exception: {}", e.what());
     }
+#endif
 }
