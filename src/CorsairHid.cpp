@@ -105,6 +105,7 @@ void CorsairHid::ThreadFunc()
         if(read_bytes == 0xFFFFFFFF)
         {
             LOGW(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); /* Sleep for one second after error happend */
         }
         else if(read_bytes > MIN_READ_DATA_SIZE)
         {
