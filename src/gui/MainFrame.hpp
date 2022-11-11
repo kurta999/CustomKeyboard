@@ -64,6 +64,9 @@ public:
 	// !\brief Register terminal systemwide hotkey
 	void RegisterTerminalHotkey(int vkey);
 
+	// !\brief Toggles frame visibility
+	void ToggleForegroundVisibility();
+
 	MainPanel* main_panel = nullptr;
 	ConfigurationPanel* config_panel = nullptr;
 	EditorPanel* editor_panel = nullptr;

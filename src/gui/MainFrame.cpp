@@ -300,6 +300,24 @@ void MyFrame::RegisterTerminalHotkey(int vkey)
 #endif
 }
 
+void MyFrame::ToggleForegroundVisibility()
+{
+	bool is_iconized = IsIconized();
+	bool is_shown = IsShown();
+	if(is_iconized)
+	{
+		Iconize(false);
+		Show(true);
+	}
+	else
+	{
+		Show(!is_shown);
+	}
+
+	if(is_shown)
+		Raise();
+}
+
 void MyFrame::SetIconTooltip(const wxString &str)
 {
 #ifdef _WIN32

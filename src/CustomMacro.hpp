@@ -389,6 +389,9 @@ public:
     // !\brief Use advanced key bindings? (eg: SHIFT+NUM_1, LCTRL+NUM_2)
     bool advanced_key_binding = true;
 
+    // !\brief Key which will bring this app to foreground or hide it in the tray
+    std::string bring_to_foreground_key = "N/A";
+
     // !\brief Pointer to macro container which is being edited
     std::vector<std::unique_ptr<IKey>>* editing_macro = nullptr;
 
@@ -406,8 +409,10 @@ private:
     friend class Settings;
 
     // !\brief Execute keypresses
-    // !\param key [in] Key to press
     void ExecuteKeypresses();
+
+    // !\brief Execute foreground keypress
+    void ExecuteForegroundKeypress();
 
     // !\brief Pressed keys sequence
     std::string pressed_keys;

@@ -47,22 +47,7 @@ void TrayIcon::SetMainFrame(MyFrame* frame)
 void TrayIcon::OnLeftDoubleClick(wxTaskBarIconEvent& event)
 {
 	if(mainFrame)
-	{
-		bool is_iconized = mainFrame->IsIconized();
-		bool is_shown = mainFrame->IsShown();
-		if(is_iconized)
-		{
-			mainFrame->Iconize(false);
-			mainFrame->Show(true);
-		}
-		else
-		{
-			mainFrame->Show(!is_shown);
-		}
-
-		if(is_shown)
-			mainFrame->Raise();
-	}
+		mainFrame->ToggleForegroundVisibility();
 }
 
 wxMenu* TrayIcon::CreatePopupMenu()

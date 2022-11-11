@@ -447,6 +447,12 @@ void CustomMacro::ExecuteKeypresses()
     if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
         return;
 
+    if(bring_to_foreground_key == pressed_keys)
+    {
+        ExecuteForegroundKeypress();
+        return;
+    }
+
     auto ExecuteGlobalMacro = [this]()
     {
         const auto it = macros[0]->key_vec.find(pressed_keys);
@@ -499,6 +505,13 @@ void CustomMacro::ExecuteKeypresses()
     {
         ExecuteGlobalMacro();
     }
+}
+
+void CustomMacro::ExecuteForegroundKeypress()
+{
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if(frame)
+        frame->ToggleForegroundVisibility();
 }
 
 void CustomMacro::SimulateKeypress(const std::string& key)

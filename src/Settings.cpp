@@ -196,6 +196,7 @@ void Settings::LoadFile()
     {
         CustomMacro::Get()->use_per_app_macro = utils::stob(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data());
         CustomMacro::Get()->advanced_key_binding = utils::stob(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data());
+        CustomMacro::Get()->bring_to_foreground_key = std::move(pt.get_child("Macro_Config").find("BringToForegroundKey")->second.data());
 
         CustomMacro::Get()->macros.clear();
         std::unique_ptr<MacroAppProfile> p = std::make_unique<MacroAppProfile>();
@@ -375,6 +376,9 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "\n";
     out << "# If enabled, you can bind multiple key combinations with special keys like RSHIFT + 1, but can't bind SHIFT, CTRL and other special keys alone\n";
     out << "UseAdvancedKeyBinding = " << CustomMacro::Get()->advanced_key_binding << "\n";
+    out << "\n";
+    out << "# If set to valid key, pressing this key will bring this application to foreground or minimize it to the tray\n";
+    out << "BringToForegroundKey = " << CustomMacro::Get()->bring_to_foreground_key << "\n";
     out << "\n";
 
     if(!write_default_macros)  /* True if settings.ini file doesn't exists - write a few macro lines here as example */
