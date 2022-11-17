@@ -161,7 +161,8 @@ public:
         using string_type = get_fmt_ret_string_type<T>::type;
         typename get_fmt_ret_string_type<T>::type formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(args...)) : msg.data();
         const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
-        typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now, HelperTraits<string_type>::serverities[lvl], formatted_msg));
+        const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
+        typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], formatted_msg));
 
         F filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
         for(int i = strlen_helper(file); i > 0; i--)
@@ -175,7 +176,6 @@ public:
 
         if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
         {
-            const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
             fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
             fLog.flush();
         }
