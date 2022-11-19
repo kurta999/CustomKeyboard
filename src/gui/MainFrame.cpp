@@ -16,6 +16,7 @@ EVT_MENU(ID_CanLoadTxList, MyFrame::OnCanLoadTxList)
 EVT_MENU(ID_CanSaveTxList, MyFrame::OnCanSaveTxList)
 EVT_MENU(ID_CanLoadRxList, MyFrame::OnCanLoadRxList)
 EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
+EVT_MENU(ID_CmdExecutorSave, MyFrame::OnSaveCmdExecutor)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 //EVT_CHAR_HOOK(MyFrame::OnKeyDown)
@@ -198,6 +199,12 @@ void MyFrame::OnCanSaveRxList(wxCommandEvent& event)
 		can_panel->SaveRxList();
 }
 
+void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
+{
+	CmdExecutor* cmd = wxGetApp().cmd_executor;
+	cmd->Save();
+}
+
 void MyFrame::On10msTimer(wxTimerEvent& event)
 {
 	HandleAlwaysOnNumlock();
@@ -348,10 +355,11 @@ MyFrame::MyFrame(const wxString& title)
 	menuFile->Append(wxID_SAVEAS, "&Save file As\tCtrl-S", "Save file As other")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuFile->Append(ID_DestroyAll, "&Destroy all widgets\tCtrl-W", "Destroy all widgets")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuCan = new wxMenu;
-	menuCan->Append(ID_CanLoadTxList, "&Load TX List", "Load CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	menuCan->Append(ID_CanSaveTxList, "&Save TX List", "Save CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	menuCan->Append(ID_CanLoadRxList, "&Load RX List", "Load CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	menuCan->Append(ID_CanSaveRxList, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanLoadTxList, "&Load TX List", "Load CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveTxList, "&Save TX List", "Save CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanLoadRxList, "&Load RX List", "Load CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveRxList, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CmdExecutorSave, "&Save CMDs", "Save commands from CMD Executor")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(ID_About, "&About", "Read license")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));

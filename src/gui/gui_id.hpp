@@ -17,6 +17,7 @@ enum
 	ID_CanSaveTxList,
 	ID_CanLoadRxList,
 	ID_CanSaveRxList,
+	ID_CmdExecutorSave,
 	ID_AppBindListMain,
 	ID_MacroDetails,
 	ID_BackupPanel,
@@ -33,4 +34,7 @@ enum
 	Id_MacroDetails_MoveDown,
 	Id_Backup_AddNew,
 	Id_Backup_Delete,
+	ID_CmdExecutorEdit,
+	ID_CmdExecutorAdd,
+	ID_CmdExecutorDelete,
 };

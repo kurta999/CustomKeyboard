@@ -2,6 +2,40 @@
 
 static constexpr const char* COMMAND_FILE_PATH = "Cmds.xml";
 
+void Command::Execute()
+{
+    HandleHarcdodedCommand();
+#ifdef _WIN32
+    STARTUPINFOA si = { sizeof(STARTUPINFOA) };
+    si.dwFlags = STARTF_USESHOWWINDOW;  // Requires STARTF_USESHOWWINDOW in dwFlags.
+    si.wShowWindow = SW_SHOW;  // Prevents cmd window from flashing.
+
+    PROCESS_INFORMATION pi = { 0 };
+    BOOL fSuccess = CreateProcessA(NULL, (LPSTR)std::format("C:\\windows\\system32\\cmd.exe /c {}", GetCmd()).c_str(), NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+    if(fSuccess)
+    {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+    else
+    {
+        LOG(LogLevel::Error, "CreateProcess failed with error code: {}", GetLastError());
+    }
+#else
+    utils::exec(c->cmd.c_str());
+#endif
+}
+
+void Command::HandleHarcdodedCommand()
+{
+    if(m_name == "Set date")
+    {
+        const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+        const auto now_truncated_to_sec = std::chrono::floor<std::chrono::seconds>(now);
+        m_cmd = std::format("adb shell \"date -s {:%Y-%m-%d}\" && date -s \"{:%H:%M:%OS}\"", now_truncated_to_sec, now_truncated_to_sec);
+    }
+}
+
 CmdExecutor::~CmdExecutor()
 {
 
@@ -117,8 +151,51 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
 
 bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage)
 {
-    LOG(LogLevel::Normal, "Save function isn't implemented yet.");
-    return false;
+    bool ret = true;
+    std::ofstream out("Cmds.xml", std::ofstream::binary);
+    if(out.is_open())
+    {
+        out << "<Commands>\n";
+
+        uint8_t cnt = 1;
+        for(auto& col : storage)
+        {
+            out << std::format("\t<Col_{}>\n", cnt);
+            for(auto& i : col)
+            {
+                std::visit([this, &out](auto& c)
+                    {
+                        using T = std::decay_t<decltype(c)>;
+                        if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+                        {
+                            out << "\t\t<Cmd>\n";
+                            if(c->GetName() != c->GetCmd() && !c->GetName().empty())
+                                out << std::format("\t\t\t<Name>{}</Name>\n", c->GetName());
+                            out << std::format("\t\t\t<Execute>{}</Execute>\n", c->GetCmd());
+                            out << std::format("\t\t\t<Color>0x{:X}</Color>\n", c->GetColor());
+                            out << std::format("\t\t\t<BackgroundColor>0x{:X}</BackgroundColor>\n", c->GetBackgroundColor());
+                            out << std::format("\t\t\t<Bold>{}</Bold>\n", c->IsBold());
+                            out << std::format("\t\t\t<Scale>{}</Scale>\n", c->GetScale());
+                            out << "\t\t</Cmd>\n";
+                        }
+                        else if constexpr(std::is_same_v<T, Separator>)
+                        {
+                            out << std::format("\t\t<Separator>{}</Separator>\n", c.width);
+                        }
+                        else
+                            static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
+                    }, i);
+            }
+            out << std::format("\t</Col_{}>\n", cnt);
+            cnt++;
+        }
+        out << "</Commands>\n";
+    }
+    else
+    {
+        ret = false;
+    }
+    return ret;
 }
 
 void CmdExecutor::Init()
@@ -131,10 +208,36 @@ void CmdExecutor::SetMediator(ICmdHelper* mediator)
     m_CmdMediator = mediator;
 }
 
+void CmdExecutor::AddCommand(uint8_t col, Command cmd)
+{
+    std::shared_ptr<Command> cmd_ptr = std::make_shared<Command>(cmd);
+    if(AddItem(col, std::move(cmd_ptr)))
+    {
+        if(m_CmdMediator)
+            m_CmdMediator->OnCommandLoaded(col, m_Commands[col - 1].back());
+    }
+}
+
+bool CmdExecutor::AddItem(uint8_t col, std::shared_ptr<Command>&& cmd)
+{
+    if(col <= m_Commands.size())
+    {
+        m_Commands[col - 1].push_back(cmd);
+        return true;
+    }
+    return false;
+}
+
 bool CmdExecutor::ReloadCommandsFromFile()
 {
     XmlCommandLoader loader(m_CmdMediator);
     return loader.Load(COMMAND_FILE_PATH, m_Commands);
+}
+
+bool CmdExecutor::Save()
+{
+    XmlCommandLoader loader(m_CmdMediator);
+    return loader.Save(COMMAND_FILE_PATH, m_Commands);
 }
 
 uint8_t CmdExecutor::GetColumns()
