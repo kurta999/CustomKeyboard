@@ -201,8 +201,22 @@ void MyFrame::OnCanSaveRxList(wxCommandEvent& event)
 
 void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 {
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 	CmdExecutor* cmd = wxGetApp().cmd_executor;
-	cmd->Save();
+	bool ret = cmd->Save();
+	if(ret)
+	{
+		std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+		int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+		char work_dir[1024] = {};
+#ifdef _WIN32
+		GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
+#endif
+		MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+		std::lock_guard lock(frame->mtx);
+		frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CommandsSaved), dif, std::string(work_dir) + "\\Cmds.xml"});
+	}
 }
 
 void MyFrame::On10msTimer(wxTimerEvent& event)
@@ -382,7 +396,7 @@ MyFrame::MyFrame(const wxString& title)
 	debug_panel = new DebugPanel(this);
 	parser_panel = new ParserPanel(this);
 	file_panel = new FilePanel(this);
-	cmd_panel = new CmdExecutorPanel(this);
+	cmd_panel = new CmdExecutorPanelBase(this);
 	can_panel = new CanPanel(this);
 	modbus_master_panel = new ModbusMasterPanel(this);
 	log_panel = new LogPanel(this);
@@ -590,6 +604,20 @@ void MyFrame::HandleNotifications()
 					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
 					ShowNotificaiton("Screenshot saved", wxString::Format("Can log saved in %.3fms\nPath: %s",
+						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
+						{
+#ifdef _WIN32
+							std::string cmdline = std::string("/select,\"" + filename);
+							ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#endif
+						});
+					break;
+				}				
+				case CommandsSaved:
+				{
+					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
+					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
+					ShowNotificaiton("Commands saved", wxString::Format("Commands saved in %.3fms\nPath: %s",
 						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 						{
 #ifdef _WIN32

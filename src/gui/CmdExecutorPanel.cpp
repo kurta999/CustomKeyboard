@@ -1,7 +1,11 @@
 #include "pch.hpp"
 
-wxBEGIN_EVENT_TABLE(CmdExecutorPanel, wxPanel)
-EVT_SIZE(CmdExecutorPanel::OnSize)
+wxBEGIN_EVENT_TABLE(CmdExecutorPanelBase, wxPanel)
+EVT_SIZE(CmdExecutorPanelBase::OnSize)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(CmdExecutorPanelPage, wxPanel)
+EVT_SIZE(CmdExecutorPanelPage::OnSize)
 wxEND_EVENT_TABLE()
 
 constexpr size_t MAX_CMD_LEN_FOR_BUTTON = 16;
@@ -89,25 +93,37 @@ wxBEGIN_EVENT_TABLE(CmdExecutorEditDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, CmdExecutorEditDialog::OnApply)
 wxEND_EVENT_TABLE()
 
-CmdExecutorPanel::CmdExecutorPanel(wxFrame* parent)
+CmdExecutorPanelBase::CmdExecutorPanelBase(wxFrame* parent)
     : wxPanel(parent, wxID_ANY)
 {
-    edit_dlg = new CmdExecutorEditDialog(this);
+    m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 
     CmdExecutor* cmd = wxGetApp().cmd_executor;
     cmd->SetMediator(this);
     ReloadCommands();
     Show();
-
-    Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanel::OnPanelRightClick, this);
 }
 
-void CmdExecutorPanel::OnSize(wxSizeEvent& evt)
+void CmdExecutorPanelBase::OnSize(wxSizeEvent& evt)
 {
     evt.Skip(true);
 }
 
-void CmdExecutorPanel::ToggleAllButtonClickability(bool toggle)
+CmdExecutorPanelPage::CmdExecutorPanelPage(wxWindow* parent, uint8_t id, uint8_t cols)
+    : wxPanel(parent, wxID_ANY), m_Id(id)
+{
+    edit_dlg = new CmdExecutorEditDialog(this);
+
+    DBG("CmdExecutorPanelPage constructor %d, %d\n", id, cols);
+    Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnPanelRightClick, this);
+}
+
+void CmdExecutorPanelPage::OnSize(wxSizeEvent& evt)
+{
+    evt.Skip(true);
+}
+
+void CmdExecutorPanelPage::ToggleAllButtonClickability(bool toggle)
 {
     for(auto& i : m_ButtonMap)
     {
@@ -123,7 +139,7 @@ void CmdExecutorPanel::ToggleAllButtonClickability(bool toggle)
     }
 }
 
-void CmdExecutorPanel::OnPanelRightClick(wxMouseEvent& event)
+void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
 {
     wxMenu menu;
     menu.Append(ID_CmdExecutorAdd, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
@@ -174,14 +190,14 @@ void CmdExecutorPanel::OnPanelRightClick(wxMouseEvent& event)
         case ID_CmdExecutorAdd:
         {           
             CmdExecutor* cmd = wxGetApp().cmd_executor;
-            cmd->AddCommand(col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", 0x33FF33, 0xFFFFFF, false, 1.0f));
+            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", 0x33FF33, 0xFFFFFF, false, 1.0f));
             m_BaseGrid->Layout();
             break;
         }
     }
 }
 
-void CmdExecutorPanel::OnClick(wxCommandEvent& event)
+void CmdExecutorPanelPage::OnClick(wxCommandEvent& event)
 {
     auto obj = event.GetEventObject();
 
@@ -205,7 +221,7 @@ void CmdExecutorPanel::OnClick(wxCommandEvent& event)
     ToggleAllButtonClickability(true);
 }
 
-void CmdExecutorPanel::OnRightClick(wxMouseEvent& event)
+void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
 {
     auto obj = event.GetEventObject();
 
@@ -263,13 +279,77 @@ void CmdExecutorPanel::OnRightClick(wxMouseEvent& event)
     }
 }
 
-void CmdExecutorPanel::ReloadCommands()
+void CmdExecutorPanelBase::ReloadCommands()
 {
     CmdExecutor* cmd = wxGetApp().cmd_executor;
     cmd->ReloadCommandsFromFile();
 }
 
-void CmdExecutorPanel::OnPreReload(uint8_t cols)
+void CmdExecutorPanelBase::OnPreReload(uint8_t page)
+{
+    DBG("OnPreReload pages: %d\n", page);
+
+    m_notebook->DeleteAllPages();
+    m_Pages.clear();
+
+    m_notebook->Freeze();
+    for(uint8_t i = 0; i != page; i++)
+    {
+        CmdExecutorPanelPage* p = new CmdExecutorPanelPage(m_notebook, i + 1, 0);
+        m_notebook->AddPage(p, std::format("Page {}", i + 1), false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+        m_Pages.push_back(p);
+    }
+    m_notebook->Thaw();
+}
+
+void CmdExecutorPanelBase::OnPreReloadColumns(uint8_t pages, uint8_t cols)
+{
+    m_Pages[pages - 1]->OnPreload(cols);
+    DBG("OnPreReloadColumns pages: %d, cols: %d\n", pages, cols);
+}
+
+void CmdExecutorPanelBase::OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd)
+{
+    m_Pages[page - 1]->OnCommandLoaded(col, cmd);
+    /*
+    for(auto& i : m_Pages)
+    {
+        if(i->m_Id == page)
+        {
+            i->OnCommandLoaded(col, cmd);
+            break;
+        }
+    }*/
+}
+
+void CmdExecutorPanelPage::OnCommandLoaded(uint8_t col, CommandTypes cmd)
+{
+    std::visit([this, col](auto& concrete_cmd)
+        {
+            using T = std::decay_t<decltype(concrete_cmd)>;
+            if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+            {
+                AddCommandElement(col, concrete_cmd.get());
+            }
+            else if constexpr(std::is_same_v<T, Separator>)
+            {
+                AddSeparatorElement(col, concrete_cmd);
+            }
+            else
+                static_assert(always_false_v<T>, "CmdExecutorPanel::OnCommandLoaded Bad visitor!");
+        }, cmd);
+}
+
+void CmdExecutorPanelBase::OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names)
+{
+    m_Pages[page - 1]->OnPostReloadUpdate();
+
+    m_notebook->Freeze();
+    m_notebook->SetPageText(page - 1, names.back());
+    m_notebook->Thaw();
+}
+
+void CmdExecutorPanelPage::OnPreload(uint8_t cols)
 {
     if(m_BaseGrid != nullptr)
     {
@@ -289,25 +369,7 @@ void CmdExecutorPanel::OnPreReload(uint8_t cols)
     m_BaseGrid->Layout();
 }
 
-void CmdExecutorPanel::OnCommandLoaded(uint8_t col, CommandTypes cmd)
-{
-    std::visit([this, col](auto& concrete_cmd)
-        {
-            using T = std::decay_t<decltype(concrete_cmd)>;
-            if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
-            {
-                AddCommandElement(col, concrete_cmd.get());
-            }
-            else if constexpr(std::is_same_v<T, Separator>)
-            {
-                AddSeparatorElement(col, concrete_cmd);
-            }
-            else
-                static_assert(always_false_v<T>, "CmdExecutorPanel::OnCommandLoaded Bad visitor!");
-        }, cmd);
-}
-
-void CmdExecutorPanel::OnPostReload(uint8_t cols)
+void CmdExecutorPanelPage::OnPostReloadUpdate()
 {
     wxSize old_size = GetSize();
     for(auto& i : m_VertialBoxes)
@@ -319,29 +381,29 @@ void CmdExecutorPanel::OnPostReload(uint8_t cols)
     SetSize(old_size);  /* Size has to be set, because if isn't, only the first column will appear in the base grid after reloading */
 }
 
-void CmdExecutorPanel::AddCommandElement(uint8_t col, Command* c)
+void CmdExecutorPanelPage::AddCommandElement(uint8_t col, Command* c)
 {
     wxButton* btn = new wxButton(this, wxID_ANY, !c->GetName().empty() ? c->GetName() : c->GetCmd().substr(0, MAX_CMD_LEN_FOR_BUTTON), wxDefaultPosition, wxDefaultSize);
     UpdateCommandButon(c, btn);
 
     btn->SetClientData((void*)c);
-    btn->Bind(wxEVT_BUTTON, &CmdExecutorPanel::OnClick, this);
-    btn->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanel::OnRightClick, this);
+    btn->Bind(wxEVT_BUTTON, &CmdExecutorPanelPage::OnClick, this);
+    btn->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnRightClick, this);
 
     m_ButtonMap.emplace(col - 1, btn);
     m_VertialBoxes[col - 1]->Add(btn);
 }
 
-void CmdExecutorPanel::AddSeparatorElement(uint8_t col, Separator s)
+void CmdExecutorPanelPage::AddSeparatorElement(uint8_t col, Separator s)
 {
     wxStaticLine* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, s.width), wxLI_HORIZONTAL);
     m_ButtonMap.emplace(col - 1, line);
     m_VertialBoxes[col - 1]->Add(line);
 
-    line->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanel::OnRightClick, this);
+    line->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnRightClick, this);
 }
 
-void CmdExecutorPanel::UpdateCommandButon(Command* c, wxButton* btn, bool force_font_reset)
+void CmdExecutorPanelPage::UpdateCommandButon(Command* c, wxButton* btn, bool force_font_reset)
 {
     btn->SetToolTip(c->GetCmd());
     btn->SetForegroundColour(RGB_TO_WXCOLOR(c->GetColor()));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
@@ -362,7 +424,7 @@ void CmdExecutorPanel::UpdateCommandButon(Command* c, wxButton* btn, bool force_
     m_BaseGrid->Layout();
 }
 
-void CmdExecutorPanel::DeleteCommandButton(Command* c, wxButton* btn)
+void CmdExecutorPanelPage::DeleteCommandButton(Command* c, wxButton* btn)
 {
     auto it = m_ButtonMap.begin();
     while(it != m_ButtonMap.end())

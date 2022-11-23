@@ -48,6 +48,7 @@ enum PopupMsgIds : uint8_t
 	TxListLoadError,
 	RxListLoadError,
 	CanLogSaved,
+	CommandsSaved,
 };
 
 class MyFrame : public wxFrame
@@ -74,7 +75,7 @@ public:
 	DebugPanel* debug_panel = nullptr;
 	ParserPanel* parser_panel = nullptr;
 	FilePanel* file_panel = nullptr;
-	CmdExecutorPanel* cmd_panel = nullptr;
+	CmdExecutorPanelBase* cmd_panel = nullptr;
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
 	LogPanel* log_panel = nullptr;

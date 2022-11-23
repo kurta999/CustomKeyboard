@@ -43,36 +43,59 @@ private:
     wxDECLARE_NO_COPY_CLASS(CmdExecutorEditDialog);
 };
 
-class CmdExecutorPanel : public wxPanel, public ICmdHelper
+class CmdExecutorPanelPage;
+class CmdExecutorPanelBase : public wxPanel, public ICmdHelper
 {
 public:
-	CmdExecutorPanel(wxFrame* parent);
-	virtual ~CmdExecutorPanel() { }
+	CmdExecutorPanelBase(wxFrame* parent);
+	virtual ~CmdExecutorPanelBase() { }
 
 	void ReloadCommands();
 
 private:
-	void ToggleAllButtonClickability(bool toggle);
+    void OnSize(wxSizeEvent& evt);
 
-	void OnSize(wxSizeEvent& evt);
-	void OnPanelRightClick(wxMouseEvent& event);
-	void OnClick(wxCommandEvent& event);
-	void OnRightClick(wxMouseEvent& event);
-
-	void OnPreReload(uint8_t cols) override;
-	void OnCommandLoaded(uint8_t col, CommandTypes cmd) override;
-	void OnPostReload(uint8_t cols) override;
+	void OnPreReload(uint8_t page) override;
+	void OnPreReloadColumns(uint8_t pages, uint8_t cols) override;
+	void OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd) override;
+	void OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names) override;
 	
-	void AddCommandElement(uint8_t col, Command* c);
-	void AddSeparatorElement(uint8_t col, Separator s);
+    wxAuiNotebook* m_notebook = nullptr;
+
+    std::vector<CmdExecutorPanelPage*> m_Pages;
+
+	wxDECLARE_EVENT_TABLE();
+};
+
+class CmdExecutorPanelPage : public wxPanel
+{
+public:
+    CmdExecutorPanelPage(wxWindow* parent, uint8_t id, uint8_t cols);
+
+    void OnPreload(uint8_t cols);
+    void OnPostReloadUpdate();
+    void OnCommandLoaded(uint8_t col, CommandTypes cmd);
+
+    uint8_t m_Id = 0;
+
+private:
+
+    void ToggleAllButtonClickability(bool toggle);
+
+    void OnSize(wxSizeEvent& evt);
+    void OnPanelRightClick(wxMouseEvent& event);
+    void OnClick(wxCommandEvent& event);
+    void OnRightClick(wxMouseEvent& event);
+
+    void AddCommandElement(uint8_t col, Command* c);
+    void AddSeparatorElement(uint8_t col, Separator s);
 
     void UpdateCommandButon(Command* c, wxButton* btn, bool force_font_reset = false);
     void DeleteCommandButton(Command* c, wxButton* btn);
 
-	wxGridSizer* m_BaseGrid = nullptr;
-	std::vector<wxBoxSizer*> m_VertialBoxes;
-	std::multimap<uint8_t, std::variant<wxButton*, wxStaticLine*>> m_ButtonMap;
-	CmdExecutorEditDialog* edit_dlg = nullptr;
-
-	wxDECLARE_EVENT_TABLE();
+    CmdExecutorEditDialog* edit_dlg = nullptr;
+    wxGridSizer* m_BaseGrid = nullptr;
+    std::vector<wxBoxSizer*> m_VertialBoxes;
+    std::multimap<uint8_t, std::variant<wxButton*, wxStaticLine*>> m_ButtonMap;
+    wxDECLARE_EVENT_TABLE();
 };

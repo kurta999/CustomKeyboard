@@ -1,0 +1,44 @@
+<Commands>
+  <Pages>2</Pages>
+  <Page_1 name = "Board">
+    <Columns>4</Columns>
+    <Col_1>
+	    <Cmd>
+        <Name>Directory</Name>
+        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
+        <Color>0xFF0000</Color>
+        <BackgroundColor>green</BackgroundColor>
+        <Bold>true</Bold>
+        <Scale>2.0</Scale>
+      </Cmd>
+	  <Cmd>
+        <Name>Set date</Name>
+        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
+        <Color>0xFF0000</Color>
+        <BackgroundColor>green</BackgroundColor>
+        <Bold>true</Bold>
+        <Scale>2.0</Scale>
+      </Cmd>
+	    <Cmd>cd ..</Cmd>
+      <Separator>4</Separator>
+      <Cmd>cd2 ..</Cmd>
+    </Col_1>  
+    <Col_2>
+	    <Cmd>dir C:</Cmd>
+	    <Cmd>cd ../..</Cmd>
+    </Col_2>
+  </Page_1>
+  <Page_2 name = "Liunx VM">
+    <Columns>2</Columns>
+    <Col_1>
+      <Cmd>
+        <Name>Print directory</Name>
+        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
+        <Color>0xFF0000</Color>
+        <BackgroundColor>green</BackgroundColor>
+        <Bold>true</Bold>
+        <Scale>2.0</Scale>
+      </Cmd>
+    </Col_1>>
+    </Page_2>
+</Commands>

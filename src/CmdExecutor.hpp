@@ -62,13 +62,13 @@ public:
     int width;
 };
 
-using CommandStorage = std::vector<std::vector<CommandTypes>>;
+using CommandStorage = std::vector<std::vector<std::vector<CommandTypes>>>;
 
 class ICommandLoader
 {
 public:
-    virtual bool Load(const std::filesystem::path& path, CommandStorage& e) = 0;
-    virtual bool Save(const std::filesystem::path& path, CommandStorage& e) = 0;
+    virtual bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
+    virtual bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
 };
 
 class XmlCommandLoader : public ICommandLoader
@@ -77,11 +77,12 @@ public:
     XmlCommandLoader(ICmdHelper* mediator);
     virtual ~XmlCommandLoader();
 
-    bool Load(const std::filesystem::path& path, CommandStorage& e) override;
-    bool Save(const std::filesystem::path& path, CommandStorage& e) override;
+    bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) override;
+    bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) override;
 
 private:
     uint8_t m_Cols = 0;
+    uint8_t m_Pages = 0;
     ICmdHelper* m_Mediator = nullptr;
 };
 
@@ -90,7 +91,7 @@ class ICmdExecutor
 public:
     virtual void Init() = 0;
     virtual void SetMediator(ICmdHelper* mediator) = 0;
-    virtual void AddCommand(uint8_t col, Command cmd) = 0;
+    virtual void AddCommand(uint8_t page, uint8_t col, Command cmd) = 0;
     virtual bool ReloadCommandsFromFile() = 0;
     virtual bool Save() = 0;
     virtual uint8_t GetColumns() = 0;
@@ -104,15 +105,16 @@ public:
 
     void Init() override;
     void SetMediator(ICmdHelper* mediator) override;
-    void AddCommand(uint8_t col, Command cmd) override;
+    void AddCommand(uint8_t page, uint8_t col, Command cmd) override;
     bool ReloadCommandsFromFile() override;
     bool Save() override;
     uint8_t GetColumns() override;
 
 private:
-    bool AddItem(uint8_t col, std::shared_ptr<Command>&& cmd) ;
+    bool AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& cmd) ;
 
     uint8_t m_Cols = 2;
     CommandStorage m_Commands;
+    CommandPageNames m_CommandPageNames;
     ICmdHelper* m_CmdMediator = nullptr;
 };

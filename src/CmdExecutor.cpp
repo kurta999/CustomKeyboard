@@ -51,7 +51,7 @@ XmlCommandLoader::~XmlCommandLoader()
 
 }
 
-bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage)
+bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -60,81 +60,102 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
         read_xml(path.generic_string(), pt);
 
         storage.clear();
-        m_Cols = pt.get_child("Commands").get_child("Columns").get_value<uint8_t>();
+        m_Pages = pt.get_child("Commands").get_child("Pages").get_value<uint8_t>();
         if(m_Mediator)
-            m_Mediator->OnPreReload(m_Cols);
-        for(uint8_t i = 1; i <= m_Cols; i++)
+            m_Mediator->OnPreReload(m_Pages);
+        for(uint8_t p = 1; p <= m_Pages; p++)
         {
-            auto col_child = pt.get_child("Commands").get_child_optional(std::format("Col_{}", i));
-            if(!col_child.has_value())
+            auto pages_child = pt.get_child("Commands").get_child_optional(std::format("Page_{}", p));
+            if(!pages_child.has_value())
             {
-                LOG(LogLevel::Normal, "No child found with 'Col_{}', loading has been aborted!", i);
+                LOG(LogLevel::Warning, "No child found with 'Page_{}', loading has been aborted!", p);
                 break;
             }
-            
-            std::vector<CommandTypes> temp_cmds;
-            for(const boost::property_tree::ptree::value_type& v : pt.get_child("Commands").get_child(std::format("Col_{}", i)))
+
+            std::string page_name = pages_child->get<std::string>("<xmlattr>.name");
+            names.push_back(std::move(page_name));
+
+            m_Cols = pages_child->get_child("Columns").get_value<uint8_t>();
+            if(m_Mediator)
+                m_Mediator->OnPreReloadColumns(p, m_Cols);
+
+            std::vector<std::vector<CommandTypes>> temp_cmds_per_page;
+            for(uint8_t i = 1; i <= m_Cols; i++)
             {
-                if(v.first == "Cmd")
+                auto col_child = pages_child->get_child_optional(std::format("Col_{}", i));
+                if(!col_child.has_value())
                 {
-                    std::string cmd;
-                    boost::optional<std::string> name;
-                    boost::optional<std::string> color;
-                    boost::optional<std::string> bg_color;
-                    boost::optional<std::string> is_bold;
-                    boost::optional<std::string> scale;
+                    LOG(LogLevel::Normal, "No child found with 'Col_{}' within 'Page_{}', loading of this page has been aborted!", i, p);
+                    break;
+                }
 
-                    auto is_name_present = v.second.get_child_optional("Name");
-                    if(is_name_present.has_value())
+                std::vector<CommandTypes> temp_cmds;
+                for(const boost::property_tree::ptree::value_type& v : pages_child->get_child(std::format("Col_{}", i)))
+                {
+                    if(v.first == "Cmd")
                     {
-                        cmd = v.second.get_child("Execute").get_value<std::string>();
+                        std::string cmd;
+                        boost::optional<std::string> name;
+                        boost::optional<std::string> color;
+                        boost::optional<std::string> bg_color;
+                        boost::optional<std::string> is_bold;
+                        boost::optional<std::string> scale;
 
-                        utils::xml::ReadChildIfexists<std::string>(v, "Name", name);
-                        utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
-                        utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
-                        utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
-                        utils::xml::ReadChildIfexists<std::string>(v, "Scale", scale);
+                        auto is_name_present = v.second.get_child_optional("Name");
+                        if(is_name_present.has_value())
+                        {
+                            cmd = v.second.get_child("Execute").get_value<std::string>();
+
+                            utils::xml::ReadChildIfexists<std::string>(v, "Name", name);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
+                            utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Scale", scale);
+                        }
+                        else
+                        {
+                            cmd = v.second.get_value<std::string>();
+
+                            name = v.second.get_optional<std::string>("<xmlattr>.name");
+                            color = v.second.get_optional<std::string>("<xmlattr>.color");
+                            bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
+                            is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
+                            scale = v.second.get_optional<std::string>("<xmlattr>.scale");
+                        }
+
+                        std::shared_ptr<Command> command = std::make_shared<Command>(
+                            name.has_value() ? *name : "",
+                            cmd,
+                            color.has_value() ? utils::ColorStringToInt(*color) : 0,
+                            bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
+                            is_bold.has_value() ? utils::stob(*is_bold) : false,
+                            scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0);
+
+                        if(command)
+                        {
+                            temp_cmds.push_back(command);
+
+                            DBG("loading command page: %d, col: %d\n", p, i);
+                            if(m_Mediator)
+                                m_Mediator->OnCommandLoaded(p, i, command);
+                        }
                     }
-                    else
+                    else if(v.first == "Separator")
                     {
-                        cmd = v.second.get_value<std::string>();
-
-                        name = v.second.get_optional<std::string>("<xmlattr>.name");
-                        color = v.second.get_optional<std::string>("<xmlattr>.color");
-                        bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
-                        is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
-                        scale = v.second.get_optional<std::string>("<xmlattr>.scale");
-                    }
-
-                    std::shared_ptr<Command> command = std::make_shared<Command>(
-                        name.has_value() ? *name : "",
-                        cmd,
-                        color.has_value() ? utils::ColorStringToInt(*color) : 0,
-                        bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
-                        is_bold.has_value() ? utils::stob(*is_bold) : false,
-                        scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0);
-
-                    if(command)
-                    {
-                        temp_cmds.push_back(command);
+                        int width = v.second.get_value<int>();
+                        temp_cmds.push_back(Separator(width));
 
                         if(m_Mediator)
-                            m_Mediator->OnCommandLoaded(i, command);
+                            m_Mediator->OnCommandLoaded(p, i, Separator(width));
                     }
                 }
-                else if(v.first == "Separator")
-                {
-                    int width = v.second.get_value<int>();
-                    temp_cmds.push_back(Separator(width));
-
-                    if(m_Mediator)
-                        m_Mediator->OnCommandLoaded(i, Separator(width));
-                }
+                temp_cmds_per_page.push_back(std::move(temp_cmds));
             }
-            storage.push_back(std::move(temp_cmds));
+            storage.push_back(std::move(temp_cmds_per_page));
+
+            if(m_Mediator)
+                m_Mediator->OnPostReload(p, m_Cols, names);
         }
-        if(m_Mediator)
-            m_Mediator->OnPostReload(m_Cols);
     }
     catch(boost::property_tree::xml_parser_error& e)
     {
@@ -149,45 +170,56 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
     return ret;
 }
 
-bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage)
+bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
 {
     bool ret = true;
+#ifdef DEBUG
+    std::ofstream out("Cmds2.xml", std::ofstream::binary);
+#else
     std::ofstream out("Cmds.xml", std::ofstream::binary);
+#endif
     if(out.is_open())
     {
         out << "<Commands>\n";
 
-        uint8_t cnt = 1;
-        for(auto& col : storage)
+        uint8_t page_cnt = 1;
+        for(auto& page : storage)
         {
-            out << std::format("\t<Col_{}>\n", cnt);
-            for(auto& i : col)
+            uint8_t cnt = 1;
+            out << std::format("\t<Page_{} name = \"{}\"> \n", page_cnt, names[page_cnt - 1]);
+            for(auto& col : page)
             {
-                std::visit([this, &out](auto& c)
-                    {
-                        using T = std::decay_t<decltype(c)>;
-                        if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+                out << std::format("\t\t<Col_{}>\n", cnt);
+                for(auto& i : col)
+                {
+                    std::visit([this, &out](auto& c)
                         {
-                            out << "\t\t<Cmd>\n";
-                            if(c->GetName() != c->GetCmd() && !c->GetName().empty())
-                                out << std::format("\t\t\t<Name>{}</Name>\n", c->GetName());
-                            out << std::format("\t\t\t<Execute>{}</Execute>\n", c->GetCmd());
-                            out << std::format("\t\t\t<Color>0x{:X}</Color>\n", c->GetColor());
-                            out << std::format("\t\t\t<BackgroundColor>0x{:X}</BackgroundColor>\n", c->GetBackgroundColor());
-                            out << std::format("\t\t\t<Bold>{}</Bold>\n", c->IsBold());
-                            out << std::format("\t\t\t<Scale>{}</Scale>\n", c->GetScale());
-                            out << "\t\t</Cmd>\n";
-                        }
-                        else if constexpr(std::is_same_v<T, Separator>)
-                        {
-                            out << std::format("\t\t<Separator>{}</Separator>\n", c.width);
-                        }
-                        else
-                            static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
-                    }, i);
+                            using T = std::decay_t<decltype(c)>;
+                            if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+                            {
+                                out << "\t\t\t<Cmd>\n";
+                                if(c->GetName() != c->GetCmd() && !c->GetName().empty())
+                                    out << std::format("\t\t\t\t<Name>{}</Name>\n", c->GetName());
+                                out << std::format("\t\t\t\t<Execute>{}</Execute>\n", c->GetCmd());
+                                out << std::format("\t\t\t\t<Color>0x{:X}</Color>\n", c->GetColor());
+                                out << std::format("\t\t\t\t<BackgroundColor>0x{:X}</BackgroundColor>\n", c->GetBackgroundColor());
+                                out << std::format("\t\t\t\t<Bold>{}</Bold>\n", c->IsBold());
+                                out << std::format("\t\t\t\t<Scale>{}</Scale>\n", c->GetScale());
+                                out << "\t\t\t</Cmd>\n";
+                            }
+                            else if constexpr(std::is_same_v<T, Separator>)
+                            {
+                                out << std::format("\t\t<Separator>{}</Separator>\n", c.width);
+                            }
+                            else
+                                static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
+                        }, i);
+                }
+                out << std::format("\t\t</Col_{}>\n", cnt);
+                cnt++;
             }
-            out << std::format("\t</Col_{}>\n", cnt);
-            cnt++;
+            out << std::format("\t</Page_{}>\n", page_cnt);
+            page_cnt++;
         }
         out << "</Commands>\n";
     }
@@ -208,21 +240,21 @@ void CmdExecutor::SetMediator(ICmdHelper* mediator)
     m_CmdMediator = mediator;
 }
 
-void CmdExecutor::AddCommand(uint8_t col, Command cmd)
+void CmdExecutor::AddCommand(uint8_t page, uint8_t col, Command cmd)
 {
     std::shared_ptr<Command> cmd_ptr = std::make_shared<Command>(cmd);
-    if(AddItem(col, std::move(cmd_ptr)))
+    if(AddItem(page, col, std::move(cmd_ptr)))
     {
         if(m_CmdMediator)
-            m_CmdMediator->OnCommandLoaded(col, m_Commands[col - 1].back());
+            m_CmdMediator->OnCommandLoaded(page, col, m_Commands[page - 1][col - 1].back());
     }
 }
 
-bool CmdExecutor::AddItem(uint8_t col, std::shared_ptr<Command>&& cmd)
+bool CmdExecutor::AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& cmd)
 {
     if(col <= m_Commands.size())
     {
-        m_Commands[col - 1].push_back(cmd);
+        m_Commands[page - 1][col - 1].push_back(cmd);
         return true;
     }
     return false;
@@ -231,13 +263,13 @@ bool CmdExecutor::AddItem(uint8_t col, std::shared_ptr<Command>&& cmd)
 bool CmdExecutor::ReloadCommandsFromFile()
 {
     XmlCommandLoader loader(m_CmdMediator);
-    return loader.Load(COMMAND_FILE_PATH, m_Commands);
+    return loader.Load(COMMAND_FILE_PATH, m_Commands, m_CommandPageNames);
 }
 
 bool CmdExecutor::Save()
 {
     XmlCommandLoader loader(m_CmdMediator);
-    return loader.Save(COMMAND_FILE_PATH, m_Commands);
+    return loader.Save(COMMAND_FILE_PATH, m_Commands, m_CommandPageNames);
 }
 
 uint8_t CmdExecutor::GetColumns()
