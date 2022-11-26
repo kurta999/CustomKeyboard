@@ -31,9 +31,9 @@ public:
 
 	void OnLeftDoubleClick(wxTaskBarIconEvent& event);
 	void OnOpenScreenshots(wxCommandEvent& event);
+	void OnOpenRootFolder(wxCommandEvent& event);
 	void OnReload(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnBackup(wxCommandEvent& event);
 	virtual wxMenu* CreatePopupMenu();
 
 	enum ID
@@ -41,6 +41,7 @@ public:
 		Exit = 0,
 		ReloadConfig,
 		OpenScreenshots,
+		OpenRootFolder,
 		DoBackup = 1500,
 	};
 	static int max_backups;

@@ -36,5 +36,8 @@ enum
 	Id_Backup_Delete,
 	ID_CmdExecutorEdit,
 	ID_CmdExecutorAdd,
-	ID_CmdExecutorDelete,
+	ID_CmdExecutorDelete,	
+	ID_CmdExecutorEditPageName,
+	ID_CmdExecutorAddPage,
+	ID_CmdExecutorDeletePage,
 };

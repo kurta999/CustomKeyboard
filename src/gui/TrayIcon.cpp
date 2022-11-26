@@ -3,6 +3,7 @@
 BEGIN_EVENT_TABLE(TrayIcon, wxTaskBarIcon)
 EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)
 EVT_MENU(TrayIcon::ID::OpenScreenshots, TrayIcon::OnOpenScreenshots)
+EVT_MENU(TrayIcon::ID::OpenRootFolder, TrayIcon::OnOpenRootFolder)
 EVT_MENU(TrayIcon::ID::ReloadConfig, TrayIcon::OnReload)
 EVT_MENU(TrayIcon::ID::Exit, TrayIcon::OnQuit)
 END_EVENT_TABLE()
@@ -64,6 +65,7 @@ wxMenu* TrayIcon::CreatePopupMenu()
 
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::OpenScreenshots, wxT("Open screenshots"))->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
+	popup->Append(TrayIcon::ID::OpenRootFolder, wxT("Open Root folder"))->SetBitmap(wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
@@ -75,6 +77,15 @@ void TrayIcon::OnOpenScreenshots(wxCommandEvent& WXUNUSED(event))
 {
 #ifdef _WIN32
 	ShellExecuteW(NULL, NULL, PrintScreenSaver::Get()->screenshot_path.generic_wstring().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+}
+
+void TrayIcon::OnOpenRootFolder(wxCommandEvent& WXUNUSED(event))
+{
+#ifdef _WIN32
+	wchar_t work_dir[1024] = {};
+	GetCurrentDirectoryW(sizeof(work_dir) - 1, work_dir);
+	ShellExecuteW(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }
 
