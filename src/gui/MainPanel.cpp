@@ -131,8 +131,19 @@ MainPanel::MainPanel(wxFrame* parent)
 		wxStaticBoxSizer* num = new wxStaticBoxSizer(st_box, wxVERTICAL); \
 		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
 		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+		button_num->SetClientData((void*)internal_name); \
+		button_num->SetToolTip("Click to execute binded macro"); \
 		num->Add(button_num, 0, wxALL, 5); \
 		num_lock_box_sizer->Add(num, 1, wxEXPAND, 5); \
+		button_num->Bind(wxEVT_LEFT_DOWN, [this, &button_num](wxMouseEvent& event) \
+		{ \
+			wxButton* btn = dynamic_cast<wxButton*>(event.GetEventObject()); \
+			if(!btn) return; \
+			\
+			char* data = reinterpret_cast<char*>(btn->GetClientData()); \
+			if(!data) return; \
+			CustomMacro::Get()->SimulateKeypress(data); \
+		}); \
 	}
 
 	wxBoxSizer* second_vertical = new wxBoxSizer(wxVERTICAL);
@@ -171,8 +182,19 @@ MainPanel::MainPanel(wxFrame* parent)
 		wxStaticBoxSizer* num = new wxStaticBoxSizer(st_box, wxVERTICAL); \
 		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
 		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+		button_num->SetClientData((void*)internal_name); \
+		button_num->SetToolTip("Click to execute binded macro"); \
 		num->Add(button_num, 0, wxALL, 5); \
 		dest_sizer->Add(num, 1, wxEXPAND, 5); \
+		button_num->Bind(wxEVT_LEFT_DOWN, [this, &button_num](wxMouseEvent& event) \
+		{ \
+			wxButton* btn = dynamic_cast<wxButton*>(event.GetEventObject()); \
+			if(!btn) return; \
+			\
+			char* data = reinterpret_cast<char*>(btn->GetClientData()); \
+			if(!data) return; \
+			CustomMacro::Get()->SimulateKeypress(data); \
+		}); \
 	}
 	
 	wxBoxSizer* third_vertical = new wxBoxSizer(wxVERTICAL);
