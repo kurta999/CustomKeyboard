@@ -27,6 +27,35 @@ private:
     //            and entrie app will be blocked
     bool ExecuteInitSequence();
 
+
+    // !\brief Destroys working thread
+    void DestroyWorkingThread();
+
+    // !\brief Thread function
+    void ThreadFunc();
+
+    // !\brief Handle keypress (like bounce checking)
+    void HandleKeypress(const std::string& key);
+
+    // !\brief Is HID inited?
+    bool hid_inited = false;
+
+    // !\brief HID Handle
+    hid_device* hid_handle = nullptr;
+
+    // !\brief Timepoint when the key was pressed
+    std::chrono::steady_clock::time_point last_keypress;
+
+    // !\brief Exit polling thread when set to true
+    std::atomic<bool> m_exit = false;
+
+    // !\brief Future for executing HID initialization
+    std::future<bool> m_hid_init_future;
+
+    // !\brief Pointer to worker thread
+    std::unique_ptr<std::thread> m_worker = nullptr;
+
+
     // !\brief Map with G-Key values and it's name
     const std::map<int, std::string> corsair_GKeys =
     {
@@ -49,25 +78,4 @@ private:
         { 1 << 22, "G17" },
         { 1 << 23, "G18" },
     };
-
-    // !\brief Destroys working thread
-    void DestroyWorkingThread();
-
-    // !\brief Thread function
-    void ThreadFunc();
-
-    // !\brief Is HID inited?
-    bool hid_inited = false;
-
-    // !\brief HID Handle
-    hid_device* hid_handle = nullptr;
-
-    // !\brief Exit polling thread when set to true
-    std::atomic<bool> m_exit = false;
-
-    // !\brief Future for executing HID initialization
-    std::future<bool> m_hid_init_future;
-
-    // !\brief Pointer to worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
 };

@@ -4,6 +4,8 @@ constexpr int HID_READ_TIMEOUT = 100;
 constexpr int READ_DATA_BUFFER_SIZE = 64;
 constexpr int MIN_READ_DATA_SIZE = 20;
 
+constexpr int DEBOUNCING_INTERVAL = 85;
+
 CorsairHid::~CorsairHid()
 {
     DestroyWorkingThread();
@@ -113,10 +115,25 @@ void CorsairHid::ThreadFunc()
             auto it = corsair_GKeys.find(gkey_code);
             if(it != corsair_GKeys.end())
             {
-                CustomMacro::Get()->SimulateKeypress(it->second);
+                HandleKeypress(it->second);
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 #endif
+}
+
+void CorsairHid::HandleKeypress(const std::string& key)
+{
+    std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
+    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(last_keypress - time_now).count();
+    if(elapsed > DEBOUNCING_INTERVAL)
+    {
+        last_keypress = std::chrono::steady_clock::now();
+        CustomMacro::Get()->SimulateKeypress(key);
+    }
+    else
+    {
+        LOG(LogLevel::Normal, "Bouncing detected, keypress has been skippped");
+    }
 }
