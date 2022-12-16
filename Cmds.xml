@@ -5,7 +5,7 @@
     <Col_1>
 	    <Cmd>
         <Name>Directory</Name>
-        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
+        <Execute>cd C:\ & dir & ping 127.0.0.1 -n [({PARAM:3})] > nul</Execute>
         <Color>0xFF0000</Color>
         <BackgroundColor>green</BackgroundColor>
         <Bold>true</Bold>

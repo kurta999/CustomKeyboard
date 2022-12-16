@@ -2,6 +2,7 @@
 
 wxBEGIN_EVENT_TABLE(CmdExecutorPanelBase, wxPanel)
 EVT_SIZE(CmdExecutorPanelBase::OnSize)
+EVT_MIDDLE_DOWN(CmdExecutorPanelBase::OnMiddleClick)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(CmdExecutorPanelPage, wxPanel)
@@ -97,16 +98,113 @@ CmdExecutorPanelBase::CmdExecutorPanelBase(wxFrame* parent)
     : wxPanel(parent, wxID_ANY)
 {
     m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+    m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_DOWN, wxAuiNotebookEventHandler(CmdExecutorPanelBase::OnAuiRightClick), NULL, this);
 
     CmdExecutor* cmd = wxGetApp().cmd_executor;
     cmd->SetMediator(this);
     ReloadCommands();
+    m_notebook->Layout();
     Show();
+}
+
+void CmdExecutorPanelBase::ReloadCommands()
+{
+    CmdExecutor* cmd = wxGetApp().cmd_executor;
+    cmd->ReloadCommandsFromFile();
 }
 
 void CmdExecutorPanelBase::OnSize(wxSizeEvent& evt)
 {
+    wxSize new_size = evt.GetSize();
+    if(m_notebook)
+        m_notebook->SetSize(new_size);
     evt.Skip(true);
+}
+
+void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
+{
+    int page_id = evt.GetSelection();
+
+    wxMenu menu;
+    menu.Append(ID_CmdExecutorEditPageName, "&Rename")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    //menu.Append(ID_CmdExecutorAddPage, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    //menu.Append(ID_CmdExecutorDeletePage, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    int ret = GetPopupMenuSelectionFromUser(menu);
+
+    switch(ret)
+    {
+        case ID_CmdExecutorEditPageName:
+        {
+            wxTextEntryDialog d(this, "Type new page name here", "Rename");
+            int ret = d.ShowModal();
+            if(ret == wxID_OK)
+            {
+                CmdExecutor* cmd = wxGetApp().cmd_executor;
+                CommandPageNames page_names = cmd->GetPageNames();
+
+                m_notebook->Freeze();
+                m_notebook->SetPageText(page_id, d.GetValue());
+                m_notebook->Thaw();
+
+                page_names[page_id] = d.GetValue().ToStdString();
+            }
+            break;
+        }
+        case ID_CmdExecutorAddPage:
+        {
+            /* Not implemented */
+            break;
+        }        
+        case ID_CmdExecutorDeletePage:
+        {
+            wxMessageDialog d(this, "Are you sure want to delete this page?", "Deleting", wxOK | wxCANCEL);
+            int ret_code = d.ShowModal();
+            if(ret_code == wxID_OK)  /* OK */
+            {
+                CmdExecutor* cmd = wxGetApp().cmd_executor;
+            }
+            break;
+        }
+    }
+    return;
+}
+
+
+void CmdExecutorPanelBase::OnPreReload(uint8_t page)
+{
+    DBG("OnPreReload pages: %d\n", page);
+
+    m_notebook->DeleteAllPages();
+    m_Pages.clear();
+
+    m_notebook->Freeze();
+    for(uint8_t i = 0; i != page; i++)
+    {
+        CmdExecutorPanelPage* p = new CmdExecutorPanelPage(m_notebook, i + 1, 0);
+        m_notebook->AddPage(p, std::format("Page {}", i + 1), false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+        m_Pages.push_back(p);
+    }
+    m_notebook->Thaw();
+}
+
+void CmdExecutorPanelBase::OnPreReloadColumns(uint8_t pages, uint8_t cols)
+{
+    m_Pages[pages - 1]->OnPreload(cols);
+    DBG("OnPreReloadColumns pages: %d, cols: %d\n", pages, cols);
+}
+
+void CmdExecutorPanelBase::OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd)
+{
+    m_Pages[page - 1]->OnCommandLoaded(col, cmd);
+}
+
+void CmdExecutorPanelBase::OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names)
+{
+    m_Pages[page - 1]->OnPostReloadUpdate();
+
+    m_notebook->Freeze();
+    m_notebook->SetPageText(page - 1, names.back());
+    m_notebook->Thaw();
 }
 
 CmdExecutorPanelPage::CmdExecutorPanelPage(wxWindow* parent, uint8_t id, uint8_t cols)
@@ -143,6 +241,8 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
 {
     wxMenu menu;
     menu.Append(ID_CmdExecutorAdd, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorSave, "&Save")->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorReload, "&Reload")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(14, 14))));
 
     const wxPoint pt = wxGetMousePosition();
     int mouseX = pt.x - this->GetScreenPosition().x;
@@ -190,8 +290,22 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
         case ID_CmdExecutorAdd:
         {           
             CmdExecutor* cmd = wxGetApp().cmd_executor;
-            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", 0x33FF33, 0xFFFFFF, false, 1.0f));
+            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, 1.0f));
             m_BaseGrid->Layout();
+            break;
+        }
+        case ID_CmdExecutorSave:
+        {           
+            CmdExecutor* cmd = wxGetApp().cmd_executor;
+            cmd->Save();
+            LOG(LogLevel::Notification, "Commands has been saved");
+            break;
+        }        
+        case ID_CmdExecutorReload:
+        {           
+            CmdExecutor* cmd = wxGetApp().cmd_executor;
+            cmd->ReloadCommandsFromFile();
+            LOG(LogLevel::Notification, "Commands has been reloaded");
             break;
         }
     }
@@ -216,9 +330,7 @@ void CmdExecutorPanelPage::OnClick(wxCommandEvent& event)
     }
 
     Command* c = reinterpret_cast<Command*>(clientdata);
-    ToggleAllButtonClickability(false);
-    c->Execute();
-    ToggleAllButtonClickability(true);
+    Execute(c);
 }
 
 void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
@@ -279,47 +391,34 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
     }
 }
 
-void CmdExecutorPanelBase::ReloadCommands()
+void CmdExecutorPanelPage::OnMiddleClick(wxMouseEvent& event)
 {
-    CmdExecutor* cmd = wxGetApp().cmd_executor;
-    cmd->ReloadCommandsFromFile();
-}
+    auto obj = event.GetEventObject();
 
-void CmdExecutorPanelBase::OnPreReload(uint8_t page)
-{
-    DBG("OnPreReload pages: %d\n", page);
-
-    m_notebook->DeleteAllPages();
-    m_Pages.clear();
-
-    m_notebook->Freeze();
-    for(uint8_t i = 0; i != page; i++)
+    wxButton* btn = dynamic_cast<wxButton*>(obj);
+    if(btn == nullptr)
     {
-        CmdExecutorPanelPage* p = new CmdExecutorPanelPage(m_notebook, i + 1, 0);
-        m_notebook->AddPage(p, std::format("Page {}", i + 1), false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
-        m_Pages.push_back(p);
+        LOG(LogLevel::Error, "btn is nullptr");
+        return;
     }
-    m_notebook->Thaw();
-}
 
-void CmdExecutorPanelBase::OnPreReloadColumns(uint8_t pages, uint8_t cols)
-{
-    m_Pages[pages - 1]->OnPreload(cols);
-    DBG("OnPreReloadColumns pages: %d, cols: %d\n", pages, cols);
-}
-
-void CmdExecutorPanelBase::OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd)
-{
-    m_Pages[page - 1]->OnCommandLoaded(col, cmd);
-    /*
-    for(auto& i : m_Pages)
+    void* clientdata = btn->GetClientData();
+    if(clientdata == nullptr)
     {
-        if(i->m_Id == page)
-        {
-            i->OnCommandLoaded(col, cmd);
-            break;
-        }
-    }*/
+        LOG(LogLevel::Error, "clientdata is nullptr");
+        return;
+    }
+
+    Command* c = reinterpret_cast<Command*>(clientdata);
+    DBG("middleclick");
+
+    wxTextEntryDialog d(this, "New parameter", "Execute with new parameter");
+    int ret = d.ShowModal();
+    if(ret == wxID_OK)
+    {
+        c->SetParam(d.GetValue().ToStdString());
+        Execute(c);
+    }
 }
 
 void CmdExecutorPanelPage::OnCommandLoaded(uint8_t col, CommandTypes cmd)
@@ -338,15 +437,6 @@ void CmdExecutorPanelPage::OnCommandLoaded(uint8_t col, CommandTypes cmd)
             else
                 static_assert(always_false_v<T>, "CmdExecutorPanel::OnCommandLoaded Bad visitor!");
         }, cmd);
-}
-
-void CmdExecutorPanelBase::OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names)
-{
-    m_Pages[page - 1]->OnPostReloadUpdate();
-
-    m_notebook->Freeze();
-    m_notebook->SetPageText(page - 1, names.back());
-    m_notebook->Thaw();
 }
 
 void CmdExecutorPanelPage::OnPreload(uint8_t cols)
@@ -389,6 +479,7 @@ void CmdExecutorPanelPage::AddCommandElement(uint8_t col, Command* c)
     btn->SetClientData((void*)c);
     btn->Bind(wxEVT_BUTTON, &CmdExecutorPanelPage::OnClick, this);
     btn->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnRightClick, this);
+    btn->Bind(wxEVT_MIDDLE_DOWN, &CmdExecutorPanelPage::OnMiddleClick, this);
 
     m_ButtonMap.emplace(col - 1, btn);
     m_VertialBoxes[col - 1]->Add(btn);
@@ -456,4 +547,11 @@ void CmdExecutorPanelPage::DeleteCommandButton(Command* c, wxButton* btn)
     btn->Destroy();
 
     m_BaseGrid->Layout();
+}
+
+void CmdExecutorPanelPage::Execute(Command* c)
+{
+    ToggleAllButtonClickability(false);
+    c->Execute();
+    ToggleAllButtonClickability(true);
 }

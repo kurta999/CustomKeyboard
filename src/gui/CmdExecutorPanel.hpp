@@ -54,6 +54,7 @@ public:
 
 private:
     void OnSize(wxSizeEvent& evt);
+    void OnAuiRightClick(wxAuiNotebookEvent& evt);
 
 	void OnPreReload(uint8_t page) override;
 	void OnPreReloadColumns(uint8_t pages, uint8_t cols) override;
@@ -86,12 +87,15 @@ private:
     void OnPanelRightClick(wxMouseEvent& event);
     void OnClick(wxCommandEvent& event);
     void OnRightClick(wxMouseEvent& event);
+    void OnMiddleClick(wxMouseEvent& event);
 
     void AddCommandElement(uint8_t col, Command* c);
     void AddSeparatorElement(uint8_t col, Separator s);
 
     void UpdateCommandButon(Command* c, wxButton* btn, bool force_font_reset = false);
     void DeleteCommandButton(Command* c, wxButton* btn);
+
+    void Execute(Command* c);
 
     CmdExecutorEditDialog* edit_dlg = nullptr;
     wxGridSizer* m_BaseGrid = nullptr;

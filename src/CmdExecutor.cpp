@@ -5,13 +5,15 @@ static constexpr const char* COMMAND_FILE_PATH = "Cmds.xml";
 void Command::Execute()
 {
     HandleHarcdodedCommand();
+    std::string cmd_to_execute = HandleParameters();
+
 #ifdef _WIN32
     STARTUPINFOA si = { sizeof(STARTUPINFOA) };
     si.dwFlags = STARTF_USESHOWWINDOW;  // Requires STARTF_USESHOWWINDOW in dwFlags.
     si.wShowWindow = SW_SHOW;  // Prevents cmd window from flashing.
 
     PROCESS_INFORMATION pi = { 0 };
-    BOOL fSuccess = CreateProcessA(NULL, (LPSTR)std::format("C:\\windows\\system32\\cmd.exe /c {}", GetCmd()).c_str(), NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+    BOOL fSuccess = CreateProcessA(NULL, (LPSTR)std::format("C:\\windows\\system32\\cmd.exe /c {}", cmd_to_execute).c_str(), NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
     if(fSuccess)
     {
         CloseHandle(pi.hProcess);
@@ -22,7 +24,7 @@ void Command::Execute()
         LOG(LogLevel::Error, "CreateProcess failed with error code: {}", GetLastError());
     }
 #else
-    utils::exec(c->cmd.c_str());
+    utils::exec(cmd_to_execute.c_str());
 #endif
 }
 
@@ -30,10 +32,52 @@ void Command::HandleHarcdodedCommand()
 {
     if(m_name == "Set date")
     {
+#ifdef _WIN32
         const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
         const auto now_truncated_to_sec = std::chrono::floor<std::chrono::seconds>(now);
-        m_cmd = std::format("adb shell \"date -s {:%Y-%m-%d}\" && date -s \"{:%H:%M:%OS}\"", now_truncated_to_sec, now_truncated_to_sec);
+        m_cmd = std::format("adb shell \"date -s {:%Y-%m-%d} && date -s {:%H:%M:%OS}\"", now_truncated_to_sec, now_truncated_to_sec);
+#endif
     }
+}
+
+std::string Command::HandleParameters()
+{
+    constexpr size_t param_len = std::char_traits<char>::length("[({PARAM:");
+    size_t param_count = 0;
+    size_t pos = 1;
+
+    size_t first_end = m_cmd.find("})]", pos + 1);
+    if(first_end != std::string::npos)
+    {
+        while(pos < m_cmd.length() - 1)
+        {
+            size_t first_pos = m_cmd.substr(0, first_end).find("[({PARAM:", pos - 1);
+
+            if(first_pos != std::string::npos && first_end != std::string::npos)
+            {
+                if(param_count > 0)
+                {
+                    LOG(LogLevel::Warning, "Only 1 parameter is supported!");
+                    break;
+                }
+
+                if(param_count == 0)
+                {
+                    std::string ret = utils::extract_string(m_cmd, first_pos, first_end, param_len);
+                    DBG("ret: %s", ret.c_str());
+
+                    std::string new_cmd{ m_cmd };
+                    new_cmd.erase(first_pos, (first_end + 3) - first_pos);
+                    new_cmd.insert(first_pos, m_param.empty() ? ret : m_param);
+                    return new_cmd;
+                }
+
+                pos = first_end;
+                ++param_count;
+            }
+        }
+    }
+    return m_cmd;
 }
 
 CmdExecutor::~CmdExecutor()
@@ -53,6 +97,12 @@ XmlCommandLoader::~XmlCommandLoader()
 
 bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
 {
+    if(!std::filesystem::exists(COMMAND_FILE_PATH))
+    {
+        CmdExecutor::WriteDefaultCommandsFile();
+        LOG(LogLevel::Normal, "Default {} is missing, creating one", COMMAND_FILE_PATH);
+    }
+
     bool ret = true;
     boost::property_tree::ptree pt;
     try
@@ -96,6 +146,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                     {
                         std::string cmd;
                         boost::optional<std::string> name;
+                        boost::optional<std::string> param;
                         boost::optional<std::string> color;
                         boost::optional<std::string> bg_color;
                         boost::optional<std::string> is_bold;
@@ -107,6 +158,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             cmd = v.second.get_child("Execute").get_value<std::string>();
 
                             utils::xml::ReadChildIfexists<std::string>(v, "Name", name);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Param", param);
                             utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
                             utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
                             utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
@@ -117,6 +169,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             cmd = v.second.get_value<std::string>();
 
                             name = v.second.get_optional<std::string>("<xmlattr>.name");
+                            param = v.second.get_optional<std::string>("<xmlattr>.param");
                             color = v.second.get_optional<std::string>("<xmlattr>.color");
                             bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
                             is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
@@ -126,6 +179,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         std::shared_ptr<Command> command = std::make_shared<Command>(
                             name.has_value() ? *name : "",
                             cmd,
+                            param.has_value() ? *param : "",
                             color.has_value() ? utils::ColorStringToInt(*color) : 0,
                             bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
                             is_bold.has_value() ? utils::stob(*is_bold) : false,
@@ -176,7 +230,7 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
 #ifdef DEBUG
     std::ofstream out("Cmds2.xml", std::ofstream::binary);
 #else
-    std::ofstream out("Cmds.xml", std::ofstream::binary);
+    std::ofstream out(COMMAND_FILE_PATH, std::ofstream::binary);
 #endif
     if(out.is_open())
     {
@@ -201,6 +255,7 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
                                 if(c->GetName() != c->GetCmd() && !c->GetName().empty())
                                     out << std::format("\t\t\t\t<Name>{}</Name>\n", c->GetName());
                                 out << std::format("\t\t\t\t<Execute>{}</Execute>\n", c->GetCmd());
+                                out << std::format("\t\t\t\t<Param>{}</Param>\n", c->GetParam());
                                 out << std::format("\t\t\t\t<Color>0x{:X}</Color>\n", c->GetColor());
                                 out << std::format("\t\t\t\t<BackgroundColor>0x{:X}</BackgroundColor>\n", c->GetBackgroundColor());
                                 out << std::format("\t\t\t\t<Bold>{}</Bold>\n", c->IsBold());
@@ -275,4 +330,64 @@ bool CmdExecutor::Save()
 uint8_t CmdExecutor::GetColumns()
 {
     return m_Cols;
+}
+
+CommandStorage& CmdExecutor::GetCommands()
+{
+    return m_Commands;
+}
+
+CommandPageNames& CmdExecutor::GetPageNames()
+{
+    return m_CommandPageNames;
+}
+
+void CmdExecutor::WriteDefaultCommandsFile()
+{
+    std::string file_content = "<Commands>\
+  <Pages>2</Pages>\
+  <Page_1 name = \"Board\">\
+    <Columns>4</Columns>\
+    <Col_1>\
+	    <Cmd>\
+        <Name>Directory</Name>\
+        <Execute>cd C:\\ & dir & ping 127.0.0.1 -n [({PARAM:3})] > nul</Execute>\
+        <Color>0xFF0000</Color>\
+        <BackgroundColor>green</BackgroundColor>\
+        <Bold>true</Bold>\
+        <Scale>2.0</Scale>\
+      </Cmd>\
+	  <Cmd>\
+        <Name>Set date</Name>\
+        <Execute>cd C:\\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>\
+        <Color>0xFF0000</Color>\
+        <BackgroundColor>green</BackgroundColor>\
+        <Bold>true</Bold>\
+        <Scale>2.0</Scale>\
+      </Cmd>\
+	    <Cmd>cd ..</Cmd>\
+      <Separator>4</Separator>\
+      <Cmd>cd2 ..</Cmd>\
+    </Col_1>  \
+    <Col_2>\
+	    <Cmd>dir C:</Cmd>\
+	    <Cmd>cd ../..</Cmd>\
+    </Col_2>\
+  </Page_1>\
+  <Page_2 name = \"Liunx VM\">\
+    <Columns>2</Columns>\
+    <Col_1>\
+      <Cmd>\
+        <Name>Print directory</Name>\
+        <Execute>cd C:\\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>\
+        <Color>0xFF0000</Color>\
+        <BackgroundColor>green</BackgroundColor>\
+        <Bold>true</Bold>\
+        <Scale>2.0</Scale>\
+      </Cmd>\
+    </Col_1>>\
+    </Page_2>\
+</Commands>";
+    std::ofstream out(COMMAND_FILE_PATH, std::ofstream::binary);
+    out << file_content;
 }

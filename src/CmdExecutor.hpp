@@ -11,8 +11,8 @@
 class Command
 {
 public:
-    Command(const std::string& name, const std::string& cmd, uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
-        m_name(name), m_cmd(cmd), m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
+    Command(const std::string& name, const std::string& cmd, const std::string& param, uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
+        m_name(name), m_cmd(cmd), m_param(param), m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
     {
 
     }
@@ -24,6 +24,9 @@ public:
 
     const std::string& GetCmd() { return m_cmd; }
     Command& SetCmd(const std::string& cmd) { m_cmd = cmd; return *this; }
+
+    const std::string& GetParam() { return m_param; }
+    Command& SetParam(const std::string& param) { m_param = param; return *this; }
 
     uint32_t GetColor() { return m_color; }
     Command& SetColor(uint32_t color) { m_color = color; return *this; }
@@ -42,8 +45,12 @@ private:
     // !\ brief Handles hardcoded commands like set current time - ugly, but no time for better solution
     void HandleHarcdodedCommand();
 
+    // !\ brief Handles parameter replacing
+    std::string HandleParameters();
+
     std::string m_name;
     std::string m_cmd;
+    std::string m_param;
     uint32_t m_color;
     uint32_t m_bg_color;
     bool m_is_bold;
@@ -95,6 +102,8 @@ public:
     virtual bool ReloadCommandsFromFile() = 0;
     virtual bool Save() = 0;
     virtual uint8_t GetColumns() = 0;
+    virtual CommandStorage& GetCommands() = 0;
+    virtual CommandPageNames& GetPageNames() = 0;
 };
 
 class CmdExecutor : public ICmdExecutor
@@ -109,9 +118,12 @@ public:
     bool ReloadCommandsFromFile() override;
     bool Save() override;
     uint8_t GetColumns() override;
+    CommandStorage& GetCommands() override;
+    CommandPageNames& GetPageNames() override;
 
+    static void WriteDefaultCommandsFile();
 private:
-    bool AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& cmd) ;
+    bool AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& cmd);
 
     uint8_t m_Cols = 2;
     CommandStorage m_Commands;
