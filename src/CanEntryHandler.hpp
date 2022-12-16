@@ -2,9 +2,13 @@
 
 #include "utils/CSingleton.hpp"
 #include <filesystem>
+#include <bitfield/bitfield.h>
+#include <isotp/isotp.h>
 
 constexpr uint8_t CAN_LOG_DIR_TX = 0;
 constexpr uint8_t CAN_LOG_DIR_RX = 1;
+
+constexpr size_t MAX_ISOTP_FRAME_LEN = 4096;
 
 class CanEntryBase
 {
@@ -31,13 +35,14 @@ public:
     CanEntryTransmitInfo() = default;
 
     CanEntryTransmitInfo(const CanEntryTransmitInfo& from) :
-        period(from.period)
+        period(from.period), log_level(from.log_level)
     {
 
     }
 
     uint32_t period{};
     size_t count{};
+    uint8_t log_level{};
 };
 
 class CanTxEntry : public CanEntryBase, public CanEntryTransmitInfo
@@ -87,6 +92,41 @@ public:
     };
 };
 
+enum CanBitfieldType : uint8_t
+{
+    CBT_BOOL, CBT_UI8, CBT_I8, CBT_UI16, CBT_I16, CBT_UI32, CBT_I32, CBT_UI64, CBT_I64, CBT_FLOAT, CBT_DOUBLE, CBT_INVALID
+};
+
+class CanMap
+{
+public:
+    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val) :
+        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val)
+    {
+
+    }
+
+    //std::map<uint8_t, std::variant<bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string>> m_Type;
+
+    // !\brief Mapping type
+    CanBitfieldType m_Type;
+
+    // !\brief Mapping name
+    std::string m_Name;
+
+    // !\brief Bit length (starting from it's offset)
+    uint8_t m_Size;
+
+    // !\brief Minimum value
+    size_t m_MinVal;
+
+    // !\brief Maximum value
+    size_t m_MaxVal;
+};
+
+using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
+using CanBitfieldInfo = std::vector<std::pair<std::string, std::string>>;
+
 class ICanEntryLoader
 {
 public:
@@ -106,8 +146,8 @@ public:
 class ICanRxEntryLoader
 {
 public:
-    virtual bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) = 0;
-    virtual bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) = 0;
+    virtual bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
+    virtual bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
 };
 
 class XmlCanRxEntryLoader : public ICanRxEntryLoader
@@ -115,18 +155,60 @@ class XmlCanRxEntryLoader : public ICanRxEntryLoader
 public:
     virtual ~XmlCanRxEntryLoader();
 
-    bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) override;
-    bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e) override;
+    bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) override;
+    bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) override;
+};
+
+class ICanMappingLoader
+{
+public:
+    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping) = 0;
+    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping) = 0;
+};
+
+class XmlCanMappingLoader : public ICanMappingLoader
+{
+public:
+    virtual ~XmlCanMappingLoader();
+
+    bool Load(const std::filesystem::path& path, CanMapping& mapping) override;
+    bool Save(const std::filesystem::path& path, CanMapping& mapping) override;
+
+    static CanBitfieldType GetTypeFromString(const std::string_view& input);
+    static const std::string_view GetStringFromType(CanBitfieldType type);
+
+private:
+    static inline std::map<CanBitfieldType, std::string> m_CanBitfieldTypeMap
+    {
+        {CBT_BOOL, "bool"},
+        {CBT_UI8, "uint8_t"},
+        {CBT_I8, "int8_t"},
+        {CBT_UI16, "uint16_t"},
+        {CBT_I16, "int16_t"},
+        {CBT_UI32, "uint32_t"},
+        {CBT_I32, "int32_t"},
+        {CBT_UI64, "uint64_t"},
+        {CBT_I64, "int64_t"},
+        {CBT_FLOAT, "float"},
+        {CBT_DOUBLE, "double"},
+        {CBT_INVALID, "invalid"}
+    };
 };
 
 class CanEntryHandler
 {
 public:
-    CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader);
+    CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader, ICanMappingLoader& mapping_loader);
     ~CanEntryHandler();
 
     // !\brief Initialize entry handler
     void Init();
+
+    // !\brief Load files (TX & RX List, Frame mapping)
+    void LoadFiles();
+
+    // !\brief Worker thread
+    void WorkerThread(std::stop_token token);
 
     // !\brief Called when a can frame was sent
     void OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* data);
@@ -138,6 +220,10 @@ public:
     // !\param toggle [in] Toggle auto send?
     void ToggleAutoSend(bool toggle);    
     
+    // !\param Get CAN auto send state
+    // !\return Is auto send toggled?
+    bool IsAutoSend() { return auto_send; }
+
     // !\brief Toggle recording
     // !\param toggle [in] Toggle recording?
     // !\param is_puase [in] Is pause?
@@ -145,6 +231,17 @@ public:
 
     // !\brief Clear recorded frames
     void ClearRecording();
+
+    // !\brief Send Data Frame over CAN BUS
+    // !\param frame_id [in] CAN Frame ID
+    // !\param data [in] Data to send
+    // !\param size [in] Data size
+    void SendDataFrame(uint32_t frame_id, uint8_t* data, uint16_t size);
+
+    // !\brief Send Iso-TP frame over CAN BUS
+    // !\param data [in] Data to send
+    // !\param size [in] Data size
+    void SendIsoTpFrame(uint8_t* data, uint16_t size);
 
     // !\brief Load TX list from a file
     // !\param path [in] File path to load
@@ -164,9 +261,27 @@ public:
     // !\param path [in] File path to save
     bool SaveRxList(std::filesystem::path& path);
     
+    // !\brief Load CAN mapping from a file
+    // !\param path [in] File path to save
+    bool LoadMapping(std::filesystem::path& path);
+
+    // !\brief Save CAN mapping to a file
+    // !\param path [in] File path to save
+    bool SaveMapping(std::filesystem::path& path);
+
     // !\brief Save recorded data to file
     // !\param path [in] File path to save
     bool SaveRecordingToFile(std::filesystem::path& path);
+
+    uint8_t GetRecordingLogLevel() { return m_RecodingLogLevel; }
+
+    void SetRecordingLogLevel(uint8_t log_level) { m_RecodingLogLevel = log_level; }
+
+    // !\brief Get log records for given frame
+    // !\param frame_id [in] CAN Frame ID
+    // !\param is_rx [in] Is RX?
+    // !\param log [out] Vector of rows
+    void GenerateLogForFrame(uint32_t frame_id, bool is_rx, std::vector<std::string>& log);
 
     // !\brief Return TX Frame count
     // !\return TX Frame count
@@ -175,6 +290,11 @@ public:
     // !\brief Return RX Frame count
     // !\return RX Frame count
     uint64_t GetRxFrameCount() { return rx_frame_cnt; }
+
+    // !\brief Get map for frame id (in string format)
+    CanBitfieldInfo GetMapForFrameId(uint32_t frame_id, bool is_rx);
+
+    void ApplyEditingOnFrameId(uint32_t frame_id, std::vector<std::string> new_data);
 
     // !\brief Vector of CAN TX entries
     std::vector<std::unique_ptr<CanTxEntry>> entries;
@@ -185,24 +305,44 @@ public:
     // !\brief Frame ID comment
     std::unordered_map<uint32_t, std::string> rx_entry_comment;  /* [frame_id] = comment msg */
 
+    // !\brief Frame ID log levels
+    std::unordered_map<uint32_t, uint8_t> m_RxLogLevels;
+
     // !\brief CAN Log entries (both TX & RX)
     std::vector<std::unique_ptr<CanLogEntry>> m_LogEntries;
 
     // !\brief Path to default TX list
     std::filesystem::path default_tx_list;
     
-    // // !\brief Path to default RX list
-    std::filesystem::path default_rx_list;
+    // !\brief Path to default RX list
+    std::filesystem::path default_rx_list;    
+    
+    // !\brief Path to default CAN mapping
+    std::filesystem::path default_mapping;
 
     // !\brief Mutex for entry handler
     std::mutex m;
 
 private:
-    // !\brief Reference to can TX entry loader
+    // !\brief Assigns new TX buffer to TX entry
+    void AssignNewBufferToTxEntry(uint32_t frame_id, uint8_t* buffer, size_t size);
+
+    // !\brief Handle bit reading of a frame
+    template <typename T> void HandleBitReading(uint32_t frame_id, bool is_rx, std::unique_ptr<CanMap>& m, size_t offset, CanBitfieldInfo& info);
+
+    template <typename T> void HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data);
+
+    // !\brief Find CAN TX Entry by Frame ID
+    std::optional<std::reference_wrapper<CanTxEntry>> FindTxCanEntryByFrame(uint32_t frame_id);
+
+    // !\brief Reference to CAN TX entry loader
     ICanEntryLoader& m_CanEntryLoader;
 
-    // !\brief Reference to can RX entry loader
-    ICanRxEntryLoader& m_CanRxEntryLoader;
+    // !\brief Reference to CAN RX entry loader
+    ICanRxEntryLoader& m_CanRxEntryLoader;    
+    
+    // !\brief Reference to CAN mapping loader
+    ICanMappingLoader& m_CanMappingLoader;
 
     // !\brief Sending every can frame automatically at startup which period is not null? 
     bool auto_send = false;
@@ -217,11 +357,26 @@ private:
     uint64_t rx_frame_cnt = 0;
 
     // !\brief Exit worker thread?
-    std::atomic<bool> to_exit = false;
+    //std::stop_source stop_source;
 
     // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker;
+    std::unique_ptr<std::jthread> m_worker;
 
     // !\brief Starting time
     std::chrono::steady_clock::time_point start_time;
+
+    // !\brief CAN mapping container
+    CanMapping m_mapping;
+
+    // !\brief Recording log level
+    uint8_t m_RecodingLogLevel = 1;
+
+    // !\brief ISO-TP Link
+    IsoTpLink link;
+
+    // !\brief ISO-TP Receiving buffer
+    uint8_t m_Isotp_Sendbuf[MAX_ISOTP_FRAME_LEN];
+
+    // !\brief ISO-TP Transmit buffer
+    uint8_t m_Isotp_Recvbuf[MAX_ISOTP_FRAME_LEN];
 };

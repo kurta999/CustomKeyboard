@@ -1,4 +1,6 @@
 #include "pch.hpp"
+#include <boost/dynamic_bitset.hpp>
+#include <isotp/isotp.h>
 
 IMPLEMENT_APP(MyApp)
 
@@ -7,7 +9,7 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
     
-    can_entry = new CanEntryHandler(xml, rx_xml);
+    can_entry = new CanEntryHandler(xml, rx_xml, mapping_xml);
     cmd_executor = new CmdExecutor();
 
     Settings::Get()->Init();

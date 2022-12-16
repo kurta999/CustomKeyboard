@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+static constexpr const char* SETTINGS_FILE_PATH = "settings.ini";
+
 void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
     constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
@@ -177,15 +179,16 @@ void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::strin
 
 void Settings::LoadFile()
 {
-    if(!std::filesystem::exists("settings.ini"))
+    if(!std::filesystem::exists(SETTINGS_FILE_PATH))
     {
         SaveFile(true);
+        LOG(LogLevel::Normal, "Default {} is missing, creating one", SETTINGS_FILE_PATH);
     }
 
     boost::property_tree::ptree pt;
     try
     {
-        boost::property_tree::ini_parser::read_ini("settings.ini", pt);
+        boost::property_tree::ini_parser::read_ini(SETTINGS_FILE_PATH, pt);
     }
     catch(boost::property_tree::ptree_error& e)
     {
@@ -247,8 +250,12 @@ void Settings::LoadFile()
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
         CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
         can_handler->ToggleAutoSend(utils::stob(pt.get_child("CANSender").find("AutoSend")->second.data()));
+        /* TODO: this may cause inconvience when data is reloaded while recording is in progress */
+        can_handler->ToggleRecording(utils::stob(pt.get_child("CANSender").find("AutoRecord")->second.data()), false);
+        can_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
+        can_handler->default_mapping = pt.get_child("CANSender").find("DefaultMapping")->second.data();
         ModbusMasterSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("ModbusMaster").find("Enable")->second.data()));
         ModbusMasterSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("COM")->second.data()));
 
@@ -341,6 +348,30 @@ void Settings::LoadFile()
         DatabaseLogic::Get()->SetGraphHours(0, val1);
         uint32_t val2 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph2HoursBack")->second.data());
         DatabaseLogic::Get()->SetGraphHours(1, val2);
+
+        std::string pages_str = pt.get_child("App").find("UsedPages")->second.data();
+        if(boost::icontains(pages_str, "Main"))
+            used_pages.main = 1;
+        if(boost::icontains(pages_str, "Config"))
+            used_pages.config = 1;
+        if(boost::icontains(pages_str, "wxEditor"))
+            used_pages.wxeditor = 1;
+        if(boost::icontains(pages_str, "StringEscaper"))
+            used_pages.escaper = 1;
+        if(boost::icontains(pages_str, "Debug"))
+            used_pages.debug = 1;
+        if(boost::icontains(pages_str, "StructParser"))
+            used_pages.struct_parser = 1;
+        if(boost::icontains(pages_str, "FileBrowser"))
+            used_pages.file_browser = 1;
+        if(boost::icontains(pages_str, "CmdExecutor"))
+            used_pages.cmd_executor = 1;
+        if(boost::icontains(pages_str, "CanSender"))
+            used_pages.can = 1;
+        if(boost::icontains(pages_str, "ModbusMaster"))
+            used_pages.modbus_master = 1;
+        if(boost::icontains(pages_str, "Log"))
+            used_pages.log = 1;
     }
     catch(boost::property_tree::ptree_error& e)
     {
@@ -355,7 +386,7 @@ void Settings::LoadFile()
 void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
     CanEntryHandler* can_handler = wxGetApp().can_entry;
-    std::ofstream out("settings.ini", std::ofstream::binary);
+    std::ofstream out(SETTINGS_FILE_PATH, std::ofstream::binary);
     out << "# Possible macro keywords: \n";
     out << "# BIND_NAME[binding name] = Set the name if macro. Should be used as first\n";
     out << "# KEY_TYPE[text] = Press & release given keys in sequence to type a text\n";
@@ -441,8 +472,12 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[CANSender]\n";
     out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";
     out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
+    out << "AutoSend = " << can_handler->IsAutoSend() << "\n";
+    out << "AutoRecord = " << 0 << "\n";  /* TODO: implement it */
+    out << "DefaultRecordingLogLevel = " << can_handler->GetRecordingLogLevel() << "\n";
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "DefaultRxList = " << can_handler->default_rx_list.generic_string() << "\n";
+    out << "DefaultMapping = " << can_handler->default_mapping.generic_string() << "\n";
     out << "\n";
     out << "[ModbusMaster]\n";
     out << "Enable = " << ModbusMasterSerialPort::Get()->IsEnabled() << "\n";

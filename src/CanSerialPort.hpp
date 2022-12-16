@@ -54,10 +54,10 @@ public:
     // !\brief Add CAN frame to TX queue
     void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
+private:
     // !\brief Add CAN frame to RX queue
     void AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
-private:
     // !\brief Stops worker thread
     void DestroyWorkerThread();
 

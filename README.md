@@ -27,9 +27,9 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 
 2. **Backend for Corsair's G Keys** - Corsair pretty well fucked up it's iCUE, sometimes memory usage can grow to 500MB. That's enormeous for an application which runs in background and executes macro for binded keys. It's possible to use CustomMacro feature to bind everything to Corsair's G keys (beside second keyboard, of coruse). This is a simple HID API which receives keypresses for G keys. Supports K95 RGB (18 G keys, older one) and K95 RGB Platinum.
 
-3. **CAN-USB Transreceiver** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver. Supports both standard and extended CAN frames, logging and searching between frames. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
+3. **CAN-USB Transreceiver** - Requires NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames, logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
 
-4. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml, this cann't be done in GUI right now. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias.
+4. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml or in the "CMD Executor" panel. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias. Currently one variable parameter can be added to each command, you can change that before execution by clicking with MIDDLE mouse to the command button instead of the LEFT. 
 
 5. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 
@@ -52,9 +52,11 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 - [sha256](https://github.com/B-Con/crypto-algorithms "sha256's Homepage")
 - [AsyncSerial](https://github.com/fedetft/serial-port "AsyncSerial's Homepage")
 - [Chart.js](https://www.chartjs.org/ "Charts.js' Homepage")
+- [bitfield](https://github.com/openxc/bitfield-c "bitfield's Homepage")
+- [isotp]https://github.com/lishen2/isotp-c "iso-tp's Homepage")
 
 Required external depencencies:
-- [Boost 1.80.0](https://www.boost.org/ "Boost's Homepage")
+- [Boost 1.81.0](https://www.boost.org/ "Boost's Homepage")
 - [wxWidgets 3.2.0](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 - [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
@@ -62,7 +64,7 @@ Required external depencencies:
 
 **Windows**
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_80_0
+- boost: C:\Program Files\boost\boost_1_81_0
 - wxWidgets: C:\wxWidgets-3.2.0
 - HIDAPI: C:\hidapi
 
@@ -75,13 +77,13 @@ Available build configurations:
 - x64 - Debug, Release, Static Release
 
 CMake support for windows is available, hovewer I'm not using it so it's abandoned. Up to date version is only for Linux, use .sln files when using Windows! Example command for CMake on Windows:
-cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_80_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_80_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_80_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_81_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.0 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_81_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_81_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 
 **Linux**
 
 The project is using C++20 features, so I recommend using the newest compilers. I'm using clang15 because it's faster for me than GCC.
 
-1. Install boost 1.80.0, wxWidgets 3.2.0, fmt 8.0.0
+1. Install boost 1.81.0, wxWidgets 3.2.0, fmt 8.0.0
 2. Execute these commands in project root directory:
 
 With Make:

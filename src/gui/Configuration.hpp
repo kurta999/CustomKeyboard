@@ -82,11 +82,12 @@ private:
 	wxDECLARE_NO_COPY_CLASS(MacroEditBoxDialog);
 };
 
-class ComTcpPanel : public wxPanel
+class ComTcpPanel : public wxScrolled<wxPanel>
 {
 public:
 	ComTcpPanel(wxWindow* parent);
 	void UpdatePanel();
+	void OnPaint(wxPaintEvent& event);
 
 	wxCheckBox* m_IsTcp = nullptr;
 	wxSpinCtrl* m_TcpPortSpin = nullptr;
@@ -179,7 +180,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 };
 
-class ConfigurationPanel : public wxPanel
+class ConfigurationPanel : public wxScrolled<wxPanel>
 {
 public:
 	ConfigurationPanel(wxWindow* parent);

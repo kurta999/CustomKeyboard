@@ -194,11 +194,11 @@ void ConfigurationPanel::UpdateSubpanels()
 }
 
 ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
-	: wxPanel(parent, wxID_ANY)
+	: wxScrolled<wxPanel>(parent, wxID_ANY)
 {
 	wxSize client_size = GetClientSize();
 
-	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	comtcp_panel = new ComTcpPanel(m_notebook);
 	keybrd_panel = new KeybrdPanel(m_notebook);
 	backup_panel = new BackupPanel(m_notebook);
@@ -206,16 +206,26 @@ ConfigurationPanel::ConfigurationPanel(wxWindow* parent)
 	m_notebook->AddPage(keybrd_panel, "Macro settings", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->AddPage(backup_panel, "Backup settings", false, wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ConfigurationPanel::Changeing), NULL, this);
+
+	Layout();
+	SetMinSize(wxSize(1, 1));
+	SetScrollRate(1, 1);
+	FitInside();
 }
 
 void ConfigurationPanel::OnSize(wxSizeEvent& evt)
 {
+	FitInside();
 	evt.Skip(true);
 }
 
 ComTcpPanel::ComTcpPanel(wxWindow* parent)
-	: wxPanel(parent, wxID_ANY)
+	: wxScrolled<wxPanel>(parent, wxID_ANY)
 {
+	Bind(wxEVT_PAINT, &ComTcpPanel::OnPaint, this);
+	SetMinSize(wxSize(1, 1));
+	SetScrollRate(1, 1);
+
 	wxArrayString array_serials;
 	array_serials.Add("Select a serial port from list below");
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
@@ -511,6 +521,25 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			}
 		});
 	SetSizer(bSizer1);
+
+	//SetWindowStyle(wxVSCROLL);
+	//SetWindowStyle(wxHSCROLL);
+	SetScrollbar(wxVERTICAL, 0, 16, 50);
+	FitInside();
+}
+
+void ComTcpPanel::OnPaint(wxPaintEvent& WXUNUSED(event))
+{
+	wxPaintDC dc(this);
+
+	// this call is vital: it adjusts the dc to account for the current
+	// scroll offset
+	DoPrepareDC(dc);
+	/*
+	dc.SetPen(*wxRED_PEN);
+	dc.SetBrush(*wxTRANSPARENT_BRUSH);
+	dc.DrawRectangle(0, 0, WIDTH, HEIGHT);
+	*/
 }
 
 void ComTcpPanel::UpdatePanel()

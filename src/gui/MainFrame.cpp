@@ -16,7 +16,10 @@ EVT_MENU(ID_CanLoadTxList, MyFrame::OnCanLoadTxList)
 EVT_MENU(ID_CanSaveTxList, MyFrame::OnCanSaveTxList)
 EVT_MENU(ID_CanLoadRxList, MyFrame::OnCanLoadRxList)
 EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
+EVT_MENU(ID_CanLoadMapping, MyFrame::OnCanLoadMapping)
+EVT_MENU(ID_CanSaveMapping, MyFrame::OnCanSaveMapping)
 EVT_MENU(ID_CmdExecutorSave, MyFrame::OnSaveCmdExecutor)
+EVT_MENU(ID_SaveEverything, MyFrame::OnSaveEverything)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
 //EVT_CHAR_HOOK(MyFrame::OnKeyDown)
@@ -143,6 +146,8 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		}
 		if(escape_panel)
 			escape_panel->SetSize(a);
+		if(debug_panel)
+			debug_panel->SetSize(a);
 		if(parser_panel)
 			parser_panel->SetSize(a);
 		if(log_panel)
@@ -150,7 +155,17 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		if(file_panel)
 			file_panel->SetSize(a);
 		if(can_panel)
+		{
 			can_panel->SetSize(a);
+			if(can_panel->m_notebook)
+				can_panel->m_notebook->SetSize(a);
+			if(can_panel->sender)
+				can_panel->sender->SetSize(a);
+			if(can_panel->log)
+				can_panel->log->SetSize(a);
+		}
+		if(cmd_panel)
+			cmd_panel->SetSize(a);
 	}
 	event.Skip(true);
 }
@@ -199,6 +214,18 @@ void MyFrame::OnCanSaveRxList(wxCommandEvent& event)
 		can_panel->SaveRxList();
 }
 
+void MyFrame::OnCanLoadMapping(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->LoadMapping();
+}
+
+void MyFrame::OnCanSaveMapping(wxCommandEvent& event)
+{
+	if(can_panel)
+		can_panel->SaveMapping();
+}
+
 void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 {
 	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -217,6 +244,11 @@ void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 		std::lock_guard lock(frame->mtx);
 		frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CommandsSaved), dif, std::string(work_dir) + "\\Cmds.xml"});
 	}
+}
+
+void MyFrame::OnSaveEverything(wxCommandEvent& event)
+{
+	Settings::Get()->SaveFile(false);
 }
 
 void MyFrame::On10msTimer(wxTimerEvent& event)
@@ -279,8 +311,7 @@ void MyFrame::HandleBackupProgressDialog()
 }
 
 void MyFrame::HandleAlwaysOnNumlock()
-{   
-	/* TODO: consider rewriting this with LL Keyboard Hook in future */
+{
 	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))
 	{
 		#ifdef _WIN32
@@ -353,7 +384,7 @@ void MyFrame::SetIconTooltip(const wxString &str)
 }
 
 MyFrame::MyFrame(const wxString& title)
-	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, Settings::Get()->window_size)
+	: wxFrame(NULL, wxID_ANY, title)
 {
 	tray = new TrayIcon();
 	tray->SetMainFrame(this);
@@ -362,6 +393,7 @@ MyFrame::MyFrame(const wxString& title)
 	m_mgr.SetManagedWindow(this);
 	SetMinSize(wxSize(800, 600));
 
+	m_mgr.SetFlags(wxAUI_MGR_ALLOW_FLOATING);
 	wxMenu* menuFile = new wxMenu;
 	menuFile->Append(ID_Quit, "E&xit\tCtrl-E", "Close program")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuFile->Append(wxID_OPEN, "&Open file\tCtrl-O", "Open file")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
@@ -373,7 +405,11 @@ MyFrame::MyFrame(const wxString& title)
 	menuCan->Append(ID_CanSaveTxList, "&Save TX List", "Save CAN TX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_CanLoadRxList, "&Load RX List", "Load CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_CanSaveRxList, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanLoadMapping, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveMapping, "&Save RX List", "Save CAN RX List")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_CanSaveAll, "&Save all CAN", "Save TX,RX List & CAN mapping")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_CmdExecutorSave, "&Save CMDs", "Save commands from CMD Executor")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_SaveEverything, "&Save everything", "Save everything (CAN, CmdExecutor, Settings, etc)")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(ID_About, "&About", "Read license")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuHelp->Append(ID_Help, "&Read help\tCtrl-H", "Read description about this program")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
@@ -391,6 +427,8 @@ MyFrame::MyFrame(const wxString& title)
 	SetStatusText("CustomKeyboard " + platform + " v" + COMMIT_TAG);
 #endif
 
+	SetClientSize(Settings::Get()->window_size);
+
 	main_panel = new MainPanel(this);
 	escape_panel = new EscaperPanel(this);
 	debug_panel = new DebugPanel(this);
@@ -402,22 +440,38 @@ MyFrame::MyFrame(const wxString& title)
 	log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
 
+	UsedPages used_pages = Settings::Get()->used_pages;
 	wxSize client_size = GetClientSize();
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	ctrl->Freeze();
-	ctrl->AddPage(main_panel, "Main Page", false, wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	config_panel = new ConfigurationPanel(this);
-	ctrl->AddPage(config_panel, "Config", false, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	editor_panel = new EditorPanel(ctrl);
-	ctrl->AddPage(editor_panel, "wxEditor", false, wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(debug_panel, "Debug Page", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(file_panel, "File Browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(cmd_panel, "CMD Executor", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(can_panel, "CAN Sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(modbus_master_panel, "Modbus M.", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
-	ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.main)
+		ctrl->AddPage(main_panel, "Main Page", false, wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.config)
+	{
+		config_panel = new ConfigurationPanel(this);
+		ctrl->AddPage(config_panel, "Config", false, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	}
+	if(used_pages.wxeditor)
+	{
+		editor_panel = new EditorPanel(ctrl);
+		ctrl->AddPage(editor_panel, "wxEditor", false, wxArtProvider::GetBitmap(wxART_PASTE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	}
+	if(used_pages.escaper)
+		ctrl->AddPage(escape_panel, "C StrEscape", false, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.debug)
+		ctrl->AddPage(debug_panel, "Debug Page", false, wxArtProvider::GetBitmap(wxART_HELP, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.struct_parser)
+		ctrl->AddPage(parser_panel, "Sturct Parser", false, wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.file_browser)
+		ctrl->AddPage(file_panel, "File Browser", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.cmd_executor)
+		ctrl->AddPage(cmd_panel, "CMD Executor", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.can)
+		ctrl->AddPage(can_panel, "CAN Sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.modbus_master)
+		ctrl->AddPage(modbus_master_panel, "Modbus M.", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.log)
+		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 
 	if(Settings::Get()->default_page > ctrl->GetPageCount() - 1)
@@ -434,6 +488,7 @@ MyFrame::MyFrame(const wxString& title)
 	m_100msTimer->Start(100, false);
 
 	//wxWindow::RegisterHotKey(HOTKEY_ID_NUM_LOCK, wxMOD_NONE, VK_NUMLOCK);
+	//SetClientSize(800, 600);
 
 	is_initialized = true;
 }

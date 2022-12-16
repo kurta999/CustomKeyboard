@@ -46,6 +46,12 @@
     <Filter Include="Header Files\interface">
       <UniqueIdentifier>{9c6a47d6-f75b-4e2b-8481-01238fbe0e0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\bitfield">
+      <UniqueIdentifier>{8647ab3f-75a7-4ffa-ad5b-71ebfc9ddd50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\isotp">
+      <UniqueIdentifier>{b54c9ce8-326b-400e-bd2b-aae2a28aaa38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\sqlite\sqlite3.h">
@@ -243,6 +249,33 @@
     <ClInclude Include="src\IdlePowerSaver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\interface\ICanEntryHandler.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\bitfield\8byte.h">
+      <Filter>libs\bitfield</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\bitfield\bitfield.h">
+      <Filter>libs\bitfield</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\bitfield\read.h">
+      <Filter>libs\bitfield</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\bitfield\write.h">
+      <Filter>libs\bitfield</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\isotp\isotp.h">
+      <Filter>libs\isotp</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\isotp\isotp_config.h">
+      <Filter>libs\isotp</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\isotp\isotp_defines.h">
+      <Filter>libs\isotp</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\isotp\isotp_user.h">
+      <Filter>libs\isotp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -398,6 +431,24 @@
     <ClCompile Include="src\IdlePowerSaver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="libs\bitfield\8byte.c">
+      <Filter>libs\bitfield</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\bitfield\bitarray.c">
+      <Filter>libs\bitfield</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\bitfield\bitfield.c">
+      <Filter>libs\bitfield</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\bitfield\read.c">
+      <Filter>libs\bitfield</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\bitfield\write.c">
+      <Filter>libs\bitfield</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\isotp\isotp.c">
+      <Filter>libs\isotp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">
@@ -426,5 +477,6 @@
     <Xml Include="RxList.xml" />
     <Xml Include="TxList.xml" />
     <Xml Include="Cmds.xml" />
+    <Xml Include="FrameMapping.xml" />
   </ItemGroup>
 </Project>

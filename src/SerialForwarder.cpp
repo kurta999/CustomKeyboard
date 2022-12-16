@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#ifndef _WIN32
 using boost::asio::ip::tcp;
 
 class session
@@ -77,10 +78,39 @@ private:
     boost::asio::io_context& io_context_;
     tcp::acceptor acceptor_;
 };
+#else
+boost::asio::awaitable<void> SerialForwarder::echo(tcp_socket socket)
+{
+    try
+    {
+        char data[1024];
+        for(;;)
+        {
+            std::size_t n = co_await socket.async_read_some(boost::asio::buffer(data));
+            co_await boost::asio::async_write(socket, boost::asio::buffer(data, n));
+        }
+    }
+    catch(std::exception& e)
+    {
+        LOG(LogLevel::Error, "Exception: {}", e.what());
+    }
+}
+
+boost::asio::awaitable<void> SerialForwarder::listener()
+{
+    auto executor = co_await boost::asio::this_coro::executor;
+    tcp_acceptor acceptor(executor, { tcp::endpoint(boost::asio::ip::address::from_string(SerialForwarder::Get()->bind_ip), SerialForwarder::Get()->tcp_port) });
+    for(;;)
+    {
+        auto socket = co_await acceptor.async_accept();
+        boost::asio::co_spawn(executor, echo(std::move(socket)), boost::asio::detached);
+    }
+}
+#endif
 
 SerialForwarder::SerialForwarder()
 {
-
+    
 }
 
 void SerialForwarder::Init()
@@ -88,6 +118,22 @@ void SerialForwarder::Init()
     if(is_enabled)
     {
         m_worker = std::make_unique<std::thread>([this] {
+#ifdef _WIN32
+            try
+            {
+                boost::asio::co_spawn(io_context, listener(), boost::asio::detached);
+                io_context.run();
+                LOG(LogLevel::Notification, "iocontext finish");
+            }
+            catch(std::exception& e)
+            {
+                LOG(LogLevel::Error, "Boost exception: {}", e.what());
+            }
+            catch(...)
+            {
+                LOG(LogLevel::Error, "Unknown exception");
+            }
+#else
             try
             {
                 tcp_server server(io_context);
@@ -102,6 +148,7 @@ void SerialForwarder::Init()
             {
                 LOG(LogLevel::Error, "Unknown exception");
             }
+#endif
         });
     }
 }

@@ -3,6 +3,26 @@
 #include "utils/CSingleton.hpp"
 #include "CustomMacro.hpp"
 
+class UsedPages
+{
+public:
+    uint16_t pages;
+    union
+    {
+        uint8_t main : 1;
+        uint8_t config : 1;
+        uint8_t wxeditor : 1;
+        uint8_t escaper : 1;
+        uint8_t debug : 1;
+        uint8_t struct_parser : 1;
+        uint8_t file_browser : 1;
+        uint8_t cmd_executor : 1;
+        uint8_t can : 1;
+        uint8_t modbus_master : 1;
+        uint8_t log : 1;
+    };
+};
+
 class MacroAppProfile;
 class Settings : public CSingleton < Settings >
 {
@@ -27,6 +47,9 @@ public:
 
     // !\brief Start application as minimized
     bool minimize_on_startup = false;
+
+    // !\brief Used pages
+    UsedPages used_pages;
 
     // !\brief Default start page for application
     uint8_t default_page = 1;

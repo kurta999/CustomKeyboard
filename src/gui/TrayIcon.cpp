@@ -91,10 +91,18 @@ void TrayIcon::OnOpenRootFolder(wxCommandEvent& WXUNUSED(event))
 
 void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 {
+	LOG(LogLevel::Verbose, "reload 1");
 	Settings::Get()->LoadFile();
+	LOG(LogLevel::Verbose, "reload 2");
+	CanEntryHandler* can_handler = wxGetApp().can_entry;
+	can_handler->LoadFiles();
+	LOG(LogLevel::Verbose, "reload 3");
 	mainFrame->main_panel->UpdateKeybindings();
+	LOG(LogLevel::Verbose, "reload 4");
 	mainFrame->config_panel->UpdateSubpanels();
+	LOG(LogLevel::Verbose, "reload 5");
 	mainFrame->can_panel->RefreshSubpanels();
+	LOG(LogLevel::Verbose, "reload 6");
 	mainFrame->cmd_panel->ReloadCommands();
 	LOG(LogLevel::Normal, "Settings has been reloaded");
 }

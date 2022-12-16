@@ -5,8 +5,11 @@
 #include <wx/stc/stc.h>
 #include <wx/treelist.h>
 #include <wx/grid.h>
+#include <wx/spinctrl.h>
 
 #include <map>
+
+#define MAX_BITEDITOR_FIELDS      32
 
 enum CanSenderGridCol : int
 {
@@ -15,6 +18,7 @@ enum CanSenderGridCol : int
     Sender_Data,
     Sender_Period,
     Sender_Count,
+    Sender_LogLevel,
     Sender_Comment,
     Sender_Max
 };
@@ -32,13 +36,18 @@ enum CanLogGridCol : int
 
 class CanTxEntry;
 class CanRxData;
+class CanByteEditorDialog;
+class BitEditorDialog;
+class CanLogForFrameDialog;
+
+using CanBitfieldInfo = std::vector<std::pair<std::string, std::string>>;
 
 class CanGrid
 {
 public:
     CanGrid(wxWindow* parent);
 
-    void AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString comment);
+    void AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString loglevel, wxString comment);
     void AddRow(std::unique_ptr<CanTxEntry>& e);
     void RemoveLastRow();
     void UpdateTxCounter(uint32_t frame_id, size_t count);
@@ -75,6 +84,8 @@ public:
     void SaveTxList();
     void LoadRxList();
     void SaveRxList();
+    void LoadMapping();
+    void SaveMapping();
     void OnKeyDown(wxKeyEvent& evt);
 
     CanGrid* can_grid_tx = nullptr;
@@ -86,6 +97,8 @@ private:
     void RefreshGuiIconsBasedOnSettings();
 
     void OnCellValueChanged(wxGridEvent& ev);
+    void OnCellRightClick(wxGridEvent& ev);
+    void OnSize(wxSizeEvent& evt);
 
     wxStaticBoxSizer* static_box_tx = nullptr;
     wxStaticBoxSizer* static_box_rx = nullptr;
@@ -99,9 +112,19 @@ private:
     wxButton* m_Add = nullptr;
     wxButton* m_Copy = nullptr;
     wxButton* m_Delete = nullptr;
+    wxButton* m_Edit = nullptr;
+    wxButton* m_SendDataFrame = nullptr;
+    wxButton* m_SendIsoTp = nullptr;
+
+    std::string m_LastDataInput;
+    std::string m_LastIsoTpInput;
+
+    BitEditorDialog* m_BitfieldEditor = nullptr;
+    CanLogForFrameDialog* m_LogForFrame = nullptr;
 
     wxString file_path_tx;
     wxString file_path_rx;
+    wxString file_path_mapping;
 
     std::string search_pattern_tx;
     std::string search_pattern_rx;
@@ -123,6 +146,8 @@ public:
 
 private:
     void OnKeyDown(wxKeyEvent& evt);
+    void OnLogLevelChange(wxSpinEvent& evt);
+    void OnSize(wxSizeEvent& evt);
     void ClearRecordingsFromGrid();
 
     std::chrono::steady_clock::time_point start_time;
@@ -133,10 +158,13 @@ private:
     wxButton* m_RecordingPause = nullptr;
     wxButton* m_RecordingStop = nullptr;
     wxButton* m_RecordingClear = nullptr;
+    wxButton* m_AutoScrollBtn = nullptr;
     wxButton* m_RecordingSave = nullptr;
+    wxSpinCtrl* m_LogLevelCtrl = nullptr;
+
     size_t cnt = 0;
     std::string search_pattern;
-
+    bool m_AutoScroll = true;
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -150,11 +178,14 @@ public:
     void LoadTxList();
     void SaveTxList();
     void LoadRxList();
-    void SaveRxList();
+    void SaveRxList();    
+    void LoadMapping();
+    void SaveMapping();
     void RefreshSubpanels();
 
     CanSenderPanel* sender = nullptr;
     CanLogPanel* log = nullptr;
+    wxAuiNotebook* m_notebook = nullptr;
 
 private:
     void OnSize(wxSizeEvent& evt);
@@ -163,7 +194,66 @@ private:
     // !\brief AUI manager for subwindows
     wxAuiManager m_mgr;
 
-    wxAuiNotebook* m_notebook = nullptr;
-
 	wxDECLARE_EVENT_TABLE();
+};
+
+class BitEditorDialog : public wxDialog
+{
+public:
+    BitEditorDialog(wxWindow* parent);
+
+    // [label] = value
+    void ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo& values);
+    std::vector<std::string> GetOutput();
+
+    bool IsApplyClicked() { return m_IsApplyClicked; }
+
+    enum class BitSelection
+    {
+        Decimal,
+        Hex,
+        Binary,
+    };
+
+    uint32_t GetFrameId() { return m_FrameId; }
+
+protected:
+    void OnApply(wxCommandEvent& event);
+    void OnRadioButtonClicked(wxCommandEvent& event);
+private:
+    int m_Id = 0;
+    uint8_t m_DataFormat = 0;
+    wxRadioButton* m_IsDecimal = {};
+    wxRadioButton* m_IsHex = {};
+    wxRadioButton* m_IsBinary = {};
+    wxStaticText* m_InputLabel[MAX_BITEDITOR_FIELDS] = {};
+    wxTextCtrl* m_Input[MAX_BITEDITOR_FIELDS] = {};
+    wxRadioButton* m_InputBit[MAX_BITEDITOR_FIELDS] = {};
+    wxSizer* sizerTop = {};
+    wxSizer* sizerMsgs = {};
+    bool m_IsApplyClicked = false;
+    CanBitfieldInfo m_BitfieldInfo;
+    BitSelection bit_sel = BitSelection::Decimal;
+    uint32_t m_FrameId = {};
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(BitEditorDialog);
+};
+
+class CanLogForFrameDialog : public wxDialog
+{
+public:
+    CanLogForFrameDialog(wxWindow* parent);
+
+    void ShowDialog(std::vector<std::string>& values);
+
+protected:
+    void OnApply(wxCommandEvent& event);
+private:
+
+    wxListBox* m_Log = nullptr;
+    wxBoxSizer* sizerTop = nullptr;
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(CanLogForFrameDialog);
 };

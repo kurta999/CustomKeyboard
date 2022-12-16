@@ -24,7 +24,7 @@ private:
 	wxComboBox* m_FilterLevel;
 	wxTextCtrl* m_FilterText;
 	wxButton* m_ApplyFilter = nullptr;
-	wxButton* m_Pause = nullptr;
+	wxButton* m_AutoScrollBtn = nullptr;
 	wxButton* m_ClearButton = nullptr;
 
 	wxDECLARE_EVENT_TABLE();

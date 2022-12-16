@@ -198,19 +198,22 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 {
     if(!m_TxQueue.empty())
     {
-        std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
-
         UartCanData d;
-        d.magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
-        d.frame_id = data_ptr->frame_id;
-        d.data_len = data_ptr->data_len;
-        memcpy(d.data, data_ptr->data, d.data_len);
-        d.crc = utils::crc16_modbus((void*)&d, sizeof(d) - 2);
+        {
+            std::unique_lock lock(m_mutex);
+            std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
 
-        serial_port.write((const char*)&d, sizeof(UartCanData));
+            d.magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
+            d.frame_id = data_ptr->frame_id;
+            d.data_len = data_ptr->data_len;
+            memcpy(d.data, data_ptr->data, d.data_len);
+            d.crc = utils::crc16_modbus((void*)&d, sizeof(d) - 2);
+            m_TxQueue.pop();
+
+            serial_port.write((const char*)&d, sizeof(UartCanData));
+        }
 
         CanEntryHandler* can_handler = wxGetApp().can_entry;
         can_handler->OnFrameSent(d.frame_id, d.data_len, d.data);
-        m_TxQueue.pop();
     }
 }

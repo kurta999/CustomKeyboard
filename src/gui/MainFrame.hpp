@@ -99,7 +99,11 @@ private:
 	void OnCanSaveTxList(wxCommandEvent& event);
 	void OnCanLoadRxList(wxCommandEvent& event);
 	void OnCanSaveRxList(wxCommandEvent& event);
+	void OnCanLoadMapping(wxCommandEvent& event);
+	void OnCanSaveMapping(wxCommandEvent& event);
+	void OnCanSaveAll(wxCommandEvent& event);
 	void OnSaveCmdExecutor(wxCommandEvent& event);
+	void OnSaveEverything(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnKeyDown(wxKeyEvent& event);

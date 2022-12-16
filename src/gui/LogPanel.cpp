@@ -47,18 +47,18 @@ LogPanel::LogPanel(wxFrame* parent)
 			ExecuteSearchInLogfile();
 		});
 
-	m_Pause = new wxButton(this, wxID_ANY, wxT("Toggle auto-scroll"), wxDefaultPosition, wxDefaultSize, 0);
-	m_Pause->SetToolTip("Disable auto-scroll");
-	v_sizer->Add(m_Pause, 0, wxALL, 5);
+	m_AutoScrollBtn = new wxButton(this, wxID_ANY, wxT("Toggle auto-scroll"), wxDefaultPosition, wxDefaultSize, 0);
+	m_AutoScrollBtn->SetToolTip("Toggle auto-scroll");
+	v_sizer->Add(m_AutoScrollBtn, 0, wxALL, 5);
 	bSizer1->Add(v_sizer, 0, wxALL, 5);
 
-	m_Pause->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+	m_AutoScrollBtn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			m_AutoScroll ^= 1;
 			if(m_AutoScroll)
-				m_Pause->SetBackgroundColour(wxNullColour);
+				m_AutoScrollBtn->SetBackgroundColour(wxNullColour);
 			else
-				m_Pause->SetBackgroundColour(*wxRED);
+				m_AutoScrollBtn->SetBackgroundColour(*wxRED);
 		});
 
 	m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
