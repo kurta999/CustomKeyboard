@@ -29,16 +29,17 @@ bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level
 
 	m_helper->ClearEntries();
 	std::string line;
-	while(std::getline(in, line, '\n'))  /* "2022.08.12 15:54:00 [Warning] [CorsairHid.cpp:59 - CorsairHid::ExecuteInitSequence] 5 \n" */
+	while(std::getline(in, line, '\n'))  /* "2022.08.12.591 15:54:00 [Warning] [CorsairHid.cpp:59 - CorsairHid::ExecuteInitSequence] 5 \n" */
 	{
-		int year, month, day, hour, minute, second;
+		int year, month, day, hour, minute, second, millisecond;
 		char level[32];
 		char cppfile[64];
 		int linenumber;
 		char funcname[256];
 		char logstr[512];
-		if(sscanf(line.c_str(), "%d.%d.%d %d:%d:%d [%32[^]]] [%64[^:]:%d - %256[^]]] %512[^\n]",
-			&year, &month, &day, &hour, &minute, &second, level, cppfile, &linenumber, funcname, logstr) == 11)
+		int ret = sscanf(line.c_str(), "%d.%d.%d %d:%d:%d.%d [%32[^]]] [%64[^:]:%d - %256[^]]] %512[^\n]",
+			&year, &month, &day, &hour, &minute, &second, &millisecond, level, cppfile, &linenumber, funcname, logstr);
+		if(ret == 12)
 		{
 			std::string_view logline(logstr);
 			std::string_view levelline(level);
