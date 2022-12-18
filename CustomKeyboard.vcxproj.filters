@@ -276,6 +276,15 @@
     <ClInclude Include="libs\isotp\isotp_user.h">
       <Filter>libs\isotp</Filter>
     </ClInclude>
+    <ClInclude Include="src\CanDeviceStm32.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CanDeviceLawicel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\ICanDevice.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -448,6 +457,12 @@
     </ClCompile>
     <ClCompile Include="libs\isotp\isotp.c">
       <Filter>libs\isotp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CanDeviceStm32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CanDeviceLawicel.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

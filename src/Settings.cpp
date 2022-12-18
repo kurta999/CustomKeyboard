@@ -249,6 +249,7 @@ void Settings::LoadFile()
         CanEntryHandler* can_handler = wxGetApp().can_entry;
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
         CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
+        CanSerialPort::Get()->SetDeviceType(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DeviceType")->second.data()));
         can_handler->ToggleAutoSend(utils::stob(pt.get_child("CANSender").find("AutoSend")->second.data()));
         /* TODO: this may cause inconvience when data is reloaded while recording is in progress */
         can_handler->ToggleRecording(utils::stob(pt.get_child("CANSender").find("AutoRecord")->second.data()), false);
@@ -472,6 +473,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[CANSender]\n";
     out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";
     out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
+    out << "DeviceType = " << CanSerialPort::Get()->GetDeviceType() << " # 0 = STM32, 1 = LAWICEL\n";
     out << "AutoSend = " << can_handler->IsAutoSend() << "\n";
     out << "AutoRecord = " << 0 << "\n";  /* TODO: implement it */
     out << "DefaultRecordingLogLevel = " << can_handler->GetRecordingLogLevel() << "\n";

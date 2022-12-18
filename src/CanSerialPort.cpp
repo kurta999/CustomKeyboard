@@ -1,26 +1,11 @@
 #include "pch.hpp"
 
-constexpr uint32_t MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS = 0xAABBCCDD;
-constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
-
 constexpr uint32_t TX_QUEUE_MAX_SIZE = 100;
-
 constexpr uint32_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
-
-#pragma pack(push, 1)
-typedef struct
-{
-    uint32_t magic_number; // 0xAABBCCDD
-    uint32_t frame_id;
-    uint8_t data_len;
-    uint8_t data[MAX_CAN_FRAME_DATA_LEN];
-    uint16_t crc;
-} UartCanData;
-#pragma pack(pop)
 
 CanSerialPort::CanSerialPort() : m_CircBuff(RX_CIRCBUFF_SIZE)
 {
-    
+
 }
 
 CanSerialPort::~CanSerialPort()
@@ -32,6 +17,14 @@ void CanSerialPort::Init()
 {
     if(is_enabled)
     {
+        ICanDevice* dev_stm32 = new CanDeviceStm32(m_CircBuff);
+        ICanDevice* dev_lawicel = new CanDeviceLawicel(m_CircBuff);
+
+        if(m_DeviceType == 0)
+            SetDevice(dev_stm32);
+        else
+            SetDevice(dev_lawicel);
+
         if(!m_worker)
             m_worker = std::make_unique<std::thread>(&CanSerialPort::WorkerThread, this);
     }
@@ -39,6 +32,11 @@ void CanSerialPort::Init()
     {
         DestroyWorkerThread();
     }
+}
+
+void CanSerialPort::SetDevice(ICanDevice* device)
+{
+    m_Device = device;
 }
 
 void CanSerialPort::SetEnabled(bool enable)
@@ -116,7 +114,7 @@ void CanSerialPort::WorkerThread()
                     break;
                 }
 
-                ProcessReceivedFrames();
+                m_Device->ProcessReceivedFrames();
                 SendPendingCanFrames(serial);
 
                 {
@@ -154,66 +152,33 @@ void CanSerialPort::OnDataReceived(const char* data, unsigned int len)
     std::lock_guard guard(m_RxMutex);
     m_CircBuff.insert(m_CircBuff.end(), data, data + len);
 }
-
+/*
 void CanSerialPort::ProcessReceivedFrames()
 {
     std::lock_guard guard(m_RxMutex);
-    while(m_CircBuff.size() >= sizeof(UartCanData))
-    {
-        do
-        {
-            char uart_data[sizeof(UartCanData)];
-            std::copy(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData), uart_data);
 
-            if(*(uint32_t*)&uart_data == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
-            {
-                UartCanData* d = (UartCanData*)uart_data;
-                uint16_t crc = utils::crc16_modbus((void*)uart_data, sizeof(UartCanData) - 2);
-                if(crc == d->crc)
-                {
-                    AddToRxQueue(d->frame_id, d->data_len, d->data);
-                }
-                else
-                {
-                    std::string hex;
-                    LOG(LogLevel::Verbose, "CRC mismatch, recv - calculated: {:X} != {:X}", d->crc, crc);
-                    utils::ConvertHexBufferToString(reinterpret_cast<const char*>(d->data), sizeof(d->data), hex);
-                    LOG(LogLevel::Verbose, "MagicNumber: {:X}, FrameID: {:X}, DataLen: {}", d->magic_number, d->frame_id, d->data_len);
-                    hex.clear();
-                    utils::ConvertHexBufferToString(uart_data, sizeof(uart_data), hex);
-                    LOG(LogLevel::Verbose, "Full Data buffer: {}", hex);
-                }
-                m_CircBuff.erase(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData));
-            }
-            else
-            {
-                LOG(LogLevel::Verbose, "Invalid magic number: {:X}", *(uint32_t*)&uart_data);
-                m_CircBuff.erase(m_CircBuff.begin());
-            }
-        } while(m_CircBuff.size() >= sizeof(UartCanData));  /* This second nested loop is needed for recovering when invalid data is received */
-    }
 }
-
+*/
 void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 {
     if(!m_TxQueue.empty())
     {
-        UartCanData d;
+        std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
+        bool is_remove = false;
+
         {
             std::unique_lock lock(m_mutex);
-            std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
+            char data[64];
+            size_t size = m_Device->PrepareSendDataFormat(data_ptr, data, sizeof(data), is_remove);
 
-            d.magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
-            d.frame_id = data_ptr->frame_id;
-            d.data_len = data_ptr->data_len;
-            memcpy(d.data, data_ptr->data, d.data_len);
-            d.crc = utils::crc16_modbus((void*)&d, sizeof(d) - 2);
-            m_TxQueue.pop();
-
-            serial_port.write((const char*)&d, sizeof(UartCanData));
+            if(size)
+                serial_port.write((const char*)&data, size);
         }
 
         CanEntryHandler* can_handler = wxGetApp().can_entry;
-        can_handler->OnFrameSent(d.frame_id, d.data_len, d.data);
+        can_handler->OnFrameSent(data_ptr->frame_id, data_ptr->data_len, data_ptr->data);
+
+        if(is_remove)
+            m_TxQueue.pop();
     }
 }

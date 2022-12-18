@@ -321,7 +321,9 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\AntiLock.hpp" />
     <ClInclude Include="src\CanEntryHandler.hpp" />
+    <ClInclude Include="src\CanDeviceLawicel.hpp" />
     <ClInclude Include="src\CanSerialPort.hpp" />
+    <ClInclude Include="src\CanDeviceStm32.hpp" />
     <ClInclude Include="src\CmdExecutor.hpp" />
     <ClInclude Include="src\CorsairHid.hpp" />
     <ClInclude Include="src\CryptoPrice.hpp" />
@@ -350,6 +352,7 @@
     <ClInclude Include="src\gui\pch.hpp" />
     <ClInclude Include="src\gui\TrayIcon.hpp" />
     <ClInclude Include="src\IdlePowerSaver.hpp" />
+    <ClInclude Include="src\interface\ICanDevice.hpp" />
     <ClInclude Include="src\interface\ICanEntryHandler.hpp" />
     <ClInclude Include="src\interface\ICmdHelper.hpp" />
     <ClInclude Include="src\interface\IDatabase.hpp" />
@@ -470,7 +473,9 @@
     </ClCompile>
     <ClCompile Include="src\AntiLock.cpp" />
     <ClCompile Include="src\CanEntryHandler.cpp" />
+    <ClCompile Include="src\CanDeviceLawicel.cpp" />
     <ClCompile Include="src\CanSerialPort.cpp" />
+    <ClCompile Include="src\CanDeviceStm32.cpp" />
     <ClCompile Include="src\CmdExecutor.cpp" />
     <ClCompile Include="src\CorsairHid.cpp" />
     <ClCompile Include="src\CryptoPrice.cpp" />

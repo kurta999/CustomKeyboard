@@ -64,6 +64,8 @@ namespace std
 #include "TerminalHotkey.hpp"
 #include "SerialPort.hpp"
 #include "CanSerialPort.hpp"
+#include "CanDeviceStm32.hpp"
+#include "CanDeviceLawicel.hpp"
 #include "ModbusMasterSerialPort.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"

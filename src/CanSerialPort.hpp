@@ -3,6 +3,7 @@
 #include <condition_variable>
 #include <string>
 #include <boost/circular_buffer.hpp>
+#include <ICanDevice.hpp>
 
 constexpr size_t MAX_CAN_FRAME_DATA_LEN = 8;
 
@@ -39,6 +40,11 @@ public:
     // !\brief Initialize CanSerialPort
     void Init();
 
+    void SetDeviceType(uint8_t device_type) { m_DeviceType = device_type != 0; }
+    uint8_t GetDeviceType() { return m_DeviceType; }
+
+    void SetDevice(ICanDevice* device);
+
     // !\brief Set this module enabled
     void SetEnabled(bool enable);
 
@@ -54,10 +60,12 @@ public:
     // !\brief Add CAN frame to TX queue
     void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
-private:
     // !\brief Add CAN frame to RX queue
     void AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
+    void SendPendingCanFrames(CallbackAsyncSerial& serial_port);
+
+private:
     // !\brief Stops worker thread
     void DestroyWorkerThread();
 
@@ -68,13 +76,6 @@ private:
     // !\param serial_port [in] Pointer to received data
     // !\param len [in] Received data length
     void OnDataReceived(const char* data, unsigned int len);
-
-    // !\brief Process received CAN frames
-    void ProcessReceivedFrames();
-
-    // !\brief Send pending CAN frames from message queue
-    // !\param serial_port [in] Reference to async serial port
-    void SendPendingCanFrames(CallbackAsyncSerial& serial_port);
 
     // !\brief Is serial port data receiving enabled?
     bool is_enabled = true;
@@ -102,4 +103,10 @@ private:
 
     // !\brief CAN Tx Queue
     std::queue<std::shared_ptr<CanData>> m_TxQueue;
+
+    // !\brief CAN Device
+    ICanDevice* m_Device;
+
+    // !\brief CAN Device type
+    uint8_t m_DeviceType = 0;
 };

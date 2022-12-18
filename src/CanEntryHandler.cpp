@@ -184,21 +184,38 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                     uint8_t len = m.second.get<uint8_t>("<xmlattr>.len");
                     std::string type = m.second.get<std::string>("<xmlattr>.type");
                     std::string name = m.second.get_value<std::string>();
-                    size_t min_val = std::numeric_limits<size_t>::max();
-                    size_t max_val = std::numeric_limits<size_t>::max();
-
-                    boost::optional<size_t> min_val_child = v.second.get_optional<size_t>("<xmlattr>.min");
-                    boost::optional<size_t> max_val_child = v.second.get_optional<size_t>("<xmlattr>.max");
-                    if(min_val_child)
-                        min_val = *min_val_child;
-                    if(max_val_child)
-                        max_val = *max_val_child;
+                    int64_t min_val = std::numeric_limits<int64_t>::min();
+                    int64_t max_val = std::numeric_limits<int64_t>::max();
 
                     CanBitfieldType bitfield_type = GetTypeFromString(type);
                     if(bitfield_type == CBT_INVALID)
                     {
                         LOG(LogLevel::Warning, "Invalid type used for frame mapping. FrameID: {:X}, type: {}", frame_id, type);
                         continue;
+                    }
+
+                    boost::optional<int64_t> min_val_child = v.second.get_optional<int64_t>("<xmlattr>.min");
+                    boost::optional<int64_t> max_val_child = v.second.get_optional<int64_t>("<xmlattr>.max");
+                    if(min_val_child)
+                    {
+                        min_val = *min_val_child;
+                        if(min_val < GetMinMaxForType(bitfield_type).first)
+                            min_val = GetMinMaxForType(bitfield_type).first;
+                    }
+                    else
+                    {
+                        min_val = GetMinMaxForType(bitfield_type).first;
+                    }
+
+                    if(max_val_child)
+                    {
+                        max_val = *max_val_child;
+                        if(max_val > GetMinMaxForType(bitfield_type).second)
+                            max_val = GetMinMaxForType(bitfield_type).second;
+                    }
+                    else
+                    {
+                        max_val = GetMinMaxForType(bitfield_type).second;
                     }
 
                     mapping[frame_id].emplace(offset, std::make_unique<CanMap>(name, bitfield_type, len, min_val, max_val));
@@ -257,6 +274,14 @@ const std::string_view XmlCanMappingLoader::GetStringFromType(CanBitfieldType ty
     if(it != m_CanBitfieldTypeMap.end())
         return it->second;
     return m_CanBitfieldTypeMap[CBT_INVALID];
+}
+
+std::pair<int64_t, int64_t> XmlCanMappingLoader::GetMinMaxForType(CanBitfieldType type)
+{
+    auto it = m_CanTypeSizes.find(type);
+    if(it != m_CanTypeSizes.end())
+        return it->second;
+    return m_CanTypeSizes[CBT_INVALID];
 }
 
 void CanEntryHandler::Init()

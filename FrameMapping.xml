@@ -1,0 +1,48 @@
+<CanFrameMapping>
+  <Frame>
+    <ID>2C7</ID>
+    <Mapping offset = "0" len = "3" type ="uint8_t">Data From MCU</Mapping>
+    <Mapping offset = "3" len = "3" type ="uint8_t">Data From MCU2</Mapping>
+    <Mapping offset = "6" len = "3" type ="uint8_t">Data From MCU3</Mapping>
+  </Frame>
+  	<Frame>
+		<ID>411</ID>
+		<Mapping offset = "0" len = "8" type = "uint8_t">First</Mapping>
+		<Mapping offset = "8" len = "8" type = "uint8_t">Second</Mapping>
+		<Mapping offset = "16" len = "4" type = "uint8_t">nibble start</Mapping>
+		<Mapping offset = "20" len = "8" type = "uint8_t">nibble end</Mapping>
+		<Mapping offset = "28" len = "4" type = "uint8_t">finish nibble</Mapping>
+		<Mapping offset = "32" len = "8" type = "uint8_t">fifth byte</Mapping>
+		<Mapping offset = "40" len = "1" type = "bool">bool</Mapping>
+		<Mapping offset = "41" len = "4" type = "uint8_t">4bit</Mapping>
+		<Mapping offset = "45" len = "3" type = "uint8_t">6th byte 3bit</Mapping>
+		<Mapping offset = "48" len = "16" type = "uint16_t">7 and 8th byte</Mapping>
+	</Frame>
+  	<Frame>
+		<ID>47A</ID>
+		<Mapping offset = "16" len = "4" type = "uint8_t">Vehicle state</Mapping>
+	</Frame>
+  <Frame>
+    <ID>18CC07BB</ID>
+    <Mapping offset = "8" len = "32" type = "uint32_t">uint32_t</Mapping>
+    <Mapping offset = "44" len = "8" type = "uint8_t">uint8_t overlap</Mapping>
+  </Frame>
+  <Frame>
+    <ID>4EE</ID>
+    <Comment>Third</Comment>
+  </Frame>
+  <Frame>
+    <ID>55D</ID>
+    <Comment>Fourth </Comment>
+  </Frame>
+  <Frame>
+    <ID>6EF</ID>
+    <Comment>Fifth</Comment>
+  </Frame>  
+  <Frame>
+    <ID>5E4</ID>
+    <Mapping offset = "0" len = "6" type = "uint8_t">First 6</Mapping>
+    <Mapping offset = "6" len = "4" type = "uint8_t">First overlap 6</Mapping>
+    <Comment>RD</Comment>
+  </Frame>
+</CanFrameMapping>

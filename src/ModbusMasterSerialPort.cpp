@@ -2,22 +2,9 @@
 
 /* THIS MODULE IS IN VERY EARLY DEVELOPMENT STATE, FAR AWAY FROM FINISHED */
 
-constexpr uint32_t MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS = 0xAABBCCDD;
-constexpr uint32_t MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS = 0xAABBCCDE;
 constexpr uint32_t MAGIC_NUMBER_RECV_DATA_ERR = 0xAABBCCDF;
 
 constexpr uint32_t RX_QUEUE_MAX_SIZE = 1000;
-
-#pragma pack(push, 1)
-typedef struct
-{
-    uint32_t magic_number; // 0xAABBCCDD
-    uint32_t frame_id;
-    uint8_t data_len;
-    uint8_t data[8];
-    uint16_t crc;
-} UartCanData;
-#pragma pack(pop)
 
 ModbusMasterSerialPort::~ModbusMasterSerialPort()
 {
