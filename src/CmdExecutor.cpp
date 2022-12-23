@@ -227,58 +227,62 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
 bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
 {
     bool ret = true;
-#ifdef DEBUG
-    std::ofstream out("Cmds2.xml", std::ofstream::binary);
-#else
-    std::ofstream out(COMMAND_FILE_PATH, std::ofstream::binary);
-#endif
-    if(out.is_open())
-    {
-        out << "<Commands>\n";
+    boost::property_tree::ptree pt;
+    auto& root_node = pt.add_child("Commands", boost::property_tree::ptree{});
 
-        uint8_t page_cnt = 1;
-        for(auto& page : storage)
+    uint8_t page_cnt = 1;
+    for(auto& page : storage)
+    {
+        uint8_t cnt = 1;
+
+        auto& page_node = root_node.add_child(std::format("Page_{}", page_cnt), boost::property_tree::ptree{});
+        page_node.put("<xmlattr>.name", names[page_cnt - 1]);
+
+        for(auto& col : page)
         {
-            uint8_t cnt = 1;
-            out << std::format("\t<Page_{} name = \"{}\"> \n", page_cnt, names[page_cnt - 1]);
-            for(auto& col : page)
+            auto& col_node = root_node.add_child(std::format("Col_{}", cnt), boost::property_tree::ptree{});
+            for(auto& i : col)
             {
-                out << std::format("\t\t<Col_{}>\n", cnt);
-                for(auto& i : col)
-                {
-                    std::visit([this, &out](auto& c)
+                std::visit([this, &col_node](auto& c)
+                    {
+                        using T = std::decay_t<decltype(c)>;
+                        if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
                         {
-                            using T = std::decay_t<decltype(c)>;
-                            if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
-                            {
-                                out << "\t\t\t<Cmd>\n";
-                                if(c->GetName() != c->GetCmd() && !c->GetName().empty())
-                                    out << std::format("\t\t\t\t<Name>{}</Name>\n", c->GetName());
-                                out << std::format("\t\t\t\t<Execute>{}</Execute>\n", c->GetCmd());
-                                out << std::format("\t\t\t\t<Param>{}</Param>\n", c->GetParam());
-                                out << std::format("\t\t\t\t<Color>0x{:X}</Color>\n", c->GetColor());
-                                out << std::format("\t\t\t\t<BackgroundColor>0x{:X}</BackgroundColor>\n", c->GetBackgroundColor());
-                                out << std::format("\t\t\t\t<Bold>{}</Bold>\n", c->IsBold());
-                                out << std::format("\t\t\t\t<Scale>{}</Scale>\n", c->GetScale());
-                                out << "\t\t\t</Cmd>\n";
-                            }
-                            else if constexpr(std::is_same_v<T, Separator>)
-                            {
-                                out << std::format("\t\t<Separator>{}</Separator>\n", c.width);
-                            }
-                            else
-                                static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
-                        }, i);
-                }
-                out << std::format("\t\t</Col_{}>\n", cnt);
-                cnt++;
+                            auto& cmd_node = col_node.add_child("Cmd", boost::property_tree::ptree{});
+                            if(c->GetName() != c->GetCmd() && !c->GetName().empty())
+                                cmd_node.add("Name", c->GetName());
+
+                            cmd_node.add("Execute", c->GetCmd());
+                            cmd_node.add("Param", c->GetParam());
+                            cmd_node.add("Color", std::format("0x{:X}", c->GetColor()));
+                            cmd_node.add("BackgroundColor", std::format("0x{:X}", c->GetBackgroundColor()));
+                            cmd_node.add("Execute", c->IsBold());
+                            cmd_node.add("Scale", c->GetScale());
+                        }
+                        else if constexpr(std::is_same_v<T, Separator>)
+                        {
+                            auto& separator_node = col_node.add("Separator", c.width);
+                        }
+                        else
+                            static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
+                    }, i);
             }
-            out << std::format("\t</Page_{}>\n", page_cnt);
-            page_cnt++;
+            cnt++;
         }
-        out << "</Commands>\n";
+        page_cnt++;
     }
-    else
+
+    try
+    {
+#ifdef DEBUG
+        boost::property_tree::write_xml("Cmds2.xml", pt, std::locale(),
+            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
+#else
+        boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
+            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
+#endif
+    }
+    catch(...)
     {
         ret = false;
     }

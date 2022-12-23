@@ -78,25 +78,27 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
 bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
 {
     bool ret = true;
-    std::ofstream out(path, std::ofstream::binary);
-    if(out.is_open())
+    boost::property_tree::ptree pt;
+    auto& root_node = pt.add_child("CanUsbXml", boost::property_tree::ptree{});
+    for(auto& i : e)
     {
-        out << "<CanUsbXml>\n";
-        for(auto& i : e)
-        {
-            out << "\t<Frame>\n";
-            out << std::format("\t\t<ID>{:X}</ID>\n", i->id);
-            std::string hex;
-            utils::ConvertHexBufferToString(i->data, hex);
-            out << std::format("\t\t<Data>{}</Data>\n", hex);
-            out << std::format("\t\t<Period>{}</Period>\n", i->period);
-            out << std::format("\t\t<LogLevel>{}</LogLevel>\n", i->log_level);
-            out << std::format("\t\t<Comment>{}</Comment>\n", i->comment);
-            out << "\t</Frame>\n";
-        }
-        out << "</CanUsbXml>\n";
+        std::string hex;
+        utils::ConvertHexBufferToString(i->data, hex);
+
+        auto& frame_node = root_node.add_child("Frame", boost::property_tree::ptree{});
+        frame_node.add("ID", std::format("{:X}", i->id));
+        frame_node.add("Data", hex);
+        frame_node.add("Period", i->period);
+        frame_node.add("LogLevel", i->log_level);
+        frame_node.add("Comment", i->comment);
     }
-    else
+
+    try
+    {
+        boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
+            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
+    }
+    catch(...)
     {
         ret = false;
     }
@@ -143,21 +145,22 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
 bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels)
 {
     bool ret = true;
-    std::ofstream out(path, std::ofstream::binary);
-    if(out.is_open())
+    boost::property_tree::ptree pt;
+    auto& root_node = pt.add_child("CanUsbRxXml", boost::property_tree::ptree{});
+    for(auto& i : e)
     {
-        out << "<CanUsbRxXml>\n";
-        for(auto& i : e)
-        {
-            out << "\t<Frame>\n";
-            out << std::format("\t\t<ID>{:X}</ID>\n", i.first);
-            out << std::format("\t\t<Comment>{}</Comment>\n", i.second);
-            out << std::format("\t\t<LogLevel>{}</LogLevel>\n", loglevels[i.first]);
-            out << "\t</Frame>\n";
-        }
-        out << "</CanUsbRxXml>\n";
+        auto& frame_node = root_node.add_child("Frame", boost::property_tree::ptree{});
+        frame_node.add("ID", std::format("{:X}", i.first));
+        frame_node.add("Comment", i.second);
+        frame_node.add("LogLevel", loglevels[i.first]);
     }
-    else
+
+    try
+    {
+        boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
+            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
+    }
+    catch(...)
     {
         ret = false;
     }
@@ -239,23 +242,32 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
 bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping)
 {
     bool ret = true;
-    std::ofstream out("FrameMapping.xml", std::ofstream::binary);
-    if(out.is_open())
+    boost::property_tree::ptree pt;
+    auto& root_node = pt.add_child("CanFrameMapping", boost::property_tree::ptree{});
+    for(auto& m : mapping)
     {
-        out << "<CanFrameMapping>\n";
-        for(auto& m : mapping)
+        auto& frame_node = root_node.add_child("Frame", boost::property_tree::ptree{});
+        frame_node.add("ID", std::format("{:X}", m.first));
+        for(auto& o : m.second)
         {
-            out << "\t<Frame>\n";
-            out << std::format("\t\t<ID>{:X}</ID>\n", m.first);
-            for(auto& o : m.second)
-            {
-                std::string_view type_str = GetStringFromType(o.second->m_Type);
-                out << std::format("\t\t<Mapping offset = \"{}\" len = \"{}\" type = \"{}\" min=\"{}\" max=\"{}\">{}< / Mapping>\n", 
-                    o.first, o.second->m_Size, type_str, o.second->m_Name, o.second->m_MinVal, o.second->m_MaxVal);
-            }
-            out << "\t</Frame>\n";
+            std::string_view type_str = GetStringFromType(o.second->m_Type);
+            auto& mapping_child = frame_node.add("Mapping", o.second->m_Name);
+            mapping_child.put("<xmlattr>.offset", o.first);
+            mapping_child.put("<xmlattr>.len", o.second->m_Size);
+            mapping_child.put("<xmlattr>.type", type_str);
+            mapping_child.put("<xmlattr>.min", o.second->m_MinVal);
+            mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
         }
-        out << "</CanFrameMapping>\n";
+    }
+
+    try
+    {
+        boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
+            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
+    }
+    catch(...)
+    {
+        ret = false;
     }
     return ret;
 }
@@ -372,6 +384,7 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
 {
     std::scoped_lock lock{ m };
     std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
+
     if(!m_rxData.contains(frame_id))
     {
         m_rxData[frame_id] = std::make_unique<CanRxData>(data, data_len);
