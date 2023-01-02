@@ -10,9 +10,16 @@ public:
     AntiLock() = default;
     ~AntiLock() = default;
 
+    void LoadExclusions(const std::string& input);
+
+    const std::string SaveExclusions();
+
     // \brief Process for antilock
     void Process();
 
+    // \brief Return last activity time
+    uint32_t GetLastActivityTime() { return m_LastActivityTime;  }
+    
     // \brief Is enabled?
     bool is_enabled = false;
 
@@ -40,5 +47,7 @@ private:
     bool IsAnExclusion(std::string&& p);
 
     // \brief Mouse step
-    bool step_forward = false;
+    bool m_StepForward = false;
+
+    uint32_t m_LastActivityTime = 0;
 };

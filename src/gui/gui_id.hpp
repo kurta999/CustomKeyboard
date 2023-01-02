@@ -12,6 +12,7 @@ enum
 	ID_100msTimer,
 	ID_CheckKeypress,
 	ID_FilePicker,
+	ID_FilePickerMapConverter,
 	ID_DestroyAll,
 	ID_CanLoadTxList,
 	ID_CanSaveTxList,

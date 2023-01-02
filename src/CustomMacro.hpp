@@ -332,6 +332,32 @@ public:
     CustomMacro() = default;
     ~CustomMacro() = default;
 
+    // !\brief Parse and insert macro keys from ini format to it's container 
+    // !\param id [in] ID of given entry
+    // !\param key_code [in] Reference to key code
+    // !\param str [in] String to parse
+    // !\param c [in] Reference to macro profile's unique pointer
+    void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c);
+    
+    // !\brief Simulate keypress (blocking function!)
+    // !\param key [in] Key sequence to simulate
+    void SimulateKeypress(const std::string& key);
+
+    // !\brief Process received data
+    void ProcessReceivedData(const char* data, unsigned int len);
+
+    // !\brief Return macro container
+    std::vector<std::unique_ptr<MacroAppProfile>>& GetMacros() { return macros; }
+
+    // !\brief Get key scan code by name
+    uint16_t GetKeyScanCode(const std::string& str);
+
+    // !\brief Get key name by scan code
+    std::string GetKeyStringFromScanCode(int scancode);
+
+    // !\brief Return HID scan code map
+    const std::unordered_map<std::string, int>& GetHidScanCodeMap() { return scan_codes; }
+
     template<typename T> void OnItemRecordingStarted(std::unique_ptr<T>&& val)
     {
         editing_macro->push_back(std::move(val));
@@ -339,8 +365,8 @@ public:
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         if(frame)
             frame->config_panel->keybrd_panel->UpdateDetailsTree();
-    }  
-   
+    }
+
     template<typename T> void OnItemRecordingComplete(std::unique_ptr<T>&& val)
     {
         editing_macro->push_back(std::move(val));
@@ -349,38 +375,6 @@ public:
         if(frame)
             frame->config_panel->keybrd_panel->UpdateDetailsTree();
 
-    }
-    std::vector<std::unique_ptr<MacroAppProfile>>& GetMacros()
-    {
-        return macros;
-    }
-
-    uint16_t GetKeyScanCode(const std::string& str)
-    {
-        uint16_t ret = 0xFFFF;
-        auto it = scan_codes.find(str);
-        if(it != scan_codes.end())
-            ret = it->second;
-        return ret;
-    }
-
-    std::string GetKeyStringFromScanCode(int scancode)
-    {
-        std::string ret = "INVALID";
-        for(auto& i : scan_codes)
-        {
-            if(i.second == scancode)
-            {
-                ret = i.first;
-                break;
-            }
-        }
-        return ret;
-    }
-
-    const std::unordered_map<std::string, int>& GetHidScanCodeMap()
-    {
-        return scan_codes;
     }
 
     // !\brief Use per application macro?
@@ -397,13 +391,6 @@ public:
 
     // !\brief Pointer to key entry which is being edited
     IKey* editing_item = nullptr;
-
-    // !\brief Process received data
-    void ProcessReceivedData(const char* data, unsigned int len);
-
-    // !\brief Simulate keypress (blocking function!)
-    // !\param key [in] Key sequence to simulate
-    void SimulateKeypress(const std::string& key);
 
 private:
     friend class Settings;

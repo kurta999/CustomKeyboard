@@ -259,7 +259,7 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
             break;
         }
     }
-    if(lvl > LogLevel::Normal && lvl <= LogLevel::Critical)
+    if(lvl > LogLevel::Verbose && lvl <= LogLevel::Critical)
     {
         fLog << fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, severity_str[lvl], filename, line, function, formatted_msg);
         fLog.flush();

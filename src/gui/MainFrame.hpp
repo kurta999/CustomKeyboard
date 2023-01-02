@@ -10,6 +10,7 @@
 #include "CanPanel.hpp"
 #include "ModbusMasterPanel.hpp"
 #include "CmdExecutorPanel.hpp"
+#include "MapConverterPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -45,8 +46,11 @@ enum PopupMsgIds : uint8_t
 	TxListSaved,
 	RxListLoaded,
 	RxListSaved,
+	FrameMappingLoaded,
+	FrameMappingSaved,
 	TxListLoadError,
 	RxListLoadError,
+	FrameMappingLoadError,
 	CanLogSaved,
 	CommandsSaved,
 };
@@ -78,6 +82,7 @@ public:
 	CmdExecutorPanelBase* cmd_panel = nullptr;
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
+	MapConverterPanel* map_converter_panel = nullptr;
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl = nullptr;
 	std::mutex mtx;

@@ -1,181 +1,6 @@
 #include "pch.hpp"
 
-static constexpr const char* SETTINGS_FILE_PATH = "settings.ini";
-
-void Settings::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
-{
-    constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
-    constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[", 
-        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[" };
-    constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
-        std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]), 
-        std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
-        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]),
-        std::char_traits<char>::length(start_str_arr[10]) };
-
-    constexpr const char* seq_separator = "+";
-
-    size_t pos = 1;
-    while(pos < str.length() - 1)
-    {
-        size_t first_end = str.find("]", pos + 1);
-        size_t first_pos[MAX_ITEMS];
-        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
-        {
-            first_pos[i] = str.substr(0, first_end).find(start_str_arr[i], pos - 1);
-        }
-
-        uint8_t input_type = 0xFF;
-        uint8_t not_empty_cnt = 0;
-        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
-        {
-            if(first_pos[i] != std::string::npos)
-            {
-                input_type = i;
-                not_empty_cnt++;
-            }
-        }
-
-        if(not_empty_cnt > 1 || input_type == 0xFF)
-        {
-            LOG(LogLevel::Error, "Error with config file macro formatting: {}", str);
-            return;
-        }
-
-        switch(input_type)
-        {
-            case MacroTypes::BIND_NAME:
-            {
-                pos = first_end;
-                c->bind_name[key_code] = utils::extract_string(str, first_pos[MacroTypes::BIND_NAME], first_end, start_str_arr_lens[MacroTypes::BIND_NAME]);
-                break;
-            }
-            case MacroTypes::KEY_SEQ:
-            {
-                pos = first_end;
-                std::string &&sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_SEQ], first_end, start_str_arr_lens[MacroTypes::KEY_SEQ]);
-                c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
-                break;
-            }
-            case MacroTypes::KEY_TYPE:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_TYPE], first_end, start_str_arr_lens[MacroTypes::KEY_TYPE]);
-                c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
-                break;
-            }
-            case MacroTypes::DELAY:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::DELAY], first_end, start_str_arr_lens[MacroTypes::DELAY]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for DELAY: {} ({})", sequence, e.what());
-                }
-                break;
-            }
-            case MacroTypes::MOUSE_MOVE:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_MOVE], first_end, start_str_arr_lens[MacroTypes::MOUSE_MOVE]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
-                }
-                break;
-            }            
-            case MacroTypes::MOUSE_INTERPOLATE:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_INTERPOLATE], first_end, start_str_arr_lens[MacroTypes::MOUSE_INTERPOLATE]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<MouseInterpolate>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
-                }
-                break;
-            }
-            case MacroTypes::MOUSE_PRESS:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_PRESS], first_end, start_str_arr_lens[MacroTypes::MOUSE_PRESS]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<MousePress>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
-                }
-                break;
-            }            
-            case MacroTypes::MOUSE_RELEASE:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_RELEASE], first_end, start_str_arr_lens[MacroTypes::MOUSE_RELEASE]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<MouseRelease>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
-                }
-                break;
-            }     
-            case MacroTypes::MOUSE_CLICK:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_CLICK], first_end, start_str_arr_lens[MacroTypes::MOUSE_CLICK]);
-                try
-                {
-                    c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
-                }
-                catch(std::exception& e)
-                {
-                    LOG(LogLevel::Error, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
-                }
-                break;
-            }            
-            case MacroTypes::BASH:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::BASH], first_end, start_str_arr_lens[MacroTypes::BASH]);
-                c->key_vec[key_code].push_back(std::make_unique<BashCommand>(std::move(sequence)));
-                break;
-            }            
-            case MacroTypes::CMD:
-            {
-                pos = first_end;
-                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD], first_end, start_str_arr_lens[MacroTypes::CMD]);
-                c->key_vec[key_code].push_back(std::make_unique<CommandExecute>(std::move(sequence)));
-                break;
-            }
-            default:
-            {
-                LOG(LogLevel::Error, "Invalid sequence/text format in line: {}", str.c_str());
-                break;
-            }
-        }
-    }
-
-    if(c->bind_name[key_code].empty())
-    {
-        c->bind_name[key_code] = "Unknown macro"; /* this needed because wxTreeList won't show empty string as row */
-        LOG(LogLevel::Warning, "Macro name for key {} missing. Giving it 'Unknown macro', feel free to change it.", key_code);
-    }
-}
+static constexpr const char* SETTINGS_FILE_PATH = "./settings.ini";
 
 void Settings::LoadFile()
 {
@@ -203,12 +28,11 @@ void Settings::LoadFile()
 
         CustomMacro::Get()->macros.clear();
         std::unique_ptr<MacroAppProfile> p = std::make_unique<MacroAppProfile>();
-        macro_section.clear();
         auto& global_child = pt.get_child("Keys_Global");
         for(auto& key : global_child)
         {
             std::string& str = key.second.data();
-            ParseMacroKeys(0, key.first, str, p);
+            CustomMacro::Get()->ParseMacroKeys(0, key.first, str, p);
         }
         p->app_name = "Global";
         CustomMacro::Get()->macros.push_back(std::move(p));
@@ -228,7 +52,7 @@ void Settings::LoadFile()
                     continue;
                 }
                 std::string& str = key.second.data();
-                ParseMacroKeys(counter, key.first, str, p2);
+                CustomMacro::Get()->ParseMacroKeys(counter, key.first, str, p2);
             }
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
@@ -249,10 +73,9 @@ void Settings::LoadFile()
         CanEntryHandler* can_handler = wxGetApp().can_entry;
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
         CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
-        CanSerialPort::Get()->SetDeviceType(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DeviceType")->second.data()));
+        CanSerialPort::Get()->SetDeviceType(static_cast<CanDeviceType>(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DeviceType")->second.data())));
         can_handler->ToggleAutoSend(utils::stob(pt.get_child("CANSender").find("AutoSend")->second.data()));
-        /* TODO: this may cause inconvience when data is reloaded while recording is in progress */
-        can_handler->ToggleRecording(utils::stob(pt.get_child("CANSender").find("AutoRecord")->second.data()), false);
+        can_handler->ToggleAutoRecord(utils::stob(pt.get_child("CANSender").find("AutoRecord")->second.data()));
         can_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
@@ -269,9 +92,9 @@ void Settings::LoadFile()
             if(sscanf(pt.get_child("App").find("LastWindowSize")->second.data().c_str(), "%d,%d", &window_size.x, &window_size.y) != 2)
                 LOG(LogLevel::Error, "Invalid ini format for WindowSize");
 
-            if(window_size.x < WINDOW_SIZE_X) 
+            if(window_size.x < WINDOW_SIZE_X)
                 window_size.x = WINDOW_SIZE_X;
-            if(window_size.y < WINDOW_SIZE_Y)
+            if(window_size.y < WINDOW_SIZE_X)
                 window_size.y = WINDOW_SIZE_Y;
         }
         always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());
@@ -296,22 +119,12 @@ void Settings::LoadFile()
         AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
         AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
         AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
-        if(!pt.get_child("AntiLock").find("Exclusions")->second.data().empty())
-        {
-            std::vector<std::string> ignore_list;
-            std::string input_ignore = pt.get_child("AntiLock").find("Exclusions")->second.data();
-            boost::split(ignore_list, input_ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
-            AntiLock::Get()->exclusions = std::move(ignore_list);
-            for(auto& i : AntiLock::Get()->exclusions)
-            {
-                LOG(LogLevel::Notification, "AntiLock exclusion: {}", i);
-            }
-        }
+        AntiLock::Get()->LoadExclusions(pt.get_child("AntiLock").find("Exclusions")->second.data());
 
         TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
         const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
         TerminalHotkey::Get()->SetKey(key);
-        TerminalHotkey::Get()->type = static_cast<TerminalType>(utils::stoi<uint8_t>(pt.get_child("TerminalHotkey").find("Type")->second.data()));  /* TDOO: move this function to TerminalHotkey */
+        TerminalHotkey::Get()->type = static_cast<TerminalType>(utils::stoi<uint8_t>(pt.get_child("TerminalHotkey").find("Type")->second.data()));
 
         IdlePowerSaver::Get()->is_enabled = utils::stob(pt.get_child("IdlePowerSaver").find("Enable")->second.data());
         IdlePowerSaver::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("IdlePowerSaver").find("Timeout")->second.data());
@@ -321,28 +134,16 @@ void Settings::LoadFile()
 
         /* load backup configs */
         DirectoryBackup::Get()->Clear();
-        size_t counter_ = 1;
+        size_t backup_counter = 1;
         size_t cnt_ = 0;
-        while((cnt_ = pt.count("Backup_" + std::to_string(counter_))) == 1)
+        while((cnt_ = pt.count("Backup_" + std::to_string(backup_counter))) == 1)
         {
-            std::string key = "Backup_" + std::to_string(counter_);
+            std::string key = "Backup_" + std::to_string(backup_counter);
 
-            std::filesystem::path from = pt.get_child(key).find("From")->second.data();
-
-            std::vector<std::filesystem::path> to;
-            boost::split(to, pt.get_child(key).find("To")->second.data(), [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
-
-            std::vector<std::wstring> ignore_list;
-            std::wstring ignore;
-            utils::MBStringToWString(pt.get_child(key).find("Ignore")->second.data(), ignore);
-            boost::split(ignore_list, ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
-            int max_backups = utils::stoi<decltype(max_backups)>(pt.get_child(key).find("MaxBackups")->second.data());
-            bool calculate_hash = utils::stob(pt.get_child(key).find("CalculateHash")->second.data());
-            size_t buffer_size = utils::stob(pt.get_child(key).find("BufferSize")->second.data());
-            std::unique_ptr<BackupEntry> b = std::make_unique<BackupEntry>(std::move(from), std::move(to), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
-
-            counter_++;
-            DirectoryBackup::Get()->backups.push_back(std::move(b));
+            DirectoryBackup::Get()->LoadEntry(pt.get_child(key).find("From")->second.data(), pt.get_child(key).find("To")->second.data(),
+                pt.get_child(key).find("Ignore")->second.data(), utils::stoi<size_t>(pt.get_child(key).find("MaxBackups")->second.data()),
+                utils::stob(pt.get_child(key).find("CalculateHash")->second.data()), utils::stob(pt.get_child(key).find("BufferSize")->second.data()));
+            backup_counter++;
         }
 
         uint32_t val1 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph1HoursBack")->second.data());
@@ -357,6 +158,8 @@ void Settings::LoadFile()
             used_pages.config = 1;
         if(boost::icontains(pages_str, "wxEditor"))
             used_pages.wxeditor = 1;
+        if(boost::icontains(pages_str, "Map"))
+            used_pages.map_converter = 1;
         if(boost::icontains(pages_str, "StringEscaper"))
             used_pages.escaper = 1;
         if(boost::icontains(pages_str, "Debug"))
@@ -381,6 +184,12 @@ void Settings::LoadFile()
     catch(std::exception& e)
     {
         LOG(LogLevel::Critical, "Exception {}", e.what());
+    }
+
+    if(used_pages.pages == 0)  /* Enable at least the Log panel if everything is disabled */
+    {
+        used_pages.log = 1;
+        LOG(LogLevel::Error, "Enabling log panel, because every panel is disabled");
     }
 }
 
@@ -473,10 +282,10 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[CANSender]\n";
     out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";
     out << "COM = " << CanSerialPort::Get()->GetComPort() << " # Com port for CAN UART where data is received/sent from/to STM32\n";
-    out << "DeviceType = " << CanSerialPort::Get()->GetDeviceType() << " # 0 = STM32, 1 = LAWICEL\n";
+    out << "DeviceType = " << static_cast<int>(CanSerialPort::Get()->GetDeviceType()) << " # 0 = STM32, 1 = LAWICEL\n";
     out << "AutoSend = " << can_handler->IsAutoSend() << "\n";
-    out << "AutoRecord = " << 0 << "\n";  /* TODO: implement it */
-    out << "DefaultRecordingLogLevel = " << can_handler->GetRecordingLogLevel() << "\n";
+    out << "AutoRecord = " << can_handler->IsAutoRecord() << "\n";
+    out << "DefaultRecordingLogLevel = " << static_cast<int>(can_handler->GetRecordingLogLevel()) << "\n";
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "DefaultRxList = " << can_handler->default_rx_list.generic_string() << "\n";
     out << "DefaultMapping = " << can_handler->default_mapping.generic_string() << "\n";
@@ -517,14 +326,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Enable = " << AntiLock::Get()->is_enabled << "\n";
     out << "Timeout = " << AntiLock::Get()->timeout << " # Seconds\n";
     out << "StartScreenSaver = " << AntiLock::Get()->is_screensaver << "\n";
-    std::string exclusions;
-    for(auto& x : AntiLock::Get()->exclusions)
-    {
-        exclusions += x + '|';
-    }
-    if(exclusions.back() == '|')
-        exclusions.pop_back();
-    out << "Exclusions = " << exclusions << '\n';
+    out << "Exclusions = " << AntiLock::Get()->SaveExclusions() << '\n';
     out << "\n";
     out << "[TerminalHotkey]\n";
     out << "Enable = " << TerminalHotkey::Get()->is_enabled << "\n";

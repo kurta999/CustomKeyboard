@@ -53,7 +53,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 - [AsyncSerial](https://github.com/fedetft/serial-port "AsyncSerial's Homepage")
 - [Chart.js](https://www.chartjs.org/ "Charts.js' Homepage")
 - [bitfield](https://github.com/openxc/bitfield-c "bitfield's Homepage")
-- [isotp]https://github.com/lishen2/isotp-c "iso-tp's Homepage")
+- [isotp](https://github.com/lishen2/isotp-c "iso-tp's Homepage")
 
 Required external depencencies:
 - [Boost 1.81.0](https://www.boost.org/ "Boost's Homepage")

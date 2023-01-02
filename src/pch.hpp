@@ -39,6 +39,7 @@ namespace std
 #include "gui/TrayIcon.hpp"
 #include "gui/MainPanel.hpp"
 #include "gui/MainFrame.hpp"
+#include "gui/MapConverterPanel.hpp"
 #include "gui/ModbusMasterPanel.hpp"
 #include "gui/CmdExecutorPanel.hpp"
 
@@ -67,6 +68,7 @@ namespace std
 #include "CanDeviceStm32.hpp"
 #include "CanDeviceLawicel.hpp"
 #include "ModbusMasterSerialPort.hpp"
+#include "MapConverter.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
 #include "CorsairHid.hpp"
@@ -180,6 +182,8 @@ namespace std
 extern "C"
 {
 	#include "sha256/sha256.h"
+	#include <bitfield/bitfield.h>
+	#include <isotp/isotp.h>
 }
 
 #ifdef _WIN32

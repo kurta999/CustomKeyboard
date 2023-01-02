@@ -16,16 +16,20 @@ find_package(Boost REQUIRED system program_options)
 find_package(fmt REQUIRED)
 #find_package(hidapi REQUIRED)
 
-add_subdirectory(libs)
-
 include_directories(libs)
+#include_directories(libs/bitfield)
+#include_directories(libs/isotp)
 include_directories(src/interface)
 include_directories(wxWidgets_INCLUDE_DIRS)
+
+add_subdirectory(libs)
 
 set(src_SOURCES_pch
 	#${CMAKE_CURRENT_SOURCE_DIR}/src/pch.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AntiLock.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CanEntryHandler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CanDeviceLawicel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/CanDeviceStm32.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CanSerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CryptoPrice.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/CmdExecutor.cpp
@@ -50,6 +54,7 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/TerminalHotkey.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/TcpMessageExecutor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ModbusMasterSerialPort.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/MapConverter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialForwarder.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StringToCEscaper.cpp
@@ -65,6 +70,7 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainFrame.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ModbusMasterPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MapConverterPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ParserPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/DebugPanel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/TrayIcon.cpp

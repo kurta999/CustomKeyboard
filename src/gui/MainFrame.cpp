@@ -42,7 +42,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
-Copyright (c) 2021 - 2022 kurta999\n\
+Copyright (c) 2021 - 2023 kurta999\n\
 \n\
 Permission is hereby granted, free of charge, to any person obtaining a copy\n\
 of this software and associated documentation files (the \"Software\"), to deal\n\
@@ -249,6 +249,21 @@ void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 void MyFrame::OnSaveEverything(wxCommandEvent& event)
 {
 	Settings::Get()->SaveFile(false);
+	CanEntryHandler* can_handler = wxGetApp().can_entry;
+
+	if(can_handler)
+	{
+		std::filesystem::path path = "TxList.xml";
+		can_handler->SaveTxList(path);
+		path = "RxList.xml";
+		can_handler->SaveRxList(path);
+		path = "FrameMapping.xml";
+		can_handler->SaveMapping(path);
+	}
+
+	CmdExecutor* cmd_executor = wxGetApp().cmd_executor;
+	if(cmd_executor)
+		cmd_executor->Save();
 }
 
 void MyFrame::On10msTimer(wxTimerEvent& event)
@@ -312,9 +327,9 @@ void MyFrame::HandleBackupProgressDialog()
 
 void MyFrame::HandleAlwaysOnNumlock()
 {
-	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))
+#ifdef _WIN32
+	if(Settings::Get()->always_on_numlock && !wxGetKeyState(WXK_NUMLOCK))  /* WXK_NUMLOCK causes assert failure on linux */
 	{
-		#ifdef _WIN32
 		INPUT input = { 0 };
 		input.type = INPUT_KEYBOARD;
 		input.ki.wVk = VK_NUMLOCK;
@@ -322,10 +337,8 @@ void MyFrame::HandleAlwaysOnNumlock()
 		SendInput(1, &input, sizeof(input));
 		input.ki.dwFlags = KEYEVENTF_KEYUP;
 		SendInput(1, &input, sizeof(input));
-		#else
-		/* TODO: Handle numlock on on linux */
-		#endif
 	}
+#endif
 }
 
 void MyFrame::HandleCryptoPriceUpdate()
@@ -359,6 +372,8 @@ void MyFrame::ToggleForegroundVisibility()
 	if(is_iconized)
 	{
 		Iconize(false);
+		SetFocus();
+		Raise();
 		Show(true);
 	}
 	else
@@ -451,6 +466,11 @@ MyFrame::MyFrame(const wxString& title)
 		config_panel = new ConfigurationPanel(this);
 		ctrl->AddPage(config_panel, "Config", false, wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	}
+	if(used_pages.map_converter)
+	{
+		map_converter_panel = new MapConverterPanel(this);
+		ctrl->AddPage(map_converter_panel, "Map", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	}	
 	if(used_pages.wxeditor)
 	{
 		editor_panel = new EditorPanel(ctrl);
@@ -638,8 +658,10 @@ void MyFrame::HandleNotifications()
 				case TxListSaved:
 				case RxListLoaded:
 				case RxListSaved:
+				case FrameMappingLoaded:
+				case FrameMappingSaved:
 				{
-					const wxString msg[] = { "TX List Loaded", "TX List Saved", "RX List Loaded", "RX List Saved" };
+					const wxString msg[] = { "TX List Loaded", "TX List Saved", "RX List Loaded", "RX List Saved", "Frame Mapping Loaded", "Frame Mapping Saved"};
  					ShowNotificaiton(msg[type - TxListLoaded], msg[type - TxListLoaded], 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 						{
 						});
@@ -647,8 +669,9 @@ void MyFrame::HandleNotifications()
 				}
 				case TxListLoadError:
 				case RxListLoadError:
+				case FrameMappingLoadError:
 				{
-					const wxString msg[] = { "TX List Load failed", "RX List Load failed" };
+					const wxString msg[] = { "TX List Load failed", "RX List Load failed", "Frame Mapping Load failed"};
 					ShowNotificaiton(msg[type - TxListLoadError], msg[type - TxListLoadError], 3, wxICON_ERROR, [this](wxCommandEvent& event)
 						{
 						});
@@ -658,7 +681,7 @@ void MyFrame::HandleNotifications()
 				{
 					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
-					ShowNotificaiton("Screenshot saved", wxString::Format("Can log saved in %.3fms\nPath: %s",
+					ShowNotificaiton("CAN Log saved", wxString::Format("Can log saved in %.3fms\nPath: %s",
 						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 						{
 #ifdef _WIN32

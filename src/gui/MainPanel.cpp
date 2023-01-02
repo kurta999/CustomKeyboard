@@ -265,6 +265,13 @@ void MainPanel::UpdateKeybindings()
 		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
 		it->second->SetForegroundColour(*wxRED);
 	}
+	it = key_map.find(CustomMacro::Get()->bring_to_foreground_key);
+	if(it != key_map.end())
+	{
+		it->second->SetLabelText("TOGGLE");
+		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+		it->second->SetForegroundColour(*wxRED);
+	}
 }
 
 void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell)

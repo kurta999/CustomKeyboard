@@ -6,20 +6,24 @@
 class UsedPages
 {
 public:
-    uint16_t pages;
     union
     {
-        uint8_t main : 1;
-        uint8_t config : 1;
-        uint8_t wxeditor : 1;
-        uint8_t escaper : 1;
-        uint8_t debug : 1;
-        uint8_t struct_parser : 1;
-        uint8_t file_browser : 1;
-        uint8_t cmd_executor : 1;
-        uint8_t can : 1;
-        uint8_t modbus_master : 1;
-        uint8_t log : 1;
+        uint16_t pages;
+        struct
+        {
+            uint8_t main : 1;
+            uint8_t config : 1;
+            uint8_t wxeditor : 1;
+            uint8_t map_converter : 1;
+            uint8_t escaper : 1;
+            uint8_t debug : 1;
+            uint8_t struct_parser : 1;
+            uint8_t file_browser : 1;
+            uint8_t cmd_executor : 1;
+            uint8_t can : 1;
+            uint8_t modbus_master : 1;
+            uint8_t log : 1;
+        };
     };
 };
 
@@ -49,7 +53,7 @@ public:
     bool minimize_on_startup = false;
 
     // !\brief Used pages
-    UsedPages used_pages;
+    UsedPages used_pages = {};
 
     // !\brief Default start page for application
     uint8_t default_page = 1;
@@ -66,13 +70,5 @@ public:
     // !\bried Shared drive mapped letter
     char shared_drive_letter = 'Z';
 private:
-    // !\brief Parse and insert macro keys from ini format to it's container 
-    // !\param id [in] ID of given entry
-    // !\param key_code [in] Reference to key code
-    // !\param str [in] String to parse
-    // !\param c [in] Reference to macro profile's unique pointer
-    void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c);
 
-    // !\brief Current macro section
-    std::string macro_section;
 };

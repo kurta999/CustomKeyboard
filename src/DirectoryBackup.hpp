@@ -50,6 +50,9 @@ public:
     // !\brief Initialize DirectoryBackup
     void Init(void);
 
+    // !\brief Construct backup entry from string
+    void LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool calculate_hash, size_t buffer_size);
+
     // !\brief Starts backup with given id
     // \param id [in] ID of backup entry to execute
     void BackupFile(int id);

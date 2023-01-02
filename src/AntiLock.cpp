@@ -1,5 +1,31 @@
 #include "pch.hpp"
 
+void AntiLock::LoadExclusions(const std::string& input)
+{
+    if(!input.empty())
+    {
+        std::vector<std::string> ignore_list;
+        boost::split(ignore_list, input, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
+        AntiLock::Get()->exclusions = std::move(ignore_list);
+        for(auto& i : AntiLock::Get()->exclusions)
+        {
+            LOG(LogLevel::Notification, "AntiLock exclusion: {}", i);
+        }
+    }
+}
+
+const std::string AntiLock::SaveExclusions()
+{
+    std::string exclusions;
+    for(auto& x : AntiLock::Get()->exclusions)
+    {
+        exclusions += x + '|';
+    }
+    if(exclusions.back() == '|')
+        exclusions.pop_back();
+    return exclusions;
+}
+
 bool AntiLock::IsSessionActive()
 {
 #ifdef _WIN32
@@ -61,8 +87,8 @@ void AntiLock::SimulateUserActivity()
 #ifdef _WIN32
     POINT pos;
     GetCursorPos(&pos);
-    step_forward ^= step_forward;
-    if(step_forward)
+    m_StepForward ^= m_StepForward;
+    if(m_StepForward)
     {
         pos.x += 5;
         pos.y += 5;
@@ -118,7 +144,7 @@ bool AntiLock::IsAnExclusion(std::string&& p)
 void AntiLock::Process()
 {
     //LOG(LogLevel::Normal, "first");
-	if(is_enabled)
+	if(is_enabled || IdlePowerSaver::Get()->is_enabled)
 	{
 #ifdef _WIN32
 		LASTINPUTINFO linput_info;
@@ -128,11 +154,11 @@ void AntiLock::Process()
 		if(GetLastInputInfo(&linput_info) != 0)
 		{
             //LOG(LogLevel::Normal, "GetLastInputInfo");
-			DWORD last_activity_time = GetTickCount() - linput_info.dwTime;
-            IdlePowerSaver::Get()->Process(last_activity_time);
-			if(last_activity_time > (timeout * 1000))
+            m_LastActivityTime = GetTickCount() - linput_info.dwTime;
+            IdlePowerSaver::Get()->Process(m_LastActivityTime);
+			if(m_LastActivityTime > (timeout * 1000) && is_enabled)
 			{
-                //LOG(LogLevel::Normal, "last_activity_time > (timeout * 1000)");
+                //LOG(LogLevel::Normal, "m_LastActivityTime > (timeout * 1000)");
                 HWND foreground = GetForegroundWindow();
                 if(foreground)
                 {

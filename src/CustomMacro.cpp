@@ -431,87 +431,179 @@ std::string CommandExecute::GenerateText(bool is_ini_format)
     return ret;
 }
 
-void CustomMacro::ExecuteKeypresses()
+void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
-    std::scoped_lock lock(executor_mtx);
-    if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
-    {
-        PrintScreenSaver::Get()->SaveScreenshot();
-        return;
-    }
-    if(PathSeparator::Get()->replace_key == pressed_keys)
-    {
-        PathSeparator::Get()->ReplaceClipboard();
-        return;
-    }
-    if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
-        return;
+    constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
+    constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[",
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[" };
+    constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
+        std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]),
+        std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
+        std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]),
+        std::char_traits<char>::length(start_str_arr[10]) };
 
-    if(bring_to_foreground_key == pressed_keys)
-    {
-        ExecuteForegroundKeypress();
-        return;
-    }
+    constexpr const char* seq_separator = "+";
 
-    auto ExecuteGlobalMacro = [this]()
+    size_t pos = 1;
+    while(pos < str.length() - 1)
     {
-        const auto it = macros[0]->key_vec.find(pressed_keys);
-        if(it != macros[0]->key_vec.end())
+        size_t first_end = str.find("]", pos + 1);
+        size_t first_pos[MAX_ITEMS];
+        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
         {
-            for(const auto& i : it->second)
+            first_pos[i] = str.substr(0, first_end).find(start_str_arr[i], pos - 1);
+        }
+
+        uint8_t input_type = 0xFF;
+        uint8_t not_empty_cnt = 0;
+        for(std::underlying_type_t<MacroTypes> i = 0; i != MAX_ITEMS; ++i)
+        {
+            if(first_pos[i] != std::string::npos)
             {
-                i->Execute();
+                input_type = i;
+                not_empty_cnt++;
             }
         }
-    };
 
-    if(use_per_app_macro)
-    {
-#ifdef _WIN32
-        HWND foreground = GetForegroundWindow();
-        if(foreground)
+        if(not_empty_cnt > 1 || input_type == 0xFF)
         {
-            char window_title[256];
-            GetWindowTextA(foreground, window_title, sizeof(window_title));
-            bool app_found = false;
-            for(auto& m : macros)
+            LOG(LogLevel::Error, "Error with config file macro formatting: {}", str);
+            return;
+        }
+
+        switch(input_type)
+        {
+            case MacroTypes::BIND_NAME:
             {
-                if(boost::algorithm::contains(window_title, m->app_name) && m->app_name.length() > 2)
+                pos = first_end;
+                c->bind_name[key_code] = utils::extract_string(str, first_pos[MacroTypes::BIND_NAME], first_end, start_str_arr_lens[MacroTypes::BIND_NAME]);
+                break;
+            }
+            case MacroTypes::KEY_SEQ:
+            {
+                pos = first_end;
+                std::string&& sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_SEQ], first_end, start_str_arr_lens[MacroTypes::KEY_SEQ]);
+                c->key_vec[key_code].push_back(std::make_unique<KeyCombination>(std::move(sequence)));
+                break;
+            }
+            case MacroTypes::KEY_TYPE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::KEY_TYPE], first_end, start_str_arr_lens[MacroTypes::KEY_TYPE]);
+                c->key_vec[key_code].push_back(std::make_unique<KeyText>(std::move(sequence)));
+                break;
+            }
+            case MacroTypes::DELAY:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::DELAY], first_end, start_str_arr_lens[MacroTypes::DELAY]);
+                try
                 {
-                    const auto it = m->key_vec.find(pressed_keys);
-                    if(it != m->key_vec.end())
-                    {
-                        for(const auto& i : it->second)
-                        {
-                            i->Execute();
-                        }
-                    }
-                    app_found = true;
-                    break;
+                    c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
                 }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for DELAY: {} ({})", sequence, e.what());
+                }
+                break;
             }
-            if(!app_found)
-                ExecuteGlobalMacro();
+            case MacroTypes::MOUSE_MOVE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_MOVE], first_end, start_str_arr_lens[MacroTypes::MOUSE_MOVE]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
+                }
+                break;
+            }
+            case MacroTypes::MOUSE_INTERPOLATE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_INTERPOLATE], first_end, start_str_arr_lens[MacroTypes::MOUSE_INTERPOLATE]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseInterpolate>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
+                }
+                break;
+            }
+            case MacroTypes::MOUSE_PRESS:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_PRESS], first_end, start_str_arr_lens[MacroTypes::MOUSE_PRESS]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MousePress>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
+                }
+                break;
+            }
+            case MacroTypes::MOUSE_RELEASE:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_RELEASE], first_end, start_str_arr_lens[MacroTypes::MOUSE_RELEASE]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseRelease>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
+                }
+                break;
+            }
+            case MacroTypes::MOUSE_CLICK:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::MOUSE_CLICK], first_end, start_str_arr_lens[MacroTypes::MOUSE_CLICK]);
+                try
+                {
+                    c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
+                }
+                catch(std::exception& e)
+                {
+                    LOG(LogLevel::Error, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
+                }
+                break;
+            }
+            case MacroTypes::BASH:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::BASH], first_end, start_str_arr_lens[MacroTypes::BASH]);
+                c->key_vec[key_code].push_back(std::make_unique<BashCommand>(std::move(sequence)));
+                break;
+            }
+            case MacroTypes::CMD:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD], first_end, start_str_arr_lens[MacroTypes::CMD]);
+                c->key_vec[key_code].push_back(std::make_unique<CommandExecute>(std::move(sequence)));
+                break;
+            }
+            default:
+            {
+                LOG(LogLevel::Error, "Invalid sequence/text format in line: {}", str.c_str());
+                break;
+            }
         }
-        else
-        {
-            ExecuteGlobalMacro();
-        }
-#else
-        ExecuteGlobalMacro();
-#endif
     }
-    else
-    {
-        ExecuteGlobalMacro();
-    }
-}
 
-void CustomMacro::ExecuteForegroundKeypress()
-{
-    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    if(frame)
-        frame->ToggleForegroundVisibility();
+    if(c->bind_name[key_code].empty())
+    {
+        c->bind_name[key_code] = "Unknown macro"; /* this needed because wxTreeList won't show empty string as row */
+        LOG(LogLevel::Warning, "Macro name for key {} missing. Giving it 'Unknown macro', feel free to change it.", key_code);
+    }
 }
 
 void CustomMacro::SimulateKeypress(const std::string& key)
@@ -599,6 +691,112 @@ void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
         utils::ConvertHexBufferToString(data, len, hex);
         LOG(LogLevel::Verbose, "Full Data buffer: {}", hex);
     }
+}
+
+uint16_t CustomMacro::GetKeyScanCode(const std::string& str)
+{
+    uint16_t ret = 0xFFFF;
+    auto it = scan_codes.find(str);
+    if(it != scan_codes.end())
+        ret = it->second;
+    return ret;
+}
+
+std::string CustomMacro::GetKeyStringFromScanCode(int scancode)
+{
+    std::string ret = "INVALID";
+    for(auto& i : scan_codes)
+    {
+        if(i.second == scancode)
+        {
+            ret = i.first;
+            break;
+        }
+    }
+    return ret;
+}
+
+void CustomMacro::ExecuteKeypresses()
+{
+    std::scoped_lock lock(executor_mtx);
+    if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
+    {
+        PrintScreenSaver::Get()->SaveScreenshot();
+        return;
+    }
+    if(PathSeparator::Get()->replace_key == pressed_keys)
+    {
+        PathSeparator::Get()->ReplaceClipboard();
+        return;
+    }
+    if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))
+        return;
+
+    if(bring_to_foreground_key == pressed_keys)
+    {
+        ExecuteForegroundKeypress();
+        return;
+    }
+
+    auto ExecuteGlobalMacro = [this]()
+    {
+        const auto it = macros[0]->key_vec.find(pressed_keys);
+        if(it != macros[0]->key_vec.end())
+        {
+            for(const auto& i : it->second)
+            {
+                i->Execute();
+            }
+        }
+    };
+
+    if(use_per_app_macro)
+    {
+#ifdef _WIN32
+        HWND foreground = GetForegroundWindow();
+        if(foreground)
+        {
+            char window_title[256];
+            GetWindowTextA(foreground, window_title, sizeof(window_title));
+            bool app_found = false;
+            for(auto& m : macros)
+            {
+                if(boost::algorithm::contains(window_title, m->app_name) && m->app_name.length() > 2)
+                {
+                    const auto it = m->key_vec.find(pressed_keys);
+                    if(it != m->key_vec.end())
+                    {
+                        for(const auto& i : it->second)
+                        {
+                            i->Execute();
+                        }
+                    }
+                    app_found = true;
+                    break;
+                }
+            }
+            if(!app_found)
+                ExecuteGlobalMacro();
+        }
+        else
+        {
+            ExecuteGlobalMacro();
+        }
+#else
+        ExecuteGlobalMacro();
+#endif
+    }
+    else
+    {
+        ExecuteGlobalMacro();
+    }
+}
+
+void CustomMacro::ExecuteForegroundKeypress()
+{
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if(frame)
+        frame->ToggleForegroundVisibility();
 }
 
 const std::unordered_map<std::string, int> CustomMacro::scan_codes = 

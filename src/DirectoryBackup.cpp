@@ -42,6 +42,22 @@ void DirectoryBackup::Init()
 
 }
 
+void DirectoryBackup::LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool calculate_hash, size_t buffer_size)
+{
+	std::filesystem::path from_path = from;
+
+	std::vector<std::filesystem::path> to_path;
+	boost::split(to_path, to, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
+
+	std::vector<std::wstring> ignore_list;
+	std::wstring ignore_w;
+	utils::MBStringToWString(ignore, ignore_w);
+	boost::split(ignore_list, ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
+	std::unique_ptr<BackupEntry> b = std::make_unique<BackupEntry>(std::move(from_path), std::move(to_path), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
+
+	DirectoryBackup::Get()->backups.push_back(std::move(b));
+}
+
 void DirectoryBackup::BackupFile(int id)
 {
 	if(id < backups.size())
