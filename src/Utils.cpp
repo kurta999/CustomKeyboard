@@ -445,4 +445,16 @@ namespace utils
 		}
 		return ret;
 	}
+
+#ifndef _WIN32
+	uint32_t GetTickCount()
+	{
+		struct timespec ts;
+		unsigned theTick = 0U;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		theTick = ts.tv_nsec / 1000000;
+		theTick += ts.tv_sec * 1000;
+		return theTick;
+	}
+#endif
 }

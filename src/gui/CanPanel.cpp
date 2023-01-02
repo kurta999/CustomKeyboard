@@ -100,7 +100,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
 
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_DataSize, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Period, new wxGridCellNumberEditor);
-     
+
     m_grid->SetReadOnly(cnt, CanSenderGridCol::Sender_Count, true);
     
     for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
@@ -400,7 +400,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         m_SendIsoTp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 CanEntryHandler* can_handler = wxGetApp().can_entry;
-                wxTextEntryDialog d(this, "Enter data to send\nExample: [FrameID] [Byte1] [Byte2] [ByteX] ...", "Send ISO-TP Frame");
+                wxTextEntryDialog d(this,  wxString::Format("Enter ISO-TP payload data to send (Response FrameID: %X)\nExample: [FrameID] [Response Frame ID] [Byte1] [Byte2] [ByteX] ...", 
+                        can_handler->GetIsoTpResponseFrame()), "Send ISO-TP Frame");
                 if(!m_LastIsoTpInput.empty())
                     d.SetValue(m_LastIsoTpInput);
                 int ret = d.ShowModal();
@@ -420,8 +421,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                         utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
 
                         uint16_t len = (hex_str.length() / 2);
-                        can_handler->SendIsoTpFrame((uint8_t*)byte_array, len);
-                        LOG(LogLevel::Notification, "Sending ISO-TP Frame, ID: {:X}, Len: {}", frame_id, len);
+                        can_handler->SendIsoTpFrame(frame_id, (uint8_t*)byte_array, len);
+                        LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", frame_id, can_handler->GetIsoTpResponseFrame(), len);
                     }
                     else
                     {
@@ -430,6 +431,44 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                 }
             });
         h_sizer_2->Add(m_SendIsoTp);
+
+        m_SendIsoTpWithResponseId = new wxButton(this, wxID_ANY, "Send ISO-TP /w Response ID", wxDefaultPosition, wxDefaultSize);
+        m_SendIsoTpWithResponseId->SetToolTip("Send ISO-TP data frame");
+        m_SendIsoTpWithResponseId->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this, "Enter ISO-TP payload data to send\nExample: [FrameID] [Byte1] [Byte2] [ByteX] ...", "Send ISO-TP Frame");
+                if(!m_LastIsoTpwResponseIDInput.empty())
+                    d.SetValue(m_LastIsoTpwResponseIDInput);
+                int ret = d.ShowModal();
+                if(ret == wxID_OK)
+                {
+                    m_LastIsoTpwResponseIDInput = d.GetValue().ToStdString();
+
+                    uint32_t frame_id = 0;
+                    uint32_t response_frame_id = 0;
+                    char hex[MAX_ISOTP_FRAME_LEN];
+                    int ret = sscanf(m_LastIsoTpwResponseIDInput.c_str(), "%x%*c%x%*c%4095[^\n]", &frame_id, &response_frame_id, hex);
+                    if(ret == 3)
+                    {
+                        std::string hex_str(hex);
+                        char byte_array[MAX_ISOTP_FRAME_LEN];
+                        
+                        boost::algorithm::erase_all(hex_str, " ");
+                        utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
+
+                        uint16_t len = (hex_str.length() / 2);
+                        can_handler->SendIsoTpFrame(frame_id, (uint8_t*)byte_array, len);
+                        can_handler->SetIsoTpResponseFrame(response_frame_id);
+                        LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", frame_id, response_frame_id, len);
+                    }
+                    else
+                    {
+                        LOG(LogLevel::Notification, "Invalid data format for ISO-TP Frame");
+                    }
+                }
+            });
+        h_sizer_2->Add(m_SendIsoTpWithResponseId);
 
         bSizer1->Add(h_sizer_2);
     }
@@ -519,7 +558,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     h_sizer->Add(m_RecordingStop);
 
     m_RecordingClear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);
-    m_RecordingClear->SetToolTip("Clear recording");
+    m_RecordingClear->SetToolTip("Clear recording and reset frame counters");
     m_RecordingClear->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             ClearRecordingsFromGrid();
@@ -543,6 +582,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     h_sizer->AddSpacer(35);
     h_sizer->Add(m_AutoScrollBtn);
 
+    h_sizer->AddSpacer(10);
     h_sizer->Add(new wxStaticText(this, wxID_ANY, "LogLevel:"));
     m_LogLevelCtrl = new wxSpinCtrl(this, ID_CanLogLevelSpinCtrl, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 1);
     h_sizer->Add(m_LogLevelCtrl);
@@ -1163,7 +1203,7 @@ void CanSenderPanel::SaveRxList()
 
 void CanSenderPanel::LoadMapping()
 {
-    wxFileDialog openFileDialog(this, _("Open RX XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog openFileDialog(this, _("Open FrameMapping XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if(openFileDialog.ShowModal() == wxID_CANCEL)
         return;
 
@@ -1171,28 +1211,23 @@ void CanSenderPanel::LoadMapping()
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_mapping.ToStdString();
     bool ret = can_handler->LoadMapping(p);
-    //RefreshRx();
-    /*
+    
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    if(ret)
-        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoaded) });
-    else
-        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoadError) });
-        */
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(ret ? PopupMsgIds::FrameMappingLoaded : PopupMsgIds::FrameMappingLoadError) });
 }
 
 void CanSenderPanel::SaveMapping()
 {
-    wxFileDialog saveFileDialog(this, _("Save RX XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog saveFileDialog(this, _("Save FrameMapping XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if(saveFileDialog.ShowModal() == wxID_CANCEL)
         return;
     file_path_mapping = saveFileDialog.GetPath();
     CanEntryHandler* can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_mapping.ToStdString();
-    can_handler->SaveMapping(p);
+    bool ret = can_handler->SaveMapping(p);
 
-    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListSaved) });
+    //MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    //frame->pending_msgs.push_back({ static_cast<uint8_t>(ret ? PopupMsgIds::FrameMappingSaved : PopupMsgIds::FrameMappingSavedError) });
 }
 
 void CanPanel::OnSize(wxSizeEvent& evt)

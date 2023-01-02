@@ -2,8 +2,12 @@
 
 #include "utils/CSingleton.hpp"
 #include <filesystem>
+
+extern "C"
+{
 #include <bitfield/bitfield.h>
 #include <isotp/isotp.h>
+}
 
 constexpr uint8_t CAN_LOG_DIR_TX = 0;
 constexpr uint8_t CAN_LOG_DIR_RX = 1;
@@ -242,6 +246,14 @@ public:
     // !\return Is auto send toggled?
     bool IsAutoSend() { return auto_send; }
 
+    // !\brief Toggle automatic CAN frame recording
+    // !\param toggle [in] Toggle auto recording?
+    void ToggleAutoRecord(bool toggle) { auto_recording = toggle; }
+
+    // !\param Is auto recording enabled?
+    // !\return Is auto recording enabled?
+    bool IsAutoRecord() { return auto_recording; }
+
     // !\brief Toggle recording
     // !\param toggle [in] Toggle recording?
     // !\param is_puase [in] Is pause?
@@ -256,10 +268,11 @@ public:
     // !\param size [in] Data size
     void SendDataFrame(uint32_t frame_id, uint8_t* data, uint16_t size);
 
-    // !\brief Send Iso-TP frame over CAN BUS
+    // !\brief Send ISO-TP frame over CAN BUS
+    // !\param frame_id [in] CAN Frame ID
     // !\param data [in] Data to send
     // !\param size [in] Data size
-    void SendIsoTpFrame(uint8_t* data, uint16_t size);
+    void SendIsoTpFrame(uint32_t frame_id, uint8_t* data, uint16_t size);
 
     // !\brief Load TX list from a file
     // !\param path [in] File path to load
@@ -291,8 +304,11 @@ public:
     // !\param path [in] File path to save
     bool SaveRecordingToFile(std::filesystem::path& path);
 
+    // !\brief Get recording level
     uint8_t GetRecordingLogLevel() { return m_RecodingLogLevel; }
 
+    // !\brief Set recording level
+    // !\param log_level [in] Recording level
     void SetRecordingLogLevel(uint8_t log_level) { m_RecodingLogLevel = log_level; }
 
     // !\brief Get log records for given frame
@@ -300,6 +316,13 @@ public:
     // !\param is_rx [in] Is RX?
     // !\param log [out] Vector of rows
     void GenerateLogForFrame(uint32_t frame_id, bool is_rx, std::vector<std::string>& log);
+
+    // !\brief Set ISO-TP response frame
+    // !\param frame_id [in] CAN Frame ID
+    void SetIsoTpResponseFrame(uint32_t frame_id) { m_IsoTpResponseId = frame_id; };
+
+    // !\brief Get ISO-TP response frame
+    uint32_t GetIsoTpResponseFrame() { return m_IsoTpResponseId; };
 
     // !\brief Return TX Frame count
     // !\return TX Frame count
@@ -310,8 +333,13 @@ public:
     uint64_t GetRxFrameCount() { return rx_frame_cnt; }
 
     // !\brief Get map for frame id (in string format)
+    // !\param frame_id [in] CAN Frame ID
+    // !\param is_rx [in] Is RX?
     CanBitfieldInfo GetMapForFrameId(uint32_t frame_id, bool is_rx);
 
+    // !\brief Apply editing on CAN frame bitfields
+    // !\param frame_id [in] CAN Frame ID
+    // !\param new_data [in] Vector of strings of new data
     void ApplyEditingOnFrameId(uint32_t frame_id, std::vector<std::string> new_data);
 
     // !\brief Vector of CAN TX entries
@@ -348,6 +376,7 @@ private:
     // !\brief Handle bit reading of a frame
     template <typename T> void HandleBitReading(uint32_t frame_id, bool is_rx, std::unique_ptr<CanMap>& m, size_t offset, CanBitfieldInfo& info);
 
+    // !\brief Handle bit writing of a frame
     template <typename T> void HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data);
 
     // !\brief Find CAN TX Entry by Frame ID
@@ -365,6 +394,9 @@ private:
     // !\brief Sending every can frame automatically at startup which period is not null? 
     bool auto_send = false;
 
+    // !\brief Start recording automatically?
+    bool auto_recording = false;
+
     // !\brief Is recording on?
     bool is_recoding = false;
 
@@ -379,6 +411,9 @@ private:
 
     // !\brief Worker thread
     std::unique_ptr<std::jthread> m_worker;
+
+    // !\brief Conditional variable for main thread exiting
+    std::condition_variable m_cv;
 
     // !\brief Starting time
     std::chrono::steady_clock::time_point start_time;
@@ -397,4 +432,6 @@ private:
 
     // !\brief ISO-TP Transmit buffer
     uint8_t m_Isotp_Recvbuf[MAX_ISOTP_FRAME_LEN];
+
+    uint32_t m_IsoTpResponseId = 0x7DA;
 };

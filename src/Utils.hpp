@@ -167,6 +167,14 @@ namespace utils
         return distr(gen);
     }
 
+#ifndef _WIN32
+    uint32_t GetTickCount();
+#endif
+
+    constexpr unsigned long RGB_TO_INT(int r, int g, int b)
+    {
+        return ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
+    }
 }
 
 namespace utils::xml

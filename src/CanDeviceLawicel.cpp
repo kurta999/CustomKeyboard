@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+constexpr size_t CAN_SERIAL_RESPONSE_BUFFER_SIZE = 64;
+
 CanDeviceLawicel::CanDeviceLawicel(boost::circular_buffer<char>& CircBuff) :
     m_CircBuff(CircBuff)
 {
@@ -30,6 +32,11 @@ void CanDeviceLawicel::ProcessReceivedFrames()
             {
                 it_start = i;
                 data_type = 'T';
+            } 
+            else if(start_char == 'V' && it_start == m_CircBuff.end())
+            {
+                it_start = i;
+                data_type = 'V';
             }
 
             if(start_char == '\r' && it_start != m_CircBuff.end())
@@ -41,8 +48,9 @@ void CanDeviceLawicel::ProcessReceivedFrames()
 
         if(it_start != m_CircBuff.end() && it_end != m_CircBuff.end())
         {
-            char data[64];
-            if(it_end - it_start >= sizeof(data))
+            char data[CAN_SERIAL_RESPONSE_BUFFER_SIZE];
+            size_t data_len = it_end - it_start;
+            if(data_len >= sizeof(data))
             {
                 LOG(LogLevel::Warning, "Invalid CAN data received, too much! Erasing circular buffer");
                 m_CircBuff.erase(m_CircBuff.begin(), it_end);
@@ -51,6 +59,13 @@ void CanDeviceLawicel::ProcessReceivedFrames()
 
             std::copy(it_start, it_end, data);
             m_CircBuff.erase(m_CircBuff.begin(), it_end);
+
+            data[data_len] = 0;
+            if(data_type == 'V')
+            {
+                LOG(LogLevel::Notification, "LAWICEL CANUSB version: {}", data);
+                return;
+            }
 
             char frame_id_str[9] = {};
             char frame_length = 0;
@@ -88,21 +103,37 @@ size_t CanDeviceLawicel::PrepareSendDataFormat(std::shared_ptr<CanData>& data_pt
 {
     if(device_state == 0)
     {
-        memcpy(out, "S6\r", 3);  /* Baudrate 500Kbps */
-        device_state = 1;
+        memcpy(out, "\r", 1);  /* Inital CR */
+        device_state++;
+        std::this_thread::sleep_for(150ms);
+        return 1;
+    }
+        
+    if(device_state == 1)
+    {
+        memcpy(out, "V\r", 2);  /* Get version */
+        device_state++;
+        std::this_thread::sleep_for(150ms);
+        return 2;
+    }
+
+    if(device_state == 2)
+    {
+        memcpy(out, "S6\r", 3);  /* CAN Baudrate 500Kbps */
+        device_state++;
         std::this_thread::sleep_for(50ms);
         return 3;
     } 
     
-    if(device_state == 1)
+    if(device_state == 3)
     {
         memcpy(out, "O\r", 2);  /* Open CAN channel */
-        device_state = 2;
-        std::this_thread::sleep_for(50ms);
+        device_state++;
+        std::this_thread::sleep_for(200ms);
         return 3;
     }
 
-    if(device_state == 2)
+    if(device_state == 4)
     {
         remove_from_queue = true;
         std::string out_hex;

@@ -9,6 +9,10 @@ CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_
 
 CanEntryHandler::~CanEntryHandler()
 {
+    {
+        std::unique_lock lock{ m };
+        m_cv.notify_all();
+    }
     m_worker.reset(nullptr);
 }
 
@@ -67,7 +71,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
@@ -98,8 +102,9 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
         boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
             boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
     }
-    catch(...)
+    catch(const std::exception& e)
     {
+        LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
     }
     return ret;
@@ -134,7 +139,7 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
@@ -160,8 +165,9 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
         boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
             boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
     }
-    catch(...)
+    catch(const std::exception& e)
     {
+        LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
     }
     return ret;
@@ -226,12 +232,12 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
             }
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
@@ -265,8 +271,9 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
         boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
             boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
     }
-    catch(...)
+    catch(const std::exception& e)
     {
+        LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
     }
     return ret;
@@ -314,7 +321,7 @@ void CanEntryHandler::WorkerThread(std::stop_token token)
     while(!token.stop_requested())
     {
         {
-            std::scoped_lock lock{ m };
+            std::unique_lock lock{ m };
             std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
             for(auto& i : entries)
             {
@@ -337,10 +344,9 @@ void CanEntryHandler::WorkerThread(std::stop_token token)
                 }
             }
 
+            m_cv.wait_for(lock, 1ms);
             isotp_poll(&link);
         }
-
-        std::this_thread::sleep_for(1ms);
     }
 }
 
@@ -405,8 +411,10 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
             m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_RX, frame_id, data, data_len, m_rxData[frame_id]->last_execution));
     }
 
-    if(frame_id == 0x7DA)
+    if(frame_id == m_IsoTpResponseId)
         isotp_on_can_message(&link, data, data_len);
+
+    m_cv.notify_all();
 }
 
 void CanEntryHandler::ToggleAutoSend(bool toggle)
@@ -429,6 +437,7 @@ void CanEntryHandler::ToggleRecording(bool toggle, bool is_pause)
 void CanEntryHandler::ClearRecording()
 {
     std::scoped_lock lock{ m };
+    tx_frame_cnt = rx_frame_cnt = 0;
     m_LogEntries.clear();
 }
 
@@ -437,9 +446,9 @@ void CanEntryHandler::SendDataFrame(uint32_t frame_id, uint8_t* data, uint16_t s
     CanSerialPort::Get()->AddToTxQueue(frame_id, size, (uint8_t*)data);
 }
 
-void CanEntryHandler::SendIsoTpFrame(uint8_t* data, uint16_t size)
+void CanEntryHandler::SendIsoTpFrame(uint32_t frame_id, uint8_t* data, uint16_t size)
 {
-    isotp_send(&link, data, size);
+    isotp_send_with_id(&link, frame_id, data, size);
 }
 
 bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
@@ -460,6 +469,8 @@ bool CanEntryHandler::LoadTxList(std::filesystem::path& path)
                 i->send = true;
             }
         }
+
+        is_recoding = auto_recording;  /* Toggle auto recording */
     }
     return ret;
 }
@@ -523,7 +534,7 @@ bool CanEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
         std::ofstream out(path, std::ofstream::binary);
         if(out.is_open())
         {
-            out << "Time,Direction,FrameID,DatSize,Data,Comment\n";
+            out << "Time,Direction,FrameID,DataSize,Data,Comment\n";
             for(auto& i : m_LogEntries)
             {
                 std::string hex;
@@ -795,7 +806,7 @@ extern "C" void isotp_user_debug(const char* message, ...)
     char buffer[256];
     va_list args;
     va_start(args, message);
-    vsnprintf(buffer, 255, message, args);
+    vsnprintf(buffer, sizeof(buffer), message, args);
 
     LOG(LogLevel::Verbose, "IsoTP: {}", buffer);
     //do something with the error
@@ -807,6 +818,7 @@ extern "C" void isotp_user_debug(const char* message, ...)
 /* user implemented, get millisecond */
 extern "C" uint32_t isotp_user_get_ms(void)
 {
+    using namespace utils;
     return GetTickCount();
 }
 

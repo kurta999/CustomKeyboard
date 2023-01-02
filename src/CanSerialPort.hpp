@@ -7,6 +7,12 @@
 
 constexpr size_t MAX_CAN_FRAME_DATA_LEN = 8;
 
+enum class CanDeviceType
+{
+    STM32,
+    LAWICEL
+};
+
 #pragma pack(push, 1)
 class CanData
 {
@@ -40,10 +46,10 @@ public:
     // !\brief Initialize CanSerialPort
     void Init();
 
-    void SetDeviceType(uint8_t device_type) { m_DeviceType = device_type != 0; }
-    uint8_t GetDeviceType() { return m_DeviceType; }
+    void SetDeviceType(CanDeviceType device_type) { m_DeviceType = device_type; }
+    CanDeviceType GetDeviceType() { return m_DeviceType; }
 
-    void SetDevice(ICanDevice* device);
+    void SetDevice(std::unique_ptr<ICanDevice>&& device);
 
     // !\brief Set this module enabled
     void SetEnabled(bool enable);
@@ -105,8 +111,8 @@ private:
     std::queue<std::shared_ptr<CanData>> m_TxQueue;
 
     // !\brief CAN Device
-    ICanDevice* m_Device;
+    std::unique_ptr<ICanDevice> m_Device = nullptr;
 
     // !\brief CAN Device type
-    uint8_t m_DeviceType = 0;
+    CanDeviceType m_DeviceType = CanDeviceType::STM32;
 };

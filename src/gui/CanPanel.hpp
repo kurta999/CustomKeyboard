@@ -115,9 +115,11 @@ private:
     wxButton* m_Edit = nullptr;
     wxButton* m_SendDataFrame = nullptr;
     wxButton* m_SendIsoTp = nullptr;
+    wxButton* m_SendIsoTpWithResponseId = nullptr;
 
     std::string m_LastDataInput;
     std::string m_LastIsoTpInput;
+    std::string m_LastIsoTpwResponseIDInput;
 
     BitEditorDialog* m_BitfieldEditor = nullptr;
     CanLogForFrameDialog* m_LogForFrame = nullptr;

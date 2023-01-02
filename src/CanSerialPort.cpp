@@ -1,7 +1,8 @@
 #include "pch.hpp"
 
-constexpr uint32_t TX_QUEUE_MAX_SIZE = 100;
-constexpr uint32_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
+constexpr size_t TX_QUEUE_MAX_SIZE = 100;
+constexpr size_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
+constexpr size_t CAN_SERIAL_TX_BUFFER_SIZE = 64;
 
 CanSerialPort::CanSerialPort() : m_CircBuff(RX_CIRCBUFF_SIZE)
 {
@@ -17,13 +18,10 @@ void CanSerialPort::Init()
 {
     if(is_enabled)
     {
-        ICanDevice* dev_stm32 = new CanDeviceStm32(m_CircBuff);
-        ICanDevice* dev_lawicel = new CanDeviceLawicel(m_CircBuff);
-
-        if(m_DeviceType == 0)
-            SetDevice(dev_stm32);
+        if(m_DeviceType == CanDeviceType::STM32)
+            m_Device = std::make_unique<CanDeviceStm32>(m_CircBuff);
         else
-            SetDevice(dev_lawicel);
+            m_Device = std::make_unique<CanDeviceLawicel>(m_CircBuff);
 
         if(!m_worker)
             m_worker = std::make_unique<std::thread>(&CanSerialPort::WorkerThread, this);
@@ -34,9 +32,9 @@ void CanSerialPort::Init()
     }
 }
 
-void CanSerialPort::SetDevice(ICanDevice* device)
+void CanSerialPort::SetDevice(std::unique_ptr<ICanDevice>&& device)
 {
-    m_Device = device;
+    m_Device = std::move(device);
 }
 
 void CanSerialPort::SetEnabled(bool enable)
@@ -152,13 +150,7 @@ void CanSerialPort::OnDataReceived(const char* data, unsigned int len)
     std::lock_guard guard(m_RxMutex);
     m_CircBuff.insert(m_CircBuff.end(), data, data + len);
 }
-/*
-void CanSerialPort::ProcessReceivedFrames()
-{
-    std::lock_guard guard(m_RxMutex);
 
-}
-*/
 void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 {
     if(!m_TxQueue.empty())
@@ -168,7 +160,7 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 
         {
             std::unique_lock lock(m_mutex);
-            char data[64];
+            char data[CAN_SERIAL_TX_BUFFER_SIZE];
             size_t size = m_Device->PrepareSendDataFormat(data_ptr, data, sizeof(data), is_remove);
 
             if(size)
