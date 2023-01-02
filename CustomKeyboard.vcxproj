@@ -354,7 +354,6 @@
     <ClInclude Include="src\gui\TrayIcon.hpp" />
     <ClInclude Include="src\IdlePowerSaver.hpp" />
     <ClInclude Include="src\interface\ICanDevice.hpp" />
-    <ClInclude Include="src\interface\ICanEntryHandler.hpp" />
     <ClInclude Include="src\interface\ICmdHelper.hpp" />
     <ClInclude Include="src\interface\IDatabase.hpp" />
     <ClInclude Include="src\interface\ILogHelper.hpp" />
