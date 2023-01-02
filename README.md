@@ -19,6 +19,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 14. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
 15. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
 16. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
+17. **MTA -> SA-MP MapConverter** - Convert maps from MTA-SA Race and MTA:SA DM to SA-MP with every item which is supported by SA-MP; objects, actors, vehicles with components, checkpoints and pickups.
 
 *(1) This is an outdated part of this project, it doesn't support sizers. It's not recommended to create GUI without sizers, only use it if you know what you are doing.
 
@@ -44,6 +45,8 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 10. **wxWidget's GUI editor** - Oversimplified GUI editor which sometimes can be useful beside [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder "wxFormBuilder's Homepage"). GUI items are movable & resizable - directly without sizers. C++ code generation also implemented, current workspace can be saved & loaded to/from XML file.
 
 11. **File explorer opener** - This function can be useful if you work with VirtualBox or WSL and using samba for accessing specific parts on guest OS filesystem. First you have to map the network drive in Windows, default drive character is Z: (can be changed in settings.ini - "SharedDriveLetter"), also don't forget to enable TCP_Backend in settings.ini. Here is an example command for opening the file explorer on Windows: "echo expw$(pwd) | netcat <ip address of host os> <TCP_Backend port from settings.ini>". For the best experience, I recommend creating an alias for this command.
+
+12. **MTA -> SA-MP MapConverter** - If you worry that some webpages will stole your maps during conversion, you can safely use this tool. Even if you don't trust me, you can check the source code and rebuild this project yourself.
 
 ## Libraries
 - [lodepng](https://lodev.org/lodepng/ "lodepng's Homepage")
@@ -126,6 +129,10 @@ ninja
 **Configuration**
 
 ![Alt text](/github_screens/config_main_page.png?raw=true "Configuration")
+
+**MTA -> SA-MP Map Converter**
+
+![Alt text](/github_screens/map_converter.png?raw=true "MTA -> SA-MP Map Converter")
 
 **Macro editor**
 
