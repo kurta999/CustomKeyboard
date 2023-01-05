@@ -81,7 +81,7 @@ LogPanel::LogPanel(wxFrame* parent)
 			m_Log->Clear();
 		});
 
-	m_LogFilters.push_back({ "IdlePowerSaver" });
+	//m_LogFilters.push_back({ "IdlePowerSaver" });
 
 	this->SetSizerAndFit(bSizer1);
 	this->Layout();

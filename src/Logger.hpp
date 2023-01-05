@@ -235,10 +235,11 @@ public:
         }
     }
 #else
+static constexpr std::string_view severity_str[] = { "Verbose", "Normal", "Notification", "Warning", "Error", "Critical" };
+
 template<typename... Args>
 void Log(LogLevel lvl, const char* file, long line, const char* function, const char* msg, Args &&...args)
 {
-#if 0
     std::string str;
     std::string formatted_msg = (sizeof...(args) != 0) ? fmt::format(msg, std::forward<Args>(args)...) : msg;
     time_t current_time;
@@ -271,8 +272,7 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
         frame->log_panel->m_Log->ScrollLines(frame->log_panel->m_Log->GetCount());
     }
     else
-        preinit_entries.Add(str);
-#endif
+        preinit_entries.push_back({ wxString(file), wxString(str) });
 }
 
 #endif

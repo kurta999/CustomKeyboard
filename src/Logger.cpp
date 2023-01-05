@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-constexpr const char* LOG_FILENAME = "logfile.txt";
+constexpr const char* LOG_FILENAME = "./logfile.txt";
 
 Logger::Logger()
 {

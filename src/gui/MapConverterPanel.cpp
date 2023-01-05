@@ -41,7 +41,7 @@ MapConverterPanel::MapConverterPanel(wxFrame* parent)
 	wxBoxSizer* bSizer2 = new wxBoxSizer(wxHORIZONTAL);
 	bSizer2->Add(m_Input, wxSizerFlags(1).Top().Expand());
 
-	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(310, 310), wxTE_MULTILINE | wxTE_READONLY);
+	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(310, 310), wxTE_MULTILINE);
 	bSizer2->Add(m_Output, wxSizerFlags(1).Expand());
 	bSizer1->Add(bSizer2, wxSizerFlags(1).Expand());
 
@@ -88,6 +88,7 @@ MapConverterPanel::MapConverterPanel(wxFrame* parent)
 			std::string input;
 			if(!path.empty())
 			{
+				LOG(LogLevel::Verbose, "Path: {}", path.ToStdString());
 				std::ifstream f(path.ToStdString(), std::ios::in | std::ios::binary);
 				if(f)
 					input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
@@ -110,11 +111,19 @@ MapConverterPanel::MapConverterPanel(wxFrame* parent)
 
 			if(!output.empty())
 			{
+#ifdef _WIN32
 				boost::algorithm::replace_all(output, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
+#endif
 				m_Output->Clear();
 				wxString wxout(output);
-				m_Output->SetLabelText(wxout);
+				m_Output->SetValue(wxout);
+				 
+				LOG(LogLevel::Verbose, "wxOut: {}", wxout.ToStdString().substr(0, 128));
 				m_OkButton->SetForegroundColour(*wxBLACK);
+			}
+			else
+			{
+				LOG(LogLevel::Verbose, "Empty output");
 			}
 			path.Clear();
 		});

@@ -132,7 +132,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 
 			wxString wxout(output);
 			m_Output->Clear();
-			m_Output->SetLabelText(wxout);
+			m_Output->SetValue(wxout);
 			m_OkButton->SetForegroundColour(*wxBLACK);
 			path.Clear();
 		});

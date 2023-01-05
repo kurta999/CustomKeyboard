@@ -180,8 +180,6 @@ void AntiLock::Process()
                 }
 			}
 		}
-#else
-        SimulateUserActivity();
 #endif
 	}
 }
