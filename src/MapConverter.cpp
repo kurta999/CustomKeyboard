@@ -144,7 +144,7 @@ public:
             }
         }
 
-        bool no_specialization = flags & MapConverterFlags::ONLY_CREATE_VEHICLE || (!interior && !world && paintjob > 2 && upgrades.empty());
+        bool no_specialization = flags & MapConverterFlags::ONLY_CREATE_VEHICLE || (!interior && !world && paintjob < 4 && upgrades.empty());
         ret += std::format("\t{}CreateVehicle({}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, -1);", no_specialization ? "" : "tempvehid = ", 
             model_id, pos.x + offset.x, pos.y + offset.y, pos.z + offset.z, rot.z, color_1, color_2);
         ret += GetComment(flags);
@@ -155,18 +155,18 @@ public:
                 ret += std::format("\tSetVehicleNumberPlate(tempvehid, \"{}\");\n", plate);
 
             if(interior != 0)
-                ret += std::format("\tLinkVehicleToInterior(tempvehid, \"{}\");\n", interior);
+                ret += std::format("\tLinkVehicleToInterior(tempvehid, {});\n", interior);
             if(world != 0)
-                ret += std::format("\tSetVehicleVirtualWorld(tempvehid, \"{}\");\n", world);
+                ret += std::format("\tSetVehicleVirtualWorld(tempvehid, {});\n", world);
             if(paintjob < 3)
-                ret += std::format("\tChangeVehiclePaintjob(tempvehid, \"{}\");\n", paintjob);
+                ret += std::format("\tChangeVehiclePaintjob(tempvehid, {});\n", paintjob);
 
             if(!upgrades.empty())
             {
                 if(!(flags & MapConverterFlags::VEHICLE_COMPONENTS_INLINE))
                 {
                     for(auto i : upgrades)
-                        ret += std::format("\tAddVehicleComponent(tempvehid, \"{}\");\n", i);
+                        ret += std::format("\tAddVehicleComponent(tempvehid, {});\n", i);
                 }
                 else
                 {
@@ -188,7 +188,7 @@ public:
 
     uint16_t model_id = 0;
     std::vector<uint8_t> colors;
-    uint8_t paintjob;
+    uint8_t paintjob = 4;
     std::vector<uint16_t> upgrades;
     std::string plate;
 };
