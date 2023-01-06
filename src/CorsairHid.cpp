@@ -26,7 +26,7 @@ bool CorsairHid::Init()
 
 bool CorsairHid::ExecuteInitSequence()
 {
-#ifdef _WIN32
+#ifdef USE_HIDAPI
     LOG(LogLevel::Notification, "CorsairHid::ExecuteInitSequence");
     int ret = hid_init();  /* Initialize the hidapi library */
     if(ret)
@@ -83,7 +83,7 @@ bool CorsairHid::ExecuteInitSequence()
 
 void CorsairHid::DestroyWorkingThread()
 {
-#ifdef _WIN32
+#ifdef USE_HIDAPI
     if(hid_handle)
         hid_close(hid_handle);
     hid_handle = nullptr;
@@ -98,7 +98,7 @@ void CorsairHid::DestroyWorkingThread()
 
 void CorsairHid::ThreadFunc()
 {
-#ifdef _WIN32
+#ifdef USE_HIDAPI
     LOG(LogLevel::Notification, "ThreadFunc");
     while(!m_exit)
     {

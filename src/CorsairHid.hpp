@@ -5,10 +5,12 @@
 #include <thread>
 #include <memory>
 
+#ifdef USE_HIDAPI
 extern "C"
 {
 #include "hidapi/hidapi.h"
 }
+#endif
 
 class CorsairHid : public CSingleton < CorsairHid >
 {
@@ -40,8 +42,10 @@ private:
     // !\brief Is HID inited?
     bool hid_inited = false;
 
+#ifdef USE_HIDAPI
     // !\brief HID Handle
     hid_device* hid_handle = nullptr;
+#endif
 
     // !\brief Timepoint when the key was pressed
     std::chrono::steady_clock::time_point last_keypress;
@@ -54,7 +58,6 @@ private:
 
     // !\brief Pointer to worker thread
     std::unique_ptr<std::thread> m_worker = nullptr;
-
 
     // !\brief Map with G-Key values and it's name
     const std::map<int, std::string> corsair_GKeys =

@@ -14,7 +14,12 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system program_options)
 
 find_package(fmt REQUIRED)
-#find_package(hidapi REQUIRED)
+
+set(USE_HIDAPI true CACHE BOOL "Use HIDAPI library?")
+if(USE_HIDAPI)
+	find_package(hidapi REQUIRED)
+	add_definitions(-DUSE_HIDAPI)
+endif()
 
 include_directories(libs)
 #include_directories(libs/bitfield)
@@ -107,7 +112,10 @@ endif()
 #message("wxWidgets_LIBRARIES: " ${wxWidgets_LIBRARIES})
 
 add_executable(${PROJECT_NAME} WIN32 ${src_SOURCES_pch} ${src_SOURCES})
-target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} fmt::fmt)
-# hidapi::hidapi
+if(USE_HIDAPI)
+	target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} fmt::fmt hidapi::hidapi)
+else()
+	target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:libs> ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} fmt::fmt)
+endif()
 
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

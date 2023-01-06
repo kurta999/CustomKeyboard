@@ -10,7 +10,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 5. **StructParser** - Generate offsets of C structures
 6. **ScreenshotSaver** - Saving screenshot to .png from clipboard
 7. **DirectoryBackup** - Backup folders to another place(s) from tray menu
-8. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800Mhz while my PC is in idle.
+8. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800 - 1200Mhz while my PC is in idle. If the median CPU usage gets above max configured percent due to some background tasks, the frequency will be restored and won't be limited again until it falls below configured minimum median load again.
 9. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
 10. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs
 11. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
@@ -86,8 +86,10 @@ cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Pro
 
 The project is using C++20 features, so I recommend using the newest compilers. I'm using clang15 because it's faster for me than GCC.
 
-1. Install boost 1.81.0, wxWidgets 3.2.0, fmt 8.0.0
+1. Install boost 1.81.0, wxWidgets 3.2.0, fmt 8.0.0, hidapi
 2. Execute these commands in project root directory:
+
+If you do not want to use HIDAPI, you can disable it by setting USE_HIDAPI CMake option to false. (cmake .. -DUSE_HIDAPI=false or do it within CMake GUI)
 
 With Make:
 mkdir build
@@ -153,3 +155,12 @@ ninja
 **Log**
 
 ![Alt text](/github_screens/log.png?raw=true "Log")
+
+### Linux
+**Main Page**
+
+![Alt text](/github_screens/main_page_linux.png?raw=true "Main page in linux build under Ubuntu")
+
+**MTA -> SA-MP Map Converter**
+
+![Alt text](/github_screens/map_converter_linux.png?raw=true "MTA -> SA-MP Map Converter in linux build under Ubuntu")
