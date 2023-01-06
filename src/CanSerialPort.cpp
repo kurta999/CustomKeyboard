@@ -71,7 +71,7 @@ void CanSerialPort::AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
 void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data)
 {
     //std::unique_lock lock(m_mutex);
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     can_handler->OnFrameReceived(frame_id, data_len, data);
 }
 
@@ -167,7 +167,7 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
                 serial_port.write((const char*)&data, size);
         }
 
-        CanEntryHandler* can_handler = wxGetApp().can_entry;
+        std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
         can_handler->OnFrameSent(data_ptr->frame_id, data_ptr->data_len, data_ptr->data);
 
         if(is_remove)

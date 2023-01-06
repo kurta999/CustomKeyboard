@@ -41,6 +41,7 @@ enum
 	Id_Backup_Delete,
 	ID_CanSenderMoreInfo,
 	ID_CanSenderLogForFrame,
+	ID_CanSenderRemoveRxFrame,
 	ID_CmdExecutorEdit,
 	ID_CmdExecutorAdd,
 	ID_CmdExecutorReload,

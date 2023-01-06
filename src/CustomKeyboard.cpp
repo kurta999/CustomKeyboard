@@ -9,8 +9,8 @@ bool MyApp::OnInit()
     if(!wxApp::OnInit())
         return false;
     
-    can_entry = new CanEntryHandler(xml, rx_xml, mapping_xml);
-    cmd_executor = new CmdExecutor();
+    can_entry = std::make_unique<CanEntryHandler>(xml, rx_xml, mapping_xml);
+    cmd_executor = std::make_unique<CmdExecutor>();
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();

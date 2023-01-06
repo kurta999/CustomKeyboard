@@ -70,7 +70,7 @@ void Settings::LoadFile()
         Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
 
-        CanEntryHandler* can_handler = wxGetApp().can_entry;
+        std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
         CanSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("CANSender").find("COM")->second.data()));
         CanSerialPort::Get()->SetDeviceType(static_cast<CanDeviceType>(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DeviceType")->second.data())));
@@ -129,6 +129,8 @@ void Settings::LoadFile()
         IdlePowerSaver::Get()->is_enabled = utils::stob(pt.get_child("IdlePowerSaver").find("Enable")->second.data());
         IdlePowerSaver::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("IdlePowerSaver").find("Timeout")->second.data());
         IdlePowerSaver::Get()->reduced_power_percent = utils::stoi<uint8_t>(pt.get_child("IdlePowerSaver").find("ReducedPowerPercent")->second.data());
+        IdlePowerSaver::Get()->min_load_threshold = utils::stoi<uint8_t>(pt.get_child("IdlePowerSaver").find("MinLoadThreshold")->second.data());
+        IdlePowerSaver::Get()->max_load_threshold = utils::stoi<uint8_t>(pt.get_child("IdlePowerSaver").find("MaxLoadThreshold")->second.data());
 
         DirectoryBackup::Get()->backup_time_format = std::move(pt.get_child("BackupSettings").find("BackupFileFormat")->second.data());
 
@@ -195,7 +197,7 @@ void Settings::LoadFile()
 
 void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::ofstream out(SETTINGS_FILE_PATH, std::ofstream::binary);
     out << "# Possible macro keywords: \n";
     out << "# BIND_NAME[binding name] = Set the name if macro. Should be used as first\n";
@@ -337,6 +339,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "Enable = " << IdlePowerSaver::Get()->is_enabled << "\n";
     out << "Timeout = " << IdlePowerSaver::Get()->timeout << "\n";
     out << "ReducedPowerPercent = " << static_cast<int>(IdlePowerSaver::Get()->reduced_power_percent) << "\n";
+    out << "MinLoadThreshold = " << static_cast<int>(IdlePowerSaver::Get()->min_load_threshold) << "\n";
+    out << "MaxLoadThreshold = " << static_cast<int>(IdlePowerSaver::Get()->max_load_threshold) << "\n";
     out << "\n";
     out << "[BackupSettings]\n";
     out << "BackupFileFormat = " << DirectoryBackup::Get()->backup_time_format << "\n";

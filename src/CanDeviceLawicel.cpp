@@ -123,7 +123,7 @@ size_t CanDeviceLawicel::PrepareSendDataFormat(std::shared_ptr<CanData>& data_pt
         device_state++;
         std::this_thread::sleep_for(50ms);
         return 3;
-    } 
+    }
     
     if(device_state == 3)
     {

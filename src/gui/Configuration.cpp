@@ -467,7 +467,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			SerialPort::Get()->SetRemoteTcpIp(m_TcpForwarderIp->GetValue().ToStdString());
 			SerialPort::Get()->SetRemoteTcpPort(m_TcpForwarderPort->GetValue());
 			
-			CanEntryHandler* can_handler = wxGetApp().can_entry;
+			std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 			wxString com_str_can = m_CanSerial->GetStringSelection();
 			CanSerialPort::Get()->SetEnabled(m_IsCanSerial->IsChecked());
 			if(m_CanSerial->GetSelection() > 0)
@@ -571,7 +571,7 @@ void ComTcpPanel::UpdatePanel()
 	m_serial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_serial->SetSelection(sel);
 
-	CanEntryHandler* can_handler = wxGetApp().can_entry;
+	std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 	m_CanSerial->Clear();
 	m_CanSerial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_CanSerial->SetSelection(sel_can);

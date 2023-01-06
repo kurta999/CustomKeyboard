@@ -21,6 +21,6 @@ public:
     XmlCanEntryLoader xml;
     XmlCanRxEntryLoader rx_xml;
     XmlCanMappingLoader mapping_xml;
-    CanEntryHandler* can_entry = nullptr;
-    CmdExecutor* cmd_executor = nullptr;
+    std::unique_ptr<CanEntryHandler> can_entry;
+    std::unique_ptr<CmdExecutor> cmd_executor;
 };

@@ -94,7 +94,7 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	LOG(LogLevel::Verbose, "reload 1");
 	Settings::Get()->LoadFile();
 	LOG(LogLevel::Verbose, "reload 2");
-	CanEntryHandler* can_handler = wxGetApp().can_entry;
+	std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 	can_handler->LoadFiles();
 	LOG(LogLevel::Verbose, "reload 3");
 	mainFrame->main_panel->UpdateKeybindings();

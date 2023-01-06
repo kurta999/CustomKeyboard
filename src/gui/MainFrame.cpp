@@ -229,7 +229,7 @@ void MyFrame::OnCanSaveMapping(wxCommandEvent& event)
 void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 {
 	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-	CmdExecutor* cmd = wxGetApp().cmd_executor;
+	std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
 	bool ret = cmd->Save();
 	if(ret)
 	{
@@ -249,7 +249,7 @@ void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 void MyFrame::OnSaveEverything(wxCommandEvent& event)
 {
 	Settings::Get()->SaveFile(false);
-	CanEntryHandler* can_handler = wxGetApp().can_entry;
+	std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 
 	if(can_handler)
 	{
@@ -261,7 +261,7 @@ void MyFrame::OnSaveEverything(wxCommandEvent& event)
 		can_handler->SaveMapping(path);
 	}
 
-	CmdExecutor* cmd_executor = wxGetApp().cmd_executor;
+	std::unique_ptr<CmdExecutor>& cmd_executor = wxGetApp().cmd_executor;
 	if(cmd_executor)
 		cmd_executor->Save();
 }

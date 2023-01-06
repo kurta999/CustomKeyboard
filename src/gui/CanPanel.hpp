@@ -65,6 +65,8 @@ public:
 
     void AddRow(std::unique_ptr<CanRxData>& e);
     void UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxData>& e, std::string& comment);
+    void ClearGrid();
+
     wxGrid* m_grid = nullptr;
     std::map<uint16_t, CanRxData*> rx_grid_to_entry;  /* Helper map for storing an additional ID to CanRxData */
 
@@ -103,19 +105,19 @@ private:
     wxStaticBoxSizer* static_box_tx = nullptr;
     wxStaticBoxSizer* static_box_rx = nullptr;
 
-    wxTreeListCtrl* tree_receive = nullptr;
-    wxDataViewCtrl* tree_t = nullptr;
-
     wxButton* m_SingleShot = nullptr;
     wxButton* m_SendAll = nullptr;
     wxButton* m_StopAll = nullptr;
     wxButton* m_Add = nullptr;
     wxButton* m_Copy = nullptr;
+    wxButton* m_MoveUp = nullptr;
+    wxButton* m_MoveDown = nullptr;
     wxButton* m_Delete = nullptr;
     wxButton* m_Edit = nullptr;
     wxButton* m_SendDataFrame = nullptr;
     wxButton* m_SendIsoTp = nullptr;
     wxButton* m_SendIsoTpWithResponseId = nullptr;
+    wxButton* m_ClearRx = nullptr;
 
     std::string m_LastDataInput;
     std::string m_LastIsoTpInput;

@@ -100,7 +100,7 @@ CmdExecutorPanelBase::CmdExecutorPanelBase(wxFrame* parent)
     m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
     m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_DOWN, wxAuiNotebookEventHandler(CmdExecutorPanelBase::OnAuiRightClick), NULL, this);
 
-    CmdExecutor* cmd = wxGetApp().cmd_executor;
+    std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
     cmd->SetMediator(this);
     ReloadCommands();
     m_notebook->Layout();
@@ -109,7 +109,7 @@ CmdExecutorPanelBase::CmdExecutorPanelBase(wxFrame* parent)
 
 void CmdExecutorPanelBase::ReloadCommands()
 {
-    CmdExecutor* cmd = wxGetApp().cmd_executor;
+    std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
     cmd->ReloadCommandsFromFile();
 }
 
@@ -139,7 +139,7 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             int ret = d.ShowModal();
             if(ret == wxID_OK)
             {
-                CmdExecutor* cmd = wxGetApp().cmd_executor;
+                std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
                 CommandPageNames page_names = cmd->GetPageNames();
 
                 m_notebook->Freeze();
@@ -161,7 +161,7 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             int ret_code = d.ShowModal();
             if(ret_code == wxID_OK)  /* OK */
             {
-                CmdExecutor* cmd = wxGetApp().cmd_executor;
+                std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
             }
             break;
         }
@@ -289,21 +289,21 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
     {
         case ID_CmdExecutorAdd:
         {           
-            CmdExecutor* cmd = wxGetApp().cmd_executor;
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
             cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, 1.0f));
             m_BaseGrid->Layout();
             break;
         }
         case ID_CmdExecutorSave:
         {           
-            CmdExecutor* cmd = wxGetApp().cmd_executor;
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
             cmd->Save();
             LOG(LogLevel::Notification, "Commands has been saved");
             break;
         }        
         case ID_CmdExecutorReload:
         {           
-            CmdExecutor* cmd = wxGetApp().cmd_executor;
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
             cmd->ReloadCommandsFromFile();
             LOG(LogLevel::Notification, "Commands has been reloaded");
             break;

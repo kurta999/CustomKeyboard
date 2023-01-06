@@ -211,6 +211,14 @@ void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxD
     m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_Comment), comment);
 }
 
+void CanGridRx::ClearGrid()
+{
+    rx_grid_to_entry.clear();  /* Clear entrie RX grid */
+    cnt = 0;
+    if(m_grid->GetNumberRows())
+        m_grid->DeleteRows(0, m_grid->GetNumberRows());
+}
+
 CanSenderPanel::CanSenderPanel(wxWindow* parent) 
     : wxPanel(parent, wxID_ANY)
 {
@@ -295,28 +303,41 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         h_sizer->Add(m_StopAll);
 
         m_Add = new wxButton(this, wxID_ANY, "Add", wxDefaultPosition, wxDefaultSize);
-        m_Add->SetToolTip("Add CAN frame to the end TX list");
+        m_Add->SetToolTip("Add CAN frame below selection");
         m_Add->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty() || rows.size() > 1) return;
 
                 std::unique_ptr<CanTxEntry> entry = std::make_unique<CanTxEntry>();
                 entry->data = { 0, 0, 0, 0, 0, 0, 0, 0 };
                 entry->id = 0x123;
+
+                while(std::find_if(can_handler->entries.begin(), can_handler->entries.end(), 
+                    [frame_id = entry->id](const auto& item) { return item->id == frame_id; }) != can_handler->entries.end())  /* Protection against same Frame IDs */
+                {
+                    entry->id++;
+                }
+
                 can_grid_tx->AddRow(entry);
                 {
                     std::scoped_lock lock{ can_handler->m };
-                    can_handler->entries.push_back(std::move(entry));
+                    can_handler->entries.insert(can_handler->entries.begin() + (rows[0] + 1), std::move(entry));
                 }
+
+                RefreshTx();
+                m_grid->SelectRow(rows[0] + 1);
             });
         h_sizer->Add(m_Add);
 
         m_Copy = new wxButton(this, wxID_ANY, "Copy", wxDefaultPosition, wxDefaultSize);
-        m_Copy->SetToolTip("Copy CAN frame to the end of TX list");
+        m_Copy->SetToolTip("Copy selected CAN frame(s) to the end of TX list");
         m_Copy->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxGrid* m_grid = can_grid_tx->m_grid;
 
                 wxArrayInt rows = m_grid->GetSelectedRows();
@@ -332,21 +353,111 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                         can_handler->entries.push_back(std::move(new_entry));
                     }
                 }
+                m_grid->SelectRow(m_grid->GetNumberRows() - 1);
             });
         h_sizer->Add(m_Copy);
 
-        m_Delete = new wxButton(this, wxID_ANY, "Delete", wxDefaultPosition, wxDefaultSize);
-        m_Delete->SetToolTip("Delete CAN frame from the END of TX list");
-        m_Delete->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        wxSize ret_size = m_Copy->GetSize();
+        m_MoveUp = new wxButton(this, wxID_ANY, "Move Up", wxDefaultPosition, wxDefaultSize);
+        //m_MoveUp = new wxBitmapButton(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(75, 16))));
+        m_MoveUp->SetToolTip("Move Up selected TX entry");
+        m_MoveUp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxGrid* m_grid = can_grid_tx->m_grid;
 
-                can_grid_tx->RemoveLastRow();
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                int selection = m_grid->GetNumberRows() - 1;
+                for(auto& i : rows)
                 {
-                    std::scoped_lock lock{ can_handler->m };
-                    can_handler->entries.pop_back();
+                    uint32_t frame_id = std::stoi(can_grid_tx->m_grid->GetCellValue(wxGridCellCoords(i, CanSenderGridCol::Sender_Id)).ToStdString(), nullptr, 16);
+                    const CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    {
+                        std::scoped_lock lock{ can_handler->m };
+
+                        if(can_handler->entries.front()->id == frame_id)
+                        {
+                            std::rotate(can_handler->entries.begin(), can_handler->entries.begin() + 1, can_handler->entries.end());
+                        }
+                        else
+                        {
+                            uint32_t frame_id_new = std::stoi(can_grid_tx->m_grid->GetCellValue(wxGridCellCoords(i - 1, CanSenderGridCol::Sender_Id)).ToStdString(), nullptr, 16);
+                            auto this_entry = std::find_if(can_handler->entries.begin(), can_handler->entries.end(), [&frame_id](const auto& item) { return item->id == frame_id; });
+                            auto new_entry = std::find_if(can_handler->entries.begin(), can_handler->entries.end(), [&frame_id_new](const auto& item) { return item->id == frame_id_new; });
+
+                            std::iter_swap(this_entry, new_entry);
+                            selection = std::distance(can_handler->entries.begin(), new_entry);
+                        }
+                    }
                 }
+
+                RefreshTx();
+                m_grid->SelectRow(selection);
+            });
+        h_sizer->Add(m_MoveUp);        
+        
+        m_MoveDown = new wxButton(this, wxID_ANY, "Move Down", wxDefaultPosition, wxDefaultSize);
+        m_MoveDown->SetToolTip("Move Down selected TX entry");
+        m_MoveDown->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                int selection = 0;
+                for(auto& i : rows)
+                {
+                    uint32_t frame_id = std::stoi(can_grid_tx->m_grid->GetCellValue(wxGridCellCoords(i, CanSenderGridCol::Sender_Id)).ToStdString(), nullptr, 16);
+                    const CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    {
+                        std::scoped_lock lock{ can_handler->m };
+
+                        if(can_handler->entries.back()->id == frame_id)
+                        {
+                            std::rotate(can_handler->entries.rbegin(), can_handler->entries.rbegin() + 1, can_handler->entries.rend());
+                        }
+                        else
+                        {
+                            uint32_t frame_id_new = std::stoi(can_grid_tx->m_grid->GetCellValue(wxGridCellCoords(i + 1, CanSenderGridCol::Sender_Id)).ToStdString(), nullptr, 16);
+                            auto this_entry = std::find_if(can_handler->entries.begin(), can_handler->entries.end(), [&frame_id](const auto& item) { return item->id == frame_id; });
+                            auto new_entry = std::find_if(can_handler->entries.begin(), can_handler->entries.end(), [&frame_id_new](const auto& item) { return item->id == frame_id_new; });
+
+                            std::iter_swap(this_entry, new_entry);
+                            selection = std::distance(can_handler->entries.begin(), new_entry);
+                        }
+                    }
+                }
+
+                RefreshTx();
+                m_grid->SelectRow(selection);
+            });
+        h_sizer->Add(m_MoveDown);
+
+        m_Delete = new wxButton(this, wxID_ANY, "Delete", wxDefaultPosition, wxDefaultSize);
+        m_Delete->SetToolTip("Delete selected CAN frame(s) from TX list");
+        m_Delete->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                for(auto& i : rows)
+                {
+                    uint32_t frame_id = std::stoi(can_grid_tx->m_grid->GetCellValue(wxGridCellCoords(i, CanSenderGridCol::Sender_Id)).ToStdString(), nullptr, 16);
+                    const CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    {
+                        std::scoped_lock lock{ can_handler->m };
+                        std::erase_if(can_handler->entries, [frame_id](auto& item) { return item->id == frame_id;  });
+                    }
+                }
+
+                RefreshTx();
             });
         h_sizer->Add(m_Delete);
 
@@ -361,7 +472,7 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         m_SendDataFrame->SetToolTip("Send custom Data Frame without adding it to the list");
         m_SendDataFrame->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxTextEntryDialog d(this, "Enter data to send\nExample: [FrameID] [Byte1] [Byte2] [ByteX] ...", "Send Data Frame");
                 if(!m_LastDataInput.empty())
                     d.SetValue(m_LastDataInput);
@@ -399,8 +510,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         m_SendIsoTp->SetToolTip("Send ISO-TP data frame");
         m_SendIsoTp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
-                wxTextEntryDialog d(this,  wxString::Format("Enter ISO-TP payload data to send (Response FrameID: %X)\nExample: [FrameID] [Response Frame ID] [Byte1] [Byte2] [ByteX] ...", 
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this,  wxString::Format("Enter ISO-TP payload data to send (Response FrameID: %X)\nExample: [FrameID] [Byte1] [Byte2] [ByteX] ...", 
                         can_handler->GetIsoTpResponseFrame()), "Send ISO-TP Frame");
                 if(!m_LastIsoTpInput.empty())
                     d.SetValue(m_LastIsoTpInput);
@@ -436,8 +547,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         m_SendIsoTpWithResponseId->SetToolTip("Send ISO-TP data frame");
         m_SendIsoTpWithResponseId->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
-                wxTextEntryDialog d(this, "Enter ISO-TP payload data to send\nExample: [FrameID] [Byte1] [Byte2] [ByteX] ...", "Send ISO-TP Frame");
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this, "Enter ISO-TP payload data to send\nExample: [FrameID] [Response Frame ID] [Byte1] [Byte2] [ByteX] ...", "Send ISO-TP Frame");
                 if(!m_LastIsoTpwResponseIDInput.empty())
                     d.SetValue(m_LastIsoTpwResponseIDInput);
                 int ret = d.ShowModal();
@@ -458,8 +569,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                         utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
 
                         uint16_t len = (hex_str.length() / 2);
-                        can_handler->SendIsoTpFrame(frame_id, (uint8_t*)byte_array, len);
                         can_handler->SetIsoTpResponseFrame(response_frame_id);
+                        can_handler->SendIsoTpFrame(frame_id, (uint8_t*)byte_array, len);
                         LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", frame_id, response_frame_id, len);
                     }
                     else
@@ -471,6 +582,22 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
         h_sizer_2->Add(m_SendIsoTpWithResponseId);
 
         bSizer1->Add(h_sizer_2);
+
+        wxBoxSizer* h_sizer_3 = new wxBoxSizer(wxHORIZONTAL);
+        m_ClearRx = new wxButton(this, wxID_ANY, "Clear RX", wxDefaultPosition, wxDefaultSize);
+        m_ClearRx->SetToolTip("Clear RX grid");
+        m_ClearRx->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                {
+                    std::scoped_lock lock{ can_handler->m };
+                    can_handler->m_rxData.clear();
+                }
+                can_grid_rx->ClearGrid();
+            });
+        h_sizer_3->Add(m_ClearRx);
+        bSizer1->AddSpacer(35);
+        bSizer1->Add(h_sizer_3);
     }
 
     SetSizer(bSizer1);
@@ -482,7 +609,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
 {
     start_time = std::chrono::steady_clock::now();
     
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -533,7 +660,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     m_RecordingStart->SetToolTip("Start recording for received & sent CAN frames");
     m_RecordingStart->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            CanEntryHandler* can_handler = wxGetApp().can_entry;
+            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
             can_handler->ToggleRecording(true, false);
         });
     h_sizer->Add(m_RecordingStart);
@@ -542,7 +669,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     m_RecordingPause->SetToolTip("Suspend recording for received & sent CAN frames");
     m_RecordingPause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            CanEntryHandler* can_handler = wxGetApp().can_entry;
+            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
             can_handler->ToggleRecording(false, true);
         });
     h_sizer->Add(m_RecordingPause);
@@ -551,7 +678,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     m_RecordingStop->SetToolTip("Suspend recording for received & sent CAN frames, clear everything");
     m_RecordingStop->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            CanEntryHandler* can_handler = wxGetApp().can_entry;
+            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
             can_handler->ToggleRecording(false, false);
             inserted_until = 0;
         });
@@ -563,7 +690,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
         {
             ClearRecordingsFromGrid();
 
-            CanEntryHandler* can_handler = wxGetApp().can_entry;
+            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
             can_handler->ClearRecording();
         });
     h_sizer->Add(m_RecordingClear);
@@ -599,7 +726,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
             std::string log_format = std::format("Can/CanLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
             std::filesystem::path p(log_format);
 
-            CanEntryHandler* can_handler = wxGetApp().can_entry;
+            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
             can_handler->SaveRecordingToFile(p);
 #endif
         });
@@ -614,7 +741,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
 
 void CanLogPanel::On10MsTimer()
 {
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
 
     if(search_pattern.empty())
@@ -786,7 +913,7 @@ void CanPanel::On10MsTimer()
 
 void CanSenderPanel::On10MsTimer()
 {
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
 
     if(search_pattern_rx.empty())
@@ -854,7 +981,7 @@ void CanSenderPanel::RefreshSubpanels()
 
 void CanSenderPanel::RefreshTx()
 {
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
     if(can_grid_tx->m_grid->GetNumberRows())
         can_grid_tx->m_grid->DeleteRows(0, can_grid_tx->m_grid->GetNumberRows());
@@ -878,7 +1005,7 @@ void CanSenderPanel::RefreshTx()
 
 void CanSenderPanel::RefreshRx()
 {
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::scoped_lock lock{ can_handler->m };
 
     for(int i = 0; i != can_grid_rx->m_grid->GetNumberRows(); i++)
@@ -912,7 +1039,7 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
                 wxString log_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_LogLevel);
                 uint8_t log_level = static_cast<uint8_t>(std::stoi(log_str.ToStdString()));
 
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 can_handler->m_rxData[frame_id]->log_level = log_level;
                 can_handler->m_RxLogLevels[frame_id] = log_level;
                 break;
@@ -922,7 +1049,7 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
                 wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 std::scoped_lock lock{ can_handler->m };
                 can_handler->rx_entry_comment[frame_id] = std::move(new_value.ToStdString());
                 break;
@@ -937,7 +1064,7 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
             case CanSenderGridCol::Sender_Id:
             {
                 uint32_t frame_id = std::stoi(new_value.ToStdString(), nullptr, 16);
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 for(auto& i : can_handler->entries)
                 {
                     if(i->id == frame_id)
@@ -1027,13 +1154,14 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
         wxMenu menu;
         menu.Append(ID_CanSenderMoreInfo, "&Show bits")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_CanSenderLogForFrame, "&Log")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        menu.Append(ID_CanSenderRemoveRxFrame, "&Remove")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
         int ret = GetPopupMenuSelectionFromUser(menu);
 
         switch(ret)
         {
             case ID_CanSenderMoreInfo:
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
@@ -1045,7 +1173,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
             }
             case ID_CanSenderLogForFrame:
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
@@ -1058,7 +1186,15 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 }
                 else
                     m_LogForFrame->ShowDialog(logs);
+            }
+            case ID_CanSenderRemoveRxFrame:
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
+                uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
+                can_handler->m_rxData.erase(frame_id);  /* Remove this entry from CanEntryHandler's map */
+                can_grid_rx->ClearGrid();
             }
         }
     }
@@ -1074,7 +1210,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
             case ID_CanSenderMoreInfo:
             {
 #if 0
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
@@ -1082,7 +1218,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 m_BitfieldEditor->ShowDialog(frame_id, false, info);
 
 #endif
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
@@ -1105,7 +1241,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
             }
             case ID_CanSenderLogForFrame:
             {
-                CanEntryHandler* can_handler = wxGetApp().can_entry;
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
@@ -1142,7 +1278,7 @@ void CanSenderPanel::LoadTxList()
         return;
 
     file_path_tx = openFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_tx.ToStdString();
     bool ret = can_handler->LoadTxList(p);
     RefreshTx();
@@ -1160,7 +1296,7 @@ void CanSenderPanel::SaveTxList()
     if(saveFileDialog.ShowModal() == wxID_CANCEL)
         return;
     file_path_tx = saveFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_tx.ToStdString();
     can_handler->SaveTxList(p);
 
@@ -1175,7 +1311,7 @@ void CanSenderPanel::LoadRxList()
         return;
 
     file_path_rx = openFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
     bool ret = can_handler->LoadRxList(p);
     RefreshRx();
@@ -1193,7 +1329,7 @@ void CanSenderPanel::SaveRxList()
     if(saveFileDialog.ShowModal() == wxID_CANCEL)
         return;
     file_path_rx = saveFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_rx.ToStdString();
     can_handler->SaveRxList(p);
 
@@ -1208,7 +1344,7 @@ void CanSenderPanel::LoadMapping()
         return;
 
     file_path_mapping = openFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_mapping.ToStdString();
     bool ret = can_handler->LoadMapping(p);
     
@@ -1222,7 +1358,7 @@ void CanSenderPanel::SaveMapping()
     if(saveFileDialog.ShowModal() == wxID_CANCEL)
         return;
     file_path_mapping = saveFileDialog.GetPath();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_mapping.ToStdString();
     bool ret = can_handler->SaveMapping(p);
 
@@ -1325,7 +1461,7 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
 void CanLogPanel::OnLogLevelChange(wxSpinEvent& evt)
 {
     uint8_t new_log_level = static_cast<uint8_t>(evt.GetValue());
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     can_handler->SetRecordingLogLevel(new_log_level);
 }
 
@@ -1382,7 +1518,7 @@ void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo&
         values.resize(MAX_BITEDITOR_FIELDS);
         LOG(LogLevel::Warning, "Too much bitfields used for can frame mapping. FrameID: {:X}, Used: {}, Maximum supported: {}", frame_id, values.size(), MAX_BITEDITOR_FIELDS);
     }
-
+    /* TODO: This is not working on linux, I wasn't able to update the label of wxTextCtrl - maybe there in wxWidgets */
     m_Id = 0;
     m_DataFormat = 0;
     m_BitfieldInfo = values;
@@ -1462,7 +1598,7 @@ void BitEditorDialog::OnApply(wxCommandEvent& WXUNUSED(event))
     m_IsApplyClicked = true;
     /*
     std::vector<std::string> ret = GetOutput();
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 
     uint32_t frame_id = GetFrameId()
     can_handler->ApplyEditingOnFrameId(frame_id, ret);

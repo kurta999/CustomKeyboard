@@ -180,7 +180,7 @@ void ModbusMasterSerialPort::UartReceiveThread(std::stop_token stop_token, std::
 
                     serial.write((const char*)&d, sizeof(UartCanData));
 
-                    CanEntryHandler* can_handler = wxGetApp().can_entry;
+                    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                     can_handler->OnFrameSent(d.frame_id, d.data_len, d.data);
                     m_TxQueue.pop_front();
                 }
@@ -242,7 +242,7 @@ void ModbusMasterSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, u
 #if 0
     // Update gui
     m_RxQueue.push_back(std::make_unique<CanData>(frame_id, data_len, data));
-    CanEntryHandler* can_handler = wxGetApp().can_entry;
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     can_handler->OnFrameReceived(frame_id, data_len, data);
 
     if(m_RxQueue.size() > RX_QUEUE_MAX_SIZE)  /* TODO: once logging is added, move this to settings.ini */
