@@ -203,8 +203,8 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         continue;
                     }
 
-                    boost::optional<int64_t> min_val_child = v.second.get_optional<int64_t>("<xmlattr>.min");
-                    boost::optional<int64_t> max_val_child = v.second.get_optional<int64_t>("<xmlattr>.max");
+                    boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("<xmlattr>.min");
+                    boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("<xmlattr>.max");
                     if(min_val_child)
                     {
                         min_val = *min_val_child;
@@ -227,7 +227,15 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         max_val = GetMinMaxForType(bitfield_type).second;
                     }
 
-                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(name, bitfield_type, len, min_val, max_val));
+                    std::string description;
+                    boost::optional<std::string> description_child = m.second.get_optional<std::string>("<xmlattr>.desc");
+                    if(description_child)
+                    {
+                        description = *description_child;
+                        boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
+                    }
+
+                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description)));
                 }
             }
         }
@@ -263,6 +271,9 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
             mapping_child.put("<xmlattr>.type", type_str);
             mapping_child.put("<xmlattr>.min", o.second->m_MinVal);
             mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
+
+            if(!o.second->m_Description.empty())
+                mapping_child.put("<xmlattr>.desc", o.second->m_Description);
         }
     }
 
@@ -623,7 +634,8 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
     {
         uint64_t value = get_bitfield(m_rxData[frame_id]->data.data(), m_rxData[frame_id]->data.size(), offset, m->m_Size);
         T extracted_data = static_cast<T>(value);
-        info.push_back({ std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data) });
+        info.push_back({ 
+            std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m->m_Description });
     }
     else
     {
@@ -633,7 +645,8 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
             CanTxEntry& tx_entry = tx_entry_opt->get();
             uint64_t value = get_bitfield(tx_entry.data.data(), tx_entry.data.size(), offset, m->m_Size);
             T extracted_data = static_cast<T>(value);
-            info.push_back({ std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data) });
+            info.push_back({ 
+                std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m->m_Description });
         }
     }
 }
@@ -738,42 +751,42 @@ void CanEntryHandler::ApplyEditingOnFrameId(uint32_t frame_id, std::vector<std::
                 case CBT_BOOL:
                 case CBT_UI8:
                 {
-                    HandleBitWriting<uint8_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<uint8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }
                 case CBT_I8:
                 {
-                    HandleBitWriting<int8_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<int8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }
                 case CBT_UI16:
                 {
-                    HandleBitWriting<uint16_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<uint16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }                
                 case CBT_I16:
                 {
-                    HandleBitWriting<int16_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<int16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }                
                 case CBT_UI32:
                 {
-                    HandleBitWriting<uint32_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<uint32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }                
                 case CBT_I32:
                 {
-                    HandleBitWriting<int32_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<int32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }                
                 case CBT_UI64:
                 {
-                    HandleBitWriting<uint64_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<uint64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }
                 case CBT_I64:
                 {
-                    HandleBitWriting<int64_t>(frame_id, cnt, offset, m->m_Type, byte_array, new_data);
+                    HandleBitWriting<int64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
                     break;
                 }
             }

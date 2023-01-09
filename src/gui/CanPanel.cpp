@@ -1186,6 +1186,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 }
                 else
                     m_LogForFrame->ShowDialog(logs);
+                break;
             }
             case ID_CanSenderRemoveRxFrame:
             {
@@ -1195,6 +1196,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
 
                 can_handler->m_rxData.erase(frame_id);  /* Remove this entry from CanEntryHandler's map */
                 can_grid_rx->ClearGrid();
+                break;
             }
         }
     }
@@ -1254,6 +1256,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 }
                 else
                     m_LogForFrame->ShowDialog(logs);
+                break;
 
             }
         }
@@ -1518,15 +1521,17 @@ void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo&
         values.resize(MAX_BITEDITOR_FIELDS);
         LOG(LogLevel::Warning, "Too much bitfields used for can frame mapping. FrameID: {:X}, Used: {}, Maximum supported: {}", frame_id, values.size(), MAX_BITEDITOR_FIELDS);
     }
-    /* TODO: This is not working on linux, I wasn't able to update the label of wxTextCtrl - maybe there in wxWidgets */
+
     m_Id = 0;
     m_DataFormat = 0;
     m_BitfieldInfo = values;
-    for(auto& i : values)
+    
+    for(const auto& [label, value, helper] : values)
     {
-        m_InputLabel[m_Id]->SetLabelText(i.first);
+        m_InputLabel[m_Id]->SetLabelText(label);
         m_InputLabel[m_Id]->Show();
-        m_Input[m_Id]->SetLabelText(i.second);
+        m_InputLabel[m_Id]->SetToolTip(helper);
+        m_Input[m_Id]->SetValue(value);
         m_Input[m_Id]->Show();
         m_Id++;
     }
@@ -1534,6 +1539,7 @@ void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo&
     for(int i = m_Id; i != MAX_BITEDITOR_FIELDS; i++)
     {
         m_InputLabel[i]->Hide();
+        m_InputLabel[i]->SetToolTip("");
         m_Input[i]->Hide();
     }
 
@@ -1616,9 +1622,9 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsDecimal))
     {
         uint8_t cnt = 0;
-        for(auto& [name, value] : m_BitfieldInfo)
+        for(const auto& [label, value, helper] : m_BitfieldInfo)
         {
-            m_Input[cnt]->SetLabelText(value);
+            m_Input[cnt]->SetValue(value);
             if(++cnt > m_Id)
                 break;
         }
@@ -1627,14 +1633,14 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsHex))
     {
         uint8_t cnt = 0;
-        for(auto& [name, value] : m_BitfieldInfo)
+        for(const auto& [label, value, helper] : m_BitfieldInfo)
         {
             if(utils::is_number(value))
             {
                 uint64_t decimal_val = std::stoll(value);
                 std::string hex_str = std::format("{:X}", decimal_val);  /* std::to_chars gives lower case letters, I don't like it :/ */
 
-                m_Input[cnt]->SetLabelText(hex_str);
+                m_Input[cnt]->SetValue(hex_str);
                 if(++cnt > m_Id)
                     break;
             }
@@ -1644,14 +1650,14 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsBinary))
     {
         uint8_t cnt = 0;
-        for(auto& [name, value] : m_BitfieldInfo)
+        for(const auto& [label, value, helper] : m_BitfieldInfo)
         {
             if(utils::is_number(value))
             {
                 uint64_t decimal_val = std::stoll(value);
                 std::string hex_str = std::format("{:b}", decimal_val);
 
-                m_Input[cnt]->SetLabelText(hex_str);
+                m_Input[cnt]->SetValue(hex_str);
                 if(++cnt > m_Id)
                     break;
             }

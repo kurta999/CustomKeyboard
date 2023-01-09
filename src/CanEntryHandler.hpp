@@ -104,8 +104,8 @@ enum CanBitfieldType : uint8_t
 class CanMap
 {
 public:
-    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val) :
-        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val)
+    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description) :
+        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description)
     {
 
     }
@@ -125,11 +125,14 @@ public:
     size_t m_MinVal;
 
     // !\brief Maximum value
-    size_t m_MaxVal;
+    size_t m_MaxVal;    
+    
+    // !\brief Description (or whatever, more info about bitfields)
+    std::string m_Description;
 };
 
 using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
-using CanBitfieldInfo = std::vector<std::pair<std::string, std::string>>;
+//using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
 
 class ICanEntryLoader
 {

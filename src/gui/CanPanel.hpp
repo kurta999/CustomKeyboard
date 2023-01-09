@@ -40,7 +40,7 @@ class CanByteEditorDialog;
 class BitEditorDialog;
 class CanLogForFrameDialog;
 
-using CanBitfieldInfo = std::vector<std::pair<std::string, std::string>>;
+using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
 
 class CanGrid
 {
