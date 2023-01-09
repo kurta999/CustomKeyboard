@@ -161,9 +161,11 @@ void MapConverterPanel::HandleInputFileSelect(wxString& path)
 		std::string input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
 		if(!input.empty())
 		{
+#ifdef _WIN32
 			boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
+#endif
 			m_OkButton->SetForegroundColour(*wxRED);
-			m_Input->SetLabelText(input);
+			m_Input->SetValue(input);
 		}
 	}
 

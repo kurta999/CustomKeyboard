@@ -10,8 +10,11 @@ public:
     AntiLock() = default;
     ~AntiLock() = default;
 
+    // \brief Load exclusions to vector from string
+    // \param input [in] Input string to parse
     void LoadExclusions(const std::string& input);
 
+    // \brief Generate writable string from exclusions
     const std::string SaveExclusions();
 
     // \brief Process for antilock
@@ -49,5 +52,6 @@ private:
     // \brief Mouse step
     bool m_StepForward = false;
 
+    // \brief Ticks passed since last activity
     uint32_t m_LastActivityTime = 0;
 };

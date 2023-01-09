@@ -49,7 +49,13 @@ private:
 
     // !\brief Stop async operations
     void StopAsync();
+
+    // !\brief Start async accept
     void StartAccept();
+
+    // !\brief Handle async accept
+    // !\param error [in] Boost error code
+    // !\param session [in] Shared pointer to current session
     void HandleAccept(const boost::system::error_code& error, SharedSession session);
 
     // !\brief Set of active sessions

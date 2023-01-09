@@ -126,7 +126,7 @@ void CorsairHid::ThreadFunc()
 void CorsairHid::HandleKeypress(const std::string& key)
 {
     std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
-    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(last_keypress - time_now).count();
+    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_keypress).count();
     if(elapsed > DEBOUNCING_INTERVAL)
     {
         last_keypress = std::chrono::steady_clock::now();
@@ -134,6 +134,6 @@ void CorsairHid::HandleKeypress(const std::string& key)
     }
     else
     {
-        LOG(LogLevel::Normal, "Bouncing detected, keypress has been skippped");
+        LOG(LogLevel::Normal, "Bouncing detected, keypress has been skippped. Elapsed time (ms): {}", elapsed);
     }
 }

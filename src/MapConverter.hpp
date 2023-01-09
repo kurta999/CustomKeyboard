@@ -55,6 +55,11 @@ public:
     MapConverter() = default;
     ~MapConverter() = default;
 
+    // !\brief Convert map from MTA:DM or MTA:Race to SA-MP format
+    // !\param str [in] Input map file
+    // !\param flags [in] Conversion flags
+    // !\param offset [in] XYZ offset
+    // !\return SA-MP map file format
     std::string MtaToSamp(const std::string& input, MapConverterFlags flags, Vec3D offset);
 
 private:
