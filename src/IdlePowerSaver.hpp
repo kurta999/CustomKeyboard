@@ -3,12 +3,16 @@
 #include "utils/CSingleton.hpp"
 #include <inttypes.h>
 
+constexpr int64_t MAX_CPU_POWER_SAVER_QUEUE_SIZE = 50;
+
+static_assert((MAX_CPU_POWER_SAVER_QUEUE_SIZE & 1) == 0, "MAX_QUEUE_SIZE has to be even");
+
 class IdlePowerSaver : public CSingleton < IdlePowerSaver >
 {
     friend class CSingleton < IdlePowerSaver >;
 
 public:
-    IdlePowerSaver() = default;
+    IdlePowerSaver();
     ~IdlePowerSaver();
 
     // \brief Process for idle power saver
@@ -23,6 +27,13 @@ public:
 
     // \brief Desirable cpu power percent when computer is idle 
     uint8_t reduced_power_percent = 98;
+
+    // \brief Minimum load threshold. Median load must be lower than this in order to activate cpu power saver
+    uint8_t min_load_threshold = 50;
+    
+    // \brief Maximum load threshold. If this value is reached while the cpu power saver is active, it will be disabled and only enables again
+    //        when median CPU load is lower than min_load_threshold
+    uint8_t max_load_threshold = 80;
 
 private:
     // \brief Set CPU min-max power percent
@@ -40,9 +51,12 @@ private:
     // \brief Is CPU frequency reduced?
     bool is_power_reduced = false;
 
+    // \brief Last CPU power saver process execution
     std::chrono::steady_clock::time_point m_lastExec{};
 
+    // \brief Vector of captured CPU usage from the past
     std::vector<uint8_t> m_powerPercents;
 
+    // \brief Median CPU load [%]
     uint8_t median_load = 0;
 };

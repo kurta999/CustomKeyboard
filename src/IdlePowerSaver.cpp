@@ -3,16 +3,8 @@
 constexpr uint8_t MIN_CPU_PERCENT_POWER_SAVE = 0;
 constexpr uint8_t MIN_CPU_PERCENT_PERFORMANCE = 100;
 constexpr int64_t CPU_USAGE_SAMPLE_RATE = 250;  /* Unit: milliseconds */
-constexpr int64_t MAX_QUEUE_SIZE = 50;
 
-static_assert((MAX_QUEUE_SIZE & 1) == 0, "MAX_QUEUE_SIZE has to be even");
-
-#ifdef _WIN32
-static float CalculateCPULoad();
-static unsigned long long FileTimeToInt64();
-#endif
-
-float GetCPULoad();
+static float GetCPULoad();
 
 #ifdef _WIN32
 static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
@@ -22,7 +14,6 @@ static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long t
 
     unsigned long long totalTicksSinceLastTime = totalTicks - _previousTotalTicks;
     unsigned long long idleTicksSinceLastTime = idleTicks - _previousIdleTicks;
-
 
     float ret = 1.0f - ((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime) / totalTicksSinceLastTime : 0);
 
@@ -50,6 +41,11 @@ float GetCPULoad()
 #endif
 }
 
+IdlePowerSaver::IdlePowerSaver()
+{
+    m_powerPercents.reserve(MAX_CPU_POWER_SAVER_QUEUE_SIZE);
+}
+
 IdlePowerSaver::~IdlePowerSaver()
 {
     SetCpuPowerPercent(MIN_CPU_PERCENT_PERFORMANCE, 100);
@@ -64,9 +60,16 @@ void IdlePowerSaver::Process(uint32_t idle_time)
         {
             if(!is_power_reduced)
             {
-                LOG(LogLevel::Normal, "Limit CPU frequency");
-                SetCpuPowerPercent(MIN_CPU_PERCENT_POWER_SAVE, reduced_power_percent);
-                is_power_reduced = true;
+                if(median_load < min_load_threshold)
+                {
+                    LOG(LogLevel::Normal, "Limit CPU frequency");
+                    SetCpuPowerPercent(MIN_CPU_PERCENT_POWER_SAVE, reduced_power_percent);
+                    is_power_reduced = true;
+                }
+                else
+                {
+                    LOG(LogLevel::Normal, "Median load too big, limit won't be applied: {} (threshold: {})", median_load, min_load_threshold);
+                }
             }
         }
         else if(is_power_reduced && idle_time < (timeout - timeout_hystheresis))
@@ -81,7 +84,7 @@ void IdlePowerSaver::Process(uint32_t idle_time)
         {
             const float raw_cpu_usage = GetCPULoad();
             uint8_t real_cpu_usage = static_cast<uint8_t>(std::round(raw_cpu_usage * 100.f));
-            if(m_powerPercents.size() >= MAX_QUEUE_SIZE)
+            if(m_powerPercents.size() >= MAX_CPU_POWER_SAVER_QUEUE_SIZE)
             {
                 //LOG(LogLevel::Notification, "Pre Vec: {}, {}, {}, {}, {}", m_powerPercents[0], m_powerPercents[1], m_powerPercents[2], m_powerPercents[3], m_powerPercents[4]);
                 std::rotate(m_powerPercents.begin(), m_powerPercents.begin() + 1, m_powerPercents.end());
@@ -95,7 +98,7 @@ void IdlePowerSaver::Process(uint32_t idle_time)
 
             if(m_powerPercents.size() & 1)
             {
-
+                assert("m_powerPercents size is odd! That's should never happen!");
             }
             else
             {
@@ -104,7 +107,14 @@ void IdlePowerSaver::Process(uint32_t idle_time)
                 const auto median_it = copy_vec.begin() + copy_vec.size() / 2;
                 std::nth_element(copy_vec.begin(), median_it, copy_vec.end());
                 median_load = *median_it;
-                LOG(LogLevel::Notification, "Median CPU: {}, {}", real_cpu_usage, median_load);
+                //LOG(LogLevel::Notification, "Median CPU: {}, {}", real_cpu_usage, median_load);
+            }
+
+            if(is_power_reduced && median_load > max_load_threshold)
+            {
+                SetCpuPowerPercent(MIN_CPU_PERCENT_PERFORMANCE, 100);
+                is_power_reduced = false;
+                LOG(LogLevel::Normal, "Restore CPU frequency - too much load: {} (threshold: {})", median_load, max_load_threshold);
             }
         }
     }
