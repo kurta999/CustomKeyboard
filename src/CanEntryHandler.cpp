@@ -653,11 +653,18 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
 
 template <typename T> void CanEntryHandler::HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data)
 {
-    T raw_data = static_cast<T>(std::stoi(new_data[pos]));
+    T raw_data;
+    try
+    {
+        raw_data = static_cast<T>(std::stoi(new_data[pos]));
+        set_bitfield(raw_data, offset, size, byte_array, sizeof(byte_array));
+    }
+    catch(const std::exception& e)
+    {
+        LOG(LogLevel::Error, "Invalid input for pos {}. Exception: {}", pos, e.what());
+    }
 
     //DBG("%s - %d, %x ......... %d\n", m.second->m_Name.c_str(), m.first, raw_data, m.second->m_Size);
-
-    set_bitfield(raw_data, offset, size, byte_array, sizeof(byte_array));
     pos++;
 }
 
