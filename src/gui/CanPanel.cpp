@@ -1166,9 +1166,13 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
                 CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, true);
-                m_BitfieldEditor->ShowDialog(frame_id, true, info);
+                if(info.size() == 0)
+                {
+                    wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
+                    return;
+                }
                 
-                //wxMessageDialog(this, bindings_str, "CAN Bindings", wxOK).ShowModal();
+                m_BitfieldEditor->ShowDialog(frame_id, true, info);
                 break;
             }
             case ID_CanSenderLogForFrame:
@@ -1225,8 +1229,13 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
                 CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, false);
-                m_BitfieldEditor->ShowDialog(frame_id, false, info);
+                if(info.size() == 0)
+                {
+                    wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
+                    return;
+                }
 
+                m_BitfieldEditor->ShowDialog(frame_id, false, info);
                 if(m_BitfieldEditor->IsApplyClicked())
                 {
                     std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
@@ -1235,7 +1244,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
 
                     std::string hex;
                     utils::ConvertHexBufferToString(can_grid_tx->grid_to_entry[row]->data, hex);
-                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, col), wxString(hex));
+                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
                     can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
                         wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
                 }
@@ -1253,8 +1262,9 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 if(logs.empty())
                 {
                     wxMessageDialog(this, "In order to see the logs for frames, enable Recording in Log panel", "Error", wxOK).ShowModal();
+                    return;
                 }
-                else
+
                     m_LogForFrame->ShowDialog(logs);
                 break;
 
