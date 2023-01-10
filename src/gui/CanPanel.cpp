@@ -256,7 +256,7 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
 
         wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_SingleShot = new wxButton(this, wxID_ANY, "One Shot", wxDefaultPosition, wxDefaultSize);
-        m_SingleShot->SetToolTip("Single shot mode for selected CAN frame");
+        m_SingleShot->SetToolTip("Single shot mode for selected CAN frame (or force sending if it's sent periodically)");
         m_SingleShot->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 wxGrid* m_grid = can_grid_tx->m_grid;
@@ -273,9 +273,44 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
             });
         h_sizer->Add(m_SingleShot);
 
+        m_SendSelected = new wxButton(this, wxID_ANY, "Send selected", wxDefaultPosition, wxDefaultSize);
+        m_SendSelected->SetToolTip("Start sending selected CAN frames (which period isn't 0)");
+        m_SendSelected->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                for(auto& i : rows)
+                {
+                    CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    entry->single_shot = false;
+                    entry->send = true;
+                }
+            });
+        h_sizer->Add(m_SendSelected);        
+        
+        m_StopSelected = new wxButton(this, wxID_ANY, "Stop selected", wxDefaultPosition, wxDefaultSize);
+        m_StopSelected->SetToolTip("Stop sending selected CAN frames (which period isn't 0)");
+        m_StopSelected->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                wxGrid* m_grid = can_grid_tx->m_grid;
+
+                wxArrayInt rows = m_grid->GetSelectedRows();
+                if(rows.empty()) return;
+
+                for(auto& i : rows)
+                {
+                    CanTxEntry* entry = can_grid_tx->grid_to_entry[i];
+                    entry->single_shot = false;
+                    entry->send = false;
+                }
+            });
+        h_sizer->Add(m_StopSelected);
 
         m_SendAll = new wxButton(this, wxID_ANY, "Send All", wxDefaultPosition, wxDefaultSize);
-        m_SendAll->SetToolTip("Send all CAN frame");
+        m_SendAll->SetToolTip("Start send all CAN frame (which period isn't 0)");
         m_SendAll->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 wxGrid* m_grid = can_grid_tx->m_grid;

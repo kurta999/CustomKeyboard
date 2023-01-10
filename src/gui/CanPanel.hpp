@@ -106,6 +106,8 @@ private:
     wxStaticBoxSizer* static_box_rx = nullptr;
 
     wxButton* m_SingleShot = nullptr;
+    wxButton* m_SendSelected = nullptr;
+    wxButton* m_StopSelected = nullptr;
     wxButton* m_SendAll = nullptr;
     wxButton* m_StopAll = nullptr;
     wxButton* m_Add = nullptr;
