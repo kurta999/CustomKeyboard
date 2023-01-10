@@ -409,8 +409,13 @@ void CmdExecutorPanelPage::OnMiddleClick(wxMouseEvent& event)
         return;
     }
 
-    Command* c = reinterpret_cast<Command*>(clientdata);
     DBG("middleclick");
+    Command* c = reinterpret_cast<Command*>(clientdata);
+    if(c->GetParam().empty())
+    {
+        LOG(LogLevel::Error, "Param for command '{}' is empty!", c->GetName());
+        return;
+    }
 
     wxTextEntryDialog d(this, "New parameter", "Execute with new parameter");
     int ret = d.ShowModal();
