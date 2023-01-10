@@ -1171,7 +1171,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
                     return;
                 }
-                
+
                 m_BitfieldEditor->ShowDialog(frame_id, true, info);
                 break;
             }
@@ -1265,9 +1265,8 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     return;
                 }
 
-                    m_LogForFrame->ShowDialog(logs);
+                m_LogForFrame->ShowDialog(logs);
                 break;
-
             }
         }
     }
@@ -1375,8 +1374,8 @@ void CanSenderPanel::SaveMapping()
     std::filesystem::path p = file_path_mapping.ToStdString();
     bool ret = can_handler->SaveMapping(p);
 
-    //MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    //frame->pending_msgs.push_back({ static_cast<uint8_t>(ret ? PopupMsgIds::FrameMappingSaved : PopupMsgIds::FrameMappingSavedError) });
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::FrameMappingSaved) });
 }
 
 void CanPanel::OnSize(wxSizeEvent& evt)
@@ -1466,6 +1465,38 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
                             //RefreshTx();
                     }
                 }
+                break;
+            }
+            case 'C':
+            {
+                wxWindow* focus = wxWindow::FindFocus();
+                if(focus == m_grid)
+                {
+                    wxArrayInt rows = m_grid->GetSelectedRows();
+                    if(rows.empty()) return;
+
+                    wxString str_to_copy;
+                    for(auto& row : rows)
+                    {
+                        for(uint8_t col = 0; col < CanSenderGridCol::Sender_Max - 1; col++)
+                        {
+                            str_to_copy += m_grid->GetCellValue(row, col);
+                            str_to_copy += '\t';
+                        }
+                        str_to_copy += '\n';
+                    }
+                    if(str_to_copy.Last() == '\n')
+                        str_to_copy.RemoveLast();
+
+                    if(wxTheClipboard->Open())
+                    {
+                        wxTheClipboard->SetData(new wxTextDataObject(str_to_copy));
+                        wxTheClipboard->Close();
+                        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SelectedLogsCopied) });
+                    }
+                }
+                break;
             }
         }
     }

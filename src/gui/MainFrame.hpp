@@ -53,6 +53,7 @@ enum PopupMsgIds : uint8_t
 	FrameMappingLoadError,
 	CanLogSaved,
 	CommandsSaved,
+	SelectedLogsCopied,
 };
 
 class MyFrame : public wxFrame

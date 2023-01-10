@@ -705,7 +705,13 @@ void MyFrame::HandleNotifications()
 						});
 					break;
 				}
-
+				case SelectedLogsCopied:
+				{
+					ShowNotificaiton("Logs copied", wxString::Format("Selected logs copied to clipboard"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+						});
+					break;
+				}
 			}
 		}
 		catch(std::exception& e)
