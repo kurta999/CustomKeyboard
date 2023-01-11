@@ -116,6 +116,10 @@ ninja
 
 ![Alt text](/github_screens/can_usb.png?raw=true "CAN-USB GUI")
 
+**CAN-USB Frame mapping**
+
+![Alt text](/github_screens/can_bit_editor.png?raw=true "CAN-USB Frame mapping")
+
 **Structure parser**
 
 ![Alt text](/github_screens/struct_parser.png?raw=true "C Structure parser (offset generation)")
