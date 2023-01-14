@@ -62,17 +62,14 @@ void CanDeviceStm32::ProcessReceivedFrames()
 
 size_t CanDeviceStm32::PrepareSendDataFormat(std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
 {
-    UartCanData d;
-    d.magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
-    d.frame_id = data_ptr->frame_id;
-    d.data_len = data_ptr->data_len;
-    memcpy(d.data, data_ptr->data, d.data_len);
-    d.crc = utils::crc16_modbus((void*)&d, sizeof(d) - 2);
-    if(max_size < sizeof(d))
-    {
-        LOG(LogLevel::Error, "PrepareSendDataFormat max_size is too small, should be at least {} bytes", sizeof(d));
-        return 0;
-    }
-    memcpy(out, &d, sizeof(d));
-    return sizeof(d);
+    UartCanData* d = reinterpret_cast<UartCanData*>(out);
+    assert(max_size >= sizeof(*d));
+
+    d->magic_number = MAGIC_NUMBER_SEND_DATA_TO_CAN_BUS;
+    d->frame_id = data_ptr->frame_id;
+    d->data_len = data_ptr->data_len;
+    memcpy(d->data, data_ptr->data, d->data_len);
+    d->crc = utils::crc16_modbus((void*)d, sizeof(*d) - 2);
+    remove_from_queue = true;
+    return sizeof(*d);
 }
