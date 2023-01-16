@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "../commitid.h"
+#include <hidapi/hidapi.h>
 
 #define HOTKEY_ID_TERMINAL 0x3000		/* any value between 0 and 0xBFFF */
 //#define HOTKEY_ID_NUM_LOCK 0x3001		/* any value between 0 and 0xBFFF */
@@ -444,18 +445,27 @@ MyFrame::MyFrame(const wxString& title)
 
 	SetClientSize(Settings::Get()->window_size);
 
-	main_panel = new MainPanel(this);
-	escape_panel = new EscaperPanel(this);
-	debug_panel = new DebugPanel(this);
-	parser_panel = new ParserPanel(this);
-	file_panel = new FilePanel(this);
-	cmd_panel = new CmdExecutorPanelBase(this);
-	can_panel = new CanPanel(this);
-	modbus_master_panel = new ModbusMasterPanel(this);
-	log_panel = new LogPanel(this);
-	Logger::Get()->AppendPreinitedEntries();
-
 	UsedPages used_pages = Settings::Get()->used_pages;
+	if(used_pages.main)
+		main_panel = new MainPanel(this);
+	if(used_pages.escaper)
+		escape_panel = new EscaperPanel(this);
+	if(used_pages.debug)
+		debug_panel = new DebugPanel(this);
+	if(used_pages.struct_parser)
+		parser_panel = new ParserPanel(this);
+	if(used_pages.file_browser)
+		file_panel = new FilePanel(this);
+	if(used_pages.cmd_executor)
+		cmd_panel = new CmdExecutorPanelBase(this);
+	if(used_pages.can)
+		can_panel = new CanPanel(this);
+	if(used_pages.modbus_master)
+		modbus_master_panel = new ModbusMasterPanel(this);
+	if(used_pages.log)
+		log_panel = new LogPanel(this);
+	Logger::Get()->AppendPreinitedEntries();
+	
 	wxSize client_size = GetClientSize();
 	ctrl = new wxAuiNotebook(this, wxID_ANY, wxPoint(client_size.x, client_size.y), FromDIP(wxSize(430, 200)), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 	ctrl->Freeze();
