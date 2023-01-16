@@ -107,7 +107,7 @@ bool set_nibble(const uint16_t nibble_index, const uint8_t value,
 bool set_bitfield(const uint64_t value, const uint16_t offset,
         const uint16_t bit_count, uint8_t destination[],
         uint16_t destination_length) {
-    if(value > bitmask(bit_count)) {
+    if(value > bitmask((uint8_t)bit_count)) {
         return false;
     }
 

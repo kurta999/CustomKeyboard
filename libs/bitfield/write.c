@@ -44,5 +44,5 @@ bool bitfield_encode_bool(const bool value, const uint8_t bit_offset,
         const uint8_t bit_size, uint8_t destination[],
         const uint16_t destination_length) {
     return bitfield_encode_float(value, bit_offset, bit_size, 1.0, 0,
-            destination, destination_length);
+            destination, (uint8_t)destination_length);
 }
