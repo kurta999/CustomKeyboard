@@ -44,6 +44,7 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DatabaseImpl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DatabaseLogic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryBackup.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ExceptionHandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/GuiEditor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/IdlePowerSaver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Logger.cpp

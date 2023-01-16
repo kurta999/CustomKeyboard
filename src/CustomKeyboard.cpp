@@ -1,6 +1,4 @@
 #include "pch.hpp"
-#include <boost/dynamic_bitset.hpp>
-#include <isotp/isotp.h>
 
 IMPLEMENT_APP(MyApp)
 
@@ -8,7 +6,9 @@ bool MyApp::OnInit()
 {
     if(!wxApp::OnInit())
         return false;
-    
+
+    ExceptionHandler::Register();
+
     can_entry = std::make_unique<CanEntryHandler>(xml, rx_xml, mapping_xml);
     cmd_executor = std::make_unique<CmdExecutor>();
 
