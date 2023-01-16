@@ -131,17 +131,18 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_dll;C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_stc.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_stc.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_lib;</AdditionalIncludeDirectories>
@@ -160,18 +161,19 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_dll;C:\Program Files\boost\boost_1_81_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswu;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_dll;C:\Program Files\boost\boost_1_81_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_dll;C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0\stage\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_dll;C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_lib;</AdditionalIncludeDirectories>
@@ -190,18 +192,19 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_lib\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\Program Files\boost\boost_1_81_0;.\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_lib\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\Program Files\boost\boost_1_81_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0\stage\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.2.0\lib\vc_dll\mswud;C:\wxWidgets-3.2.0\include;C:\wxWidgets-3.2.0\include\msvc;C:\wxWidgets-3.2.0\lib\vc_lib;</AdditionalIncludeDirectories>
@@ -222,6 +225,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -250,13 +254,14 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_dll;C:\wxWidgets-3.2.0\lib\vc_x64_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
@@ -282,14 +287,15 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;PowrProf.lib;hidapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.0\lib\vc_x64_lib;C:\Program Files\boost\boost_1_81_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutputPath)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
@@ -333,6 +339,7 @@
     <ClInclude Include="src\DatabaseImpl.hpp" />
     <ClInclude Include="src\DatabaseLogic.hpp" />
     <ClInclude Include="src\DirectoryBackup.hpp" />
+    <ClInclude Include="src\ExceptionHandler.hpp" />
     <ClInclude Include="src\framework.hpp" />
     <ClInclude Include="src\GuiEditor.hpp" />
     <ClInclude Include="src\gui\CanPanel.hpp" />
@@ -387,26 +394,41 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\bitfield\bitarray.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\bitfield\bitfield.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\bitfield\read.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\bitfield\write.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\enumser\enumser.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -420,6 +442,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="libs\lodepng\lodepng.cpp">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -485,6 +510,7 @@
     <ClCompile Include="src\DatabaseImpl.cpp" />
     <ClCompile Include="src\DatabaseLogic.cpp" />
     <ClCompile Include="src\DirectoryBackup.cpp" />
+    <ClCompile Include="src\ExceptionHandler.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
     <ClCompile Include="src\gui\CanPanel.cpp" />
     <ClCompile Include="src\gui\CmdExecutorPanel.cpp" />
