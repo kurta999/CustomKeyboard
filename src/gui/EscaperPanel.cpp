@@ -1,7 +1,26 @@
 #include "pch.hpp"
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/algorithm/string.hpp>
 
 wxBEGIN_EVENT_TABLE(EscaperPanel, wxPanel)
 wxEND_EVENT_TABLE()
+
+std::string decode64(const std::string& val) {
+	using namespace boost::archive::iterators;
+	using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+	return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+		return c == '\0';
+		});
+}
+
+std::string encode64(const std::string& val) {
+	using namespace boost::archive::iterators;
+	using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+	auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+	return tmp.append((3 - val.size() % 3) % 3, '=');
+}
 
 EscaperPanel::EscaperPanel(wxFrame* parent)
 	: wxPanel(parent, wxID_ANY)
@@ -64,11 +83,8 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 
 	bSizer1->Add(m_StyledTextCtrl, wxSizerFlags(1).Left().Expand());
 
+	wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
 	m_OkButton = new wxButton(this, wxID_ANY, wxT("Escape"), wxDefaultPosition, wxDefaultSize, 0);
-	bSizer1->Add(m_OkButton, 0, wxALL, 5);
-
-	this->SetSizer(bSizer1);
-	this->Layout();
 	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 		{
 			std::string str = m_StyledTextCtrl->GetText().ToStdString();
@@ -84,4 +100,42 @@ EscaperPanel::EscaperPanel(wxFrame* parent)
 				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::StringEscaped) });
 			}
 		});
+	h_sizer->Add(m_OkButton);
+	
+	m_Base64EncodeButton = new wxButton(this, wxID_ANY, wxT("Base64 Encode"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Base64EncodeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			std::string str = m_StyledTextCtrl->GetText().ToStdString();
+			str = encode64(str);
+
+			if(wxTheClipboard->Open())
+			{
+				wxTheClipboard->SetData(new wxTextDataObject(str));
+				wxTheClipboard->Close();
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::StringEscaped) });
+			}
+		});
+	h_sizer->Add(m_Base64EncodeButton);
+
+	m_Base64DecodeButton = new wxButton(this, wxID_ANY, wxT("Base64 Decode"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Base64DecodeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			std::string str = m_StyledTextCtrl->GetText().ToStdString();
+			str = decode64(str);
+
+			if(wxTheClipboard->Open())
+			{
+				wxTheClipboard->SetData(new wxTextDataObject(str));
+				wxTheClipboard->Close();
+				MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+				frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::StringEscaped) });
+			}
+		});
+	h_sizer->Add(m_Base64DecodeButton);
+
+	bSizer1->Add(h_sizer);
+
+	this->SetSizer(bSizer1);
+	this->Layout();
 }
