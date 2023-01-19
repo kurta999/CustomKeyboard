@@ -1,12 +1,12 @@
 <CanFrameMapping>
 	<Frame>
-		<ID>2C7</Data>
-		<Mapping offset = "0" len = "3" type = "uint8_t" desc="Test\nString">Data From MCU</Mapping>
-		<Mapping offset = "3" len = "3" type = "uint8_t" min="0" max="3">Data From MCU2</Mapping>
-		<Mapping offset = "6" len = "3" type = "uint8_t">Data From MCU3</Mapping>
+		<ID>2C7</ID>
+		<Mapping offset = "0" len = "3" type = "uint8_t" bg_color="FF4466" bold="1" scale="2.1" desc="Test\nString">Data From MCU</Mapping>
+		<Mapping offset = "3" len = "3" type = "uint8_t" min="0" max="3" color="#33FF33">Data From MCU2</Mapping>
+		<Mapping offset = "6" len = "3" type = "uint8_t" color="red">Data From MCU3</Mapping>
 	</Frame>
 	<Frame>
-		<ID>411</Data>
+		<ID>411</ID>
 		<Mapping offset = "0" len = "8" type = "uint8_t">First</Mapping>
 		<Mapping offset = "8" len = "8" type = "uint8_t">Second</Mapping>
 		<Mapping offset = "16" len = "4" type = "uint8_t">nibble start</Mapping>
@@ -18,7 +18,7 @@
 		<Mapping offset = "48" len = "16" type = "uint16_t" desc="Test\nString\nSecond">7&8th byte</Mapping>
 	</Frame>
 	<Frame>
-		<ID>47A</Data>
+		<ID>444</ID>
 		<Mapping offset = "16" len = "4" type = "uint8_t">Vehicle state</Mapping>
 	</Frame>
 </CanFrameMapping>

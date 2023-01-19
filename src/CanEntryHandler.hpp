@@ -104,8 +104,10 @@ enum CanBitfieldType : uint8_t
 class CanMap
 {
 public:
-    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description) :
-        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description)
+    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
+        uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
+        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
+        m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
     {
 
     }
@@ -129,6 +131,18 @@ public:
     
     // !\brief Description (or whatever, more info about bitfields)
     std::string m_Description;
+
+    // !\brief Text color
+    uint32_t m_color;
+
+    // !\brief Text background color
+    uint32_t m_bg_color;
+
+    // !\brief Is text bold?
+    bool m_is_bold;
+
+    // !\brief Text scale
+    float m_scale;
 };
 
 using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
@@ -203,7 +217,7 @@ private:
         {CBT_INVALID, "invalid"}
     };    
     
-    static inline std::map<CanBitfieldType, std::pair<int64_t, int64_t>> m_CanTypeSizes
+    static inline std::map<CanBitfieldType, std::pair<int64_t, int64_t>> m_CanTypeSizes  /* TODO: use int128_t for size from boost::multiprecision */
     {
         {CBT_BOOL, {0, 1}},
         {CBT_UI8, {std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()}},
@@ -314,6 +328,13 @@ public:
     // !\param log_level [in] Recording level
     void SetRecordingLogLevel(uint8_t log_level) { m_RecodingLogLevel = log_level; }
 
+    // !\brief Get default ECU ID
+    uint32_t GetDefaultEcuId() { return m_DefaultEcuId; }
+
+    // !\brief Set default ECU ID
+    // !\param ecu_id [in] Default ECU ID
+    void SetDefaultEcuId(uint32_t ecu_id) { m_DefaultEcuId = ecu_id; link.send_arbitration_id = m_DefaultEcuId; }
+
     // !\brief Get log records for given frame
     // !\param frame_id [in] CAN Frame ID
     // !\param is_rx [in] Is RX?
@@ -322,7 +343,7 @@ public:
 
     // !\brief Set ISO-TP response frame
     // !\param frame_id [in] CAN Frame ID
-    void SetIsoTpResponseFrame(uint32_t frame_id) { m_IsoTpResponseId = frame_id; };
+    void SetIsoTpResponseFrame(uint32_t frame_id) { m_IsoTpResponseId = frame_id; }
 
     // !\brief Get ISO-TP response frame
     uint32_t GetIsoTpResponseFrame() { return m_IsoTpResponseId; };
@@ -427,6 +448,9 @@ private:
     // !\brief Recording log level
     uint8_t m_RecodingLogLevel = 1;
 
+    // !\brief Default ECU ID
+    uint32_t m_DefaultEcuId = 0x8AB;
+
     // !\brief ISO-TP Link
     IsoTpLink link;
 
@@ -436,5 +460,6 @@ private:
     // !\brief ISO-TP Transmit buffer
     uint8_t m_Isotp_Recvbuf[MAX_ISOTP_FRAME_LEN];
 
+    // !\brief ISO-TP Response Frame ID
     uint32_t m_IsoTpResponseId = 0x7DA;
 };

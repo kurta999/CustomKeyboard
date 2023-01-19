@@ -1,10 +1,12 @@
 #include "pch.hpp"
 
+constexpr uint32_t DEFAULT_TXTCTRL_BACKGROUND = 0x00F0F0F0;
+
 CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader, ICanMappingLoader& mapping_loader) :
     m_CanEntryLoader(loader), m_CanRxEntryLoader(rx_loader), m_CanMappingLoader(mapping_loader)
 {
     start_time = std::chrono::steady_clock::now();
-    isotp_init_link(&link, 0x7CA, m_Isotp_Sendbuf, sizeof(m_Isotp_Sendbuf), m_Isotp_Recvbuf, sizeof(m_Isotp_Recvbuf));
+    isotp_init_link(&link, m_DefaultEcuId, m_Isotp_Sendbuf, sizeof(m_Isotp_Sendbuf), m_Isotp_Recvbuf, sizeof(m_Isotp_Recvbuf));
 }
 
 CanEntryHandler::~CanEntryHandler()
@@ -195,6 +197,10 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                     std::string name = m.second.get_value<std::string>();
                     int64_t min_val = std::numeric_limits<int64_t>::min();
                     int64_t max_val = std::numeric_limits<int64_t>::max();
+                    uint32_t color = wxBLACK->GetRGB();
+                    uint32_t bg_color = DEFAULT_TXTCTRL_BACKGROUND;
+                    bool is_bold = false;
+                    float scale = 1.0f;
 
                     CanBitfieldType bitfield_type = GetTypeFromString(type);
                     if(bitfield_type == CBT_INVALID)
@@ -205,6 +211,11 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
 
                     boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("<xmlattr>.min");
                     boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("<xmlattr>.max");
+                    boost::optional<std::string> color_child = m.second.get_optional<std::string>("<xmlattr>.color");
+                    boost::optional<std::string> bg_color_child = m.second.get_optional<std::string>("<xmlattr>.bg_color");
+                    boost::optional<bool> is_bold_child = m.second.get_optional<bool>("<xmlattr>.bold");
+                    boost::optional<float> scale_child = m.second.get_optional<float>("<xmlattr>.scale");
+
                     if(min_val_child)
                     {
                         min_val = *min_val_child;
@@ -212,9 +223,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                             min_val = GetMinMaxForType(bitfield_type).first;
                     }
                     else
-                    {
                         min_val = GetMinMaxForType(bitfield_type).first;
-                    }
 
                     if(max_val_child)
                     {
@@ -223,9 +232,16 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                             max_val = GetMinMaxForType(bitfield_type).second;
                     }
                     else
-                    {
                         max_val = GetMinMaxForType(bitfield_type).second;
-                    }
+
+                    if(color_child)
+                        color = utils::ColorStringToInt(*color_child);
+                    if(bg_color_child)
+                        bg_color = utils::ColorStringToInt(*bg_color_child);
+                    if(is_bold_child)
+                        is_bold = *is_bold_child;
+                    if(scale_child)
+                        scale = *scale_child;
 
                     std::string description;
                     boost::optional<std::string> description_child = m.second.get_optional<std::string>("<xmlattr>.desc");
@@ -235,7 +251,8 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
                     }
 
-                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description)));
+                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
+                        color, bg_color, is_bold, scale));
                 }
             }
         }
@@ -272,8 +289,21 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
             mapping_child.put("<xmlattr>.min", o.second->m_MinVal);
             mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
 
+            if(o.second->m_color != wxBLACK->GetRGB())
+                mapping_child.put("<xmlattr>.color", std::format("0x{:X}", o.second->m_color));  /* TODO: save string (eg. green) if color code match */
+            if(o.second->m_bg_color != DEFAULT_TXTCTRL_BACKGROUND)
+                mapping_child.put("<xmlattr>.bg_color", std::format("0x{:X}", o.second->m_bg_color));
+            if(o.second->m_is_bold)
+                mapping_child.put("<xmlattr>.bold", true);
+            if(o.second->m_scale != 1.0f)
+                mapping_child.put("<xmlattr>.scale", o.second->m_scale);
+
             if(!o.second->m_Description.empty())
-                mapping_child.put("<xmlattr>.desc", o.second->m_Description);
+            {
+                std::string desc_str = o.second->m_Description;
+                boost::algorithm::replace_all(desc_str, "\n", "\\n");  /* Fix for newlines */
+                mapping_child.put("<xmlattr>.desc", desc_str);
+            }
         }
     }
 
@@ -635,7 +665,7 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
         uint64_t value = get_bitfield(m_rxData[frame_id]->data.data(), m_rxData[frame_id]->data.size(), offset, m->m_Size);
         T extracted_data = static_cast<T>(value);
         info.push_back({ 
-            std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m->m_Description });
+            std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m.get()});
     }
     else
     {
@@ -646,7 +676,7 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
             uint64_t value = get_bitfield(tx_entry.data.data(), tx_entry.data.size(), offset, m->m_Size);
             T extracted_data = static_cast<T>(value);
             info.push_back({ 
-                std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m->m_Description });
+                std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m.get()});
         }
     }
 }

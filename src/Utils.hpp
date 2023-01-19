@@ -20,6 +20,13 @@
 	if(name) \
 		name->Release();
 
+/* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
+#define RGB_TO_WXCOLOR(color) \
+    wxColour(boost::endian::endian_reverse(color << 8))
+
+#define WXCOLOR_TO_RGB(color) \
+    boost::endian::endian_reverse(color << 8)
+
 namespace utils
 {
     template<class> inline constexpr bool always_false_v = false;

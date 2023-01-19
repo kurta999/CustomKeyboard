@@ -75,6 +75,7 @@ namespace std
 #include "StringToCEscaper.hpp"
 #include "TcpMessageExecutor.hpp"
 #include "CmdExecutor.hpp"
+#include "ExceptionHandler.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

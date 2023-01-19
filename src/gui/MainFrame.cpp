@@ -265,6 +265,10 @@ void MyFrame::OnSaveEverything(wxCommandEvent& event)
 	std::unique_ptr<CmdExecutor>& cmd_executor = wxGetApp().cmd_executor;
 	if(cmd_executor)
 		cmd_executor->Save();
+
+	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+	std::lock_guard lock(frame->mtx);
+	frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::EverythingSaved) });
 }
 
 void MyFrame::On10msTimer(wxTimerEvent& event)
@@ -719,6 +723,16 @@ void MyFrame::HandleNotifications()
 				{
 					ShowNotificaiton("Logs copied", wxString::Format("Selected logs copied to clipboard"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 						{
+						});
+					break;
+				}
+				case EverythingSaved:
+				{
+					ShowNotificaiton("Configurations saved", wxString::Format("Every configuration has been saved"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+							wchar_t work_dir[1024] = {};
+							GetCurrentDirectoryW(sizeof(work_dir) - 1, work_dir);
+							ShellExecuteW(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
 						});
 					break;
 				}

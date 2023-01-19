@@ -77,6 +77,7 @@ void Settings::LoadFile()
         can_handler->ToggleAutoSend(utils::stob(pt.get_child("CANSender").find("AutoSend")->second.data()));
         can_handler->ToggleAutoRecord(utils::stob(pt.get_child("CANSender").find("AutoRecord")->second.data()));
         can_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
+        can_handler->SetDefaultEcuId(static_cast<uint32_t>(std::strtol(pt.get_child("CANSender").find("DefaultEcuId")->second.data().c_str(), nullptr, 16)));
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
         can_handler->default_mapping = pt.get_child("CANSender").find("DefaultMapping")->second.data();
@@ -288,6 +289,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "AutoSend = " << can_handler->IsAutoSend() << "\n";
     out << "AutoRecord = " << can_handler->IsAutoRecord() << "\n";
     out << "DefaultRecordingLogLevel = " << static_cast<int>(can_handler->GetRecordingLogLevel()) << "\n";
+    out << "DefaultEcuId = " << std::format("{:X}", can_handler->GetDefaultEcuId()) << "\n";
     out << "DefaultTxList = " << can_handler->default_tx_list.generic_string() << "\n";
     out << "DefaultRxList = " << can_handler->default_rx_list.generic_string() << "\n";
     out << "DefaultMapping = " << can_handler->default_mapping.generic_string() << "\n";
@@ -300,6 +302,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
     out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
+    out << "UsedPages = Main, Config, wxEditor, Map, StringEscaper, Debug, StructParser, FileBrowser, CmdExecutor, CanSender, Log" << "\n"; /* TODO: make this dynamic */
     out << "RememberWindowSize = " << remember_window_size << "\n";
     if(remember_window_size)  /* get frame size when click on Save - not on exit, this is not a bug */
     {

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CanUsbXml>
+	<Frame>
+		<ID>411</ID>
+		<Data>AB CD EF 44 55 DD 77 BB</Data>
+		<Period>0</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>First CAN msg</Comment>
+	</Frame>
+	<Frame>
+		<ID>2C7</ID>
+		<Data>AA BB CC 44 55 66 77 BB</Data>
+		<Period>0</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Second CAN msg</Comment>
+	</Frame>
+	<Frame>
+		<ID>18CC0FBA</ID>
+		<Data>AA 11 22 33 44 55 66 77</Data>
+		<Period>0</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Second CAN msg</Comment>
+	</Frame>
+	<Frame>
+		<ID>444</ID>
+		<Data>00 BB 00 00 00 AA 00 00</Data>
+		<Period>100</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Wakeup</Comment>
+	</Frame>
+	<Frame>
+		<ID>1C9</ID>
+		<Data>00 00 00 00 00 00 B2 00</Data>
+		<Period>1000</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Wakeup 2</Comment>
+	</Frame>
+	<Frame>
+		<ID>494</ID>
+		<Data>00 00 00 00 00 00 00 00</Data>
+		<Period>100</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Wakeup 3</Comment>
+	</Frame>
+	<Frame>
+		<ID>ABC</ID>
+		<Data>00 01 40 00 00 00 00 00</Data>
+		<Period>100</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Wakeup 4</Comment>
+	</Frame>
+	<Frame>
+		<ID>555</ID>
+		<Data>10 20</Data>
+		<Period>1000</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Test</Comment>
+	</Frame>
+	<Frame>
+		<ID>19FF04D</ID>
+		<Data>AB CD EF 44 55 DD 77 BB</Data>
+		<Period>0</Period>
+		<LogLevel>0</LogLevel>
+		<Comment>Test 2</Comment>
+	</Frame>
+</CanUsbXml>

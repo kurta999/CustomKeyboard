@@ -39,8 +39,9 @@ class CanRxData;
 class CanByteEditorDialog;
 class BitEditorDialog;
 class CanLogForFrameDialog;
+class CanMap;
 
-using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
+using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, CanMap*>>;
 
 class CanGrid
 {

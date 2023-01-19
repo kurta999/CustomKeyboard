@@ -540,9 +540,9 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
 
         h_sizer_2->Add(m_SendDataFrame);
         //h_sizer_2->AddSpacer(100);
-
+#if 0
         m_SendIsoTp = new wxButton(this, wxID_ANY, "Send ISO-TP", wxDefaultPosition, wxDefaultSize);
-        m_SendIsoTp->SetToolTip("Send ISO-TP data frame");
+        m_SendIsoTp->SetToolTip("Send ISO-TP data frame with custom CAN Frame ID");
         m_SendIsoTp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -576,10 +576,38 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                     }
                 }
             });
+#endif
+
+        m_SendIsoTp = new wxButton(this, wxID_ANY, "Send ISO-TP", wxDefaultPosition, wxDefaultSize);
+        m_SendIsoTp->SetToolTip("Send ISO-TP data frame with default CAN ECU ID");
+        m_SendIsoTp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this, wxString::Format("Enter ISO-TP payload data to send (Sender FrameID: %X, Response Frame ID: %X)\nExample: [Byte1] [Byte2] [ByteX] ...",
+                    can_handler->GetDefaultEcuId(), can_handler->GetIsoTpResponseFrame()), "Send ISO-TP Frame");
+                if(!m_LastIsoTpInput.empty())
+                    d.SetValue(m_LastIsoTpInput);
+                int ret = d.ShowModal();
+                if(ret == wxID_OK)
+                {
+                    m_LastIsoTpInput = d.GetValue().ToStdString();
+
+                    std::string hex_str(m_LastIsoTpInput);
+                    char byte_array[MAX_ISOTP_FRAME_LEN];
+
+                    boost::algorithm::erase_all(hex_str, " ");
+                    utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
+
+                    uint32_t frame_id = can_handler->GetDefaultEcuId();
+                    uint16_t len = (hex_str.length() / 2);
+                    can_handler->SendIsoTpFrame(frame_id, (uint8_t*)byte_array, len);
+                    LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", frame_id, can_handler->GetIsoTpResponseFrame(), len);
+                }
+            });
         h_sizer_2->Add(m_SendIsoTp);
 
         m_SendIsoTpWithResponseId = new wxButton(this, wxID_ANY, "Send ISO-TP /w Response ID", wxDefaultPosition, wxDefaultSize);
-        m_SendIsoTpWithResponseId->SetToolTip("Send ISO-TP data frame");
+        m_SendIsoTpWithResponseId->SetToolTip("Send ISO-TP data frame with custom sender & responder CAN Frame ID");
         m_SendIsoTpWithResponseId->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
             {
                 std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -1602,11 +1630,23 @@ void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo&
     m_DataFormat = 0;
     m_BitfieldInfo = values;
     
-    for(const auto& [label, value, helper] : values)
+    for(const auto& [label, value, frame] : values)
     {
         m_InputLabel[m_Id]->SetLabelText(label);
+
+        m_InputLabel[m_Id]->SetForegroundColour(RGB_TO_WXCOLOR(frame->m_color));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
+        m_InputLabel[m_Id]->SetBackgroundColour(RGB_TO_WXCOLOR(frame->m_bg_color));
+
+        wxFont font;
+        font.SetWeight(frame->m_is_bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
+        font.Scale(1.0f);  /* Scale has to be set to default first */
+        m_InputLabel[m_Id]->SetFont(font);
+        font.Scale(frame->m_scale);
+        font.SetFaceName("Segoe UI");
+        m_InputLabel[m_Id]->SetFont(font);
+
         m_InputLabel[m_Id]->Show();
-        m_InputLabel[m_Id]->SetToolTip(helper);
+        m_InputLabel[m_Id]->SetToolTip(frame->m_Description);
         m_Input[m_Id]->SetValue(value);
         m_Input[m_Id]->Show();
         m_Id++;
@@ -1698,7 +1738,7 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsDecimal))
     {
         uint8_t cnt = 0;
-        for(const auto& [label, value, helper] : m_BitfieldInfo)
+        for(const auto& [label, value, frame] : m_BitfieldInfo)
         {
             m_Input[cnt]->SetValue(value);
             if(++cnt > m_Id)
@@ -1709,7 +1749,7 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsHex))
     {
         uint8_t cnt = 0;
-        for(const auto& [label, value, helper] : m_BitfieldInfo)
+        for(const auto& [label, value, frame] : m_BitfieldInfo)
         {
             if(utils::is_number(value))
             {
@@ -1726,7 +1766,7 @@ void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
     else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsBinary))
     {
         uint8_t cnt = 0;
-        for(const auto& [label, value, helper] : m_BitfieldInfo)
+        for(const auto& [label, value, frame] : m_BitfieldInfo)
         {
             if(utils::is_number(value))
             {
