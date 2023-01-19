@@ -152,7 +152,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         boost::optional<std::string> is_bold;
                         boost::optional<std::string> scale;
 
-                        auto is_name_present = v.second.get_child_optional("Name");
+                        auto is_name_present = v.second.get_child_optional("Execute");
                         if(is_name_present.has_value())
                         {
                             cmd = v.second.get_child("Execute").get_value<std::string>();
@@ -174,6 +174,13 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
                             is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
                             scale = v.second.get_optional<std::string>("<xmlattr>.scale");
+                        }
+
+                        if(cmd.empty())
+                        {
+                            if(!name)
+                                name = "Unknown";
+                            LOG(LogLevel::Warning, "Empty cmd for command: {}", *name);
                         }
 
                         std::shared_ptr<Command> command = std::make_shared<Command>(
@@ -229,6 +236,7 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
     bool ret = true;
     boost::property_tree::ptree pt;
     auto& root_node = pt.add_child("Commands", boost::property_tree::ptree{});
+    root_node.put("Pages", std::to_string(storage.size()));
 
     uint8_t page_cnt = 1;
     for(auto& page : storage)
@@ -237,10 +245,10 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
 
         auto& page_node = root_node.add_child(std::format("Page_{}", page_cnt), boost::property_tree::ptree{});
         page_node.put("<xmlattr>.name", names[page_cnt - 1]);
-
+        page_node.put("Columns", std::to_string(page.size()));
         for(auto& col : page)
         {
-            auto& col_node = root_node.add_child(std::format("Col_{}", cnt), boost::property_tree::ptree{});
+            auto& col_node = page_node.add_child(std::format("Col_{}", cnt), boost::property_tree::ptree{});
             for(auto& i : col)
             {
                 std::visit([this, &col_node](auto& c)
@@ -253,10 +261,11 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
                                 cmd_node.add("Name", c->GetName());
 
                             cmd_node.add("Execute", c->GetCmd());
-                            cmd_node.add("Param", c->GetParam());
-                            cmd_node.add("Color", std::format("0x{:X}", c->GetColor()));
+                            if(!c->GetParam().empty())
+                                cmd_node.add("Param", c->GetParam());
+                            cmd_node.add("Color", std::format("0x{:X}", c->GetColor()));  /* TODO: save string (eg. green) if color code match */
                             cmd_node.add("BackgroundColor", std::format("0x{:X}", c->GetBackgroundColor()));
-                            cmd_node.add("Execute", c->IsBold());
+                            cmd_node.add("Bold", c->IsBold());
                             cmd_node.add("Scale", c->GetScale());
                         }
                         else if constexpr(std::is_same_v<T, Separator>)

@@ -11,13 +11,6 @@ wxEND_EVENT_TABLE()
 
 constexpr size_t MAX_CMD_LEN_FOR_BUTTON = 16;
 
-/* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
-#define RGB_TO_WXCOLOR(color) \
-    wxColour(boost::endian::endian_reverse(color << 8))
-
-#define WXCOLOR_TO_RGB(color) \
-    boost::endian::endian_reverse(color << 8)
-
 CmdExecutorEditDialog::CmdExecutorEditDialog(wxWindow* parent)
     : wxDialog(parent, wxID_ANY, "Command editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -549,6 +542,7 @@ void CmdExecutorPanelPage::DeleteCommandButton(Command* c, wxButton* btn)
     btn->DeletePendingEvents();
     btn->Disconnect(wxEVT_BUTTON);
     btn->Disconnect(wxEVT_RIGHT_DOWN);
+    btn->Disconnect(wxEVT_MIDDLE_DOWN);
     btn->Destroy();
 
     m_BaseGrid->Layout();
