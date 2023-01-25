@@ -35,16 +35,20 @@ public:
     //        when median CPU load is lower than min_load_threshold
     uint8_t max_load_threshold = 80;
 
-private:
     // \brief Set CPU min-max power percent
     // \param min_percent [in] Desired min new power percent [0 - 100]
     // \param max_percent [in] Desired max new power percent [0 - 100]
     void SetCpuPowerPercent(uint8_t min_percent, uint8_t max_percent);
 
+    // \brief Get CPU Min power percent
+    // \return CPU Min Power percent [0 - 100], 0xFF is error occurred
+    uint8_t GetCpuMinPowerPercent();
+    
     // \brief Get CPU Max power percent
-    // \return CPU Power percent [0 - 100], 0xFF is error occurred
+    // \return CPU Max Power percent [0 - 100], 0xFF is error occurred
     uint8_t GetCpuMaxPowerPercent();
 
+private:
     // \brief Timeout hysteresis [ms]
     const int timeout_hystheresis = 2000;
 

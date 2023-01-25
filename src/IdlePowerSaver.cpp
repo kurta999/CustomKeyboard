@@ -160,6 +160,30 @@ void IdlePowerSaver::SetCpuPowerPercent(uint8_t min_percent, uint8_t max_percent
 #endif
 }
 
+uint8_t IdlePowerSaver::GetCpuMinPowerPercent()
+{
+#ifdef _WIN32
+    DWORD percent = std::numeric_limits<uint8_t>::max();
+    GUID* scheme;
+    int error = PowerGetActiveScheme(NULL, &scheme);
+    if(error)
+    {
+        LOG(LogLevel::Error, "PowerGetActiveScheme returned error code: {}", error);
+        return std::numeric_limits<uint8_t>::max();
+    }
+
+    error = PowerReadACValueIndex(NULL, scheme, &GUID_PROCESSOR_SETTINGS_SUBGROUP, &GUID_PROCESSOR_THROTTLE_MINIMUM, &percent);
+    if(error)
+    {
+        LOG(LogLevel::Error, "PowerReadACValueIndex returned error code for GUID_PROCESSOR_THROTTLE_MINIMUM: {}", error);
+        return std::numeric_limits<uint8_t>::max();
+    }
+    return static_cast<uint8_t>(percent);
+#else
+    return 0;
+#endif
+}
+
 uint8_t IdlePowerSaver::GetCpuMaxPowerPercent()
 {
 #ifdef _WIN32
@@ -175,7 +199,7 @@ uint8_t IdlePowerSaver::GetCpuMaxPowerPercent()
     error = PowerReadACValueIndex(NULL, scheme, &GUID_PROCESSOR_SETTINGS_SUBGROUP, &GUID_PROCESSOR_THROTTLE_MAXIMUM, &percent);
     if(error)
     {
-        LOG(LogLevel::Error, "PowerReadACValueIndex returned error code: {}", error);
+        LOG(LogLevel::Error, "PowerReadACValueIndex returned error code for GUID_PROCESSOR_THROTTLE_MAXIMUM: {}", error);
         return std::numeric_limits<uint8_t>::max();
     }
     return static_cast<uint8_t>(percent);
@@ -183,4 +207,3 @@ uint8_t IdlePowerSaver::GetCpuMaxPowerPercent()
     return 0;
 #endif
 }
-

@@ -18,6 +18,11 @@ public:
 	wxButton* m_SimulateKeypress = nullptr;
 
 	wxTextCtrl* m_TextPanel = nullptr;
+
+	wxSpinCtrl* m_CpuMinPowerPercent = nullptr;
+	wxSpinCtrl* m_CpuMaxPowerPercent = nullptr;
+	wxButton* m_CpuPowerRefresh = nullptr;
+	wxButton* m_CpuPowerApply = nullptr;
 private:
 
 	std::future<void> keypress_future;

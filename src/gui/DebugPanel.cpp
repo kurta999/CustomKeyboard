@@ -51,7 +51,44 @@ DebugPanel::DebugPanel(wxFrame* parent)
 
 	m_TextPanel = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(310, 310), wxTE_MULTILINE);
 	bSizer1->Add(m_TextPanel);
-	
+
+	wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+	h_sizer->Add(new wxStaticText(this, wxID_ANY, "CPU Min:"));
+	h_sizer->AddSpacer(5);
+	m_CpuMinPowerPercent = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 100);
+	h_sizer->Add(m_CpuMinPowerPercent);
+	h_sizer->AddSpacer(5);
+
+	h_sizer->Add(new wxStaticText(this, wxID_ANY, "CPU Max: "));
+	h_sizer->AddSpacer(5);
+	m_CpuMaxPowerPercent = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 100);
+	h_sizer->Add(m_CpuMaxPowerPercent);
+	h_sizer->AddSpacer(5);
+
+	m_CpuPowerRefresh = new wxButton(this, wxID_ANY, "Refresh", wxDefaultPosition, wxDefaultSize);
+	m_CpuPowerRefresh->SetToolTip("Refresh actual CPU power percent");
+	m_CpuPowerRefresh->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			m_CpuMinPowerPercent->SetValue(IdlePowerSaver::Get()->GetCpuMinPowerPercent());
+			m_CpuMaxPowerPercent->SetValue(IdlePowerSaver::Get()->GetCpuMaxPowerPercent());
+		});
+	h_sizer->Add(m_CpuPowerRefresh);
+
+	m_CpuPowerApply = new wxButton(this, wxID_ANY, "Apply", wxDefaultPosition, wxDefaultSize);
+	m_CpuPowerApply->SetToolTip("Apply new CPU power percent values");
+	m_CpuPowerApply->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			uint8_t min_percent = m_CpuMinPowerPercent->GetValue();
+			uint8_t max_percent = m_CpuMaxPowerPercent->GetValue();
+
+			IdlePowerSaver::Get()->SetCpuPowerPercent(min_percent, max_percent);
+		});
+	h_sizer->Add(m_CpuPowerApply);
+
+	bSizer1->AddSpacer(10);
+	bSizer1->Add(h_sizer);
+
 	this->SetSizer(bSizer1);
 	this->Layout();
 }
