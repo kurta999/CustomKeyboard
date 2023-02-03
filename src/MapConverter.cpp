@@ -106,15 +106,35 @@ public:
         Vec3D pos_, float angle, uint8_t interior_, int world_) :
         model_id(model_id_), paintjob(paintjob_), plate(plate_), GtaEntityBase(name_, pos_, Vec3D(0.0f, 0.0f, angle), interior_, world_)
     {
-        std::vector<std::string> vec_upgrades(14);
-        boost::split(vec_upgrades, upgrades_, [](char input) { return input == ' ' || input == ','; }, boost::algorithm::token_compress_on);
-        for(auto& i : vec_upgrades)
-            upgrades.push_back(utils::stoi<uint16_t>(i));
+        if(!upgrades_.empty())
+        {
+            std::vector<std::string> vec_upgrades(14);
+            boost::split(vec_upgrades, upgrades_, [](char input) { return input == ' ' || input == ','; }, boost::algorithm::token_compress_on);
+            for(auto& i : vec_upgrades)
+                upgrades.push_back(utils::stoi<uint16_t>(i));
+        }
 
-        std::vector<std::string> vec_colors(12);
-        boost::split(vec_colors, colors_, [](char input) { return input == ' ' || input == ','; }, boost::algorithm::token_compress_on);
-        for(auto& i : vec_colors)
-            colors.push_back(utils::stoi<uint8_t>(i));
+        if(colors_ != "-1")
+        {
+            std::vector<std::string> vec_colors(12);
+            boost::split(vec_colors, colors_, [](char input) { return input == ' ' || input == ','; }, boost::algorithm::token_compress_on);
+            try
+            {
+                for(auto& i : vec_colors)
+                    colors.push_back(utils::stoi<uint8_t>(i));
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid color format, exception: {}! Input string: {}", e.what(), colors_);
+                for(uint8_t i = 0; i != 12 - colors.size(); i++)
+                    colors.push_back(utils::random_mt(0, 255));  /* Use random colors as recovery */
+            }
+        }
+        else
+        {
+            for(uint8_t i = 0; i != 12; i++)
+                colors.push_back(utils::random_mt(0, 255));  /* Use random colors */
+        }
     }
 
     GtaVehicle(const std::string& name_, uint16_t model_id_, const std::string& pos_, float angle) :
@@ -139,12 +159,19 @@ public:
             }
             else
             {
-                color_1 = colors[0];
-                color_2 = colors[1];
+                if(colors.size() >= 2)
+                {
+                    color_1 = colors[0];
+                    color_2 = colors[1];
+                }
+                else
+                {
+                    LOG(LogLevel::Error, "Invalid color vector size! {}", colors.size());
+                }
             }
         }
 
-        bool no_specialization = flags & MapConverterFlags::ONLY_CREATE_VEHICLE || (!interior && !world && paintjob < 4 && upgrades.empty());
+        bool no_specialization = flags & MapConverterFlags::ONLY_CREATE_VEHICLE || (!interior && !world && paintjob >= 4 && upgrades.empty());
         ret += std::format("\t{}CreateVehicle({}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, -1);", no_specialization ? "" : "tempvehid = ", 
             model_id, pos.x + offset.x, pos.y + offset.y, pos.z + offset.z, rot.z, color_1, color_2);
         ret += GetComment(flags);
@@ -437,10 +464,14 @@ std::string MapConverter::MtaToSamp(const std::string& input, MapConverterFlags 
             {
                 if(v.first == "object")
                 {
+                    auto opt_interior = v.second.get_child_optional("<xmlattr>.interior");  /* Older MTA DM versions doesn't have these attributes */
+                    auto opt_dimension = v.second.get_child_optional("<xmlattr>.dimension");
+                    auto opt_alpha = v.second.get_child_optional("<xmlattr>.alpha");
                     std::unique_ptr<GtaObject> item = std::make_unique<GtaObject>(v.second.get<std::string>("<xmlattr>.id"), v.second.get<uint16_t>("<xmlattr>.model"),
                         Vec3D(v.second.get<float>("<xmlattr>.posX"), v.second.get<float>("<xmlattr>.posY"), v.second.get<float>("<xmlattr>.posZ")),
                         Vec3D(v.second.get<float>("<xmlattr>.rotX"), v.second.get<float>("<xmlattr>.rotY"), v.second.get<float>("<xmlattr>.rotZ")),
-                        v.second.get<int>("<xmlattr>.interior"), v.second.get<int>("<xmlattr>.dimension"), v.second.get<uint8_t>("<xmlattr>.alpha"));
+                        opt_interior.has_value() ? opt_interior->get_value<int>() : 0,
+                        opt_dimension.has_value() ? opt_dimension->get_value<int>() : 0, opt_alpha.has_value() ? opt_alpha->get_value<uint8_t>() : 0xFF);
 
                     items[ItemType::OBJECT].push_back(std::move(item));
                 }
@@ -490,6 +521,24 @@ std::string MapConverter::MtaToSamp(const std::string& input, MapConverterFlags 
                         v.second.get<float>("<xmlattr>.rotZ"), v.second.get<int>("<xmlattr>.interior"), v.second.get<int>("<xmlattr>.dimension"));
 
                     items[ItemType::PED].push_back(std::move(item));
+                }
+                else if(v.first == "spawnpoint")  /* Legacy MTA:DM */
+                {
+                    std::unique_ptr<GtaVehicle> item = std::make_unique<GtaVehicle>(v.second.get<std::string>("<xmlattr>.id"), v.second.get<uint16_t>("<xmlattr>.vehicle"),
+                        "-1", 255, "", "",
+                        Vec3D(v.second.get<float>("<xmlattr>.posX"), v.second.get<float>("<xmlattr>.posY"), v.second.get<float>("<xmlattr>.posZ")),
+                        v.second.get<float>("<xmlattr>.rotZ"), 0, 0);
+
+                    items[ItemType::VEHICLE].push_back(std::move(item));
+                }
+                else if(v.first == "checkpoint")  /* Legacy MTA:DM */
+                {
+                    std::unique_ptr<GtaMarker> item = std::make_unique<GtaMarker>(v.second.get<std::string>("<xmlattr>.id"), "checkpoint",
+                        Vec3D(v.second.get<float>("<xmlattr>.posX"), v.second.get<float>("<xmlattr>.posY"), v.second.get<float>("<xmlattr>.posZ")),
+                        v.second.get<float>("<xmlattr>.size"), v.second.get<std::string>("<xmlattr>.color"),
+                        0, 0);
+
+                    items[ItemType::MARKER].push_back(std::move(item));
                 }
                 else
                 {
