@@ -290,9 +290,9 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
             mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
 
             if(o.second->m_color != wxBLACK->GetRGB())
-                mapping_child.put("<xmlattr>.color", std::format("0x{:X}", o.second->m_color));  /* TODO: save string (eg. green) if color code match */
+                mapping_child.put("<xmlattr>.color", utils::ColorIntToString(o.second->m_color));
             if(o.second->m_bg_color != DEFAULT_TXTCTRL_BACKGROUND)
-                mapping_child.put("<xmlattr>.bg_color", std::format("0x{:X}", o.second->m_bg_color));
+                mapping_child.put("<xmlattr>.bg_color", utils::ColorIntToString(o.second->m_bg_color));
             if(o.second->m_is_bold)
                 mapping_child.put("<xmlattr>.bold", true);
             if(o.second->m_scale != 1.0f)

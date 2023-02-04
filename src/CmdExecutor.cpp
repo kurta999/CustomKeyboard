@@ -263,8 +263,8 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
                             cmd_node.add("Execute", c->GetCmd());
                             if(!c->GetParam().empty())
                                 cmd_node.add("Param", c->GetParam());
-                            cmd_node.add("Color", std::format("0x{:X}", c->GetColor()));  /* TODO: save string (eg. green) if color code match */
-                            cmd_node.add("BackgroundColor", std::format("0x{:X}", c->GetBackgroundColor()));
+                            cmd_node.add("Color", utils::ColorIntToString(c->GetColor()));
+                            cmd_node.add("BackgroundColor", utils::ColorIntToString(c->GetBackgroundColor()));
                             cmd_node.add("Bold", c->IsBold());
                             cmd_node.add("Scale", c->GetScale());
                         }

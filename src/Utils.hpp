@@ -90,7 +90,8 @@ namespace utils
         }
     }
 
-    uint32_t ColorStringToInt(std::string& in);
+    uint32_t ColorStringToInt(const std::string& in);
+    const std::string ColorIntToString(uint32_t in);
 
     template <typename R, typename S> inline R stoi(const S& from_str)
     {

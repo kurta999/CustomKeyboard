@@ -416,23 +416,25 @@ namespace utils
 		}
 	}
 
-	uint32_t ColorStringToInt(std::string& in)
+	const std::unordered_map<std::string, int> color_code_str_mapping =
+	{
+		{"red",			0xFF0000},
+		{"green",       0x33FF33},
+		{"blue",		0x6495ED},
+		{"orange",      0xFF7F50},
+		{"white",       0xFFFFFF},
+		{"black",       0},
+		{"pink",		0xFF10F0},
+	};
+
+	uint32_t ColorStringToInt(const std::string& in)
 	{
 		uint32_t ret = 0;
-		if(in == "red")
-			ret = 0xFF0000;
-		else if(in == "green")
-			ret = 0x33FF33;
-		else if(in == "blue")
-			ret = 0x6495ED;
-		else if(in == "orange")
-			ret = 0xFF7F50;
-		else if(in == "white")
-			ret = 0xFFFFFF;
-		else if(in == "black")
-			ret = 0;
-		else if(in == "pink")
-			ret = 0xFF10F0;
+		auto it = color_code_str_mapping.find(in);
+		if(it != color_code_str_mapping.end())
+		{
+			ret = it->second;
+		}
 		else
 		{
 			size_t offset = 0;
@@ -442,6 +444,21 @@ namespace utils
 			{
 				LOG(LogLevel::Error, "Invalid color format: {}", in);
 			}
+		}
+		return ret;
+	}
+
+	const std::string ColorIntToString(uint32_t in)
+	{
+		std::string ret;
+		auto it = std::find_if(color_code_str_mapping.begin(), color_code_str_mapping.end(), [&in](auto x) { return x.second == in; });
+		if(it != color_code_str_mapping.end())
+		{
+			ret = it->first;
+		}
+		else
+		{
+			ret = std::format("0x{:X}", in);
 		}
 		return ret;
 	}
