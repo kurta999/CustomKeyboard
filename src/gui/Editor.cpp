@@ -15,7 +15,7 @@ wxEND_EVENT_TABLE()
 void EditorPanel::Changeing(wxAuiNotebookEvent& event)
 {
 	int sel = event.GetSelection();
-	if(sel == 1)
+	if(sel == m_notebook->FindPage(gui_cpp))
 	{
 		wxString str;	
 		GuiEditor::Get()->GenerateCode(str);

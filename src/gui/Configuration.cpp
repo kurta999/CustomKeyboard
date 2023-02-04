@@ -179,7 +179,7 @@ void MacroEditBoxDialog::OnTimer(wxTimerEvent& event)
 void ConfigurationPanel::Changeing(wxAuiNotebookEvent& event)
 {
 	int sel = event.GetSelection();
-	if(sel == 0)
+	if(sel == m_notebook->FindPage(comtcp_panel))
 	{
 		comtcp_panel->Update();
 	}

@@ -295,7 +295,7 @@ void MyFrame::HandleDebugPanelUpdate()
 #else
 	bool foreground = true;
 #endif
-	if((sel == 4 || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
+	if((sel == ctrl->FindPage(debug_panel) || MacroRecorder::Get()->IsRecordingMouse()) && foreground)
 	{
 		if(debug_panel)
 			debug_panel->HandleUpdate();
