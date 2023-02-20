@@ -291,6 +291,12 @@
     <ClInclude Include="src\ExceptionHandler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\CanScriptHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\ICanResultPanel.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -477,6 +483,9 @@
       <Filter>Source Files\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\ExceptionHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CanScriptHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

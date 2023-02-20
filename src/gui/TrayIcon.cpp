@@ -105,6 +105,7 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	LOG(LogLevel::Verbose, "reload 6");
 	mainFrame->cmd_panel->ReloadCommands();
 	LOG(LogLevel::Normal, "Settings has been reloaded");
+	mainFrame->SetCurrentPage(Settings::Get()->default_page);
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))

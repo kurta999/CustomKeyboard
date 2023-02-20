@@ -6,8 +6,11 @@
 #include <wx/treelist.h>
 #include <wx/grid.h>
 #include <wx/spinctrl.h>
+#include <wx/filepicker.h>
 
 #include <map>
+
+#include "ICanResultPanel.hpp"
 
 #define MAX_BITEDITOR_FIELDS      32
 
@@ -39,7 +42,9 @@ class CanRxData;
 class CanByteEditorDialog;
 class BitEditorDialog;
 class CanLogForFrameDialog;
+class CanUdsRawDialog;
 class CanMap;
+class IResultPanel;
 
 using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, CanMap*>>;
 
@@ -100,6 +105,10 @@ private:
     void RefreshGuiIconsBasedOnSettings();
 
     void OnCellValueChanged(wxGridEvent& ev);
+    /*
+    void OnCellLeftClick(wxGridEvent& ev);
+    void OnCellLeftDoubleClick(wxGridEvent& ev);
+    */
     void OnCellRightClick(wxGridEvent& ev);
     void OnSize(wxSizeEvent& evt);
 
@@ -119,15 +128,14 @@ private:
     wxButton* m_Edit = nullptr;
     wxButton* m_SendDataFrame = nullptr;
     wxButton* m_SendIsoTp = nullptr;
-    wxButton* m_SendIsoTpWithResponseId = nullptr;
     wxButton* m_ClearRx = nullptr;
 
     std::string m_LastDataInput;
-    std::string m_LastIsoTpInput;
     std::string m_LastIsoTpwResponseIDInput;
 
     BitEditorDialog* m_BitfieldEditor = nullptr;
     CanLogForFrameDialog* m_LogForFrame = nullptr;
+    CanUdsRawDialog* m_UdsRawDialog = nullptr;
 
     wxString file_path_tx;
     wxString file_path_rx;
@@ -152,6 +160,7 @@ public:
     wxGrid* m_grid = nullptr;
 
 private:
+
     void OnKeyDown(wxKeyEvent& evt);
     void OnLogLevelChange(wxSpinEvent& evt);
     void OnSize(wxSizeEvent& evt);
@@ -168,10 +177,46 @@ private:
     wxButton* m_AutoScrollBtn = nullptr;
     wxButton* m_RecordingSave = nullptr;
     wxSpinCtrl* m_LogLevelCtrl = nullptr;
+    bool is_extended_session_inserted = false;
 
     size_t cnt = 0;
     std::string search_pattern;
     bool m_AutoScroll = true;
+    wxDECLARE_EVENT_TABLE();
+};
+
+class CanScriptPanel : public wxPanel, public ICanResultPanel
+{
+public:
+    CanScriptPanel(wxWindow* parent);
+    void OnFileDrop(wxDropFilesEvent& event);
+    void OnFileSelected(wxFileDirPickerEvent& event);
+
+    void AddToLog(std::string str) override;
+
+    void On10MsTimer();
+
+private:
+    void OnKeyDown(wxKeyEvent& evt);
+    void OnLogLevelChange(wxSpinEvent& evt);
+    void OnSize(wxSizeEvent& evt);
+    void ClearRecordingsFromGrid();
+    void HandleInputFileSelect(wxString& path);
+
+    wxTextCtrl* m_Offset = nullptr;
+    wxCheckBox* m_OnlyCreateVehicle = nullptr;
+    wxCheckBox* m_VehCompInline = nullptr;
+    wxCheckBox* m_SaveNumberPlate = nullptr;
+    wxCheckBox* m_HideWhenAlphaIsSet = nullptr;
+    wxCheckBox* m_ConvertItemName = nullptr;
+    wxTextCtrl* m_Input = nullptr;
+    wxTextCtrl* m_Output = nullptr;
+    wxButton* m_OkButton = nullptr;
+    wxButton* m_ClearButton = nullptr;
+    wxFilePickerCtrl* m_FilePicker = nullptr;
+
+    wxString path;
+
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -192,6 +237,7 @@ public:
 
     CanSenderPanel* sender = nullptr;
     CanLogPanel* log = nullptr;
+    CanScriptPanel* script = nullptr;
     wxAuiNotebook* m_notebook = nullptr;
 
 private:
@@ -263,4 +309,48 @@ private:
 
     wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(CanLogForFrameDialog);
+};
+
+class CanUdsRawDialog : public wxDialog
+{
+public:
+    CanUdsRawDialog(wxWindow* parent);
+
+    void ShowDialog();
+    bool IsApplyClicked() { return m_IsApplyClicked; }
+
+    uint32_t GetSenderId();
+    uint32_t GetReceiverId();
+    uint32_t GetDelayBetweenFrames();
+    uint32_t GetWaitingTimeForFrames();
+    std::string GetSentData();
+
+    wxTextCtrl* m_SenderId = nullptr;
+    wxTextCtrl* m_ReceiverId = nullptr;
+    wxTextCtrl* m_DelayBetweenFrames = nullptr;
+    wxTextCtrl* m_RecvDelayFrames = nullptr;
+    wxButton* m_ReadDid = nullptr;
+    wxButton* m_WriteDid = nullptr;
+    wxButton* m_Clear = nullptr;
+    wxTextCtrl* m_DataToSend = nullptr;
+    wxButton* m_SendBtn = nullptr;
+    wxTextCtrl* m_DataRecv = nullptr;
+protected:
+    void OnApply(wxCommandEvent& event);
+
+private:
+    void HandleFrameSending();
+
+    wxBoxSizer* sizerTop = nullptr;
+    
+    uint32_t m_LastUdsSenderId = 0;
+    uint32_t m_LastUdsReceiverId = 0;
+    uint32_t m_LastDelayBetweenFrames = 0;
+    uint32_t m_LastRecvWaitingTime = 0;
+    std::string m_LastUdsInput;
+
+    bool m_IsApplyClicked = false;
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(CanUdsRawDialog);
 };

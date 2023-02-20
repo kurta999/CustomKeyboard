@@ -164,6 +164,9 @@ void MyFrame::OnSize(wxSizeEvent& event)
 				can_panel->sender->SetSize(a);
 			if(can_panel->log)
 				can_panel->log->SetSize(a);
+			if(can_panel->script)
+				can_panel->script->SetSize(a);
+			can_panel->m_notebook->Layout();
 		}
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
@@ -390,6 +393,14 @@ void MyFrame::ToggleForegroundVisibility()
 		Raise();
 }
 
+void MyFrame::SetCurrentPage(uint8_t page_id)
+{
+	if(page_id > ctrl->GetPageCount() - 1)
+		page_id = ctrl->GetPageCount() - 1;
+
+	ctrl->SetSelection(page_id);
+}
+
 void MyFrame::SetIconTooltip(const wxString &str)
 {
 #ifdef _WIN32
@@ -508,10 +519,7 @@ MyFrame::MyFrame(const wxString& title)
 		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
 
-	if(Settings::Get()->default_page > ctrl->GetPageCount() - 1)
-		Settings::Get()->default_page = ctrl->GetPageCount() - 1;
-
-	ctrl->SetSelection(Settings::Get()->default_page);
+	SetCurrentPage(Settings::Get()->default_page);
 	Show(!Settings::Get()->minimize_on_startup);
 
 	m_10msTimer = new wxTimer(this, ID_10msTimer);

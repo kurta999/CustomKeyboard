@@ -13,6 +13,7 @@ enum
 	ID_CheckKeypress,
 	ID_FilePicker,
 	ID_FilePickerMapConverter,
+	ID_FilePickerCanScript,
 	ID_DestroyAll,
 	ID_CanLoadTxList,
 	ID_CanSaveTxList,

@@ -175,7 +175,7 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
     return ret;
 }
 
-bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& mapping)
+bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -185,8 +185,17 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
         for(const boost::property_tree::ptree::value_type& v : pt.get_child("CanFrameMapping")) /* loop over each Frame */
         {
             std::string frame_id_str = v.second.get_child("ID").get_value<std::string>();
+            std::string frame_name = v.second.get_child("Name").get_value<std::string>();
             uint32_t frame_id = std::stoi(frame_id_str, nullptr, 16);
 
+            if(frame_name.empty())
+            {
+                LOG(LogLevel::Warning, "Empty frame name for FrameID: {:X}", frame_id);
+            }
+            names[frame_id] = std::move(frame_name);
+            sizes[frame_id] = v.second.get_child("Size").get_value<uint8_t>();
+
+            uint8_t calculated_size = 0;
             for(const boost::property_tree::ptree::value_type& m : v.second) /* loop over each nested child */
             {
                 if(m.first == "Mapping")
@@ -194,6 +203,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                     uint8_t offset = m.second.get<uint8_t>("<xmlattr>.offset");
                     uint8_t len = m.second.get<uint8_t>("<xmlattr>.len");
                     std::string type = m.second.get<std::string>("<xmlattr>.type");
+                    char direction = m.second.get<char>("<xmlattr>.direction");
                     std::string name = m.second.get_value<std::string>();
                     int64_t min_val = std::numeric_limits<int64_t>::min();
                     int64_t max_val = std::numeric_limits<int64_t>::max();
@@ -251,9 +261,15 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
                     }
 
-                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
+                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, direction, len, min_val, max_val, std::move(description),
                         color, bg_color, is_bold, scale));
+                    calculated_size += len;
                 }
+            }
+            
+            if((calculated_size / 8) > sizes[frame_id])
+            {
+                LOG(LogLevel::Warning, "Calculated size for frame {} ({}) is bigger than predefined {}!", names[frame_id], calculated_size, sizes[frame_id]);
             }
         }
     }
@@ -270,7 +286,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
     return ret;
 }
 
-bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping)
+bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -279,6 +295,11 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
     {
         auto& frame_node = root_node.add_child("Frame", boost::property_tree::ptree{});
         frame_node.add("ID", std::format("{:X}", m.first));
+
+        auto it_name = names.find(m.first);
+        auto it_size = sizes.find(m.first);
+        frame_node.add("Name", it_name != names.end() ? it_name->second : "");
+        frame_node.add("Size", it_size != sizes.end() ? it_size->second : 0);
         for(auto& o : m.second)
         {
             std::string_view type_str = GetStringFromType(o.second->m_Type);
@@ -286,6 +307,7 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
             mapping_child.put("<xmlattr>.offset", o.first);
             mapping_child.put("<xmlattr>.len", o.second->m_Size);
             mapping_child.put("<xmlattr>.type", type_str);
+            mapping_child.put("<xmlattr>.direction", static_cast<char>(o.second->m_Direction));
             mapping_child.put("<xmlattr>.min", o.second->m_MinVal);
             mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
 
@@ -443,8 +465,8 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
         m_rxData[frame_id]->period = elapsed;
         m_rxData[frame_id]->count++;
     }
-    m_rxData[frame_id]->log_level = m_RxLogLevels.contains(frame_id) ? m_RxLogLevels[frame_id] : 1;  /* TODO: this is ugly and wastes resources as fuck, redesign it */
     m_rxData[frame_id]->last_execution = std::chrono::steady_clock::now();
+    m_rxData[frame_id]->log_level = m_RxLogLevels.contains(frame_id) ? m_RxLogLevels[frame_id] : 1;  /* TODO: this is ugly and wastes resources as fuck, redesign it */
     rx_frame_cnt++;
     if(is_recoding)
     {
@@ -453,7 +475,17 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
     }
 
     if(frame_id == m_IsoTpResponseId)
+    {
         isotp_on_can_message(&link, data, data_len);
+        
+        uint16_t recv_size = 0;
+        if(isotp_receive(&link, m_uds_recv_data, sizeof(m_uds_recv_data), &recv_size) == ISOTP_RET_OK)
+        {
+            m_UdsFrames.push_back(std::string((const char*)m_uds_recv_data, recv_size));
+            last_uds_frame_received = std::chrono::steady_clock::now();
+        }
+        DBG("finish");
+    }
 
     m_cv.notify_all();
 }
@@ -552,7 +584,7 @@ bool CanEntryHandler::LoadMapping(std::filesystem::path& path)
         path = default_mapping;
 
     m_mapping.clear();
-    bool ret = m_CanMappingLoader.Load(path, m_mapping);
+    bool ret = m_CanMappingLoader.Load(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping);
     return ret;
 }
 
@@ -561,7 +593,7 @@ bool CanEntryHandler::SaveMapping(std::filesystem::path& path)
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_mapping;
-    bool ret = m_CanMappingLoader.Save(path, m_mapping);
+    bool ret = m_CanMappingLoader.Save(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping);
     return ret;
 }
 
@@ -849,6 +881,41 @@ std::optional<std::reference_wrapper<CanTxEntry>> CanEntryHandler::FindTxCanEntr
     if(ret == entries.cend())
         return {};
     return **ret;
+}
+
+uint32_t CanEntryHandler::FindFrameIdOnMapByName(const std::string& name)
+{
+#if 0
+    uint32_t ret_frame_id = 0;
+    for(auto& i : m_mapping)
+    {
+        for(auto& x : i.second)
+        {
+            if(boost::icontains(x.second->m_Name, name))  //if(x.second->m_Name == name)
+            {
+                return ret_frame_id;
+            }
+        }
+    }
+#endif
+
+    uint32_t ret = 0;
+    for(auto& i : m_frame_name_mapping)
+    {
+        if(i.second == name)
+        {
+            ret = i.first;
+            break;
+        }
+    }
+    return ret;
+}
+
+uint32_t CanEntryHandler::GetElapsedTimeSinceLastUdsFrame()
+{
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    int64_t diff = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - last_uds_frame_received).count();
+    return diff;
 }
 
 extern "C" void isotp_user_debug(const char* message, ...)

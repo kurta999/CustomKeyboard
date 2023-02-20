@@ -104,9 +104,9 @@ enum CanBitfieldType : uint8_t
 class CanMap
 {
 public:
-    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
+    CanMap(const std::string& name, CanBitfieldType type, char direction, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
         uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
-        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
+        m_Name(name), m_Type(type), m_Direction(direction), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
         m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
     {
 
@@ -143,9 +143,15 @@ public:
 
     // !\brief Text scale
     float m_scale;
+
+    // !\brief Direction (R = RX, T = TX)
+    char m_Direction;
 };
 
 using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
+using CanFrameNameMapping = std::map<uint32_t, std::string>;  /* TODO: this is wasteful as fuck, rewrite it */
+using CanFrameSizeMapping = std::map<uint32_t, uint8_t>;  /* TODO: this is wasteful as fuck, rewrite it */
+
 //using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
 
 class ICanEntryLoader
@@ -183,8 +189,8 @@ public:
 class ICanMappingLoader
 {
 public:
-    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping) = 0;
-    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping) = 0;
+    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) = 0;
+    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) = 0;
 };
 
 class XmlCanMappingLoader : public ICanMappingLoader
@@ -192,8 +198,8 @@ class XmlCanMappingLoader : public ICanMappingLoader
 public:
     virtual ~XmlCanMappingLoader();
 
-    bool Load(const std::filesystem::path& path, CanMapping& mapping) override;
-    bool Save(const std::filesystem::path& path, CanMapping& mapping) override;
+    bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) override;
+    bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) override;
 
     static CanBitfieldType GetTypeFromString(const std::string_view& input);
     static const std::string_view GetStringFromType(CanBitfieldType type);
@@ -345,8 +351,8 @@ public:
     // !\param frame_id [in] CAN Frame ID
     void SetIsoTpResponseFrame(uint32_t frame_id) { m_IsoTpResponseId = frame_id; }
 
-    // !\brief Get ISO-TP response frame
-    uint32_t GetIsoTpResponseFrame() { return m_IsoTpResponseId; };
+    // !\brief Get ISO-TP response Frame ID
+    uint32_t GetIsoTpResponseFrameId() { return m_IsoTpResponseId; };
 
     // !\brief Return TX Frame count
     // !\return TX Frame count
@@ -365,6 +371,14 @@ public:
     // !\param frame_id [in] CAN Frame ID
     // !\param new_data [in] Vector of strings of new data
     void ApplyEditingOnFrameId(uint32_t frame_id, std::vector<std::string> new_data);
+
+    uint32_t FindFrameIdOnMapByName(const std::string& name);
+
+    CanMapping& GetMapping() { return m_mapping; }
+
+    std::vector<std::string>& GetUdsRawBuffer() { return m_UdsFrames; }
+
+    uint32_t GetElapsedTimeSinceLastUdsFrame();
 
     // !\brief Vector of CAN TX entries
     std::vector<std::unique_ptr<CanTxEntry>> entries;
@@ -392,6 +406,12 @@ public:
 
     // !\brief Mutex for entry handler
     std::mutex m;
+
+    // !\brief Can frame name mapping [frame_id] = name
+    CanFrameNameMapping m_frame_name_mapping;
+
+    // !\brief Can frame size mapping [frame_id] = name
+    CanFrameSizeMapping m_frame_size_mapping;
 
 private:
     // !\brief Assigns new TX buffer to TX entry
@@ -450,7 +470,7 @@ private:
 
     // !\brief Default ECU ID
     uint32_t m_DefaultEcuId = 0x8AB;
-
+public:
     // !\brief ISO-TP Link
     IsoTpLink link;
 
@@ -460,6 +480,15 @@ private:
     // !\brief ISO-TP Transmit buffer
     uint8_t m_Isotp_Recvbuf[MAX_ISOTP_FRAME_LEN];
 
+    // !\brief Vector of received ISO-TP frames (Usally UDS). 
+    // !\note This buffer growing always, user has to clear it
+    std::vector<std::string> m_UdsFrames;  /* TODO: add mutex for this */
+    
+    // !\brief Buffer for data received over ISO-TP (Usally UDS)
+    uint8_t m_uds_recv_data[4096];
+
     // !\brief ISO-TP Response Frame ID
     uint32_t m_IsoTpResponseId = 0x7DA;
+
+    std::chrono::steady_clock::time_point last_uds_frame_received;
 };

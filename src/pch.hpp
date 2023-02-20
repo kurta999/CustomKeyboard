@@ -71,6 +71,7 @@ namespace std
 #include "MapConverter.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
+#include "CanScriptHandler.hpp"
 #include "CorsairHid.hpp"
 #include "StringToCEscaper.hpp"
 #include "TcpMessageExecutor.hpp"

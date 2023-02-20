@@ -74,6 +74,9 @@ public:
 	// !\brief Toggles frame visibility
 	void ToggleForegroundVisibility();
 
+	// !\brief Set currently opened page
+	void SetCurrentPage(uint8_t page_id);
+
 	MainPanel* main_panel = nullptr;
 	ConfigurationPanel* config_panel = nullptr;
 	EditorPanel* editor_panel = nullptr;
