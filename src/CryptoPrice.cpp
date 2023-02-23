@@ -47,11 +47,11 @@ void CryptoPrice::ExecuteApiRead()
             ExtractAmount(arr[3], btc_sell);
             is_pending = true;
 
-            LOG(LogLevel::Notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy, eth_sell, btc_buy, btc_sell);
+            LOG(LogLevel::Notification, "Coin price successfully retreived! Buy, Sell - ETH: {}, {}, BTC: {}, {}", eth_buy.load(), eth_sell.load(), btc_buy.load(), btc_sell.load());
         }
         else
         {
-            LOG(LogLevel::Error, "Invalid number of requrests received from curl.");
+            LOG(LogLevel::Error, "Invalid number of requrests received from curl. Expected: 4, Current: {}", arr.size());
         }
     }
     else

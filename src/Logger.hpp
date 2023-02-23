@@ -16,10 +16,9 @@
 #ifndef _WIN32
 #include <fmt/format.h>
 #include <fmt/chrono.h>
-template<class> inline constexpr bool always_false_v = false;
-#else
-
 #endif
+
+template<class> inline constexpr bool always_false_v = false;
 
 DECLARE_APP(MyApp);
 
