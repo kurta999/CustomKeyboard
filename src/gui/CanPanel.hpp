@@ -22,6 +22,7 @@ enum CanSenderGridCol : int
     Sender_Period,
     Sender_Count,
     Sender_LogLevel,
+    Sender_FavouriteLevel,
     Sender_Comment,
     Sender_Max
 };
@@ -110,6 +111,7 @@ private:
     void OnCellLeftDoubleClick(wxGridEvent& ev);
     */
     void OnCellRightClick(wxGridEvent& ev);
+    void OnGridLabelRightClick(wxGridEvent& ev);
     void OnSize(wxSizeEvent& evt);
 
     wxStaticBoxSizer* static_box_tx = nullptr;
@@ -177,7 +179,6 @@ private:
     wxButton* m_AutoScrollBtn = nullptr;
     wxButton* m_RecordingSave = nullptr;
     wxSpinCtrl* m_LogLevelCtrl = nullptr;
-    bool is_extended_session_inserted = false;
 
     size_t cnt = 0;
     std::string search_pattern;

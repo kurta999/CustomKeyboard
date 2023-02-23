@@ -43,6 +43,8 @@ enum
 	ID_CanSenderMoreInfo,
 	ID_CanSenderLogForFrame,
 	ID_CanSenderRemoveRxFrame,
+	ID_CanSenderEditLogLevel,
+	ID_CanSenderEditFavourites,
 	ID_CmdExecutorEdit,
 	ID_CmdExecutorAdd,
 	ID_CmdExecutorReload,

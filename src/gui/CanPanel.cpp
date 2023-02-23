@@ -1,5 +1,7 @@
 #include "pch.hpp"
 
+#include <wx/headerctrl.h>
+
 wxBEGIN_EVENT_TABLE(CanPanel, wxPanel)
 EVT_SIZE(CanPanel::OnSize)
 wxEND_EVENT_TABLE()
@@ -12,6 +14,7 @@ EVT_GRID_CELL_LEFT_CLICK(CanSenderPanel::OnCellLeftClick)
 EVT_GRID_CELL_LEFT_DCLICK(CanSenderPanel::OnCellLeftDoubleClick)
 */
 EVT_GRID_CELL_RIGHT_CLICK(CanSenderPanel::OnCellRightClick)
+EVT_GRID_LABEL_RIGHT_CLICK(CanSenderPanel::OnGridLabelRightClick)
 EVT_CHAR_HOOK(CanSenderPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
@@ -38,6 +41,7 @@ CanGrid::CanGrid(wxWindow* parent)
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Period, "Period");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Count, "Count");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_LogLevel, "Log");
+    m_grid->SetColLabelValue(CanSenderGridCol::Sender_FavouriteLevel, "Fav");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Comment, "Comment");
 
     // Columns
@@ -62,7 +66,13 @@ CanGrid::CanGrid(wxWindow* parent)
     m_grid->SetColSize(CanSenderGridCol::Sender_DataSize, 30);*/
     m_grid->SetColSize(CanSenderGridCol::Sender_Data, 200);
     m_grid->SetColSize(CanSenderGridCol::Sender_LogLevel, 35);
-    m_grid->SetColSize(CanSenderGridCol::Sender_Comment, 200);
+    m_grid->SetColSize(CanSenderGridCol::Sender_FavouriteLevel, 35);
+    m_grid->SetColSize(CanSenderGridCol::Sender_Comment, 160);
+
+    m_grid->GetGridWindow()->Bind(wxEVT_MIDDLE_DOWN, [this](wxMouseEvent& event)
+        {
+            DBG("middle down\n");
+        });
 }
 
 void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, wxString count, wxString loglevel, wxString comment)
@@ -83,6 +93,7 @@ void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, 
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_DataSize, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Period, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_LogLevel, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_FavouriteLevel, new wxGridCellNumberEditor);
 
     cnt++;
 }
@@ -103,12 +114,14 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_Period), wxString::Format("%d", e->period));
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_Count), "0");
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_LogLevel), wxString::Format("%d", e->log_level));
+    m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", e->favourite_level));
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_Comment), e->comment);
 
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Id, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_DataSize, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Period, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_LogLevel, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_FavouriteLevel, new wxGridCellNumberEditor);
 
     m_grid->SetReadOnly(cnt, CanSenderGridCol::Sender_Count, true);
     
@@ -161,6 +174,7 @@ CanGridRx::CanGridRx(wxWindow* parent)
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Period, "Period");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Count, "Count");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_LogLevel, "Log");
+    m_grid->SetColLabelValue(CanSenderGridCol::Sender_FavouriteLevel, "Fav");
     m_grid->SetColLabelValue(CanSenderGridCol::Sender_Comment, "Comment");
 
     // Columns
@@ -184,9 +198,11 @@ CanGridRx::CanGridRx(wxWindow* parent)
 
     m_grid->SetColSize(CanSenderGridCol::Sender_Data, 200);
     m_grid->SetColSize(CanSenderGridCol::Sender_LogLevel, 30);
-    m_grid->SetColSize(CanSenderGridCol::Sender_Comment, 200);
+    m_grid->SetColSize(CanSenderGridCol::Sender_FavouriteLevel, 30);
+    m_grid->SetColSize(CanSenderGridCol::Sender_Comment, 160);
 
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_LogLevel, new wxGridCellNumberEditor);
+    m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_FavouriteLevel, new wxGridCellNumberEditor);
 }
 
 void CanGridRx::AddRow(std::unique_ptr<CanRxData>& e)
@@ -218,6 +234,7 @@ void CanGridRx::UpdateRow(int num_row, uint32_t frame_id, std::unique_ptr<CanRxD
     m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_Period), wxString::Format("%d", e->period));
     m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_Count), wxString::Format("%lld", e->count));
     m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_LogLevel), wxString::Format("%d", e->log_level));
+    m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", e->favourite_level));
     m_grid->SetCellValue(wxGridCellCoords(num_row, CanSenderGridCol::Sender_Comment), comment);
 }
 
@@ -805,14 +822,6 @@ void CanLogPanel::InsertRow(std::chrono::steady_clock::time_point& t1, uint8_t d
     if(num_rows <= cnt)
         m_grid->AppendRows(1);
 
-    if(data.size() == 8 && data[0] == 0x06 && data[1] == 0x50 && data[2] == 0x03 && data[3] == 0x00 && data[4] == 0x32)
-    {
-        if(!is_extended_session_inserted)
-            is_extended_session_inserted = true;
-        LOG(LogLevel::Verbose, "Skipping extended session from CAN log");
-        return;
-    }
-
     uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - start_time).count();
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Time), wxString::Format("%.3lf", static_cast<double>(elapsed) / 1000.0));
 
@@ -998,17 +1007,24 @@ void CanSenderPanel::RefreshTx()
     can_grid_tx->cnt = 0;
     can_grid_tx->grid_to_entry.clear();
 
+    uint8_t default_favourite_level = can_handler->GetFavouriteLevel();
     if(search_pattern_tx.empty())
     {
         for(auto& i : can_handler->entries)
-            can_grid_tx->AddRow(i);
+        {
+            if(default_favourite_level <= i->favourite_level)
+                can_grid_tx->AddRow(i);
+        }
     }
     else
     {
         for(auto& i : can_handler->entries)
         {
-            if(boost::icontains(i->comment, search_pattern_tx))
-                can_grid_tx->AddRow(i);
+            if(default_favourite_level <= i->favourite_level)
+            {
+                if(boost::icontains(i->comment, search_pattern_tx))
+                    can_grid_tx->AddRow(i);
+            }
         }
     }
 }
@@ -1058,6 +1074,26 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
                 {
                     LOG(LogLevel::Error, "stoi exception: {}", e.what());
                     can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_LogLevel), wxString::Format("%d", can_handler->m_rxData[frame_id]->log_level));
+                }
+                break;
+            }
+            case CanSenderGridCol::Sender_FavouriteLevel:
+            {
+                wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
+                uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
+
+                wxString fav_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_FavouriteLevel);
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                try
+                {
+                    uint8_t fav_level = static_cast<uint8_t>(std::stoi(fav_str.ToStdString()));
+                    can_handler->m_rxData[frame_id]->favourite_level = fav_level;
+                    //can_handler->m_RxLogLevels[frame_id] = log_level;
+                }
+                catch(const std::exception& e)
+                {
+                    LOG(LogLevel::Error, "stoi exception: {}", e.what());
+                    can_grid_rx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", can_handler->m_rxData[frame_id]->favourite_level));
                 }
                 break;
             }
@@ -1157,6 +1193,25 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
                 {
                     LOG(LogLevel::Error, "stoi exception: {}", e.what());
                     can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_LogLevel), wxString::Format("%d", can_grid_tx->grid_to_entry[row]->log_level));
+                }
+                break;
+            }
+            case CanSenderGridCol::Sender_FavouriteLevel:
+            {
+                try
+                {
+                    size_t fav_level = static_cast<size_t>(std::stoi(new_value.ToStdString()));
+                    if(fav_level > std::numeric_limits<uint8_t>::max())
+                    {
+                        fav_level = std::numeric_limits<uint8_t>::max();
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", std::numeric_limits<uint8_t>::max()));
+                    }
+                    can_grid_tx->grid_to_entry[row]->favourite_level = static_cast<uint8_t>(fav_level);
+                }
+                catch(const std::exception& e)
+                {
+                    LOG(LogLevel::Error, "stoi exception: {}", e.what());
+                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", can_grid_tx->grid_to_entry[row]->favourite_level));
                 }
                 break;
             }
@@ -1306,6 +1361,63 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 }
 
                 m_LogForFrame->ShowDialog(logs);
+                break;
+            }
+        }
+    }
+}
+
+void CanSenderPanel::OnGridLabelRightClick(wxGridEvent& ev)
+{
+    if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_rx->m_grid) || ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_tx->m_grid))
+    {
+        wxMenu menu;
+        menu.Append(ID_CanSenderEditLogLevel, "&Edit log level")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        menu.Append(ID_CanSenderEditFavourites, "&Edit favourites")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        int ret = GetPopupMenuSelectionFromUser(menu);
+        switch(ret)
+        {
+            case ID_CanSenderEditLogLevel:
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this, "Enter default log level for TX & RX list", "Default log level");
+                d.SetValue(std::to_string(can_handler->GetRecordingLogLevel()));
+                int ret = d.ShowModal();
+                if(ret == wxID_OK)
+                {
+                    uint8_t loglevel = 0;
+                    try
+                    {
+                        loglevel = std::stoi(d.GetValue().ToStdString());
+                    }
+                    catch(const std::exception& e)
+                    {
+                        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
+                    }
+                    can_handler->SetRecordingLogLevel(loglevel);
+                }
+                break;
+            }
+            case ID_CanSenderEditFavourites:
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxTextEntryDialog d(this, "Enter default favourite level for TX & RX list", "Default favourite level");
+                d.SetValue(std::to_string(can_handler->GetFavouriteLevel()));
+                int ret = d.ShowModal();
+                if(ret == wxID_OK)
+                {
+                    uint8_t favourite_level = 0;
+                    try
+                    {
+                        favourite_level = std::stoi(d.GetValue().ToStdString());
+                    }
+                    catch(const std::exception& e)
+                    {
+                        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
+                    }
+                    can_handler->SetFavouriteLevel(favourite_level);
+                }
+
                 break;
             }
         }
@@ -2127,7 +2239,7 @@ CanUdsRawDialog::CanUdsRawDialog(wxWindow* parent)
     h_sizer->Add(m_WriteDid);
     m_WriteDid->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            m_DataToSend->SetValue("10 06\r\n2E 4000 0C\r\nDELAY 10\r\n22 4000");
+            m_DataToSend->SetValue("10 03\r\n2E 4000 0C\r\nDELAY 10\r\n22 4000");
         });
 
     m_Clear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);

@@ -64,6 +64,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             local_entry->data.assign(bytes, bytes + (hex_str.length() / 2));
             local_entry->period = v.second.get_child("Period").get_value<int>();
             local_entry->log_level = v.second.get_child("LogLevel").get_value<uint8_t>();
+            local_entry->favourite_level = v.second.get_child("Favourite").get_value<uint8_t>();
             local_entry->comment = v.second.get_child("Comment").get_value<std::string>();
             e.push_back(std::move(local_entry));
         }
@@ -96,6 +97,7 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
         frame_node.add("Data", hex);
         frame_node.add("Period", i->period);
         frame_node.add("LogLevel", i->log_level);
+        frame_node.add("Favourite", i->favourite_level);
         frame_node.add("Comment", i->comment);
     }
 
@@ -194,6 +196,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
             }
             names[frame_id] = std::move(frame_name);
             sizes[frame_id] = v.second.get_child("Size").get_value<uint8_t>();
+            /* TODO: add direction here */
 
             uint8_t calculated_size = 0;
             for(const boost::property_tree::ptree::value_type& m : v.second) /* loop over each nested child */
@@ -203,7 +206,6 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                     uint8_t offset = m.second.get<uint8_t>("<xmlattr>.offset");
                     uint8_t len = m.second.get<uint8_t>("<xmlattr>.len");
                     std::string type = m.second.get<std::string>("<xmlattr>.type");
-                    char direction = m.second.get<char>("<xmlattr>.direction");
                     std::string name = m.second.get_value<std::string>();
                     int64_t min_val = std::numeric_limits<int64_t>::min();
                     int64_t max_val = std::numeric_limits<int64_t>::max();
@@ -261,7 +263,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
                     }
 
-                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, direction, len, min_val, max_val, std::move(description),
+                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
                         color, bg_color, is_bold, scale));
                     calculated_size += len;
                 }
@@ -300,6 +302,7 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
         auto it_size = sizes.find(m.first);
         frame_node.add("Name", it_name != names.end() ? it_name->second : "");
         frame_node.add("Size", it_size != sizes.end() ? it_size->second : 0);
+        /* TODO: add direction here */
         for(auto& o : m.second)
         {
             std::string_view type_str = GetStringFromType(o.second->m_Type);
@@ -307,7 +310,6 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
             mapping_child.put("<xmlattr>.offset", o.first);
             mapping_child.put("<xmlattr>.len", o.second->m_Size);
             mapping_child.put("<xmlattr>.type", type_str);
-            mapping_child.put("<xmlattr>.direction", static_cast<char>(o.second->m_Direction));
             mapping_child.put("<xmlattr>.min", o.second->m_MinVal);
             mapping_child.put("<xmlattr>.max", o.second->m_MaxVal);
 

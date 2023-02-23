@@ -47,6 +47,7 @@ public:
     uint32_t period{};
     size_t count{};
     uint8_t log_level{};
+    uint8_t favourite_level{};
 };
 
 class CanTxEntry : public CanEntryBase, public CanEntryTransmitInfo
@@ -104,9 +105,9 @@ enum CanBitfieldType : uint8_t
 class CanMap
 {
 public:
-    CanMap(const std::string& name, CanBitfieldType type, char direction, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
+    CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
         uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
-        m_Name(name), m_Type(type), m_Direction(direction), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
+        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
         m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
     {
 
@@ -143,9 +144,6 @@ public:
 
     // !\brief Text scale
     float m_scale;
-
-    // !\brief Direction (R = RX, T = TX)
-    char m_Direction;
 };
 
 using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
@@ -334,6 +332,13 @@ public:
     // !\param log_level [in] Recording level
     void SetRecordingLogLevel(uint8_t log_level) { m_RecodingLogLevel = log_level; }
 
+    // !\brief Get favourite level
+    uint8_t GetFavouriteLevel() { return m_DefaultFavouriteLevel; }
+
+    // !\brief Set favourite level
+    // !\param favourite_level [in] Favourite level
+    void SetFavouriteLevel(uint8_t favourite_level) { m_DefaultFavouriteLevel = favourite_level; }
+
     // !\brief Get default ECU ID
     uint32_t GetDefaultEcuId() { return m_DefaultEcuId; }
 
@@ -468,6 +473,10 @@ private:
     // !\brief Recording log level
     uint8_t m_RecodingLogLevel = 1;
 
+    // !\brief Favourite level
+    // !\details CAN entries (both TX & RX) which level is below this level, won't show on TX and RX list
+    uint8_t m_DefaultFavouriteLevel = 1;
+
     // !\brief Default ECU ID
     uint32_t m_DefaultEcuId = 0x8AB;
 public:
@@ -485,7 +494,7 @@ public:
     std::vector<std::string> m_UdsFrames;  /* TODO: add mutex for this */
     
     // !\brief Buffer for data received over ISO-TP (Usally UDS)
-    uint8_t m_uds_recv_data[4096];
+    uint8_t m_uds_recv_data[4096] = {};
 
     // !\brief ISO-TP Response Frame ID
     uint32_t m_IsoTpResponseId = 0x7DA;
