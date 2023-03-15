@@ -6,20 +6,21 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
 2. **Backend for Corsair's G Keys** - Bind macros to G keys as those were on second keyboard, without even installing iCUE
 3. **CAN-USB Transreceiver** - Send and Receive CAN Frames to/from CAN bus via computer trough USB - see more info below
-4. **Command excutor** - Bind specific commands (cmds) to GUI buttons, which is then excuted on GUI button click - see more info below
-5. **StructParser** - Generate offsets of C structures and it's members
-6. **ScreenshotSaver** - Saving screenshot to .png from clipboard
-7. **DirectoryBackup** - Backup folders to another place(s) from tray menu
-8. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800 - 1200Mhz while my PC is in idle. If the median CPU usage gets above max configured percent due to some background tasks, the frequency will be restored and won't be limited again until it falls below configured minimum median load again.
-9. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
-10. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs
-11. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
-12. **Filesystem browser** - List files and directories recursively by size starting from specific path - useful for finding bloat on storage
-13. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
-14. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
-15. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
-16. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
-17. **MTA -> SA-MP MapConverter** - Convert maps from MTA-SA Race and MTA:SA DM to SA-MP with every item which is supported by SA-MP; objects, actors, vehicles with components, checkpoints and pickups.
+4. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml
+5. **Command excutor** - Bind specific commands (cmds) to GUI buttons, which is then excuted on GUI button click - see more info below
+6. **StructParser** - Generate offsets of C structures and it's members
+7. **ScreenshotSaver** - Saving screenshot to .png from clipboard
+8. **DirectoryBackup** - Backup folders to another place(s) from tray menu
+9. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800 - 1200Mhz while my PC is in idle. If the median CPU usage gets above max configured percent due to some background tasks, the frequency will be restored and won't be limited again until it falls below configured minimum median load again.
+10. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
+11. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs
+12. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
+13. **Filesystem browser** - List files and directories recursively by size starting from specific path - useful for finding bloat on storage
+14. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
+15. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
+16. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
+17. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
+18. **MTA -> SA-MP MapConverter** - Convert maps from MTA-SA Race and MTA:SA DM to SA-MP with every item which is supported by SA-MP; objects, actors, vehicles with components, checkpoints and pickups.
 
 *(1) This is an outdated part of this project, it doesn't support sizers. It's not recommended to create GUI without sizers, only use it if you know what you are doing.
 
