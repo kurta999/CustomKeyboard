@@ -11,6 +11,7 @@ bool MyApp::OnInit()
 
     can_entry = std::make_unique<CanEntryHandler>(xml, rx_xml, mapping_xml);
     cmd_executor = std::make_unique<CmdExecutor>();
+    did_handler = std::make_unique<DidHandler>(did_xml_loader, did_xml_chace_loader);
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();
@@ -27,6 +28,7 @@ bool MyApp::OnInit()
 
     can_entry->Init();
     cmd_executor->Init();
+    did_handler->Init();
 
     if(!wxTaskBarIcon::IsAvailable())
         LOG(LogLevel::Warning, "There appears to be no system tray support in your current environment. This app may not behave as expected.");

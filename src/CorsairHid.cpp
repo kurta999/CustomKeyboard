@@ -4,7 +4,7 @@ constexpr int HID_READ_TIMEOUT = 100;
 constexpr int READ_DATA_BUFFER_SIZE = 64;
 constexpr int MIN_READ_DATA_SIZE = 20;
 
-constexpr int DEBOUNCING_INTERVAL = 250;
+constexpr int DEBOUNCING_INTERVAL = 350;
 
 CorsairHid::~CorsairHid()
 {

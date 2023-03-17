@@ -11,6 +11,7 @@
 #include "ModbusMasterPanel.hpp"
 #include "CmdExecutorPanel.hpp"
 #include "MapConverterPanel.hpp"
+#include "DidPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -53,6 +54,7 @@ enum PopupMsgIds : uint8_t
 	FrameMappingLoadError,
 	CanLogSaved,
 	CommandsSaved,
+	DidCacheSaved,
 	EverythingSaved,
 	SelectedLogsCopied,
 };
@@ -88,6 +90,7 @@ public:
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
 	MapConverterPanel* map_converter_panel = nullptr;
+	DidPanel* did_panel = nullptr;
 	LogPanel* log_panel = nullptr;
 	wxAuiNotebook* ctrl = nullptr;
 	std::mutex mtx;
@@ -136,6 +139,9 @@ private:
 	
 	// !\brief Handles crypto price update
 	void HandleCryptoPriceUpdate();
+
+	// !\brief Handles DID panel update
+	void HandleDidPanelUpdate();
 
 private:
 	// !\brief Handles notifications

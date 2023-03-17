@@ -176,6 +176,8 @@ void Settings::LoadFile()
             used_pages.cmd_executor = 1;
         if(boost::icontains(pages_str, "CanSender"))
             used_pages.can = 1;
+        if(boost::icontains(pages_str, "Did"))
+            used_pages.did = 1;
         if(boost::icontains(pages_str, "ModbusMaster"))
             used_pages.modbus_master = 1;
         if(boost::icontains(pages_str, "Log"))

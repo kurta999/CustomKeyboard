@@ -7,6 +7,7 @@
 #include <wx/wx.h>
 #include "CanEntryHandler.hpp"
 #include "CmdExecutor.hpp"
+#include "DidHandler.hpp"
 
 class MyApp : public wxApp
 {
@@ -21,6 +22,9 @@ public:
     XmlCanEntryLoader xml;
     XmlCanRxEntryLoader rx_xml;
     XmlCanMappingLoader mapping_xml;
+    XmlDidLoader did_xml_loader;
+    XmlDidCacheLoader did_xml_chace_loader;
     std::unique_ptr<CanEntryHandler> can_entry;
     std::unique_ptr<CmdExecutor> cmd_executor;
+    std::unique_ptr<DidHandler> did_handler;
 };

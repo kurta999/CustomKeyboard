@@ -297,6 +297,15 @@
     <ClInclude Include="src\interface\ICanResultPanel.hpp">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
+    <ClInclude Include="src\gui\DidPanel.hpp">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DidHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\IDidLoader.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -488,6 +497,12 @@
     <ClCompile Include="src\CanScriptHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\DidPanel.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DidHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">
@@ -520,5 +535,6 @@
     <Xml Include="TxList.xml" />
     <Xml Include="Cmds.xml" />
     <Xml Include="FrameMapping.xml" />
+    <Xml Include="DidList.xml" />
   </ItemGroup>
 </Project>

@@ -170,6 +170,8 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		}
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
+		if(did_panel)
+			did_panel->SetSize(a);
 	}
 	event.Skip(true);
 }
@@ -288,6 +290,7 @@ void MyFrame::On100msTimer(wxTimerEvent& event)
 	HandleNotifications();
 	HandleBackupProgressDialog();
 	HandleCryptoPriceUpdate();
+	HandleDidPanelUpdate();
 }
 
 void MyFrame::HandleDebugPanelUpdate()
@@ -358,6 +361,12 @@ void MyFrame::HandleCryptoPriceUpdate()
 			main_panel->UpdateCryptoPrices(CryptoPrice::Get()->eth_buy, CryptoPrice::Get()->eth_sell, CryptoPrice::Get()->btc_buy, CryptoPrice::Get()->btc_sell);
 		CryptoPrice::Get()->is_pending = false;
 	}
+}
+
+void MyFrame::HandleDidPanelUpdate()
+{
+	if(did_panel)
+		did_panel->On100msTimer();
 }
 
 void MyFrame::RegisterTerminalHotkey(int vkey)
@@ -475,6 +484,8 @@ MyFrame::MyFrame(const wxString& title)
 		cmd_panel = new CmdExecutorPanelBase(this);
 	if(used_pages.can)
 		can_panel = new CanPanel(this);
+	if(used_pages.did)
+		did_panel = new DidPanel(this);
 	if(used_pages.modbus_master)
 		modbus_master_panel = new ModbusMasterPanel(this);
 	if(used_pages.log)
@@ -513,8 +524,10 @@ MyFrame::MyFrame(const wxString& title)
 		ctrl->AddPage(cmd_panel, "CMD Executor", false, wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.can)
 		ctrl->AddPage(can_panel, "CAN Sender", false, wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.did)
+		ctrl->AddPage(did_panel, "DID", false, wxArtProvider::GetBitmap(wxART_FIND, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.modbus_master)
-		ctrl->AddPage(modbus_master_panel, "Modbus M.", false, wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+		ctrl->AddPage(modbus_master_panel, "MM", false, wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.log)
 		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();
@@ -718,6 +731,20 @@ void MyFrame::HandleNotifications()
 					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
 					ShowNotificaiton("Commands saved", wxString::Format("Commands saved in %.3fms\nPath: %s",
+						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
+						{
+#ifdef _WIN32
+							std::string cmdline = std::string("/select,\"" + filename);
+							ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#endif
+						});
+					break;
+				}
+				case DidCacheSaved:
+				{
+					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
+					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
+					ShowNotificaiton("DIDs cache saved", wxString::Format("DIDs cache saved in %.3fms\nPath: %s",
 						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 						{
 #ifdef _WIN32

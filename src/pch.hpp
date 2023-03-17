@@ -42,6 +42,7 @@ namespace std
 #include "gui/MapConverterPanel.hpp"
 #include "gui/ModbusMasterPanel.hpp"
 #include "gui/CmdExecutorPanel.hpp"
+#include "gui/DidPanel.hpp"
 
 #include "Logger.hpp"
 #include "CustomMacro.hpp"
@@ -71,6 +72,7 @@ namespace std
 #include "MapConverter.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"
+#include "DidHandler.hpp"
 #include "CanScriptHandler.hpp"
 #include "CorsairHid.hpp"
 #include "StringToCEscaper.hpp"

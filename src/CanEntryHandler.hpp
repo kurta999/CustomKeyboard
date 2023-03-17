@@ -149,6 +149,7 @@ public:
 using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
 using CanFrameNameMapping = std::map<uint32_t, std::string>;  /* TODO: this is wasteful as fuck, rewrite it */
 using CanFrameSizeMapping = std::map<uint32_t, uint8_t>;  /* TODO: this is wasteful as fuck, rewrite it */
+using CanFrameDirectionMapping = std::map<uint32_t, char>;  /* TODO: this is wasteful as fuck, rewrite it */
 
 //using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
 
@@ -187,8 +188,8 @@ public:
 class ICanMappingLoader
 {
 public:
-    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) = 0;
-    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) = 0;
+    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
+    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
 };
 
 class XmlCanMappingLoader : public ICanMappingLoader
@@ -196,8 +197,8 @@ class XmlCanMappingLoader : public ICanMappingLoader
 public:
     virtual ~XmlCanMappingLoader();
 
-    bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) override;
-    bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes) override;
+    bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) override;
+    bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) override;
 
     static CanBitfieldType GetTypeFromString(const std::string_view& input);
     static const std::string_view GetStringFromType(CanBitfieldType type);
@@ -385,6 +386,8 @@ public:
 
     uint32_t GetElapsedTimeSinceLastUdsFrame();
 
+    std::chrono::steady_clock::time_point GetStartTime() { return start_time; }
+
     // !\brief Vector of CAN TX entries
     std::vector<std::unique_ptr<CanTxEntry>> entries;
 
@@ -416,12 +419,15 @@ public:
     CanFrameNameMapping m_frame_name_mapping;
 
     // !\brief Can frame size mapping [frame_id] = name
-    CanFrameSizeMapping m_frame_size_mapping;
+    CanFrameSizeMapping m_frame_size_mapping;    
+    
+    // !\brief Can frame direction mapping [frame_id] = name
+    CanFrameDirectionMapping m_frame_direction_mapping;
 
-private:
     // !\brief Assigns new TX buffer to TX entry
     void AssignNewBufferToTxEntry(uint32_t frame_id, uint8_t* buffer, size_t size);
 
+private:
     // !\brief Handle bit reading of a frame
     template <typename T> void HandleBitReading(uint32_t frame_id, bool is_rx, std::unique_ptr<CanMap>& m, size_t offset, CanBitfieldInfo& info);
 

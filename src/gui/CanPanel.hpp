@@ -96,6 +96,7 @@ public:
     void LoadMapping();
     void SaveMapping();
     void OnKeyDown(wxKeyEvent& evt);
+    void UpdateGridForTxFrame(uint32_t frame_id, uint8_t* buffer);
 
     CanGrid* can_grid_tx = nullptr;
     CanGridRx* can_grid_rx = nullptr;
@@ -168,7 +169,6 @@ private:
     void OnSize(wxSizeEvent& evt);
     void ClearRecordingsFromGrid();
 
-    std::chrono::steady_clock::time_point start_time;
     bool is_something_inserted = false;
     std::size_t inserted_until = 0;
     wxStaticBoxSizer* static_box = nullptr;

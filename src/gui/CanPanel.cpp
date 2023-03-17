@@ -89,7 +89,6 @@ void CanGrid::AddRow(wxString id, wxString dlc, wxString data, wxString period, 
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_LogLevel), loglevel);
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_Comment), comment);
 
-    m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Id, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_DataSize, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Period, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_LogLevel, new wxGridCellNumberEditor);
@@ -117,7 +116,6 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_FavouriteLevel), wxString::Format("%d", e->favourite_level));
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanSenderGridCol::Sender_Comment), e->comment);
 
-    m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Id, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_DataSize, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_Period, new wxGridCellNumberEditor);
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_LogLevel, new wxGridCellNumberEditor);
@@ -603,8 +601,6 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
 CanLogPanel::CanLogPanel(wxWindow* parent)
     : wxPanel(parent, wxID_ANY)
 {
-    start_time = std::chrono::steady_clock::now();
-    
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
@@ -738,7 +734,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
 void CanLogPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    std::scoped_lock lock{ can_handler->m };
+    //std::scoped_lock lock{ can_handler->m };
 
     static std::string last_search_pattern;
     static uint64_t last_tx_cnt = 0, last_rx_cnt = 0;
@@ -822,7 +818,8 @@ void CanLogPanel::InsertRow(std::chrono::steady_clock::time_point& t1, uint8_t d
     if(num_rows <= cnt)
         m_grid->AppendRows(1);
 
-    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - start_time).count();
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - can_handler->GetStartTime()).count();
     m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Time), wxString::Format("%.3lf", static_cast<double>(elapsed) / 1000.0));
 
     std::string hex;
@@ -926,15 +923,30 @@ void CanPanel::SaveMapping()
 
 void CanPanel::On10MsTimer()
 {
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    bool is_lock_ok = can_handler->m.try_lock();
+    if(!is_lock_ok)
+    {
+        DBG("\n\nCanSenderPanel::On10MsTimer lock failed\n\n");
+        return;
+    }
     sender->On10MsTimer();
     log->On10MsTimer();
+    can_handler->m.unlock();
 }
 
 void CanSenderPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    std::scoped_lock lock{ can_handler->m };
-
+    //std::scoped_lock lock{ can_handler->m };
+    /*
+    bool is_lock_ok = can_handler->m.try_lock();
+    if(!is_lock_ok)
+    {
+        DBG("\n\nCanSenderPanel::On10MsTimer lock failed\n\n");
+        return;
+    }
+    */
     if(search_pattern_rx.empty())
     {
         for(auto& entry : can_handler->m_rxData)
@@ -989,6 +1001,7 @@ void CanSenderPanel::On10MsTimer()
             }
         }
     }
+    //can_handler->m.unlock();
 }
 
 void CanSenderPanel::RefreshSubpanels()
@@ -1710,6 +1723,23 @@ void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
     evt.Skip();
 }
 
+void CanSenderPanel::UpdateGridForTxFrame(uint32_t frame_id, uint8_t* buffer)
+{
+    std::string hex_str;
+    utils::ConvertHexBufferToString((const char*)buffer, 8, hex_str);
+
+    for(int i = 0; i != can_grid_tx->cnt; i++)
+    {
+        if(can_grid_tx->grid_to_entry[i]->id == frame_id)
+        {
+            can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(i, Sender_Data), wxString(hex_str));
+            can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(i, CanSenderGridCol::Sender_DataSize), wxString::Format("%lld", hex_str.length() / 2));
+            //can_grid_tx->grid_to_entry[row]->data.assign(bytes, bytes + (hex_str.length() / 2));
+            break;
+        }
+    }
+}
+
 void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
 {
     if(evt.ControlDown())
@@ -1792,9 +1822,6 @@ wxEND_EVENT_TABLE()
 CanScriptPanel::CanScriptPanel(wxWindow* parent)
     : wxPanel(parent, wxID_ANY)
 {
-#ifdef DEBUG
-    path = L"C:\\Users\\Ati\\Desktop\\can_script.txt"; /* TODO: remove if from the release */
-#endif
     wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select scipt file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Run!"), wxDefaultPosition, wxDefaultSize, 0));
@@ -1837,9 +1864,6 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 
     m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-#ifdef DEBUG
-            path = L"C:\\Users\\Ati\\Desktop\\can_script.txt"; /* TODO: remove if from the release */
-#endif
 			wxString str = m_Input->GetValue();
 			std::string input;
 			if(!path.empty())
@@ -2231,7 +2255,7 @@ CanUdsRawDialog::CanUdsRawDialog(wxWindow* parent)
     m_ReadDid = new wxButton(this, wxID_ANY, "Read DID", wxDefaultPosition, wxDefaultSize);
     m_ReadDid->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            m_DataToSend->SetValue("22 4000");
+            m_DataToSend->SetValue("10 03\r\n22 4000");
         });
     h_sizer->Add(m_ReadDid);
 
@@ -2304,7 +2328,7 @@ void CanUdsRawDialog::ShowDialog()
     {
         m_LastUdsSenderId = can_handler->GetDefaultEcuId();
         m_LastUdsReceiverId = can_handler->GetIsoTpResponseFrameId();
-        m_LastDelayBetweenFrames = 10;
+        m_LastDelayBetweenFrames = 100;
         m_LastRecvWaitingTime = 350;
         m_LastUdsInput.clear();
     }
@@ -2394,6 +2418,9 @@ void CanUdsRawDialog::HandleFrameSending()
     m_LastUdsInput = GetSentData();
     m_LastDelayBetweenFrames = GetDelayBetweenFrames();
 
+    auto& uds_responses = can_handler->GetUdsRawBuffer();
+    uds_responses.clear();  /* Clear every older request */
+
     uint32_t old_recv_frame_id = can_handler->GetIsoTpResponseFrameId();
     std::vector<std::string> lines;
     boost::split(lines, m_LastUdsInput, [](char input) { return input == '\n' || input == ';'; }, boost::algorithm::token_compress_on);
@@ -2434,7 +2461,6 @@ void CanUdsRawDialog::HandleFrameSending()
     }
 
     std::string response;
-    auto& uds_responses = can_handler->GetUdsRawBuffer();
     for(auto& i : uds_responses)
     {
         std::string tmp;

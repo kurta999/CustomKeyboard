@@ -127,7 +127,7 @@ MainPanel::MainPanel(wxFrame* parent)
 #define ADD_KEY(display_text, internal_name, key_name) \
 	{\
 		wxStaticBox* st_box = new wxStaticBox(this, wxID_ANY, wxT("N/A"));\
-		key_map.emplace(internal_name, st_box); \
+		key_map.try_emplace(internal_name, st_box); \
 		wxStaticBoxSizer* num = new wxStaticBoxSizer(st_box, wxVERTICAL); \
 		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
 		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
@@ -178,7 +178,7 @@ MainPanel::MainPanel(wxFrame* parent)
 #define ADD_GKEY(display_text, internal_name, key_name, dest_sizer) \
 	{\
 		wxStaticBox* st_box = new wxStaticBox(this, wxID_ANY, wxT("N/A"));\
-		key_map.emplace(internal_name, st_box); \
+		key_map.try_emplace(internal_name, st_box); \
 		wxStaticBoxSizer* num = new wxStaticBoxSizer(st_box, wxVERTICAL); \
 		wxButton* button_num = new wxButton(num->GetStaticBox(), wxID_ANY, wxT(display_text), wxDefaultPosition, wxSize(50, 50), 0); \
 		button_num->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \

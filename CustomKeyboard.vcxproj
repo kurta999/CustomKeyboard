@@ -339,6 +339,7 @@
     <ClInclude Include="src\CustomMacro.hpp" />
     <ClInclude Include="src\DatabaseImpl.hpp" />
     <ClInclude Include="src\DatabaseLogic.hpp" />
+    <ClInclude Include="src\DidHandler.hpp" />
     <ClInclude Include="src\DirectoryBackup.hpp" />
     <ClInclude Include="src\ExceptionHandler.hpp" />
     <ClInclude Include="src\framework.hpp" />
@@ -348,6 +349,7 @@
     <ClInclude Include="src\gui\Configuration.hpp" />
     <ClInclude Include="src\gui\ConfigurationBackup.hpp" />
     <ClInclude Include="src\gui\DebugPanel.hpp" />
+    <ClInclude Include="src\gui\DidPanel.hpp" />
     <ClInclude Include="src\gui\Editor.hpp" />
     <ClInclude Include="src\gui\EscaperPanel.hpp" />
     <ClInclude Include="src\gui\FilePanel.hpp" />
@@ -365,6 +367,7 @@
     <ClInclude Include="src\interface\ICanResultPanel.hpp" />
     <ClInclude Include="src\interface\ICmdHelper.hpp" />
     <ClInclude Include="src\interface\IDatabase.hpp" />
+    <ClInclude Include="src\interface\IDidLoader.hpp" />
     <ClInclude Include="src\interface\ILogHelper.hpp" />
     <ClInclude Include="src\interface\ITcpMessageExecutor.hpp" />
     <ClInclude Include="src\Logger.hpp" />
@@ -512,6 +515,7 @@
     <ClCompile Include="src\CustomMacro.cpp" />
     <ClCompile Include="src\DatabaseImpl.cpp" />
     <ClCompile Include="src\DatabaseLogic.cpp" />
+    <ClCompile Include="src\DidHandler.cpp" />
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\ExceptionHandler.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
@@ -520,6 +524,7 @@
     <ClCompile Include="src\gui\Configuration.cpp" />
     <ClCompile Include="src\gui\ConfigurationBackup.cpp" />
     <ClCompile Include="src\gui\DebugPanel.cpp" />
+    <ClCompile Include="src\gui\DidPanel.cpp" />
     <ClCompile Include="src\gui\Editor.cpp" />
     <ClCompile Include="src\gui\EscaperPanel.cpp" />
     <ClCompile Include="src\gui\FilePanel.cpp" />
@@ -592,6 +597,7 @@
     <Xml Include="Cmds.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">true</ExcludedFromBuild>
     </Xml>
+    <Xml Include="DidList.xml" />
     <Xml Include="FrameMapping.xml" />
     <Xml Include="RxList.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">true</ExcludedFromBuild>

@@ -43,7 +43,16 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
         for(const boost::property_tree::ptree::value_type& v : pt.get_child("CanUsbXml")) /* loop over each Frame */
         {
             std::string frame_id_str = v.second.get_child("ID").get_value<std::string>();
-            uint32_t frame_id = std::stoi(frame_id_str, nullptr, 16);
+            uint32_t frame_id = 0;
+            try
+            {
+                frame_id = std::stoi(frame_id_str, nullptr, 16);
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid FrameID format, stoi exception: {} (FrameID: {})", e.what(), frame_id_str);
+                continue;
+            }
 
             const auto it = std::find_if(e.cbegin(), e.cend(), [&frame_id](const auto& item) { return item->id == frame_id; });
             if(it != e.cend())
@@ -124,7 +133,16 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
         for(const boost::property_tree::ptree::value_type& v : pt.get_child("CanUsbRxXml")) /* loop over each Frame */
         {
             std::string frame_id_str = v.second.get_child("ID").get_value<std::string>();
-            uint32_t frame_id = std::stoi(frame_id_str, nullptr, 16);
+            uint32_t frame_id = 0;
+            try
+            {
+                frame_id = std::stoi(frame_id_str, nullptr, 16);
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid FrameID format, stoi exception: {} (FrameID: {})", e.what(), frame_id_str);
+                continue;
+            }
 
             const auto it = e.find(frame_id);
             if(it != e.cend())
@@ -177,7 +195,7 @@ bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered
     return ret;
 }
 
-bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes)
+bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -188,7 +206,16 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
         {
             std::string frame_id_str = v.second.get_child("ID").get_value<std::string>();
             std::string frame_name = v.second.get_child("Name").get_value<std::string>();
-            uint32_t frame_id = std::stoi(frame_id_str, nullptr, 16);
+            uint32_t frame_id = 0;
+            try
+            {
+                frame_id = std::stoi(frame_id_str, nullptr, 16);
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid FrameID format, stoi exception: {} (FrameID: {})", e.what(), frame_id_str);
+                continue;
+            }
 
             if(frame_name.empty())
             {
@@ -196,7 +223,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
             }
             names[frame_id] = std::move(frame_name);
             sizes[frame_id] = v.second.get_child("Size").get_value<uint8_t>();
-            /* TODO: add direction here */
+            directions[frame_id] = v.second.get_child("Direction").get_value<char>();
 
             uint8_t calculated_size = 0;
             for(const boost::property_tree::ptree::value_type& m : v.second) /* loop over each nested child */
@@ -263,7 +290,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
                     }
 
-                    mapping[frame_id].emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
+                    mapping[frame_id].try_emplace(offset, std::make_unique<CanMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
                         color, bg_color, is_bold, scale));
                     calculated_size += len;
                 }
@@ -288,7 +315,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
     return ret;
 }
 
-bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping sizes)
+bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -300,9 +327,11 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
 
         auto it_name = names.find(m.first);
         auto it_size = sizes.find(m.first);
+        auto it_direction = directions.find(m.first);
         frame_node.add("Name", it_name != names.end() ? it_name->second : "");
         frame_node.add("Size", it_size != sizes.end() ? it_size->second : 0);
-        /* TODO: add direction here */
+        frame_node.add("Direction", it_direction != directions.end() ? it_direction->second : 0);
+
         for(auto& o : m.second)
         {
             std::string_view type_str = GetStringFromType(o.second->m_Type);
@@ -433,7 +462,14 @@ void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* 
                     if(is_recoding)
                     {
                         if(i->log_level >= m_RecodingLogLevel)
+                        {
+                            if(i->period == 0 && !i->single_shot)
+                            {
+                                i->last_execution = std::chrono::steady_clock::now();
+                            }
+
                             m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_TX, frame_id, data, data_len, i->last_execution));
+                        }
                     }
                 }
             }
@@ -485,6 +521,9 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
         {
             m_UdsFrames.push_back(std::string((const char*)m_uds_recv_data, recv_size));
             last_uds_frame_received = std::chrono::steady_clock::now();
+
+            std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
+            did_handler->OnIsoTpFrameReceived(m_uds_recv_data, recv_size);
         }
         DBG("finish");
     }
@@ -586,7 +625,7 @@ bool CanEntryHandler::LoadMapping(std::filesystem::path& path)
         path = default_mapping;
 
     m_mapping.clear();
-    bool ret = m_CanMappingLoader.Load(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping);
+    bool ret = m_CanMappingLoader.Load(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping, m_frame_direction_mapping);
     return ret;
 }
 
@@ -595,7 +634,7 @@ bool CanEntryHandler::SaveMapping(std::filesystem::path& path)
     std::scoped_lock lock{ m };
     if(path.empty())
         path = default_mapping;
-    bool ret = m_CanMappingLoader.Save(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping);
+    bool ret = m_CanMappingLoader.Save(path, m_mapping, m_frame_name_mapping, m_frame_size_mapping, m_frame_direction_mapping);
     return ret;
 }
 
