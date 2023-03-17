@@ -70,6 +70,9 @@ public:
 
     // !\bried Shared drive mapped letter
     char shared_drive_letter = 'Z';
+
+    // !\brief Fetch crypto prices (currently ETH & BTC) from coinbase.com?
+    bool fetch_crypto_prices = false;
 private:
 
 };

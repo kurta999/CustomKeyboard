@@ -9,6 +9,9 @@ CryptoPrice::CryptoPrice()
 
 void CryptoPrice::ExecuteApiRead()
 {
+    if(!Settings::Get()->fetch_crypto_prices)
+        return;
+
     std::vector<std::string> arr;
 #ifdef _WIN32
     CStringA str = utils::ExecuteCmdWithoutWindow(L"/C curl --silent https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell", 5000);
@@ -63,6 +66,11 @@ void CryptoPrice::ExecuteApiRead()
 
 void CryptoPrice::UpdatePrices(bool force)
 {
+	last_update = std::chrono::steady_clock::now();
+
+    if(!Settings::Get()->fetch_crypto_prices)
+        return;
+
     uint64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_update).count();
     if(dif > CRYPTO_PRICE_UPDATE || force)
     {
