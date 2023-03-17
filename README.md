@@ -1,10 +1,10 @@
 This is a personal project for myself to improve my daily computer usage, particularly with programming and testing. I've implemented things what I really needed to be more productive and accomplish things faster. It's open source, because why not, maybe somebody will benefit from it one day.
 
-If you want to use/resuse some part(s) of the project and you have a question, feel free to open a Pull Request.
+If you want to use/resuse some part(s) of the project or you have a question, feel free to open a Pull Request.
 
 # Quick overview
 ### 1. For Automotive development:
-1. **CAN-USB Transreceiver** - Send and Receive CAN Frames to/from CAN bus via computer trough USB - see more info below
+1. **CAN-USB Transreceiver** - Send and Receive standard and ISO-TP CAN Frames over CAN bus via computer trough USB - see more info below
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
 
@@ -18,7 +18,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
 2. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs
 3. **Backend for Corsair's G Keys** - Bind macros to G keys as those were on second keyboard, without even installing iCUE
-4. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval
+4. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval. Can be useful for workstations if you can't disable idle logout or you're being monitored.
 5. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
 6. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800 - 1200Mhz while my PC is in idle. If the median CPU usage gets above max configured percent due to some background tasks, the frequency will be restored and won't be limited again until it falls below configured minimum median load again.
 7. **ScreenshotSaver** - Saving screenshot to .png from clipboard
@@ -36,7 +36,7 @@ If you want to use/resuse some part(s) of the project and you have a question, f
 
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 
-3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
+3. **UDS DID Reader & Writer** - Supported DID types: uint8_t, uint16_t, uint32_t, uint64_t, string, bytearray. Strings and bytearrays are padded when their lenght is smaller than the predefined length, otherwise truncated.
 
 ### 2. For General development:
 
@@ -85,9 +85,11 @@ Required external depencencies:
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
 - boost: C:\Program Files\boost\boost_1_81_0
 - wxWidgets: C:\wxWidgets-3.2.2
-- HIDAPI: C:\hidapi
+- HIDAPI: C:\hidapi (*)
 
 Feel free to change, but don't forget to change them too in Visual Studio's project file.
+
+(*) If you worry that this project contains keylogger due to HIDAPI, then copy the parts what you need from the source or just remove HIDAPI from depencies with CorsairHID and recompile everything.
 
 2. Open CustomKeyboard.sln and build the desired build.
 
@@ -118,6 +120,41 @@ mkdir build
 cd build
 cmake -GNinja ..
 ninja
+
+## Advanced topics
+### ECU Simulation
+
+ECUs can be pretty easily simulated if you can build the project locally. Open CanEntryHandler.cpp and paste this code to OnFrameReceived function:
+
+```c
+    if(data_len == 8 && data[0] == 0x03 && data[1] == 0x22 && (data[2] == 0xF1 || data[2] == 0xF0))  /* Data length: 8, 22 = READ DID, DID ID LSB: AA */
+    {
+        uint32_t send_id = frame_id;
+        if(frame_id == 0xAAA)
+            send_id = 0xBBB;
+        else if(frame_id == 0xCCC)
+            send_id = 0xDDD;
+
+        uint8_t byte_buffer[8] = { 0x04, 0x62 };  /* Data length: 4, 0x62 DID reading (code 22) wa successful */
+        memcpy(&byte_buffer[2], &data[2], 6);  /* Copy source DID from receive buffer */
+        CanSerialPort::Get()->AddToTxQueue(send_id, sizeof(byte_buffer), byte_buffer);
+    }
+```
+
+### Scripts for CAN bus
+
+Scripts can be executed in CAN panel under Script tab. CAN Frames and it's fields have to be mapped in FrameMapping.xml, otherwise script won't work. The script support is in very early stage, bugs can happen.
+```c
+SetFrameField <field name> <value> - Set CAN frame's FIELD value by name. Do not mismatch with CAN Frame's value!
+SendFrame <frame name> - Send CAN frame with name. Field have to be mapped within FrameMapping.xml
+Sleep <delay in milliseconds> - Script will sleep for given milliseconds
+```
+
+```c
+SetFrameField VehicleHasClutch 0x1
+SendFrame VEHICLE_INFO
+Sleep 1000
+```
 
 ## Screenshots
 **Main Page**
