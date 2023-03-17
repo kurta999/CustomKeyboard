@@ -1,14 +1,15 @@
 #include "pch.hpp"
 
-/* This module isn't finished yet */
-
 CanScriptHandler::CanScriptHandler(ICanResultPanel& result_panel) :
     m_Result(result_panel)
 {
-    m_operands["SetDataFrame"] = std::bind(&CanScriptHandler::SetDataFrame, this, 3, std::placeholders::_2);
+    m_operands["SetDataFrame"] = std::bind(&CanScriptHandler::SetFrameField, this, 3, std::placeholders::_2);
+    m_operands["SetFrameField"] = std::bind(&CanScriptHandler::SetFrameField, this, 3, std::placeholders::_2);
     m_operands["SendFrame"] = std::bind(&CanScriptHandler::SendFrame, this, 2, std::placeholders::_2);
-    m_operands["CheckFrameBlock"] = std::bind(&CanScriptHandler::CheckFrameBlock, this, 2, std::placeholders::_2);
-    m_operands["Wait"] = std::bind(&CanScriptHandler::Wait, this, 2, std::placeholders::_2);
+    m_operands["CheckFrame"] = std::bind(&CanScriptHandler::CheckFrame, this, 2, std::placeholders::_2);
+    m_operands["CheckFrameBlock"] = std::bind(&CanScriptHandler::CheckFrame, this, 2, std::placeholders::_2);
+    m_operands["Sleep"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
+    m_operands["Wait"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
 }
 
 CanScriptHandler::~CanScriptHandler()
@@ -27,7 +28,7 @@ void CanScriptHandler::RunScript(const std::string& script)
 
         if(params.empty())
         {
-            LOG(LogLevel::Normal, "Script ended. Params is empty.");
+            LOG(LogLevel::Normal, "Script ended. Params are empty.");
             break;
         }
 
@@ -57,7 +58,7 @@ template <typename T> void CanScriptHandler::HandleBitWriting(uint32_t frame_id,
     try
     {
         raw_data = static_cast<T>(std::stoll(new_data, nullptr, 16));
-        set_bitfield(raw_data, offset, size, byte_array, sizeof(byte_array));
+        set_bitfield(raw_data, offset, size, byte_array, size);
     }
     catch(const std::exception& e)
     {
@@ -87,58 +88,65 @@ void CanScriptHandler::ApplyEditingOnFrameId(uint32_t frame_id, const std::strin
             {
                 switch(m->m_Type)
                 {
-                case CBT_BOOL:
-                case CBT_UI8:
-                {
-                    HandleBitWriting<uint8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_I8:
-                {
-                    HandleBitWriting<int8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_UI16:
-                {
-                    HandleBitWriting<uint16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_I16:
-                {
-                    HandleBitWriting<int16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_UI32:
-                {
-                    HandleBitWriting<uint32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_I32:
-                {
-                    HandleBitWriting<int32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_UI64:
-                {
-                    HandleBitWriting<uint64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
-                case CBT_I64:
-                {
-                    HandleBitWriting<int64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
-                    break;
-                }
+                    case CBT_BOOL:
+                    case CBT_UI8:
+                    {
+                        HandleBitWriting<uint8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_I8:
+                    {
+                        HandleBitWriting<int8_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_UI16:
+                    {
+                        HandleBitWriting<uint16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_I16:
+                    {
+                        HandleBitWriting<int16_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_UI32:
+                    {
+                        HandleBitWriting<uint32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_I32:
+                    {
+                        HandleBitWriting<int32_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_UI64:
+                    {
+                        HandleBitWriting<uint64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
+                    case CBT_I64:
+                    {
+                        HandleBitWriting<int64_t>(frame_id, cnt, offset, m->m_Size, byte_array, new_data);
+                        break;
+                    }
                 }
             }
         }
-        m_FrameIDValues[frame_id] = *(uint64_t*)byte_array;
 
-        //AssignNewBufferToTxEntry(frame_id, byte_array, sizeof(byte_array));
+        uint32_t reversed_1 = boost::endian::endian_reverse(*(uint32_t*)byte_array);
+        uint32_t reversed_2 = boost::endian::endian_reverse(*(uint32_t*)&byte_array[4]);
+        m_FrameIDValues[frame_id] = ((uint64_t)(uint64_t)reversed_1 << 32 | (uint64_t)reversed_2);
+
+        can_handler->AssignNewBufferToTxEntry(frame_id, byte_array, sizeof(byte_array));
+
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        if(frame && frame->can_panel)
+            frame->can_panel->sender->UpdateGridForTxFrame(frame_id, byte_array);
     }
     DBG("ok");
 }
 
-CanScriptReturn CanScriptHandler::SetDataFrame(std::any required_params, OperandParams& params)
+CanScriptReturn CanScriptHandler::SetFrameField(std::any required_params, OperandParams& params)
 {
     if(!CheckParams(params.size(), std::any_cast<int>(required_params)))
         return;
@@ -173,13 +181,15 @@ CanScriptReturn CanScriptHandler::SetDataFrame(std::any required_params, Operand
     if(can_handler->m_frame_size_mapping.contains(frame_id))
         size_in_bytes = can_handler->m_frame_size_mapping[frame_id];
 
-    //CanSerialPort::Get()->AddToTxQueue(frame_id, size_in_bytes, (uint8_t*)&data_to_send);
+    uint8_t array_to_send[8];
+    memcpy(array_to_send, (uint8_t*)&data_to_send, sizeof(array_to_send));
+    std::reverse(std::begin(array_to_send), std::end(array_to_send));
+
+    CanSerialPort::Get()->AddToTxQueue(frame_id, size_in_bytes, array_to_send);
 
     std::string hex;
-    utils::ConvertHexBufferToString((const char*)&data_to_send, size_in_bytes, hex);
+    utils::ConvertHexBufferToString((const char*)array_to_send, size_in_bytes, hex);
     m_Result.AddToLog(std::format("SetDataFrame {} (FrameID: {:X}, Size: {}, Data: {})\n", field_name, frame_id, size_in_bytes, hex));
-
-    /* update frame in local array and if it's present in the CAN panel, update it there too */
 }
 
 CanScriptReturn CanScriptHandler::SendFrame(std::any required_params, OperandParams& params)
@@ -214,7 +224,7 @@ CanScriptReturn CanScriptHandler::SendFrame(std::any required_params, OperandPar
     }
 }
 
-CanScriptReturn CanScriptHandler::CheckFrameBlock(std::any required_params, OperandParams& params)
+CanScriptReturn CanScriptHandler::CheckFrame(std::any required_params, OperandParams& params)
 {
     if(!CheckParams(params.size(), std::any_cast<int>(required_params)))
         return;
@@ -245,7 +255,7 @@ CanScriptReturn CanScriptHandler::CheckFrameBlock(std::any required_params, Oper
 
 }
 
-CanScriptReturn CanScriptHandler::Wait(std::any required_params, OperandParams& params)
+CanScriptReturn CanScriptHandler::Sleep(std::any required_params, OperandParams& params)
 {
     if(!CheckParams(params.size(), std::any_cast<int>(required_params)))
         return;

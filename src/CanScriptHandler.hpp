@@ -30,10 +30,10 @@ private:
     template <typename T> void HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::string& new_data);
     void ApplyEditingOnFrameId(uint32_t frame_id, const std::string field_name, std::string new_data);
 
-    CanScriptReturn SetDataFrame(std::any required_params, OperandParams& params);
+    CanScriptReturn SetFrameField(std::any required_params, OperandParams& params);
     CanScriptReturn SendFrame(std::any required_params, OperandParams& params);
-    CanScriptReturn CheckFrameBlock(std::any required_params, OperandParams& params);
-    CanScriptReturn Wait(std::any required_params, OperandParams& params);
+    CanScriptReturn CheckFrame(std::any required_params, OperandParams& params);
+    CanScriptReturn Sleep(std::any required_params, OperandParams& params);
 
     std::map<std::string, std::function<CanScriptReturn(std::any, OperandParams&)>> m_operands;
     
