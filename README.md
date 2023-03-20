@@ -64,6 +64,8 @@ If you want to use/resuse some part(s) of the project or you have a question, fe
 
 12. **LinkCreator** - Select desired files from File Explorer and click the mark key (key down on second keyboard by default) and files (directories too) will be marked for link creation. Go to target directory where you want to place the links for marked files, press symlink key (KEY UP) by default for symlink or hardlink key (KEY RIGHT) by default for hardlinks. That's all, symlink or hardlink is created from marked files in target directory.
 
+13. **CryptoPrice** - Fetching ETH & BTC buy/sell price from coinbase.com and printing it on main panel - disabled by default. Can be enabled by setting FetchCryptoPrices to 1 in settings.ini
+
 ## Libraries
 - [lodepng](https://lodev.org/lodepng/ "lodepng's Homepage")
 - [sqlite3](https://www.sqlite.org/index.html "sqlite3's Homepage")
@@ -124,7 +126,7 @@ ninja
 ## Advanced topics
 ### ECU Simulation
 
-ECUs can be pretty easily simulated if you can build the project locally. Open CanEntryHandler.cpp and paste this code to OnFrameReceived function:
+ECUs can be pretty easily simulated if you want to go with the "stupid" way, but you need to build the project locally. For a smarter solution generate some scripts and use them. Open CanEntryHandler.cpp and paste this code to OnFrameReceived function:
 
 ```c
     if(data_len == 8 && data[0] == 0x03 && data[1] == 0x22 && (data[2] == 0xF1 || data[2] == 0xF0))  /* Data length: 8, 22 = READ DID, DID ID LSB: AA */
@@ -143,17 +145,24 @@ ECUs can be pretty easily simulated if you can build the project locally. Open C
 
 ### Scripts for CAN bus
 
-Scripts can be executed in CAN panel under Script tab. CAN Frames and it's fields have to be mapped in FrameMapping.xml, otherwise script won't work. The script support is in very early stage, bugs can happen.
+Scripts can be executed in CAN panel under Script tab. CAN Frames and it's fields have to be mapped in FrameMapping.xml, otherwise script won't work. The script support is in early stage, bugs can happen.
 ```c
+WaitForFrame <frame name> <timeout ms> - Waits until specific frame with given data appears on CAN bus
+SetFrameFieldRaw <frame name> <raw CAN data> - Set frame field in byte format
 SetFrameField <field name> <value> - Set CAN frame's FIELD value by name. Do not mismatch with CAN Frame's value!
 SendFrame <frame name> - Send CAN frame with name. Field have to be mapped within FrameMapping.xml
 Sleep <delay in milliseconds> - Script will sleep for given milliseconds
 ```
 
 ```c
+// Waiting until DID reading (service 22) appears on bus for DID 2000 
+SetFrameFieldRaw XXX_to_DTOOL 0x03222000AAAAAAA
+CheckFrameBlock DTOOL_TO_XXX 120000    
+
+// Set vehicle has cluth to 1 in VEHICLE_INFO frame 
 SetFrameField VehicleHasClutch 0x1
 SendFrame VEHICLE_INFO
-Sleep 1000
+Sleep 500
 ```
 
 ## Screenshots
