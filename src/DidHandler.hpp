@@ -123,6 +123,9 @@ private:
     // !\brief Worker thread
     std::unique_ptr<std::jthread> m_worker;
 
+    std::condition_variable cv;
+    std::mutex cv_m;
+
     std::deque<uint16_t> m_PendingDidReads;
 
     std::map<uint16_t, std::string> m_PendingDidWrites;

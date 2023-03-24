@@ -1,13 +1,17 @@
 #include "pch.hpp"
 
-std::timed_mutex m_TimedMutex;
-std::condition_variable cv;
-std::mutex cv_m;
+constexpr const char* DID_LIST_FILENAME = "DidList.xml";
+constexpr const char* DID_CACHE_FILENAME = "DidCache.xml";
+
+constexpr uint8_t MAX_EXTENDED_SESSION_RETRIES = 5;
+constexpr auto UDS_TIMEOUT_FOR_RESPONSE = 6000ms;
+
+constexpr auto MAIN_THREAD_SLEEP = 100ms;
 
 DidHandler::DidHandler(IDidLoader& loader, IDidLoader& cache_loader) :
     m_loader(loader), m_cache_loader(cache_loader)
 {
-    //m_PendingDids.push_back(0x4000);
+
 }
 
 DidHandler::~DidHandler()
@@ -17,15 +21,15 @@ DidHandler::~DidHandler()
 
 void DidHandler::Init()
 {
-    m_loader.Load("DidList.xml", m_DidList);
-    m_cache_loader.Load("DidCache.xml", m_DidList);
+    m_loader.Load(DID_LIST_FILENAME, m_DidList);
+    m_cache_loader.Load(DID_CACHE_FILENAME, m_DidList);
     m_worker = std::make_unique<std::jthread>(std::bind_front(&DidHandler::WorkerThread, this));
 }
 
 void DidHandler::SaveChache()
 {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-    std::filesystem::path cache_path = "DidCache.xml";
+    std::filesystem::path cache_path = DID_CACHE_FILENAME;
     bool ret = m_cache_loader.Save(cache_path, m_DidList);
     if(ret)
     {
@@ -38,7 +42,7 @@ void DidHandler::SaveChache()
     #endif
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
         std::lock_guard lock(frame->mtx);
-        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CommandsSaved), dif, std::string(work_dir) + "\\DidCache.xml" });
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CommandsSaved), dif, std::string(work_dir) + "\\" + DID_CACHE_FILENAME });
     }
 }
 
@@ -61,8 +65,6 @@ void DidHandler::OnIsoTpFrameReceived(uint8_t* data, size_t size)
 {
     memcpy(m_IsoTpBuffer, data, size);
     m_IsoTpBufLen = static_cast<uint16_t>(size);
-
-    //m_TimedMutex.unlock();
     cv.notify_all();
 
     LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {}", size);
@@ -177,6 +179,12 @@ bool XmlDidLoader::Save(const std::filesystem::path& path, DidMap& m)
 
 bool XmlDidCacheLoader::Load(const std::filesystem::path& path, DidMap& m)
 {
+    if(!std::filesystem::exists(path))
+    {
+        LOG(LogLevel::Normal, "DID cache is missing ({}), skip loading", path.generic_string());
+        return false;
+    }
+
     bool ret = true;
     boost::property_tree::ptree pt;
     try
@@ -185,7 +193,16 @@ bool XmlDidCacheLoader::Load(const std::filesystem::path& path, DidMap& m)
         for(const boost::property_tree::ptree::value_type& v : pt.get_child("DidCacheXml")) /* loop over each entry */
         {
             std::string did_str = v.second.get_child("DID").get_value<std::string>();
-            uint16_t did = std::stoi(did_str, nullptr, 16);
+            uint16_t did = 0;
+            try
+            {
+                did = std::stoi(did_str, nullptr, 16);
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid DID format, stoi exception: {} (FrameID: {})", e.what(), did_str);
+                continue;
+            }
 
             auto did_it = m.find(did);
             if(did_it == m.end())
@@ -195,13 +212,21 @@ bool XmlDidCacheLoader::Load(const std::filesystem::path& path, DidMap& m)
             }
 
             did_it->second->value_str = v.second.get_child("Value").get_value<std::string>();
-            did_it->second->nrc = v.second.get_child("NRC").get_value<uint16_t>();
+
+            std::string nrc_str = v.second.get_child("NRC").get_value<std::string>();
+            try
+            {
+                did_it->second->nrc = std::stoi(nrc_str, nullptr, 16);
+            }
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "Invalid NRC format, stoi exception: {} (FrameID: {})", e.what(), nrc_str);
+                continue;
+            }
 
             std::string last_update_str = v.second.get_child("Timestamp").get_value<std::string>();
             if(!last_update_str.empty())
-            {
                 did_it->second->last_update = boost::posix_time::from_iso_extended_string(last_update_str);
-            }
         }
     }
     catch(boost::property_tree::xml_parser_error& e)
@@ -227,13 +252,12 @@ bool XmlDidCacheLoader::Save(const std::filesystem::path& path, DidMap& m)
         auto& frame_node = root_node.add_child("DidCache", boost::property_tree::ptree{});
         frame_node.add("DID", std::format("{:X}", i.second->id));
         frame_node.add("Value", i.second->value_str);
-        frame_node.add("NRC", i.second->nrc);
+        frame_node.add("NRC", std::format("{:X}", i.second->nrc));
 
+        std::string last_update_str;
         if(!i.second->last_update.is_not_a_date_time())
-        {
-            std::string last_update_str = boost::posix_time::to_iso_extended_string(i.second->last_update);
-            frame_node.add("Timestamp", last_update_str);
-        }
+            last_update_str = boost::posix_time::to_iso_extended_string(i.second->last_update);
+        frame_node.add("Timestamp", last_update_str);
     }
 
     try
@@ -269,18 +293,18 @@ bool DidHandler::SendUdsFrameAndWaitForResponse(std::vector<uint8_t> frame)
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     m_IsoTpBufLen = 0;
-    can_handler->SendIsoTpFrame(0x7CA, frame.data(), frame.size());
+    can_handler->SendIsoTpFrame(can_handler->GetDefaultEcuId(), frame.data(), frame.size());
 
     std::unique_lock<std::mutex> lk(cv_m);
     auto now = std::chrono::system_clock::now();
-    bool ret = cv.wait_until(lk, now + 6000ms, [this]() {return m_IsoTpBufLen != 0; });
+    bool ret = cv.wait_until(lk, now + UDS_TIMEOUT_FOR_RESPONSE, [this]() {return m_IsoTpBufLen != 0; });
     if(ret)
     {
-        LOG(LogLevel::Verbose, "WorkerThread::Finished waiting. Response len: {}", m_IsoTpBufLen.load());
+        LOG(LogLevel::Verbose, "DidHandler::Finished waiting. Response len: {}", m_IsoTpBufLen.load());
     }
     else
     {
-        LOG(LogLevel::Verbose, "WorkerThread::Timeout");
+        LOG(LogLevel::Verbose, "DidHandler::Timeout");
     }
     return ret;
 }
@@ -289,14 +313,14 @@ bool DidHandler::WaitForResponse()
 {
     std::unique_lock<std::mutex> lk(cv_m);
     auto now = std::chrono::system_clock::now();
-    bool ret = cv.wait_until(lk, now + 10000ms, [this]() {return m_IsoTpBufLen != 0; });
+    bool ret = cv.wait_until(lk, now + UDS_TIMEOUT_FOR_RESPONSE, [this]() {return m_IsoTpBufLen != 0; });
     if(ret)
     {
-        LOG(LogLevel::Verbose, "WorkerThread::Finished waiting. Response len: {}", m_IsoTpBufLen.load());
+        LOG(LogLevel::Verbose, "DidHandler::Finished waiting. Response len: {}", m_IsoTpBufLen.load());
     }
     else
     {
-        LOG(LogLevel::Verbose, "WorkerThread::Timeout");
+        LOG(LogLevel::Verbose, "DidHandler::Timeout");
     }
     return ret;
 }
@@ -320,7 +344,13 @@ void DidHandler::ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry)
         }
         case DET_UI32:
         {
-            uint32_t val = m_IsoTpBuffer[3] || m_IsoTpBuffer[4] << 8;
+            uint32_t val = m_IsoTpBuffer[3] || m_IsoTpBuffer[4] << 8;  /* TODO: finish it */
+            entry->value_str = std::format("{:X}", val);
+            break;
+        }
+        case DET_UI64:
+        {
+            uint32_t val = m_IsoTpBuffer[3] || m_IsoTpBuffer[4] << 8;  /* TODO: finish it */
             entry->value_str = std::format("{:X}", val);
             break;
         }
@@ -357,6 +387,7 @@ void DidHandler::ProcessRejectedNrc(std::unique_ptr<DidEntry>& entry)
 void DidHandler::HandleDidReading()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    uint8_t extended_session_retry_count = 0;
     while(m_PendingDidReads.size() > 0)
     {
         {
@@ -369,6 +400,7 @@ void DidHandler::HandleDidReading()
             bool is_ok = SendUdsFrameAndWaitForResponse({ 0x10, 0x03 });
             if(is_ok)
             {
+                extended_session_retry_count = 0;
                 m_IsoTpBufLen = 0;
                 uint8_t data[3] = { 0x22 };
                 data[1] = did_it->id >> 8 & 0xFF;
@@ -421,6 +453,13 @@ void DidHandler::HandleDidReading()
                                     did_it->last_update = boost::posix_time::second_clock::local_time();
                                     break;
                                 }
+                                else if(m_IsoTpBuffer[2] == 0x22 && (m_IsoTpBuffer[2] >= 0x11 && m_IsoTpBuffer[2] <= 0x93))
+                                {
+                                    LOG(LogLevel::Warning, "Pending response general NRC: {}", m_IsoTpBuffer[2]);
+                                    did_it->nrc = m_IsoTpBuffer[2];
+                                    did_it->last_update = boost::posix_time::second_clock::local_time();
+                                    break;
+                                }
                                 else
                                 {
                                     LOG(LogLevel::Warning, "Pending response else case: {}", m_IsoTpBuffer[1]);
@@ -435,6 +474,21 @@ void DidHandler::HandleDidReading()
                             if(m_IsoTpBuffer[2] == 0x10)  /* Rejected */
                             {
                                 ProcessRejectedNrc(did_it);
+                                did_it->nrc = 0x10;
+                                did_it->last_update = boost::posix_time::second_clock::local_time();
+                            }
+                            else if(m_IsoTpBuffer[2] == 0x22 && (m_IsoTpBuffer[2] >= 0x11 && m_IsoTpBuffer[2] <= 0x93))
+                            {
+                                LOG(LogLevel::Warning, "Pending response general NRC: {}", m_IsoTpBuffer[2]);
+                                did_it->nrc = m_IsoTpBuffer[2];
+                                did_it->last_update = boost::posix_time::second_clock::local_time();
+                                break;
+                            }
+                            else
+                            {
+                                LOG(LogLevel::Warning, "Unimplemented NRC received, rejecting this DID");
+                                ProcessRejectedNrc(did_it);
+                                did_it->nrc = m_IsoTpBuffer[2];
                             }
                         }
                         m_UpdatedDids.push_back(curr_did);
@@ -445,8 +499,18 @@ void DidHandler::HandleDidReading()
                     }
                 }
             }
+            else
+            {
+                if(++extended_session_retry_count > MAX_EXTENDED_SESSION_RETRIES)
+                {
+                    LOG(LogLevel::Error, "No response for extended session after {} retries, abort questioning.", MAX_EXTENDED_SESSION_RETRIES);
+                    extended_session_retry_count = 0;
+                    m_PendingDidReads.clear();
+                    break;
+                }
+            }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(MAIN_THREAD_SLEEP);
     }
 }
 
@@ -529,7 +593,7 @@ void DidHandler::HandleDidWriting()
             }
         }
         m_PendingDidWrites.clear();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(MAIN_THREAD_SLEEP);
     }
 }
 

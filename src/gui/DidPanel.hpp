@@ -57,5 +57,7 @@ private:
     bool is_dids_initialized = false;
     std::string search_pattern;
 
+    uint16_t did_cnt = 0;
+
 	wxDECLARE_EVENT_TABLE();
 };

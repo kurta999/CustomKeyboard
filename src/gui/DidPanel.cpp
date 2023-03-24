@@ -7,8 +7,6 @@ EVT_GRID_EDITOR_SHOWN(DidPanel::OnCellEditorShown)
 EVT_CHAR_HOOK(DidPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
-constexpr uint64_t DID_RESPONSE_TIMEOUT = 5000; /* Unit: milliseconds */
-
 DidMap::iterator did_it;
 
 enum class DidStateMachine
@@ -20,8 +18,6 @@ enum class DidStateMachine
 };
 
 DidStateMachine can_sender_state = DidStateMachine::Idle;
-uint16_t did_cnt = 0;
-std::chrono::steady_clock::time_point last_did_response;
 
 DidGrid::DidGrid(wxWindow* parent)
 {
@@ -87,11 +83,43 @@ void DidGrid::AddRow(std::unique_ptr<DidEntry>& entry)
     {
         last_update_str = boost::posix_time::to_iso_extended_string(entry->last_update);
     }
-    m_grid->SetCellValue(wxGridCellCoords(cnt, DidGridCol::Did_Timestamp), last_update_str);
 
-    for(uint8_t i = 0; i != DidGridCol::Did_Max; i++)
-        m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
-    
+    if(!last_update_str.empty())
+    {
+        if(entry->nrc != 0)  /* TODO: create a function for this, because it's a duplicate */
+        {
+            switch(entry->nrc)
+            {
+                case 0x78:
+                {
+                    m_grid->SetCellValue(wxGridCellCoords(cnt, DidGridCol::Did_Value), "Pending... NRC 78");
+                    m_grid->SetCellBackgroundColour(cnt, DidGridCol::Did_Value, *wxBLUE);
+                    break;
+                }
+                default:
+                {
+                    m_grid->SetCellValue(wxGridCellCoords(cnt, DidGridCol::Did_Value), wxString::Format("NRC %X", entry->nrc));
+                    m_grid->SetCellBackgroundColour(cnt, DidGridCol::Did_Value, *wxRED);
+
+                    wxFont cell_font = m_grid->GetCellFont(cnt, Did_Name);
+                    cell_font.SetWeight(wxFONTWEIGHT_NORMAL);
+                    m_grid->SetCellFont(cnt, Did_Name, cell_font);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            m_grid->SetCellValue(wxGridCellCoords(cnt, DidGridCol::Did_Value), entry->value_str);
+            wxFont cell_font = m_grid->GetCellFont(cnt, Did_Name);
+            cell_font.SetWeight(wxFONTWEIGHT_BOLD);
+            m_grid->SetCellFont(cnt, Did_Name, cell_font);
+
+            for(uint8_t i = 0; i != DidGridCol::Did_Max; i++)
+                m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
+        }
+    }
+    m_grid->SetCellValue(wxGridCellCoords(cnt, DidGridCol::Did_Timestamp), last_update_str);
     m_grid->SetReadOnly(cnt, DidGridCol::Did_Timestamp);
     
     grid_to_entry[cnt] = entry.get();
