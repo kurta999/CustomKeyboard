@@ -75,6 +75,21 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             local_entry->log_level = v.second.get_child("LogLevel").get_value<uint8_t>();
             local_entry->favourite_level = v.second.get_child("Favourite").get_value<uint8_t>();
             local_entry->comment = v.second.get_child("Comment").get_value<std::string>();
+
+            boost::optional<std::string> color;
+            boost::optional<std::string> bg_color;
+            boost::optional<bool> is_bold;
+            utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
+            utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
+            utils::xml::ReadChildIfexists<bool>(v, "Bold", is_bold);
+
+            if(color)
+                local_entry->m_color = utils::ColorStringToInt(*color);
+            if(bg_color)
+                local_entry->m_bg_color = utils::ColorStringToInt(*bg_color);
+            if(is_bold && *is_bold)
+                local_entry->m_is_bold = true;
+
             e.push_back(std::move(local_entry));
         }
     }
@@ -108,6 +123,13 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
         frame_node.add("LogLevel", i->log_level);
         frame_node.add("Favourite", i->favourite_level);
         frame_node.add("Comment", i->comment);
+
+        if(i->m_color)
+            frame_node.add("Color", utils::ColorIntToString(*i->m_color));
+        if(i->m_bg_color)
+            frame_node.add("BackgroundColor", utils::ColorIntToString(*i->m_bg_color));
+        if(i->m_is_bold)
+            frame_node.add("Bold", "1");
     }
 
     try

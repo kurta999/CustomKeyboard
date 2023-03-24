@@ -123,8 +123,30 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
 
     m_grid->SetReadOnly(cnt, CanSenderGridCol::Sender_Count, true);
     
+    if(e->m_color)
+    {
     for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
+            m_grid->SetCellTextColour(cnt, i, RGB_TO_WXCOLOR(*e->m_color));
+    }
+
+    if(e->m_bg_color)  /* Set custom color if it's given */
+    {
+        for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
+            m_grid->SetCellBackgroundColour(cnt, i, RGB_TO_WXCOLOR(*e->m_bg_color));
+    }
+    else  /* Otherway use two colors alternately for all of the lines */
+    {
+        for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
         m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
+    }
+
+    if(e->m_is_bold)
+    {
+        wxFont font;
+        font.SetWeight(wxFONTWEIGHT_BOLD);
+        for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
+            m_grid->SetCellFont(cnt, i, font);
+    }
 
     grid_to_entry[cnt] = e.get();
     cnt++;
@@ -1350,7 +1372,6 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     if(m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Apply || m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Ok)
                 {
                     std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
-
                     can_handler->ApplyEditingOnFrameId(frame_id, ret);
 
                     std::string hex;
