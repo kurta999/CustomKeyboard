@@ -248,6 +248,16 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         continue;
                     }
 
+                    if(mapping.contains(frame_id))
+                    {
+                        const auto it = std::find_if(mapping[frame_id].cbegin(), mapping[frame_id].cend(), [&offset](const auto& item) { return item.first == offset; });
+                        if(it != mapping[frame_id].cend())
+                        {
+                            LOG(LogLevel::Warning, "Duplicate offset for FrameID: {}, Name: {}", frame_id_str, name);
+                            continue;
+                    }
+                    }
+
                     boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("<xmlattr>.min");
                     boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("<xmlattr>.max");
                     boost::optional<std::string> color_child = m.second.get_optional<std::string>("<xmlattr>.color");
