@@ -125,7 +125,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     
     if(e->m_color)
     {
-    for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
+        for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
             m_grid->SetCellTextColour(cnt, i, RGB_TO_WXCOLOR(*e->m_color));
     }
 
@@ -137,7 +137,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     else  /* Otherway use two colors alternately for all of the lines */
     {
         for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
-        m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
+            m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
     }
 
     if(e->m_is_bold)
@@ -1361,31 +1361,31 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 bool to_exit = false;
                 while(!to_exit)
                 {
-                CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, false);
-                if(info.size() == 0)
-                {
-                    wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
-                    return;
-                }
+                    CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, false);
+                    if(info.size() == 0)
+                    {
+                        wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
+                        return;
+                    }
 
-                m_BitfieldEditor->ShowDialog(frame_id, false, info);
+                    m_BitfieldEditor->ShowDialog(frame_id, false, info);
                     if(m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Apply || m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Ok)
-                {
-                    std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
-                    can_handler->ApplyEditingOnFrameId(frame_id, ret);
+                    {
+                        std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
+                        can_handler->ApplyEditingOnFrameId(frame_id, ret);
 
-                    std::string hex;
-                    utils::ConvertHexBufferToString(can_grid_tx->grid_to_entry[row]->data, hex);
-                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
-                    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
-                        wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
-                }
+                        std::string hex;
+                        utils::ConvertHexBufferToString(can_grid_tx->grid_to_entry[row]->data, hex);
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
+                            wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
+                    }
 
                     if(m_BitfieldEditor->GetClickType() != BitEditorDialog::ClickType::Apply)
                     {
                         to_exit = true;
-                break;
-            }
+                        break;
+                    }
                 }
                 break;
             }
@@ -1688,7 +1688,7 @@ void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
                         evt.Skip();
                         return;
                     }
-
+                    /*
                     m_BitfieldEditor->ShowDialog(frame_id, false, info);
                     if(m_BitfieldEditor->IsApplyClicked())
                     {
@@ -1701,7 +1701,7 @@ void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
                         can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
                         can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
                             wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
-                    }
+                    }*/
 
                 }
                 break;
@@ -1853,6 +1853,10 @@ wxEND_EVENT_TABLE()
 CanScriptPanel::CanScriptPanel(wxWindow* parent)
     : wxPanel(parent, wxID_ANY)
 {
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    m_Script = std::make_unique<CanScriptHandler>(*this);
+    can_handler->m_ScriptHandler = m_Script.get();
+
     wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
 	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select scipt file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Run!"), wxDefaultPosition, wxDefaultSize, 0));
@@ -1873,8 +1877,20 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 	bSizer1->Add(bSizer2, wxSizerFlags(1).Expand());
 
 	wxBoxSizer* h_sizer_2 = new wxBoxSizer(wxHORIZONTAL);
-	m_OkButton = new wxButton(this, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_OkButton);
+    m_RunButton = new wxButton(this, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0);
+	h_sizer_2->Add(m_RunButton);
+    m_RunSelectedButton = new wxButton(this, wxID_ANY, wxT("Run selected"), wxDefaultPosition, wxDefaultSize, 0);
+	h_sizer_2->Add(m_RunSelectedButton);
+
+    m_Abort = new wxButton(this, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0);
+	h_sizer_2->Add(m_Abort);
+    m_Abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            wxString str_sel = m_Input->GetStringSelection();
+
+            m_Script->AbortRunningScript();
+        });
+
 	h_sizer_2->AddSpacer(100);
 	
 	m_ClearButton = new wxButton(this, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0);
@@ -1884,7 +1900,15 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 			m_Input->Clear();
 			m_Output->Clear();
 			m_FilePicker->SetFileName(wxFileName());
-			m_OkButton->SetForegroundColour(*wxBLACK);
+            m_RunButton->SetForegroundColour(*wxBLACK);
+			path.Clear();
+		});
+
+    m_ClearOutput = new wxButton(this, wxID_ANY, wxT("Clear output"), wxDefaultPosition, wxDefaultSize, 0);
+	h_sizer_2->Add(m_ClearOutput);
+    m_ClearOutput->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			m_Output->Clear();
 			path.Clear();
 		});
 
@@ -1893,8 +1917,14 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 	this->SetSizerAndFit(bSizer1);
 	this->Layout();
 
-    m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+    m_RunButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+            if(m_Script->IsScriptRunning())
+            {
+                wxMessageDialog(this, std::format("Click on abort to abort it, before running another one"), "A script is already running", wxOK).ShowModal();
+                return;
+            }
+
 			wxString str = m_Input->GetValue();
 			std::string input;
 			if(!path.empty())
@@ -1909,13 +1939,10 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 				input = str.mb_str();
 			}
 
-			std::string output;
 			try
 			{
                 boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
-
-                CanScriptHandler script(*this);
-                script.RunScript(input);
+                m_Script->RunScript(input);
 			}
 			catch(std::exception& e)
 			{
@@ -1923,25 +1950,63 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
 
-			if(!output.empty())
+			if(!input.empty())
 			{
 #ifdef _WIN32
-				boost::algorithm::replace_all(output, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
+				boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
 #endif
 				m_Output->Clear();
-				wxString wxout(output);
-				m_Output->SetValue(wxout);
-				 
-				LOG(LogLevel::Verbose, "wxOut: {}", wxout.ToStdString().substr(0, 128));
-				m_OkButton->SetForegroundColour(*wxBLACK);
+                m_Output->SetValue("");
+                m_RunButton->SetForegroundColour(*wxBLACK);
 			}
 			else
 			{
-				LOG(LogLevel::Verbose, "Empty output");
+				LOG(LogLevel::Verbose, "Empty input");
 			}
 			path.Clear();
 		});
 
+    m_RunSelectedButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            if(m_Script->IsScriptRunning())
+            {
+                wxMessageDialog(this, std::format("Click on abort to abort it, before running another one"), "A script is already running", wxOK).ShowModal();
+                return;
+            }
+
+            std::string input = m_Input->GetStringSelection().ToStdString();;
+            if(input.empty())
+            {
+                LOG(LogLevel::Warning, "Empty selection, nothing to run");
+                return;
+            }
+
+            try
+            {
+                boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
+                m_Script->RunScript(input);
+            }
+            catch(std::exception& e)
+            {
+                LOG(LogLevel::Error, "Exception: {}", e.what());
+                wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+            }
+
+            if(!input.empty())
+            {
+#ifdef _WIN32
+                boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
+#endif
+                m_Output->Clear();
+                m_Output->SetValue("");
+                m_RunButton->SetForegroundColour(*wxBLACK);
+            }
+            else
+            {
+                LOG(LogLevel::Verbose, "Empty input");
+            }
+            path.Clear();
+        });
 }
 
 void CanScriptPanel::AddToLog(std::string str)
@@ -1984,7 +2049,7 @@ void CanScriptPanel::HandleInputFileSelect(wxString& path)
 #ifdef _WIN32
             boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
 #endif
-            m_OkButton->SetForegroundColour(*wxRED);
+            m_RunButton->SetForegroundColour(*wxRED);
             m_Input->SetValue(input);
         }
     }
@@ -2030,7 +2095,7 @@ BitEditorDialog::BitEditorDialog(wxWindow* parent)
 
     // finally buttons to show the resulting message box and close this dialog
     sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE | wxOK), wxSizerFlags().Right().Border()); /* wxOK */
-    
+     
     sizerTop->SetMinSize(wxSize(200, 200));
     SetAutoLayout(true);
     SetSizer(sizerTop);

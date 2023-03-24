@@ -56,7 +56,7 @@ public:
     CanTxEntry() = default;
     ~CanTxEntry() = default;
     CanTxEntry(const CanTxEntry& from) : 
-        CanEntryBase(from), id(from.id + 1), CanEntryTransmitInfo(from), comment(from.comment)
+        CanEntryBase(from), id(from.id + 1), CanEntryTransmitInfo(from), comment(from.comment), m_color(from.m_color), m_bg_color(from.m_bg_color), m_is_bold(from.m_is_bold)
     { 
 
     }
@@ -64,6 +64,15 @@ public:
     std::string comment{};
     bool send = false;
     bool single_shot = false;
+
+    // !\brief Text color
+    std::optional<uint32_t> m_color;
+
+    // !\brief Text background color
+    std::optional<uint32_t> m_bg_color;
+
+    // !\brief Is text bold?
+    bool m_is_bold = false;
 };
 
 class CanRxData : public CanEntryBase, public CanEntryTransmitInfo
@@ -239,6 +248,7 @@ private:
     };
 };
 
+class CanScriptHandler;
 class CanEntryHandler
 {
 public:
@@ -427,6 +437,7 @@ public:
     // !\brief Assigns new TX buffer to TX entry
     void AssignNewBufferToTxEntry(uint32_t frame_id, uint8_t* buffer, size_t size);
 
+    CanScriptHandler* m_ScriptHandler = nullptr;
 private:
     // !\brief Handle bit reading of a frame
     template <typename T> void HandleBitReading(uint32_t frame_id, bool is_rx, std::unique_ptr<CanMap>& m, size_t offset, CanBitfieldInfo& info);

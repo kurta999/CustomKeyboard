@@ -277,7 +277,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
                         {
                             LOG(LogLevel::Warning, "Duplicate offset for FrameID: {}, Name: {}", frame_id_str, name);
                             continue;
-                    }
+                        }
                     }
 
                     boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("<xmlattr>.min");
@@ -516,6 +516,9 @@ void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* 
         m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_TX, frame_id, data, data_len, time_now));
     }
 
+    if(m_ScriptHandler)
+        m_ScriptHandler->OnFrameAppearedOnBus(frame_id, data);
+
     tx_frame_cnt++;
 }
 
@@ -559,6 +562,9 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
         }
         DBG("finish");
     }
+
+    if(m_ScriptHandler)
+        m_ScriptHandler->OnFrameAppearedOnBus(frame_id, data);
 
     m_cv.notify_all();
 }

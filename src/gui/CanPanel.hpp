@@ -186,6 +186,7 @@ private:
     wxDECLARE_EVENT_TABLE();
 };
 
+class CanScriptHandler;
 class CanScriptPanel : public wxPanel, public ICanResultPanel
 {
 public:
@@ -212,11 +213,16 @@ private:
     wxCheckBox* m_ConvertItemName = nullptr;
     wxTextCtrl* m_Input = nullptr;
     wxTextCtrl* m_Output = nullptr;
-    wxButton* m_OkButton = nullptr;
+    wxButton* m_RunButton = nullptr;
+    wxButton* m_RunSelectedButton = nullptr;
+    wxButton* m_Abort = nullptr;
     wxButton* m_ClearButton = nullptr;
+    wxButton* m_ClearOutput = nullptr;
     wxFilePickerCtrl* m_FilePicker = nullptr;
 
     wxString path;
+
+    std::unique_ptr<CanScriptHandler> m_Script;
 
     wxDECLARE_EVENT_TABLE();
 };
@@ -259,8 +265,6 @@ public:
     // [label] = value
     void ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo& values);
     std::vector<std::string> GetOutput();
-
-    bool IsApplyClicked() { return m_IsApplyClicked; }
 
     enum class BitSelection
     {
