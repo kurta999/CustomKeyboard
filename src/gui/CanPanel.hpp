@@ -269,10 +269,23 @@ public:
         Binary,
     };
 
+    enum class ClickType
+    {
+        None,
+        Ok,
+        Close,
+        Apply,
+    };
+    
+    ClickType GetClickType() { return m_ClickType; }
+
     uint32_t GetFrameId() { return m_FrameId; }
 
 protected:
     void OnApply(wxCommandEvent& event);
+    void OnOk(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
     void OnRadioButtonClicked(wxCommandEvent& event);
 private:
     int m_Id = 0;
@@ -285,7 +298,9 @@ private:
     wxRadioButton* m_InputBit[MAX_BITEDITOR_FIELDS] = {};
     wxSizer* sizerTop = {};
     wxSizer* sizerMsgs = {};
-    bool m_IsApplyClicked = false;
+
+    ClickType m_ClickType = ClickType::None;
+
     CanBitfieldInfo m_BitfieldInfo;
     BitSelection bit_sel = BitSelection::Decimal;
     uint32_t m_FrameId = {};

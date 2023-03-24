@@ -1336,6 +1336,9 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
 
+                bool to_exit = false;
+                while(!to_exit)
+                {
                 CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, false);
                 if(info.size() == 0)
                 {
@@ -1344,7 +1347,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 }
 
                 m_BitfieldEditor->ShowDialog(frame_id, false, info);
-                if(m_BitfieldEditor->IsApplyClicked())
+                    if(m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Apply || m_BitfieldEditor->GetClickType() == BitEditorDialog::ClickType::Ok)
                 {
                     std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
 
@@ -1355,6 +1358,13 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
                     can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
                         wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
+                }
+
+                    if(m_BitfieldEditor->GetClickType() != BitEditorDialog::ClickType::Apply)
+                    {
+                        to_exit = true;
+                break;
+            }
                 }
                 break;
             }
@@ -1961,6 +1971,9 @@ void CanScriptPanel::HandleInputFileSelect(wxString& path)
 
 wxBEGIN_EVENT_TABLE(BitEditorDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, BitEditorDialog::OnApply)
+EVT_BUTTON(wxID_OK, BitEditorDialog::OnOk)
+EVT_BUTTON(wxID_CLOSE, BitEditorDialog::OnCancel)
+EVT_CLOSE(BitEditorDialog::OnClose)
 wxEND_EVENT_TABLE()
 
 BitEditorDialog::BitEditorDialog(wxWindow* parent)
@@ -1995,7 +2008,7 @@ BitEditorDialog::BitEditorDialog(wxWindow* parent)
     sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
 
     // finally buttons to show the resulting message box and close this dialog
-    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
+    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE | wxOK), wxSizerFlags().Right().Border()); /* wxOK */
     
     sizerTop->SetMinSize(wxSize(200, 200));
     SetAutoLayout(true);
@@ -2056,9 +2069,9 @@ void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo&
     sizerTop->Layout();
     sizerTop->Fit(this);
 
-    m_IsApplyClicked = false;
-    ShowModal();
-    DBG("isapply: %d", IsApplyClicked());
+    m_ClickType = ClickType::None;
+    int ret = ShowModal();
+    DBG("ShowModal ret: %d\n", ret);
 }
 
 std::vector<std::string> BitEditorDialog::GetOutput()
@@ -2103,21 +2116,36 @@ std::vector<std::string> BitEditorDialog::GetOutput()
 
 void BitEditorDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
-    Close();
-    m_IsApplyClicked = true;
-    /*
-    std::vector<std::string> ret = GetOutput();
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    DBG("OnApply %d\n", (int)m_ClickType)
+    EndModal(wxID_APPLY);
+    //Close();
+    m_ClickType = ClickType::Apply;
+}
 
-    uint32_t frame_id = GetFrameId()
-    can_handler->ApplyEditingOnFrameId(frame_id, ret);
+void BitEditorDialog::OnOk(wxCommandEvent& event)
+{
+    DBG("OnOK %d\n", (int)m_ClickType);
+    if(m_ClickType == ClickType::Close)
+        return;
+    EndModal(wxID_OK);
+    //Close();
+    m_ClickType = ClickType::Ok;
+    event.Skip();
+}
 
-    std::string hex;
-    utils::ConvertHexBufferToString(can_grid_tx->grid_to_entry[row]->data, hex);
-    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, col), wxString(hex));
-    can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
-        wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));
-        */
+void BitEditorDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
+{
+    DBG("OnCancel %d\n", (int)m_ClickType);
+    EndModal(wxID_CLOSE);
+    m_ClickType = ClickType::Close;
+    //Close();
+}
+
+void BitEditorDialog::OnClose(wxCloseEvent& event)
+{
+    DBG("OnClose %d\n", (int)m_ClickType);
+    m_ClickType = ClickType::Close;
+    EndModal(wxID_CLOSE);
 }
 
 void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
