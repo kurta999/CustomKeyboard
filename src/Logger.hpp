@@ -22,7 +22,6 @@ template<class> inline constexpr bool always_false_v = false;
 
 DECLARE_APP(MyApp);
 
-#ifdef _DEBUG /* this is only for debugging, it remains oldschool */
 #define DBG(str, ...) \
     {\
         char __debug_format_str[64]; \
@@ -36,10 +35,6 @@ DECLARE_APP(MyApp);
         wsprintfW(__debug_format_str, str, __VA_ARGS__); \
         OutputDebugStringW(__debug_format_str); \
     }
-#else
-#define DBG(str, ...)
-#define DBGW(str, ...)
-#endif
 
 enum LogLevel
 {
