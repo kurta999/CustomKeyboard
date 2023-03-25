@@ -17,17 +17,16 @@ public:
         TEMPERATURE, HUMIDITY, CO2, VOC, PM25, PM10, LUX, CCT, TIME
     };
 
-    Measurement() = default;
-    Measurement(float _temp, float _hum, int _co2, int _voc, int _pm25, int _pm10, int _lux, int _cct, std::string&& time_) :
-        temp(_temp), hum(_hum), co2(_co2), voc(_voc), pm25(_pm25), pm10(_pm10), lux(_lux), cct(_cct), time(std::move(time_))
+    Measurement(float _temp, float _hum, int _co2, int _voc, int _co, int _pm25, int _pm10, float _pressure, float _r, float _g, float _b, int _lux, int _cct, int _uv, std::string&& time_) :
+        temp(_temp), hum(_hum), co2(_co2), voc(_voc), co(_co), pm25(_pm25), pm10(_pm10), pressure(_pressure), r(_r), g(_g), b(_b), lux(_lux), cct(_cct), uv(_uv), time(std::move(time_))
     {
 
     }
     ~Measurement() = default;
     Measurement(const Measurement&) = default;
 
-    float temp, hum;
-    int co2, voc, pm25, pm10, lux, cct;
+    float temp = 0.0f, hum = 0.0f, pressure = 0.0f, r = 0.0f, g = 0.0f, b = 0.0f;
+    int co2 = 0, voc = 0, co = 0, pm25 = 0, pm10 = 0, lux = 0, cct = 0, uv = 0;
     std::string time;
 };
 #pragma pack(pop)
@@ -43,8 +42,9 @@ public:
 
     // \brief Process incomming data
     // \param recv_data [in] - received data C string
+    // \param data_len [in] - received data len
     // \param from_ip [in] - sender ip C string
-    bool ProcessIncommingData(const char* recv_data, const char* from_ip);
+    bool ProcessIncommingData(const char* recv_data, size_t data_len, const char* from_ip);
 
     // \brief Write graphs from memory to .html files
     void WriteGraphs();

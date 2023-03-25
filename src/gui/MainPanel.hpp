@@ -18,10 +18,16 @@ public:
 	wxStaticText* m_textHum = nullptr;
 	wxStaticText* m_textCO2 = nullptr;
 	wxStaticText* m_textVOC = nullptr;
+	wxStaticText* m_textCO = nullptr;
 	wxStaticText* m_textPM25 = nullptr;
 	wxStaticText* m_textPM10 = nullptr;
+	wxStaticText* m_textPressure = nullptr;
+	wxStaticText* m_textR = nullptr;
+	wxStaticText* m_textG = nullptr;
+	wxStaticText* m_textB = nullptr;
 	wxStaticText* m_textLux = nullptr;
 	wxStaticText* m_textCCT = nullptr;
+	wxStaticText* m_textUV = nullptr;
 	wxStaticText* m_textTime = nullptr;
 	wxButton* m_OpenGraphs = nullptr;
 	wxSpinCtrl* m_GraphStartHours1 = nullptr;

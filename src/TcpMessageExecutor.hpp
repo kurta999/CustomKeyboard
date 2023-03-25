@@ -24,6 +24,7 @@ public:
     virtual TcpMessageReturn Process(std::any param) override;
 
 private:
+    TcpMessageReturn HandleAirQualityData(std::any param);
     TcpMessageReturn HandleOpenExplorer(std::any param);
     TcpMessageReturn HandleGraphs(std::any param);
 

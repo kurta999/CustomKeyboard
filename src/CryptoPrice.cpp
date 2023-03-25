@@ -66,10 +66,11 @@ void CryptoPrice::ExecuteApiRead()
 
 void CryptoPrice::UpdatePrices(bool force)
 {
-	last_update = std::chrono::steady_clock::now();
-
     if(!Settings::Get()->fetch_crypto_prices)
+    {
+        last_update = std::chrono::steady_clock::now();
         return;
+    }
 
     uint64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_update).count();
     if(dif > CRYPTO_PRICE_UPDATE || force)

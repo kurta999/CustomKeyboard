@@ -8,6 +8,7 @@ constexpr size_t TCP_HTTP_HEADER_LEN = std::char_traits<char>::length(TCP_HTTP_H
 
 TcpMessageExecutor::TcpMessageExecutor()
 {
+	m_cmds["MEAS_DATA"] = std::bind(&TcpMessageExecutor::HandleAirQualityData, this, nullptr);
 	m_cmds["expw"] = std::bind(&TcpMessageExecutor::HandleOpenExplorer, this, nullptr);
 	
 	m_cmds["GET /graphs"] = std::bind(&TcpMessageExecutor::HandleGraphs, this, "Temperature.html");
@@ -34,6 +35,12 @@ void TcpMessageExecutor::SetCurrentSession(SharedSession session, size_t len)
 	m_session = session;
 	m_recv_data = m_session->receivedData;
 	m_len = len;
+}
+
+TcpMessageReturn TcpMessageExecutor::HandleAirQualityData(std::any param)
+{
+	bool ret = Sensors::Get()->ProcessIncommingData(m_recv_data, m_len, m_session->sessionAddress.c_str());
+	return std::make_tuple(true, true, "");
 }
 
 TcpMessageReturn TcpMessageExecutor::HandleOpenExplorer(std::any param)
@@ -85,6 +92,5 @@ TcpMessageReturn TcpMessageExecutor::Process(std::any param)
 		}
 	}
 
-	bool ret = Sensors::Get()->ProcessIncommingData(m_recv_data, m_session->sessionAddress.c_str());  /* This is a special case, sensors should be changed first */
-	return std::make_tuple(true, ret, "");
+	return std::make_tuple(true, false, "");
 }

@@ -63,10 +63,16 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_MEASUREMENT_TEXT(m_textHum, "Humidity", "Humidity: N/A", "Unit: % RH", wxColour(29, 79, 252));
 	ADD_MEASUREMENT_TEXT(m_textCO2, "CO2", "CO2: N/A", "Unit: ppm", wxColour(237, 60, 251));
 	ADD_MEASUREMENT_TEXT(m_textVOC, "VOC", "VOC: N/A", "Unit: ppb", wxColour(185, 4, 200));
+	ADD_MEASUREMENT_TEXT(m_textCO, "CO", "CO: N/A", "Unit: ppb", wxColour(185, 4, 200));
 	ADD_MEASUREMENT_TEXT(m_textPM25, "PM25", "PM2.5: N/A", "Unit: ug/m3", wxColour(62, 211, 24));
 	ADD_MEASUREMENT_TEXT(m_textPM10, "PM10", "PM10: N/A", "Unit: ug/m3", wxColour(50, 172, 19));
+	ADD_MEASUREMENT_TEXT(m_textPressure, "Pressure", "Pressure: N/A", "Unit: hPA/mbar", wxColour(44, 220, 230));
+	ADD_MEASUREMENT_TEXT(m_textR, "R", "Lux: N/A", "Unit: Lux", wxColour(235, 52, 140));
+	ADD_MEASUREMENT_TEXT(m_textG, "G", "Lux: N/A", "Unit: Lux", wxColour(235, 52, 140));
+	ADD_MEASUREMENT_TEXT(m_textB, "B", "Lux: N/A", "Unit: Lux", wxColour(235, 52, 140));
 	ADD_MEASUREMENT_TEXT(m_textLux, "Lux", "Lux: N/A", "Unit: Lux", wxColour(84, 67, 71));
 	ADD_MEASUREMENT_TEXT(m_textCCT, "CCT", "CCT: N/A", "Unit: Kelvin", wxColour(55, 45, 47));
+	ADD_MEASUREMENT_TEXT(m_textUV, "UV", "UV: N/A", "Unit: UV Index", wxColour(199, 192, 14));
 	ADD_MEASUREMENT_TEXT(m_textTime, "CCT", "Time: N/A - 0", "Unit: Date & Time - Number of measurements received", wxColour(255, 21, 21));
 
 	m_OpenGraphs = new wxButton(this, wxID_ANY, wxT("Open graphs"), wxDefaultPosition, wxDefaultSize, 0);
