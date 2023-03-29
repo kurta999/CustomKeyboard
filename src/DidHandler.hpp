@@ -48,19 +48,6 @@ private:
         {DET_BYTEARRAY, "bytearray"},
         {DET_INVALID, "invalid"}
     };
-
-#if 0
-    static inline std::map<DidEntryType, std::pair<int64_t, int64_t>> m_DidEntrySizes  /* TODO: use int128_t for size from boost::multiprecision */
-    {
-        {DET_UI8, {0, 1}},
-        {DET_UI16, {std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()}},
-        {DET_UI32, {std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max()}},
-        {DET_STRING, {std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max()}},
-        {DET_BYTEARRAY, {std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()}},
-        {CBT_I64, {std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()}},
-        {DET_INVALID, {0, 0}}
-    };
-#endif
 };
 
 class XmlDidCacheLoader : public IDidLoader

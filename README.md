@@ -4,7 +4,7 @@ If you want to use/resuse some part(s) of the project or you have a question, fe
 
 # Quick overview
 ### 1. For Automotive development:
-1. **CAN-USB Transreceiver** - Send and Receive standard and ISO-TP CAN Frames over CAN bus via computer trough USB - see more info below
+1. **CAN-USB Transceiver** - Send and Receive standard and ISO-TP CAN Frames over CAN bus via computer trough USB - see more info below
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
 
@@ -32,7 +32,7 @@ If you want to use/resuse some part(s) of the project or you have a question, fe
 
 # In depth details of implemented features
 ### 1. For Automotive development:
-1. **CAN-USB Transreceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transreceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
+1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
 
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 
@@ -174,7 +174,7 @@ Sleep 500
 
 ![Alt text](/github_screens/sensors_js_graph.png?raw=true "Temperature graph for last week")
 
-**CAN-USB Transreceiver**
+**CAN-USB Transceiver **
 
 ![Alt text](/github_screens/can_usb.png?raw=true "CAN-USB GUI")
 

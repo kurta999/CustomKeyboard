@@ -17,6 +17,7 @@ del %PROJECT_NAME%
 cd %basedir%
 
 copy /y x64\Release\%PROJECT_NAME%.exe %EXPORT_APP_DIR%\%PROJECT_NAME%\CustomKeyboard_v%PROJECT_VERSION%\%PROJECT_NAME%.exe
+copy /y x64\Release\%PROJECT_NAME%.pdb %EXPORT_APP_DIR%\%PROJECT_NAME%\CustomKeyboard_v%PROJECT_VERSION%\%PROJECT_NAME%.pdb
 del "%EXPORT_APP_DIR%\%PROJECT_NAME%\CustomKeyboard_v%PROJECT_VERSION%.7z"
 cd %EXPORT_APP_DIR%\%PROJECT_NAME%
 7z.exe a CustomKeyboard_v%PROJECT_VERSION%.7z CustomKeyboard_v%PROJECT_VERSION%\
