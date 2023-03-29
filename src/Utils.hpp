@@ -185,14 +185,27 @@ namespace utils
     }
 }
 
-namespace utils::xml
+namespace utils
 {
-    template <typename T, typename U> void ReadChildIfexists(const boost::property_tree::ptree::value_type& v, const std::string& child_name, U& out)
+    namespace xml
     {
-        auto child_val = v.second.get_child_optional(child_name);
-        if(child_val)
-            out = child_val->get_value<T>();
+        template <typename T, typename U> void ReadChildIfexists(const boost::property_tree::ptree::value_type& v, const std::string& child_name, U& out)
+        {
+            auto child_val = v.second.get_child_optional(child_name);
+            if(child_val)
+                out = child_val->get_value<T>();
+        }
+
+        template <typename A, typename U> void ReadValueIfexists(A v, const std::string& child_name, U& out)
+        {
+            auto child_val = v->get_optional<U>(child_name);
+            if(child_val)
+                out = *child_val;
+        }
     }
+
+    namespace ini = xml;
+    namespace ptree = xml;
 }
 
 namespace utils

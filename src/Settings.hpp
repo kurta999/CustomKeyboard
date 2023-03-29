@@ -75,4 +75,8 @@ public:
     bool fetch_crypto_prices = false;
 private:
 
+    UsedPages ParseUsedPagesFromString(const std::string& in);
+
+    std::string ParseUsedPagesToString(UsedPages& in);
 };
+

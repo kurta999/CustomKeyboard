@@ -22,9 +22,15 @@ void Settings::LoadFile()
 
     try
     {
-        CustomMacro::Get()->use_per_app_macro = utils::stob(pt.get_child("Macro_Config").find("UsePerApplicationMacros")->second.data());
-        CustomMacro::Get()->advanced_key_binding = utils::stob(pt.get_child("Macro_Config").find("UseAdvancedKeyBinding")->second.data());
-        CustomMacro::Get()->bring_to_foreground_key = std::move(pt.get_child("Macro_Config").find("BringToForegroundKey")->second.data());
+        {
+            auto opt_section = pt.get_child_optional("Macro_Config");
+            if(opt_section)
+            {
+                utils::ini::ReadValueIfexists(opt_section, "UsePerApplicationMacros", CustomMacro::Get()->use_per_app_macro);
+                utils::ini::ReadValueIfexists(opt_section, "UseAdvancedKeyBinding", CustomMacro::Get()->advanced_key_binding);
+                utils::ini::ReadValueIfexists(opt_section, "BringToForegroundKey", CustomMacro::Get()->bring_to_foreground_key);
+            }
+        }
 
         CustomMacro::Get()->macros.clear();
         std::unique_ptr<MacroAppProfile> p = std::make_unique<MacroAppProfile>();
@@ -57,6 +63,7 @@ void Settings::LoadFile()
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
+
         SerialPort::Get()->SetEnabled(utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data()));
         SerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data()));
         SerialPort::Get()->SetForwardToTcp(utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data()));
@@ -156,33 +163,8 @@ void Settings::LoadFile()
         uint32_t val2 = utils::stoi<decltype(val1)>(pt.get_child("Graph").find("Graph2HoursBack")->second.data());
         DatabaseLogic::Get()->SetGraphHours(1, val2);
 
-        std::string pages_str = pt.get_child("App").find("UsedPages")->second.data();
-        if(boost::icontains(pages_str, "Main"))
-            used_pages.main = 1;
-        if(boost::icontains(pages_str, "Config"))
-            used_pages.config = 1;
-        if(boost::icontains(pages_str, "wxEditor"))
-            used_pages.wxeditor = 1;
-        if(boost::icontains(pages_str, "Map"))
-            used_pages.map_converter = 1;
-        if(boost::icontains(pages_str, "StringEscaper"))
-            used_pages.escaper = 1;
-        if(boost::icontains(pages_str, "Debug"))
-            used_pages.debug = 1;
-        if(boost::icontains(pages_str, "StructParser"))
-            used_pages.struct_parser = 1;
-        if(boost::icontains(pages_str, "FileBrowser"))
-            used_pages.file_browser = 1;
-        if(boost::icontains(pages_str, "CmdExecutor"))
-            used_pages.cmd_executor = 1;
-        if(boost::icontains(pages_str, "CanSender"))
-            used_pages.can = 1;
-        if(boost::icontains(pages_str, "Did"))
-            used_pages.did = 1;
-        if(boost::icontains(pages_str, "ModbusMaster"))
-            used_pages.modbus_master = 1;
-        if(boost::icontains(pages_str, "Log"))
-            used_pages.log = 1;
+        const std::string& pages_str = pt.get_child("App").find("UsedPages")->second.data();
+        used_pages = ParseUsedPagesFromString(pages_str);
     }
     catch(boost::property_tree::ptree_error& e)
     {
@@ -307,7 +289,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
     out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
-    out << "UsedPages = Main, Config, wxEditor, Map, StringEscaper, Debug, StructParser, FileBrowser, CmdExecutor, CanSender, Log" << "\n"; /* TODO: make this dynamic */
+    out << "UsedPages = " << ParseUsedPagesToString(used_pages) << "\n";
     out << "RememberWindowSize = " << remember_window_size << "\n";
     if(remember_window_size)  /* get frame size when click on Save - not on exit, this is not a bug */
     {
@@ -404,4 +386,71 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
 void Settings::Init()
 {
     LoadFile();
+}
+
+UsedPages Settings::ParseUsedPagesFromString(const std::string& in)
+{
+    UsedPages pages;
+    pages.pages = 0;
+    if(boost::icontains(in, "Main"))
+        pages.main = 1;
+    if(boost::icontains(in, "Config"))
+        pages.config = 1;
+    if(boost::icontains(in, "wxEditor"))
+        pages.wxeditor = 1;
+    if(boost::icontains(in, "Map"))
+        pages.map_converter = 1;
+    if(boost::icontains(in, "StringEscaper"))
+        pages.escaper = 1;
+    if(boost::icontains(in, "Debug"))
+        pages.debug = 1;
+    if(boost::icontains(in, "StructParser"))
+        pages.struct_parser = 1;
+    if(boost::icontains(in, "FileBrowser"))
+        pages.file_browser = 1;
+    if(boost::icontains(in, "CmdExecutor"))
+        pages.cmd_executor = 1;
+    if(boost::icontains(in, "CanSender"))
+        pages.can = 1;
+    if(boost::icontains(in, "Did"))
+        pages.did = 1;
+    if(boost::icontains(in, "ModbusMaster"))
+        pages.modbus_master = 1;
+    if(boost::icontains(in, "Log"))
+        pages.log = 1;
+    return pages;
+}
+
+std::string Settings::ParseUsedPagesToString(UsedPages& in)
+{
+    std::string pages;
+    if(in.main)
+        pages += "Main, ";
+    if(in.config)
+        pages += "Config, ";
+    if(in.wxeditor)
+        pages += "wxEditor, ";
+    if(in.map_converter)
+        pages += "Map, ";
+    if(in.escaper)
+        pages += "StringEscaper, ";
+    if(in.debug)
+        pages += "Debug, ";
+    if(in.struct_parser)
+        pages += "StructParser, ";
+    if(in.file_browser)
+        pages += "FileBrowser, ";
+    if(in.cmd_executor)
+        pages += "CmdExecutor, ";
+    if(in.can)
+        pages += "CanSender, ";
+    if(in.did)
+        pages += "Did, ";
+    if(in.modbus_master)
+        pages += "ModbusMaster, ";
+    if(in.log)
+        pages += "Log, ";
+    if(pages.size() > 2)
+        pages.pop_back(), pages.pop_back();
+    return pages;
 }
