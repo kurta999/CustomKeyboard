@@ -8,6 +8,7 @@
 #include <limits>
 #include <random>
 #include <span>
+#include <thread>
 #include <boost/algorithm/hex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -30,6 +31,9 @@
 namespace utils
 {
     template<class> inline constexpr bool always_false_v = false;
+
+    void SetThreadName(std::thread& thread, const char* threadName);
+    void SetThreadName(std::jthread& thread, const char* threadName);
 
     inline std::string extract_string(std::string& str, size_t start, size_t start_end, size_t len)
     {
