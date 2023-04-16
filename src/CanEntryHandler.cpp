@@ -15,6 +15,7 @@ CanEntryHandler::~CanEntryHandler()
         std::unique_lock lock{ m };
         m_cv.notify_all();
     }
+    
     m_worker.reset(nullptr);
 }
 
@@ -433,6 +434,8 @@ void CanEntryHandler::Init()
 {
     LoadFiles();
     m_worker = std::make_unique<std::jthread>(std::bind_front(&CanEntryHandler::WorkerThread, this));
+    if(m_worker)
+        utils::SetThreadName(*m_worker, "CanEntryHandler");
 }
 
 void CanEntryHandler::LoadFiles()
@@ -474,6 +477,7 @@ void CanEntryHandler::WorkerThread(std::stop_token token)
             isotp_poll(&link);
         }
     }
+    DBG("exit");
 }
 
 void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* data)

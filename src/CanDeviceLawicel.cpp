@@ -101,47 +101,51 @@ void CanDeviceLawicel::ProcessReceivedFrames()
 
 size_t CanDeviceLawicel::PrepareSendDataFormat(std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
 {
-    if(device_state == 0)
+    switch(device_state)
     {
-        memcpy(out, "\r", 1);  /* Inital CR */
-        device_state++;
-        std::this_thread::sleep_for(150ms);
-        return 1;
-    }
-        
-    if(device_state == 1)
-    {
-        memcpy(out, "V\r", 2);  /* Get version */
-        device_state++;
-        std::this_thread::sleep_for(150ms);
-        return 2;
-    }
+        case 0:  /* Initial CR */
+        {
+            memcpy(out, "\r", 1);
+            device_state++;
+            std::this_thread::sleep_for(150ms);
+            break;
+        }
+        case 1:  /* Get version */
+        {
+            memcpy(out, "V\r", 2);  
+            device_state++;
+            std::this_thread::sleep_for(150ms);
+            break;
+        }
+        case 2:  /* CAN Baudrate 500Kbps */
+        {
+            memcpy(out, "S6\r", 3);  
+            device_state++;
+            std::this_thread::sleep_for(50ms);
+            break;
+        }
+        case 3:  /* Open CAN channel */
+        {
+            memcpy(out, "O\r", 2);  
+            device_state++;
+            std::this_thread::sleep_for(200ms);
+            break;
+        }
+        case 4:  /* Send data to CAN bus */
+        {
+            remove_from_queue = true;
+            std::string out_hex;
+            boost::algorithm::hex(data_ptr->data, data_ptr->data + data_ptr->data_len, std::back_inserter(out_hex));
 
-    if(device_state == 2)
-    {
-        memcpy(out, "S6\r", 3);  /* CAN Baudrate 500Kbps */
-        device_state++;
-        std::this_thread::sleep_for(50ms);
-        return 3;
-    }
-    
-    if(device_state == 3)
-    {
-        memcpy(out, "O\r", 2);  /* Open CAN channel */
-        device_state++;
-        std::this_thread::sleep_for(200ms);
-        return 3;
-    }
-
-    if(device_state == 4)
-    {
-        remove_from_queue = true;
-        std::string out_hex;
-        boost::algorithm::hex(data_ptr->data, data_ptr->data + data_ptr->data_len, std::back_inserter(out_hex));
-
-        std::string out_str = std::format("{}{:X}{}{}\r", data_ptr->frame_id < 0x7FF ? 't' : 'T', data_ptr->frame_id, data_ptr->data_len, out_hex);
-        memcpy(out, out_str.c_str(), out_str.length());
-        return out_str.length();
+            std::string out_str = std::format("{}{:X}{}{}\r", data_ptr->frame_id < 0x7FF ? 't' : 'T', data_ptr->frame_id, data_ptr->data_len, out_hex);
+            memcpy(out, out_str.c_str(), out_str.length());
+            return out_str.length();
+        }
+        default:
+        {
+            assert(true);
+            break;
+        }
     }
     return 0;
 }

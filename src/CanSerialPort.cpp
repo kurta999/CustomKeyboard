@@ -3,6 +3,7 @@
 constexpr size_t TX_QUEUE_MAX_SIZE = 100;
 constexpr size_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
 constexpr size_t CAN_SERIAL_TX_BUFFER_SIZE = 64;
+constexpr auto CAN_SERIAL_PORT_TIMEOUT = 5000ms;
 
 CanSerialPort::CanSerialPort() : m_CircBuff(RX_CIRCBUFF_SIZE)
 {
@@ -24,7 +25,10 @@ void CanSerialPort::Init()
             m_Device = std::make_unique<CanDeviceLawicel>(m_CircBuff);
 
         if(!m_worker)
-            m_worker = std::make_unique<std::thread>(&CanSerialPort::WorkerThread, this);
+        {
+            m_worker = std::make_unique<std::jthread>(std::bind_front(&CanSerialPort::WorkerThread, this));
+            utils::SetThreadName(*m_worker, "CanSerialPort");
+        }
     }
     else
     {
@@ -65,34 +69,39 @@ void CanSerialPort::AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
     m_TxQueue.push(std::make_unique<CanData>(frame_id, data_len, data));
 
     if(m_TxQueue.size() > TX_QUEUE_MAX_SIZE)
+    {
+        LOG(LogLevel::Error, "Queue overflow");
         m_TxQueue.pop();
+    }
+    NotifiyMainThread();
 }
 
 void CanSerialPort::AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data)
 {
     //std::unique_lock lock(m_mutex);
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    can_handler->OnFrameReceived(frame_id, data_len, data);
+    if(can_handler)
+        can_handler->OnFrameReceived(frame_id, data_len, data);
+}
+
+void CanSerialPort::NotifiyMainThread()
+{
+    is_notification_pending = true;
+    m_cv.notify_all();
 }
 
 void CanSerialPort::DestroyWorkerThread()
 {
     if(m_worker)
     {
-        {
-            std::lock_guard guard(m_mutex);
-            to_exit = true;
-            m_cv.notify_all();
-        }
-        if(m_worker->joinable())
-            m_worker->join();
+        NotifiyMainThread();
         m_worker.reset(nullptr);
     }
 }
 
-void CanSerialPort::WorkerThread()
+void CanSerialPort::WorkerThread(std::stop_token token)
 {
-    while(!to_exit)
+    while(!token.stop_requested())
     {
         std::string err_msg;
         try
@@ -104,7 +113,7 @@ void CanSerialPort::WorkerThread()
 #endif
             serial.setCallback(std::bind(&CanSerialPort::OnDataReceived, this, std::placeholders::_1, std::placeholders::_2));
 
-            while(!to_exit)
+            while(!token.stop_requested())
             {
                 if(serial.errorStatus() || serial.isOpen() == false)
                 {
@@ -112,13 +121,20 @@ void CanSerialPort::WorkerThread()
                     break;
                 }
 
-                m_Device->ProcessReceivedFrames();
-                SendPendingCanFrames(serial);
-
                 {
                     std::unique_lock lock(m_mutex);
-                    m_cv.wait_for(lock, 5ms);
+                    auto now = std::chrono::system_clock::now();
+                    bool ret = m_cv.wait_until(lock, now + CAN_SERIAL_PORT_TIMEOUT, [this]() { return is_notification_pending != 0; });
+                    if(!ret)
+                    {
+                        LOG(LogLevel::Error, "CV timeout");
+                    }
                 }
+
+                m_Device->ProcessReceivedFrames();
+
+                SendPendingCanFrames(serial);
+                is_notification_pending = false;
             }
             try
             {
@@ -149,11 +165,13 @@ void CanSerialPort::OnDataReceived(const char* data, unsigned int len)
 {
     std::lock_guard guard(m_RxMutex);
     m_CircBuff.insert(m_CircBuff.end(), data, data + len);
+    NotifiyMainThread();
 }
 
 void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 {
-    if(!m_TxQueue.empty())
+    DBG("txssize: %lld\n", m_TxQueue.size());
+    while(!m_TxQueue.empty())
     {
         std::shared_ptr<CanData> data_ptr = m_TxQueue.front();
         bool is_remove = false;
@@ -172,5 +190,7 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 
         if(is_remove)
             m_TxQueue.pop();
+
+        std::this_thread::sleep_for(1ms);  /* This delay is needed because UART timeout won't happen if everything is sent at once */
     }
 }

@@ -2,6 +2,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <string>
+#include <semaphore>
 #include <boost/circular_buffer.hpp>
 #include <ICanDevice.hpp>
 
@@ -76,7 +77,9 @@ private:
     void DestroyWorkerThread();
 
     // !\brief Worker thread
-    void WorkerThread();
+    void WorkerThread(std::stop_token token);
+
+    void NotifiyMainThread();
 
     // !\brief Called when data was received via serial port (called by boost::asio::read_some)
     // !\param serial_port [in] Pointer to received data
@@ -90,10 +93,9 @@ private:
     uint16_t com_port = 5;
 
     // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
+    std::unique_ptr<std::jthread> m_worker;
 
-    // !\brief Exit working thread?
-    std::atomic<bool> to_exit = false;
+    std::atomic<bool> is_notification_pending = false;
 
     // !\brief Conditional variable for main thread exiting
     std::condition_variable m_cv;
