@@ -150,6 +150,8 @@ void SerialForwarder::Init()
             }
 #endif
         });
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "SerialForwarder");
     }
 }
 

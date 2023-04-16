@@ -29,6 +29,8 @@ void Server::Init(void)
             return;
         }
         m_worker = std::make_unique <std::thread>(&Server::StartAsync, this);
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "Server");
         DatabaseLogic::Get()->GenerateGraphs();
     }
 }

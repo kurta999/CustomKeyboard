@@ -11,6 +11,8 @@ void SerialPort::Init()
     {
         if(!m_worker)
             m_worker = std::make_unique<std::thread>(&SerialPort::WorkerThread, this);
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "SerialPort");
     }
     else
     {

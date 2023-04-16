@@ -30,6 +30,7 @@ void Settings::LoadFile()
                 utils::ini::ReadValueIfexists(opt_section, "UseAdvancedKeyBinding", CustomMacro::Get()->advanced_key_binding);
                 utils::ini::ReadValueIfexists(opt_section, "BringToForegroundKey", CustomMacro::Get()->bring_to_foreground_key);
             }
+
         }
 
         CustomMacro::Get()->macros.clear();
@@ -64,6 +65,7 @@ void Settings::LoadFile()
             CustomMacro::Get()->macros.push_back(std::move(p2));
         }
 
+        // only call the given functions if the given INI entry exists to avoid exceptions
         SerialPort::Get()->SetEnabled(utils::stob(pt.get_child("COM_Backend").find("Enable")->second.data()));
         SerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("COM")->second.data()));
         SerialPort::Get()->SetForwardToTcp(utils::stob(pt.get_child("COM_Backend").find("ForwardViaTcp")->second.data()));

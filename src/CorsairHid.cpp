@@ -71,6 +71,8 @@ bool CorsairHid::ExecuteInitSequence()
 
         m_exit = false;
         m_worker = std::make_unique<std::thread>(&CorsairHid::ThreadFunc, this);
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "CorsairHid");
     }
     else
     {
@@ -103,22 +105,25 @@ void CorsairHid::ThreadFunc()
     while(!m_exit)
     {
         uint8_t recv_data[READ_DATA_BUFFER_SIZE];
-        int read_bytes = hid_read_timeout(hid_handle, recv_data, sizeof(recv_data), HID_READ_TIMEOUT);
-        if(read_bytes == 0xFFFFFFFF)
+        if(hid_handle)
         {
-            LOGW(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); /* Sleep for one second after error happend */
-        }
-        else if(read_bytes > MIN_READ_DATA_SIZE)
-        {
-            uint32_t gkey_code = *reinterpret_cast<uint32_t*>(recv_data + 16);
-            auto it = corsair_GKeys.find(gkey_code);
-            if(it != corsair_GKeys.end())
+            int read_bytes = hid_read_timeout(hid_handle, recv_data, sizeof(recv_data), HID_READ_TIMEOUT);
+            if(read_bytes == 0xFFFFFFFF)
             {
-                HandleKeypress(it->second);
+                LOGW(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000)); /* Sleep for one second after error happend */
             }
+            else if(read_bytes > MIN_READ_DATA_SIZE)
+            {
+                uint32_t gkey_code = *reinterpret_cast<uint32_t*>(recv_data + 16);
+                auto it = corsair_GKeys.find(gkey_code);
+                if(it != corsair_GKeys.end())
+                {
+                    HandleKeypress(it->second);
+                }
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 #endif
 }

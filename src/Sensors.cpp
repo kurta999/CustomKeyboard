@@ -60,7 +60,7 @@ bool Sensors::ProcessIncommingData(const char* recv_data, size_t data_len, const
     {
         //float temp = boost::lexical_cast<float>(matches[0]), hum = boost::lexical_cast<float>(matches[1]), pressure = boost::lexical_cast<float>(matches[5]);
         float temp = boost::lexical_cast<float>(matches[3]), hum = boost::lexical_cast<float>(matches[1]), pressure = boost::lexical_cast<float>(matches[5]);
-        int send_interval, co2 = utils::stoi<int>(matches[2]), voc = 0,
+        int co2 = utils::stoi<int>(matches[2]), voc = 0,
             pm25 = utils::stoi<int>(matches[6]), pm10 = utils::stoi<int>(matches[7]), uv = utils::stoi<int>(matches[8]);
 
         float r = boost::lexical_cast<float>(matches[9]), g = boost::lexical_cast<float>(matches[10]), b = boost::lexical_cast<float>(matches[11]);
