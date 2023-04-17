@@ -42,6 +42,13 @@ bool MyApp::OnInit()
 int MyApp::OnExit()
 {
     is_init_finished = false;
+    
+    CanSerialPort::CSingleton::Destroy();
+
+    can_entry.reset(nullptr);
+    cmd_executor.reset(nullptr);
+    did_handler.reset(nullptr);
+
     IdlePowerSaver::CSingleton::Destroy();  /* Restore CPU power to 100%, this has to be destructed before Logger */
     Settings::CSingleton::Destroy();
     CustomMacro::CSingleton::Destroy();
@@ -55,7 +62,6 @@ int MyApp::OnExit()
     DatabaseLogic::CSingleton::Destroy();
     SerialForwarder::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
-    CanSerialPort::CSingleton::Destroy();
     ModbusMasterSerialPort::CSingleton::Destroy();
     CorsairHid::CSingleton::Destroy();
     Logger::CSingleton::Destroy();

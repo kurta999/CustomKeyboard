@@ -2,6 +2,7 @@
 
 #include "IDidLoader.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <semaphore>
 
 enum DidEntryType : uint8_t
 {
@@ -81,6 +82,8 @@ public:
 
     void WriteDid(uint16_t did, uint8_t* data_to_write, uint16_t size);
 
+    void NotifyDidUpdate();
+
     void SetDidCompletionCallback(std::function<void(uint16_t)> callback);
 
     void OnIsoTpFrameReceived(uint8_t* data, size_t size);
@@ -88,38 +91,58 @@ public:
     // !\brief Mutex for entry handler
     std::recursive_mutex m;
 
+    // !\brief DIDs whose values have been updated
     std::vector<uint16_t> m_UpdatedDids;
 
 private:
 
+    // !\brief Send a UDS frame and wait for a response
+    // !\param frame [in] Frame to send
     bool SendUdsFrameAndWaitForResponse(std::vector<uint8_t> frame);
 
+    // !\brief Wait for a response from the ECU
     bool WaitForResponse();
 
+    // !\brief Process a DID response
+    // !\param entry [in] DID entry to process
     void ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry);
 
+    // !\brief Process a NRC response 
     void ProcessRejectedNrc(std::unique_ptr<DidEntry>& entry);
 
-    void HandleDidReading();
+    // !\brief Handle DID reading
+    void HandleDidReading(std::stop_token& stop_token);
 
-    void HandleDidWriting();
+    // !\brief Handle DID writing
+    void HandleDidWriting(std::stop_token& stop_token);
 
     // !\brief Worker thread
     void WorkerThread(std::stop_token token);
 
-    // !\brief Worker thread
+    // !\brief Worker thread object
     std::unique_ptr<std::jthread> m_worker;
 
-    std::condition_variable cv;
-    std::mutex cv_m;
+    // !\brief Condition variable waiting for CAN message
+    std::condition_variable m_CanMessageCv;
 
+    // !\brief Mutex for CAN message CV
+    std::mutex m_CanMessageMutex;
+
+    // !\brief Semaphore for worker thread
+    std::binary_semaphore m_Semaphore;
+
+    // !\brief DIDs whose values are being read
     std::deque<uint16_t> m_PendingDidReads;
 
+    // !\brief DIDs whose values are being written
     std::map<uint16_t, std::string> m_PendingDidWrites;
 
+    // !\brief Callback to call when a DID has been updated
     std::function<void(uint16_t)> m_DidCompletionCbk;
 
+    // !\brief Buffer for IsoTp frames
     uint8_t m_IsoTpBuffer[4096] = {};
 
+    // !\brief Length of IsoTp buffer
     std::atomic<uint16_t> m_IsoTpBufLen{};
 };

@@ -183,12 +183,13 @@ DidPanel::DidPanel(wxFrame* parent)
             wxArrayInt rows = m_grid->GetSelectedRows();
             if(rows.empty()) return;
 
-            std::unique_lock lock{ did_handler->m };
             for(auto& i : rows)
             {
                 uint16_t did = std::stoi(did_grid->m_grid->GetCellValue(wxGridCellCoords(i, DidGridCol::Did_ID)).ToStdString(), nullptr, 16);
-                did_handler->AddDidToReadQueue(did);
+                std::unique_lock lock{ did_handler->m };  /* TODO: solve this deadlock if it's called while already being processed */
+                did_handler->AddDidToReadQueue(did); 
             }
+            did_handler->NotifyDidUpdate();
         });
     h_sizer->Add(m_RefreshSelected);
 
@@ -366,18 +367,21 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
                 {
                     uint8_t val_to_write = static_cast<uint8_t>(hex_val);
                     did_handler->WriteDid(did_it->id, &val_to_write, sizeof(val_to_write));
+                    did_handler->NotifyDidUpdate();
                     break;
                 }
                 case DET_UI16:
                 {
                     uint16_t val_to_write = static_cast<uint8_t>(hex_val);
                     did_handler->WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
+                    did_handler->NotifyDidUpdate();
                     break;
                 }
                 case DET_UI32:
                 {
                     uint32_t val_to_write = static_cast<uint8_t>(hex_val);
                     did_handler->WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
+                    did_handler->NotifyDidUpdate();
                     break;
                 }
                 case DET_STRING:
@@ -395,6 +399,7 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
                     }
                     uint8_t* byte_array = (uint8_t*)const_cast<const char*>(hex_str.c_str());
                     did_handler->WriteDid(did_it->id, byte_array, hex_str.length());
+                    did_handler->NotifyDidUpdate();
                     break;
                 }
                 case DET_BYTEARRAY:
@@ -425,6 +430,7 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
                     utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
 
                     did_handler->WriteDid(did_it->id, (uint8_t*)&byte_array, len);
+                    did_handler->NotifyDidUpdate();
                     break;
                 }
             }
