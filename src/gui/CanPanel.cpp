@@ -787,8 +787,14 @@ void CanLogPanel::On10MsTimer()
         if(!is_something_inserted)
             inserted_until = 0;
 
-        auto it = can_handler->m_LogEntries.begin();
-        std::advance(it, inserted_until);
+        auto it = can_handler->m_LogEntries.begin() + inserted_until;
+        //std::advance(it, inserted_until);
+        if(it == can_handler->m_LogEntries.end())
+        {
+            DBG("shit happend");
+            return;
+        }
+
         if(it != can_handler->m_LogEntries.end())
         {
             for( ; it != can_handler->m_LogEntries.end(); ++it)
@@ -2378,6 +2384,13 @@ CanUdsRawDialog::CanUdsRawDialog(wxWindow* parent)
     m_WriteDid->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             m_DataToSend->SetValue("10 03\r\n2E 4000 0C\r\nDELAY 10\r\n22 4000");
+        });
+
+    m_EcuReset = new wxButton(this, wxID_ANY, "ECU Reset", wxDefaultPosition, wxDefaultSize);
+    h_sizer->Add(m_EcuReset);
+    m_EcuReset->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            m_DataToSend->SetValue("10 02");
         });
 
     m_Clear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);

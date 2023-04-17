@@ -351,6 +351,7 @@ public:
     wxTextCtrl* m_RecvDelayFrames = nullptr;
     wxButton* m_ReadDid = nullptr;
     wxButton* m_WriteDid = nullptr;
+    wxButton* m_EcuReset = nullptr;
     wxButton* m_Clear = nullptr;
     wxTextCtrl* m_DataToSend = nullptr;
     wxButton* m_SendBtn = nullptr;
