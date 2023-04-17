@@ -77,7 +77,7 @@ If you want to use/resuse some part(s) of the project or you have a question, fe
 - [isotp](https://github.com/lishen2/isotp-c "iso-tp's Homepage")
 
 Required external depencencies:
-- [Boost 1.81.0](https://www.boost.org/ "Boost's Homepage")
+- [Boost 1.82.0](https://www.boost.org/ "Boost's Homepage")
 - [wxWidgets 3.2.2](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 - [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
@@ -106,7 +106,7 @@ cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Pro
 
 The project is using C++20 features, so I recommend using the newest compilers. I'm using clang15 because it's faster for me than GCC.
 
-1. Install boost 1.81.0, wxWidgets 3.2.2, fmt 8.0.0, hidapi
+1. Install boost 1.82.0, wxWidgets 3.2.2, fmt 8.0.0, hidapi
 2. Execute these commands in project root directory:
 
 If you do not want to use HIDAPI, you can disable it by setting USE_HIDAPI CMake option to false. (cmake .. -DUSE_HIDAPI=false or do it within CMake GUI)
