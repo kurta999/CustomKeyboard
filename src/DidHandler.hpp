@@ -4,6 +4,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <semaphore>
 
+#include "ICanObserver.hpp"
+
+constexpr const char* DID_CACHE_FILENAME = "DidCache.xml";
+
 enum DidEntryType : uint8_t
 {
     DET_UI8, DET_UI16, DET_UI32, DET_UI64, DET_STRING, DET_BYTEARRAY, DET_INVALID
@@ -63,15 +67,15 @@ private:
 
 };
 
-class DidHandler
+class DidHandler : public ICanObserver
 {
 public:
-    DidHandler(IDidLoader& loader, IDidLoader& cache_loader);
+    DidHandler(IDidLoader& loader, IDidLoader& cache_loader, CanEntryHandler* can_handler);
     ~DidHandler();
 
     void Init();
 
-    void SaveChache();
+    bool SaveChache();
 
     IDidLoader& m_loader;
     IDidLoader& m_cache_loader;
@@ -84,9 +88,8 @@ public:
 
     void NotifyDidUpdate();
 
-    void SetDidCompletionCallback(std::function<void(uint16_t)> callback);
-
-    void OnIsoTpFrameReceived(uint8_t* data, size_t size);
+    void OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size) override;
+    void OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t size) override;
 
     // !\brief Mutex for entry handler
     std::recursive_mutex m;
@@ -95,7 +98,6 @@ public:
     std::vector<uint16_t> m_UpdatedDids;
 
 private:
-
     // !\brief Send a UDS frame and wait for a response
     // !\param frame [in] Frame to send
     bool SendUdsFrameAndWaitForResponse(std::vector<uint8_t> frame);
@@ -145,4 +147,6 @@ private:
 
     // !\brief Length of IsoTp buffer
     std::atomic<uint16_t> m_IsoTpBufLen{};
+
+    CanEntryHandler* m_can_handler = nullptr;
 };

@@ -170,7 +170,7 @@ void CanSerialPort::OnDataReceived(const char* data, unsigned int len)
 
 void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
 {
-    DBG("txssize: %lld\n", m_TxQueue.size());
+    //DBG("txssize: %lld\n", m_TxQueue.size());
     while(!m_TxQueue.empty())
     {
         std::shared_ptr<CanData> data_ptr = m_TxQueue.front();

@@ -1,15 +1,14 @@
 #include "pch.hpp"
 
 constexpr const char* DID_LIST_FILENAME = "DidList.xml";
-constexpr const char* DID_CACHE_FILENAME = "DidCache.xml";
 
 constexpr uint8_t MAX_EXTENDED_SESSION_RETRIES = 5;
-constexpr auto UDS_TIMEOUT_FOR_RESPONSE = 6000ms;
+constexpr auto UDS_TIMEOUT_FOR_RESPONSE = 15000ms;
 
-constexpr auto MAIN_THREAD_SLEEP = 100ms;
+constexpr auto MAIN_THREAD_SLEEP = 350ms;
 
-DidHandler::DidHandler(IDidLoader& loader, IDidLoader& cache_loader) :
-    m_loader(loader), m_cache_loader(cache_loader), m_Semaphore(0)
+DidHandler::DidHandler(IDidLoader& loader, IDidLoader& cache_loader, CanEntryHandler* can_handler) :
+    m_loader(loader), m_cache_loader(cache_loader), m_can_handler(can_handler), m_Semaphore(0)
 {
 
 }
@@ -20,6 +19,7 @@ DidHandler::~DidHandler()
     m_CanMessageCv.notify_all();
     m_Semaphore.release();
     m_worker.reset(nullptr);
+    m_can_handler->UnregisterObserver(this);
 }
 
 void DidHandler::Init()
@@ -29,26 +29,14 @@ void DidHandler::Init()
     m_worker = std::make_unique<std::jthread>(std::bind_front(&DidHandler::WorkerThread, this));
     if(m_worker)
         utils::SetThreadName(*m_worker, "DidHandler");
+    m_can_handler->RegisterObserver(this);
 }
 
-void DidHandler::SaveChache()
+bool DidHandler::SaveChache()
 {
-    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     std::filesystem::path cache_path = DID_CACHE_FILENAME;
     bool ret = m_cache_loader.Save(cache_path, m_DidList);
-    if(ret)
-    {
-        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-        int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-
-        char work_dir[1024] = {};
-    #ifdef _WIN32
-        GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
-    #endif
-        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        std::lock_guard lock(frame->mtx);
-        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CommandsSaved), dif, std::string(work_dir) + "\\" + DID_CACHE_FILENAME });
-    }
+    return ret;
 }
 
 void DidHandler::AddDidToReadQueue(uint16_t did)
@@ -66,18 +54,20 @@ void DidHandler::NotifyDidUpdate()
     m_Semaphore.release();
 }
 
-void DidHandler::SetDidCompletionCallback(std::function<void(uint16_t)> callback)
+void DidHandler::OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size)
 {
-    m_DidCompletionCbk = callback;
+
 }
 
-void DidHandler::OnIsoTpFrameReceived(uint8_t* data, size_t size)
+void DidHandler::OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t size)
 {
     memcpy(m_IsoTpBuffer, data, size);
     m_IsoTpBufLen = static_cast<uint16_t>(size);
     m_CanMessageCv.notify_all();
 
-    LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {}", size);
+    std::string hex;
+    utils::ConvertHexBufferToString((const char*)m_IsoTpBuffer, m_IsoTpBufLen.load(), hex);
+    LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {} | \"{}\"", size, hex);
 }
 
 XmlDidLoader::~XmlDidLoader()
@@ -301,12 +291,11 @@ const std::string_view XmlDidLoader::GetStringFromType(DidEntryType type)
 
 bool DidHandler::SendUdsFrameAndWaitForResponse(std::vector<uint8_t> frame)
 {
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    if(!can_handler)
+    if(!m_can_handler)
         return false;
 
     m_IsoTpBufLen = 0;
-    can_handler->SendIsoTpFrame(can_handler->GetDefaultEcuId(), frame.data(), frame.size());
+    m_can_handler->SendIsoTpFrame(m_can_handler->GetDefaultEcuId(), frame.data(), frame.size());
     LOG(LogLevel::Verbose, "DidHandler::SendUdsFrameAndWaitForResponse");
 
     bool ret = WaitForResponse();
@@ -322,7 +311,10 @@ bool DidHandler::WaitForResponse()
     {
         if(m_IsoTpBufLen == 0xFFFF)
             return false;
-        LOG(LogLevel::Verbose, "DidHandler::Finished waiting. Response len: {}", m_IsoTpBufLen.load());
+
+        std::string hex;
+        utils::ConvertHexBufferToString((const char*)m_IsoTpBuffer, m_IsoTpBufLen.load(), hex);
+        LOG(LogLevel::Verbose, "DidHandler::Finished waiting. Response len: {} | \"{}\"", m_IsoTpBufLen.load(), hex);
     }
     else
     {
@@ -333,7 +325,6 @@ bool DidHandler::WaitForResponse()
 
 void DidHandler::ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry)
 {
-    LOG(LogLevel::Verbose, "Received response for DID: {:X}", entry->id);
     switch(entry->type)
     {
         case DET_UI8:
@@ -384,6 +375,8 @@ void DidHandler::ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry)
             break;
         }
     }
+
+    LOG(LogLevel::Verbose, "Received response for DID: {:X} | \"{}\"", entry->id, entry->value_str);
 }
 
 void DidHandler::ProcessRejectedNrc(std::unique_ptr<DidEntry>& entry)
@@ -394,7 +387,6 @@ void DidHandler::ProcessRejectedNrc(std::unique_ptr<DidEntry>& entry)
 
 void DidHandler::HandleDidReading(std::stop_token& stop_token)
 {
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     uint8_t extended_session_retry_count = 0;
     while(m_PendingDidReads.size() > 0)
     {
@@ -524,7 +516,6 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
 
 void DidHandler::HandleDidWriting(std::stop_token& stop_token)
 {
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     if(m_PendingDidWrites.size() > 0)
     {
         for(auto& [did, raw_value] : m_PendingDidWrites)

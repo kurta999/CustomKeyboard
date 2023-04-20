@@ -3,6 +3,8 @@
 #include "utils/CSingleton.hpp"
 #include <filesystem>
 
+#include "ICanObserver.hpp"
+
 extern "C"
 {
 #include <bitfield/bitfield.h>
@@ -248,8 +250,38 @@ private:
     };
 };
 
+class ICanSubscriber 
+{
+public:
+    void RegisterObserver(ICanObserver* observer) 
+    {
+        m_Observers.push_back(observer);
+    }
+
+    void UnregisterObserver(ICanObserver* observer)
+    {
+        m_Observers.push_back(observer);
+    }
+
+protected:
+    void NotifyFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size) const
+    {
+        for(auto observer : m_Observers)
+            observer->OnFrameOnBus(frame_id, data, size);
+    }    
+    
+    void NotifyIsoTpData(uint32_t frame_id, uint8_t* data, uint16_t size) const
+    {
+        for(auto observer : m_Observers)
+            observer->OnIsoTpDataReceived(frame_id, data, size);
+    }
+
+    std::list<ICanObserver*> m_Observers;
+};
+
+
 class CanScriptHandler;
-class CanEntryHandler
+class CanEntryHandler : public ICanSubscriber
 {
 public:
     CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader, ICanMappingLoader& mapping_loader);
@@ -437,7 +469,6 @@ public:
     // !\brief Assigns new TX buffer to TX entry
     void AssignNewBufferToTxEntry(uint32_t frame_id, uint8_t* buffer, size_t size);
 
-    CanScriptHandler* m_ScriptHandler = nullptr;
 private:
     // !\brief Handle bit reading of a frame
     template <typename T> void HandleBitReading(uint32_t frame_id, bool is_rx, std::unique_ptr<CanMap>& m, size_t offset, CanBitfieldInfo& info);

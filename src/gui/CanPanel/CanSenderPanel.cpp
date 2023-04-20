@@ -1,11 +1,5 @@
 #include "pch.hpp"
 
-#include <wx/headerctrl.h>
-
-wxBEGIN_EVENT_TABLE(CanPanel, wxPanel)
-EVT_SIZE(CanPanel::OnSize)
-wxEND_EVENT_TABLE()
-
 wxBEGIN_EVENT_TABLE(CanSenderPanel, wxPanel)
 EVT_SIZE(CanSenderPanel::OnSize)
 EVT_GRID_CELL_CHANGED(CanSenderPanel::OnCellValueChanged)
@@ -16,12 +10,6 @@ EVT_GRID_CELL_LEFT_DCLICK(CanSenderPanel::OnCellLeftDoubleClick)
 EVT_GRID_CELL_RIGHT_CLICK(CanSenderPanel::OnCellRightClick)
 EVT_GRID_LABEL_RIGHT_CLICK(CanSenderPanel::OnGridLabelRightClick)
 EVT_CHAR_HOOK(CanSenderPanel::OnKeyDown)
-wxEND_EVENT_TABLE()
-
-wxBEGIN_EVENT_TABLE(CanLogPanel, wxPanel)
-EVT_SIZE(CanLogPanel::OnSize)
-EVT_CHAR_HOOK(CanLogPanel::OnKeyDown)
-EVT_SPINCTRL(ID_CanLogLevelSpinCtrl, CanLogPanel::OnLogLevelChange)
 wxEND_EVENT_TABLE()
 
 CanGrid::CanGrid(wxWindow* parent)
@@ -54,7 +42,7 @@ CanGrid::CanGrid(wxWindow* parent)
     // Rows
     m_grid->EnableDragRowSize(true);
     m_grid->SetRowLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
-   
+
 
     // Label Appearance
 
@@ -122,7 +110,7 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
     m_grid->SetCellEditor(cnt, CanSenderGridCol::Sender_FavouriteLevel, new wxGridCellNumberEditor);
 
     m_grid->SetReadOnly(cnt, CanSenderGridCol::Sender_Count, true);
-    
+
     if(e->m_color)
     {
         for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
@@ -266,7 +254,7 @@ void CanGridRx::ClearGrid()
         m_grid->DeleteRows(0, m_grid->GetNumberRows());
 }
 
-CanSenderPanel::CanSenderPanel(wxWindow* parent) 
+CanSenderPanel::CanSenderPanel(wxWindow* parent)
     : wxPanel(parent, wxID_ANY)
 {
     wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
@@ -337,8 +325,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                     entry->send = true;
                 }
             });
-        h_sizer->Add(m_SendSelected);        
-        
+        h_sizer->Add(m_SendSelected);
+
         m_StopSelected = new wxButton(this, wxID_ANY, "Stop selected", wxDefaultPosition, wxDefaultSize);
         m_StopSelected->SetToolTip("Stop sending selected CAN frames (which period isn't 0)");
         m_StopSelected->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -399,7 +387,7 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                 entry->data = { 0, 0, 0, 0, 0, 0, 0, 0 };
                 entry->id = 0x123;
 
-                while(std::find_if(can_handler->entries.begin(), can_handler->entries.end(), 
+                while(std::find_if(can_handler->entries.begin(), can_handler->entries.end(),
                     [frame_id = entry->id](const auto& item) { return item->id == frame_id; }) != can_handler->entries.end())  /* Protection against same Frame IDs */
                 {
                     entry->id++;
@@ -479,8 +467,8 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
                 RefreshTx();
                 m_grid->SelectRow(selection);
             });
-        h_sizer->Add(m_MoveUp);        
-        
+        h_sizer->Add(m_MoveUp);
+
         m_MoveDown = new wxButton(this, wxID_ANY, "Move Down", wxDefaultPosition, wxDefaultSize);
         m_MoveDown->SetToolTip("Move Down selected TX entry");
         m_MoveDown->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -620,349 +608,6 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
     Show();
 }
 
-CanLogPanel::CanLogPanel(wxWindow* parent)
-    : wxPanel(parent, wxID_ANY)
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-
-    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    static_box = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Log :: TX: 0, RX: 0, Total: 0");
-    static_box->GetStaticBox()->SetFont(static_box->GetStaticBox()->GetFont().Bold());
-    static_box->GetStaticBox()->SetForegroundColour(*wxBLUE);
-
-    m_grid = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxSize(800, 600), 0);
-
-    // Grid
-    m_grid->CreateGrid(1, CanLogGridCol::Log_Max);
-    m_grid->EnableEditing(true);
-    m_grid->EnableGridLines(true);
-    m_grid->EnableDragGridSize(false);
-    m_grid->SetMargins(0, 0);
-
-    m_grid->SetColLabelValue(CanLogGridCol::Log_Time, "Time");
-    m_grid->SetColLabelValue(CanLogGridCol::Log_Direction, "Direction");
-    m_grid->SetColLabelValue(CanLogGridCol::Log_Id, "Id");
-    m_grid->SetColLabelValue(CanLogGridCol::Log_DataSize, "Size");
-    m_grid->SetColLabelValue(CanLogGridCol::Log_Data, "Data");
-    m_grid->SetColLabelValue(CanLogGridCol::Log_Comment, "Comment");
-
-    // Columns
-    m_grid->EnableDragColMove(true);
-    m_grid->EnableDragColSize(true);
-    m_grid->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
-
-    m_grid->SetSelectionMode(wxGrid::wxGridSelectionModes::wxGridSelectRows);
-
-    // Rows
-    m_grid->EnableDragRowSize(true);
-    m_grid->SetRowLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
-
-
-    // Label Appearance
-
-    // Cell Defaults
-    m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
-    m_grid->HideRowLabels();
-
-    m_grid->SetColSize(CanLogGridCol::Log_Data, 200);
-    m_grid->SetColSize(CanLogGridCol::Log_Comment, 200);
-    static_box->Add(m_grid);
-    
-    m_RecordingStart = new wxButton(this, wxID_ANY, "Record", wxDefaultPosition, wxDefaultSize);
-    m_RecordingStart->SetToolTip("Start recording for received & sent CAN frames");
-    m_RecordingStart->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-            can_handler->ToggleRecording(true, false);
-        });
-    h_sizer->Add(m_RecordingStart);
-
-    m_RecordingPause = new wxButton(this, wxID_ANY, "Pause", wxDefaultPosition, wxDefaultSize);
-    m_RecordingPause->SetToolTip("Suspend recording for received & sent CAN frames");
-    m_RecordingPause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-            can_handler->ToggleRecording(false, true);
-        });
-    h_sizer->Add(m_RecordingPause);
-
-    m_RecordingStop = new wxButton(this, wxID_ANY, "Stop", wxDefaultPosition, wxDefaultSize);
-    m_RecordingStop->SetToolTip("Suspend recording for received & sent CAN frames, clear everything");
-    m_RecordingStop->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-            can_handler->ToggleRecording(false, false);
-            inserted_until = 0;
-        });
-    h_sizer->Add(m_RecordingStop);
-
-    m_RecordingClear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);
-    m_RecordingClear->SetToolTip("Clear recording and reset frame counters");
-    m_RecordingClear->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            ClearRecordingsFromGrid();
-
-            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-            can_handler->ClearRecording();
-        });
-    h_sizer->Add(m_RecordingClear);
-    //h_sizer->AddSpacer(35);
-
-    m_AutoScrollBtn = new wxButton(this, wxID_ANY, wxT("Toggle auto-scroll"), wxDefaultPosition, wxDefaultSize, 0);
-	m_AutoScrollBtn->SetToolTip("Toggle auto-scroll");
-	m_AutoScrollBtn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
-		{
-			m_AutoScroll ^= 1;
-			if(m_AutoScroll)
-				m_AutoScrollBtn->SetBackgroundColour(wxNullColour);
-			else
-				m_AutoScrollBtn->SetBackgroundColour(*wxRED);
-		});
-    h_sizer->AddSpacer(35);
-    h_sizer->Add(m_AutoScrollBtn);
-
-    h_sizer->AddSpacer(10);
-    h_sizer->Add(new wxStaticText(this, wxID_ANY, "LogLevel:"));
-    m_LogLevelCtrl = new wxSpinCtrl(this, ID_CanLogLevelSpinCtrl, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 1);
-    h_sizer->Add(m_LogLevelCtrl);
-
-    m_RecordingSave = new wxButton(this, wxID_ANY, "Save log", wxDefaultPosition, wxDefaultSize);
-    m_RecordingSave->SetToolTip("Save recording");
-    m_RecordingSave->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-#ifdef _WIN32
-            const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
-
-            if(std::filesystem::exists("Can"))
-                std::filesystem::create_directory("Can");
-            std::string log_format = std::format("Can/CanLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
-            std::filesystem::path p(log_format);
-
-            std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-            can_handler->SaveRecordingToFile(p);
-#endif
-        });
-
-    v_sizer->Add(h_sizer);
-    v_sizer->Add(m_RecordingSave);
-    v_sizer->Add(static_box);
-
-    SetSizerAndFit(v_sizer);
-    Show();
-}
-
-void CanLogPanel::On10MsTimer()
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    //std::scoped_lock lock{ can_handler->m };
-
-    static std::string last_search_pattern;
-    static uint64_t last_tx_cnt = 0, last_rx_cnt = 0;
-
-    if(search_pattern.empty())
-    {
-        if(last_tx_cnt != can_handler->GetTxFrameCount() || last_rx_cnt != can_handler->GetRxFrameCount())
-        {
-            static_box->GetStaticBox()->SetLabelText(wxString::Format("Log :: TX: %lld, RX: %lld, Total: %lld", can_handler->GetTxFrameCount(), can_handler->GetRxFrameCount(),
-                can_handler->GetTxFrameCount() + can_handler->GetRxFrameCount()));
-        }
-    }
-    else
-    {
-        if(last_tx_cnt != can_handler->GetTxFrameCount() || last_rx_cnt != can_handler->GetRxFrameCount() || last_search_pattern != search_pattern)
-        {
-            static_box->GetStaticBox()->SetLabelText(wxString::Format("Log :: Filter: %s, TX: %lld, RX: %lld, Total: %lld", search_pattern,
-                can_handler->GetTxFrameCount(), can_handler->GetRxFrameCount(), can_handler->GetTxFrameCount() + can_handler->GetRxFrameCount()));
-        }
-    }
-
-    last_tx_cnt = can_handler->GetTxFrameCount();
-    last_rx_cnt = can_handler->GetRxFrameCount();
-    last_search_pattern = search_pattern;
-
-    if(!can_handler->m_LogEntries.empty())
-    {
-        if(!is_something_inserted)
-            inserted_until = 0;
-
-        auto it = can_handler->m_LogEntries.begin() + inserted_until;
-        //std::advance(it, inserted_until);
-        if(it == can_handler->m_LogEntries.end())
-        {
-            DBG("shit happend");
-            return;
-        }
-
-        if(it != can_handler->m_LogEntries.end())
-        {
-            for( ; it != can_handler->m_LogEntries.end(); ++it)
-            {
-                std::string comment;
-                if((*it)->direction == 1)
-                {
-                    auto comment_it = can_handler->rx_entry_comment.find((*it)->frame_id);
-                    if(comment_it != can_handler->rx_entry_comment.end())
-                    {
-                        comment = comment_it->second;
-                    }
-                }
-                else
-                {
-                    for(auto& i : can_handler->entries)
-                    {
-                        if(i->id == (*it)->frame_id)
-                        {
-                            comment = i->comment;
-                            break;
-                        }
-                    }
-                }
-
-                bool insert_row = false;
-                if(search_pattern.empty())
-                {
-                    insert_row = true;
-                }
-                else
-                {
-                    if(boost::icontains(comment, search_pattern))
-                        insert_row = true;
-                }
-
-                if(insert_row)
-                    InsertRow((*it)->last_execution, (*it)->direction, (*it)->frame_id, (*it)->data, comment);
-            }
-            inserted_until = std::distance(can_handler->m_LogEntries.begin(), it);
-            is_something_inserted = true;
-        }
-    }
-}
-
-void CanLogPanel::InsertRow(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint32_t id, std::vector<uint8_t>& data, std::string& comment)
-{
-    int num_rows = m_grid->GetNumberRows();
-    if(num_rows <= cnt)
-        m_grid->AppendRows(1);
-
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - can_handler->GetStartTime()).count();
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Time), wxString::Format("%.3lf", static_cast<double>(elapsed) / 1000.0));
-
-    std::string hex;
-    utils::ConvertHexBufferToString(data, hex);
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Data), hex);
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Direction), direction == CAN_LOG_DIR_TX ? "TX" : "RX");
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Id), wxString::Format("%X", id));
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_DataSize), wxString::Format("%lld", data.size()));
-    m_grid->SetCellValue(wxGridCellCoords(cnt, CanLogGridCol::Log_Comment), comment);
-
-    if(m_AutoScroll)
-        m_grid->ScrollLines(num_rows);
-
-    for(uint8_t i = 0; i != CanLogGridCol::Log_Max; i++)
-    {
-        m_grid->SetReadOnly(cnt, i, true);
-        m_grid->SetCellBackgroundColour(cnt, i, (direction == CAN_LOG_DIR_RX) ? 0xE6E6E6 : 0xFFFFFF);
-    }
-
-    cnt++;
-}
-
-void CanLogPanel::ClearRecordingsFromGrid()
-{
-    int num_rows = m_grid->GetNumberRows();
-    if(num_rows)
-        m_grid->DeleteRows(0, num_rows);
-    cnt = 0;
-
-    is_something_inserted = false;
-    inserted_until = 0;
-}
-
-CanPanel::CanPanel(wxWindow* parent)
-	: wxPanel(parent, wxID_ANY)
-{
-
-    wxSize client_size = GetClientSize();
-
-    m_mgr.SetManagedWindow(this);
-
-    m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
-    sender = new CanSenderPanel(this);
-    log = new CanLogPanel(this);
-    script = new CanScriptPanel(this);
-    m_notebook->Freeze();
-    m_notebook->AddPage(sender, "Sender", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
-    m_notebook->AddPage(log, "Log", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
-    m_notebook->AddPage(script, "Script", false, wxArtProvider::GetBitmap(wxART_PLUS, wxART_OTHER, FromDIP(wxSize(16, 16))));
-    m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(CanPanel::Changeing), NULL, this);
-    
-    /* size: 1640x1080 */
-    m_notebook->Split(0, wxLEFT);
-    
-    m_notebook->Thaw();
-    m_notebook->SetAutoLayout(true);
-    m_notebook->Layout();
-    m_notebook->SetSize(m_notebook->GetSize());
-    m_notebook->SetSelection(0);
-}
-
-CanPanel::~CanPanel()
-{
-    m_mgr.UnInit();  /* deinitialize the frame manager */
-}
-
-void CanPanel::RefreshSubpanels()
-{
-    sender->RefreshSubpanels();
-}
-
-void CanPanel::LoadTxList()
-{
-    sender->LoadTxList();
-}
-
-void CanPanel::SaveTxList()
-{
-    sender->SaveTxList();
-}
-
-void CanPanel::LoadRxList()
-{
-    sender->LoadRxList();
-}
-
-void CanPanel::SaveRxList()
-{
-    sender->SaveRxList();
-}
-
-void CanPanel::LoadMapping()
-{
-    sender->LoadMapping();
-}
-
-void CanPanel::SaveMapping()
-{
-    sender->SaveMapping();
-}
-
-void CanPanel::On10MsTimer()
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    bool is_lock_ok = can_handler->m.try_lock();
-    if(!is_lock_ok)
-    {
-        DBG("\n\nCanSenderPanel::On10MsTimer lock failed\n\n");
-        return;
-    }
-    sender->On10MsTimer();
-    log->On10MsTimer();
-    can_handler->m.unlock();
-}
-
 void CanSenderPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -1096,8 +741,8 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
     if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_rx->m_grid))
     {
         wxString new_value = can_grid_rx->m_grid->GetCellValue(row, col);
-        switch(col)
-        {
+            switch(col)
+            {
             case CanSenderGridCol::Sender_LogLevel:
             {
                 wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
@@ -1276,7 +921,7 @@ void CanSenderPanel::OnCellLeftDoubleClick(wxGridEvent& ev)
 {
     DBG("left dclick");
     int row = ev.GetRow(), col = ev.GetCol();
-    
+
     if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_tx->m_grid))
         can_grid_tx->m_grid->SetReadOnly(row, col, can_grid_tx->m_grid->IsReadOnly(row, col));
     ev.Skip();
@@ -1351,7 +996,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
         {
             case ID_CanSenderMoreInfo:
             {
-#if 0
+    #if 0
                 std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
@@ -1359,7 +1004,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                 CanBitfieldInfo info = can_handler->GetMapForFrameId(frame_id, false);
                 m_BitfieldEditor->ShowDialog(frame_id, false, info);
 
-#endif
+    #endif
                 std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
                 wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
                 uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
@@ -1474,15 +1119,9 @@ void CanSenderPanel::OnGridLabelRightClick(wxGridEvent& ev)
     }
 }
 
-void CanPanel::Changeing(wxAuiNotebookEvent& event)
+void CanSenderPanel::OnSize(wxSizeEvent& evt)
 {
-    /*
-    int sel = event.GetSelection();
-    if(sel == 0)
-    {
-        comtcp_panel->Update();
-    }
-    */
+    evt.Skip(true);
 }
 
 void CanSenderPanel::LoadTxList()
@@ -1536,7 +1175,7 @@ void CanSenderPanel::LoadRxList()
     else
         frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::RxListLoadError) });
 }
- 
+
 void CanSenderPanel::SaveRxList()
 {
     wxFileDialog saveFileDialog(this, _("Save RX XML file"), "", "", "XML files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1561,7 +1200,7 @@ void CanSenderPanel::LoadMapping()
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     std::filesystem::path p = file_path_mapping.ToStdString();
     bool ret = can_handler->LoadMapping(p);
-    
+
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
     frame->pending_msgs.push_back({ static_cast<uint8_t>(ret ? PopupMsgIds::FrameMappingLoaded : PopupMsgIds::FrameMappingLoadError) });
 }
@@ -1578,21 +1217,6 @@ void CanSenderPanel::SaveMapping()
 
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
     frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::FrameMappingSaved) });
-}
-
-void CanPanel::OnSize(wxSizeEvent& evt)
-{
-    evt.Skip(true);
-}
-
-void CanSenderPanel::OnSize(wxSizeEvent& evt)
-{
-    evt.Skip(true);
-}
-
-void CanLogPanel::OnSize(wxSizeEvent& evt)
-{
-    evt.Skip(true);
 }
 
 void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
@@ -1775,828 +1399,4 @@ void CanSenderPanel::UpdateGridForTxFrame(uint32_t frame_id, uint8_t* buffer)
             break;
         }
     }
-}
-
-void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
-{
-    if(evt.ControlDown())
-    {
-        switch(evt.GetKeyCode())
-        {
-            case 'F':
-            {
-                wxWindow* focus = wxWindow::FindFocus();
-                if(focus == m_grid)
-                {
-                    wxTextEntryDialog d(this, "Enter frame name for what you want to filter", "Frame filter");
-                    int ret = d.ShowModal();
-                    if(ret == wxID_OK)
-                    {
-                        std::string new_search_pattern = d.GetValue().ToStdString();
-                        if(new_search_pattern != search_pattern)
-                        {
-                            search_pattern = new_search_pattern;
-                            ClearRecordingsFromGrid();
-                        }
-                        /*
-                        if(search_pattern.empty())
-                            //static_box_tx->GetStaticBox()->SetLabelText("Transmit");
-                        else
-                            //static_box_tx->GetStaticBox()->SetLabelText(wxString::Format("Transmit - Search filter: %s", search_pattern_tx));
-                            */
-                            //RefreshTx();
-                    }
-                }
-                break;
-            }
-            case 'C':
-            {
-                wxWindow* focus = wxWindow::FindFocus();
-                if(focus == m_grid)
-                {
-                    wxArrayInt rows = m_grid->GetSelectedRows();
-                    if(rows.empty()) return;
-
-                    wxString str_to_copy;
-                    for(auto& row : rows)
-                    {
-                        for(uint8_t col = 0; col < CanSenderGridCol::Sender_Max - 1; col++)
-                        {
-                            str_to_copy += m_grid->GetCellValue(row, col);
-                            str_to_copy += '\t';
-                        }
-                        str_to_copy += '\n';
-                    }
-                    if(str_to_copy.Last() == '\n')
-                        str_to_copy.RemoveLast();
-
-                    if(wxTheClipboard->Open())
-                    {
-                        wxTheClipboard->SetData(new wxTextDataObject(str_to_copy));
-                        wxTheClipboard->Close();
-                        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-                        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SelectedLogsCopied) });
-                    }
-                }
-                break;
-            }
-        }
-    }
-}
-
-void CanLogPanel::OnLogLevelChange(wxSpinEvent& evt)
-{
-    uint8_t new_log_level = static_cast<uint8_t>(evt.GetValue());
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    can_handler->SetRecordingLogLevel(new_log_level);
-}
-
-wxBEGIN_EVENT_TABLE(CanScriptPanel, wxPanel)
-EVT_FILEPICKER_CHANGED(ID_FilePickerCanScript, CanScriptPanel::OnFileSelected)
-EVT_SIZE(CanScriptPanel::OnSize)
-wxEND_EVENT_TABLE()
-
-CanScriptPanel::CanScriptPanel(wxWindow* parent)
-    : wxPanel(parent, wxID_ANY)
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    m_Script = std::make_unique<CanScriptHandler>(*this);
-    can_handler->m_ScriptHandler = m_Script.get();
-
-    wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
-
-	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Select scipt file, paste it's content or Drag'n'Drop to textbox below\nWhen done, click on Run!"), wxDefaultPosition, wxDefaultSize, 0));
-	m_FilePicker = new wxFilePickerCtrl(this, ID_FilePickerCanScript, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxSize(500, 25), wxFLP_DEFAULT_STYLE);
-	bSizer1->Add(m_FilePicker);
-
-	m_Input = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(410, 410), wxTE_MULTILINE);
-#ifdef _WIN32
-	m_Input->DragAcceptFiles(true);  /* This one doesn't work with GTK for some reason... */
-#endif
-	m_Input->Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CanScriptPanel::OnFileDrop), NULL, this);
-
-	wxBoxSizer* bSizer2 = new wxBoxSizer(wxHORIZONTAL);
-	bSizer2->Add(m_Input, wxSizerFlags(1).Top().Expand());
-
-	m_Output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(310, 310), wxTE_MULTILINE);
-	bSizer2->Add(m_Output, wxSizerFlags(1).Expand());
-	bSizer1->Add(bSizer2, wxSizerFlags(1).Expand());
-
-	wxBoxSizer* h_sizer_2 = new wxBoxSizer(wxHORIZONTAL);
-    m_RunButton = new wxButton(this, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_RunButton);
-    m_RunSelectedButton = new wxButton(this, wxID_ANY, wxT("Run selected"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_RunSelectedButton);
-
-    m_Abort = new wxButton(this, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_Abort);
-    m_Abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            wxString str_sel = m_Input->GetStringSelection();
-
-            m_Script->AbortRunningScript();
-        });
-
-	h_sizer_2->AddSpacer(100);
-	
-	m_ClearButton = new wxButton(this, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_ClearButton);
-	m_ClearButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-		{
-			m_Input->Clear();
-			m_Output->Clear();
-			m_FilePicker->SetFileName(wxFileName());
-            m_RunButton->SetForegroundColour(*wxBLACK);
-			path.Clear();
-		});
-
-    m_ClearOutput = new wxButton(this, wxID_ANY, wxT("Clear output"), wxDefaultPosition, wxDefaultSize, 0);
-	h_sizer_2->Add(m_ClearOutput);
-    m_ClearOutput->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-		{
-			m_Output->Clear();
-			path.Clear();
-		});
-
-	bSizer1->Add(h_sizer_2, wxSizerFlags(1).Expand());
-
-	this->SetSizerAndFit(bSizer1);
-	this->Layout();
-
-    m_RunButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            if(m_Script->IsScriptRunning())
-            {
-                wxMessageDialog(this, std::format("Click on abort to abort it, before running another one"), "A script is already running", wxOK).ShowModal();
-                return;
-            }
-
-			wxString str = m_Input->GetValue();
-			std::string input;
-			if(!path.empty())
-			{
-				LOG(LogLevel::Verbose, "Path: {}", path.ToStdString());
-				std::ifstream f(path.ToStdString(), std::ios::in | std::ios::binary);
-				if(f)
-					input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
-			}
-			else
-			{
-				input = str.mb_str();
-			}
-
-			try
-			{
-                boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
-                m_Script->RunScript(input);
-			}
-			catch(std::exception& e)
-			{
-				LOG(LogLevel::Error, "Exception: {}", e.what());
-				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
-			}
-
-			if(!input.empty())
-			{
-#ifdef _WIN32
-				boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
-#endif
-				m_Output->Clear();
-                m_Output->SetValue("");
-                m_RunButton->SetForegroundColour(*wxBLACK);
-			}
-			else
-			{
-				LOG(LogLevel::Verbose, "Empty input");
-			}
-			path.Clear();
-		});
-
-    m_RunSelectedButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            if(m_Script->IsScriptRunning())
-            {
-                wxMessageDialog(this, std::format("Click on abort to abort it, before running another one"), "A script is already running", wxOK).ShowModal();
-                return;
-            }
-
-            std::string input = m_Input->GetStringSelection().ToStdString();;
-            if(input.empty())
-            {
-                LOG(LogLevel::Warning, "Empty selection, nothing to run");
-                return;
-            }
-
-            try
-            {
-                boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
-                m_Script->RunScript(input);
-            }
-            catch(std::exception& e)
-            {
-                LOG(LogLevel::Error, "Exception: {}", e.what());
-                wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
-            }
-
-            if(!input.empty())
-            {
-#ifdef _WIN32
-                boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
-#endif
-                m_Output->Clear();
-                m_Output->SetValue("");
-                m_RunButton->SetForegroundColour(*wxBLACK);
-            }
-            else
-            {
-                LOG(LogLevel::Verbose, "Empty input");
-            }
-            path.Clear();
-        });
-}
-
-void CanScriptPanel::AddToLog(std::string str)
-{
-    m_Output->AppendText(str);
-}
-
-void CanScriptPanel::OnFileDrop(wxDropFilesEvent& event)
-{
-    if(event.GetNumberOfFiles() > 0)
-    {
-        wxString* dropped = event.GetFiles();
-        path = *dropped;
-        m_FilePicker->SetFileName(wxFileName(path));
-
-        HandleInputFileSelect(path);
-    }
-}
-
-void CanScriptPanel::OnFileSelected(wxFileDirPickerEvent& event)
-{
-    path = event.GetPath();
-    HandleInputFileSelect(path);
-}
-
-void CanScriptPanel::OnSize(wxSizeEvent& event)
-{
-    wxSize a = event.GetSize();
-    event.Skip(true);
-}
-
-void CanScriptPanel::HandleInputFileSelect(wxString& path)
-{
-    std::ifstream f(path.ToStdString(), std::ios::in | std::ios::binary);
-    if(f)
-    {
-        std::string input = { (std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>() };
-        if(!input.empty())
-        {
-#ifdef _WIN32
-            boost::algorithm::replace_all(input, "\n", "\r\n");  /* LF isn't enough for TextCtrl for some reason... */
-#endif
-            m_RunButton->SetForegroundColour(*wxRED);
-            m_Input->SetValue(input);
-        }
-    }
-}
-
-wxBEGIN_EVENT_TABLE(BitEditorDialog, wxDialog)
-EVT_BUTTON(wxID_APPLY, BitEditorDialog::OnApply)
-EVT_BUTTON(wxID_OK, BitEditorDialog::OnOk)
-EVT_BUTTON(wxID_CLOSE, BitEditorDialog::OnCancel)
-EVT_CLOSE(BitEditorDialog::OnClose)
-wxEND_EVENT_TABLE()
-
-BitEditorDialog::BitEditorDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "Bit editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    sizerTop = new wxBoxSizer(wxVERTICAL);
-    sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Bit editor");
-    
-    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_IsDecimal = new wxRadioButton(this, wxID_ANY, "Decimal");
-    m_IsDecimal->Bind(wxEVT_RADIOBUTTON, &BitEditorDialog::OnRadioButtonClicked, this);
-    h_sizer->Add(m_IsDecimal);
-    m_IsHex = new wxRadioButton(this, wxID_ANY, "Hex");
-    m_IsHex->Bind(wxEVT_RADIOBUTTON, &BitEditorDialog::OnRadioButtonClicked, this);
-    h_sizer->Add(m_IsHex);
-    m_IsBinary = new wxRadioButton(this, wxID_ANY, "Binary");
-    m_IsBinary->Bind(wxEVT_RADIOBUTTON, &BitEditorDialog::OnRadioButtonClicked, this);
-    h_sizer->Add(m_IsBinary);
-
-    sizerMsgs->Add(h_sizer);
-    sizerMsgs->AddSpacer(20);
-
-    for(int i = 0; i != MAX_BITEDITOR_FIELDS; i++)
-    {
-        m_InputLabel[i] = new wxStaticText(this, wxID_ANY, "_");
-        sizerMsgs->Add(m_InputLabel[i], 1, wxLEFT | wxEXPAND, 0);
-        m_Input[i] = new wxTextCtrl(this, wxID_ANY, "_", wxDefaultPosition, wxSize(250, 25), 0);
-        sizerMsgs->Add(m_Input[i], 1, wxLEFT | wxEXPAND, 0);
-    }
-
-    sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
-
-    // finally buttons to show the resulting message box and close this dialog
-    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE | wxOK), wxSizerFlags().Right().Border()); /* wxOK */
-     
-    sizerTop->SetMinSize(wxSize(200, 200));
-    SetAutoLayout(true);
-    SetSizer(sizerTop);
-    sizerTop->Fit(this);
-    //sizerTop->SetSizeHints(this);
-    CentreOnScreen();
-}
-
-void BitEditorDialog::ShowDialog(uint32_t frame_id, bool is_rx, CanBitfieldInfo& values)
-{
-    if(values.size() > MAX_BITEDITOR_FIELDS)
-    {
-        values.resize(MAX_BITEDITOR_FIELDS);
-        LOG(LogLevel::Warning, "Too much bitfields used for can frame mapping. FrameID: {:X}, Used: {}, Maximum supported: {}", frame_id, values.size(), MAX_BITEDITOR_FIELDS);
-    }
-
-    m_Id = 0;
-    m_DataFormat = 0;
-    m_BitfieldInfo = values;
-    
-    for(const auto& [label, value, frame] : values)
-    {
-        m_InputLabel[m_Id]->SetLabelText(label);
-
-        m_InputLabel[m_Id]->SetForegroundColour(RGB_TO_WXCOLOR(frame->m_color));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
-        m_InputLabel[m_Id]->SetBackgroundColour(RGB_TO_WXCOLOR(frame->m_bg_color));
-
-        wxFont font;
-        font.SetWeight(frame->m_is_bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
-        font.Scale(1.0f);  /* Scale has to be set to default first */
-        m_InputLabel[m_Id]->SetFont(font);
-        font.Scale(frame->m_scale);
-        font.SetFaceName("Segoe UI");
-        m_InputLabel[m_Id]->SetFont(font);
-
-        m_InputLabel[m_Id]->Show();
-        m_InputLabel[m_Id]->SetToolTip(frame->m_Description);
-        m_Input[m_Id]->SetValue(value);
-        m_Input[m_Id]->Show();
-        m_Id++;
-    }
-
-    for(int i = m_Id; i != MAX_BITEDITOR_FIELDS; i++)
-    {
-        m_InputLabel[i]->Hide();
-        m_InputLabel[i]->SetToolTip("");
-        m_Input[i]->Hide();
-    }
-
-    SetTitle(wxString::Format("Bit editor - %X (%s)", frame_id, is_rx ? "RX" : "TX"));
-    bit_sel = BitSelection::Decimal;
-    m_IsDecimal->SetValue(true);
-    m_IsHex->SetValue(false);
-    m_IsBinary->SetValue(false);
-    m_FrameId = frame_id;
-
-    sizerTop->Layout();
-    sizerTop->Fit(this);
-
-    m_ClickType = ClickType::None;
-    int ret = ShowModal();
-    DBG("ShowModal ret: %d\n", ret);
-}
-
-std::vector<std::string> BitEditorDialog::GetOutput()
-{
-    std::vector<std::string> ret;
-    for(int i = 0; i != m_Id; i++)
-    {
-        std::string input_ret = m_Input[i]->GetValue().ToStdString();
-        switch(bit_sel)
-        {
-            case BitSelection::Hex:
-            {
-                try
-                {
-                    input_ret = std::to_string(std::stoll(input_ret, nullptr, 16));
-                }
-                catch(...)
-                {
-                    LOG(LogLevel::Error, "Exception with std::stoll, str: {}", input_ret);
-                }
-                break;
-            }
-            case BitSelection::Binary:
-            {
-                try
-                {
-                    input_ret = std::to_string(std::stoll(input_ret, nullptr, 2));
-                }
-                catch(...)
-                {
-                    LOG(LogLevel::Error, "Exception with std::to_string, str: {}", input_ret);
-                }
-                break;
-            }
-        }
-
-        DBG("input_ret: %s\n", input_ret.c_str());
-        ret.push_back(input_ret);
-    }
-    return ret;
-}
-
-void BitEditorDialog::OnApply(wxCommandEvent& WXUNUSED(event))
-{
-    DBG("OnApply %d\n", (int)m_ClickType)
-    EndModal(wxID_APPLY);
-    //Close();
-    m_ClickType = ClickType::Apply;
-}
-
-void BitEditorDialog::OnOk(wxCommandEvent& event)
-{
-    DBG("OnOK %d\n", (int)m_ClickType);
-    if(m_ClickType == ClickType::Close)
-        return;
-    EndModal(wxID_OK);
-    //Close();
-    m_ClickType = ClickType::Ok;
-    event.Skip();
-}
-
-void BitEditorDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
-{
-    DBG("OnCancel %d\n", (int)m_ClickType);
-    EndModal(wxID_CLOSE);
-    m_ClickType = ClickType::Close;
-    //Close();
-}
-
-void BitEditorDialog::OnClose(wxCloseEvent& event)
-{
-    DBG("OnClose %d\n", (int)m_ClickType);
-    m_ClickType = ClickType::Close;
-    EndModal(wxID_CLOSE);
-}
-
-void BitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
-{
-    if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsDecimal))
-    {
-        uint8_t cnt = 0;
-        for(const auto& [label, value, frame] : m_BitfieldInfo)
-        {
-            m_Input[cnt]->SetValue(value);
-            if(++cnt > m_Id)
-                break;
-        }
-        bit_sel = BitSelection::Decimal;
-    }
-    else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsHex))
-    {
-        uint8_t cnt = 0;
-        for(const auto& [label, value, frame] : m_BitfieldInfo)
-        {
-            if(utils::is_number(value))
-            {
-                uint64_t decimal_val = std::stoll(value);
-                std::string hex_str = std::format("{:X}", decimal_val);  /* std::to_chars gives lower case letters, I don't like it :/ */
-
-                m_Input[cnt]->SetValue(hex_str);
-                if(++cnt > m_Id)
-                    break;
-            }
-        }
-        bit_sel = BitSelection::Hex;
-    }
-    else if(event.GetEventObject() == dynamic_cast<wxObject*>(m_IsBinary))
-    {
-        uint8_t cnt = 0;
-        for(const auto& [label, value, frame] : m_BitfieldInfo)
-        {
-            if(utils::is_number(value))
-            {
-                uint64_t decimal_val = std::stoll(value);
-                std::string hex_str = std::format("{:b}", decimal_val);
-
-                m_Input[cnt]->SetValue(hex_str);
-                if(++cnt > m_Id)
-                    break;
-            }
-        }
-        bit_sel = BitSelection::Binary;
-    }
-}
-
-wxBEGIN_EVENT_TABLE(CanLogForFrameDialog, wxDialog)
-EVT_BUTTON(wxID_APPLY, CanLogForFrameDialog::OnApply)
-wxEND_EVENT_TABLE()
-
-CanLogForFrameDialog::CanLogForFrameDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "CAN log for frame", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    sizerTop = new wxBoxSizer(wxVERTICAL);
-
-    m_Log = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE | wxLB_HSCROLL | wxLB_NEEDED_SB);
-    m_Log->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent& event)
-        {
-            wxClipboard* clip = new wxClipboard();
-            clip->Clear();
-            clip->SetData(new wxTextDataObject(m_Log->GetString(m_Log->GetSelection())));
-            clip->Flush();
-            clip->Close();
-        });
-    sizerTop->Add(m_Log, wxSizerFlags(1).Left().Expand());
-
-    //sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
-
-    // finally buttons to show the resulting message box and close this dialog
-    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
-
-    sizerTop->SetMinSize(wxSize(640, 480));
-    SetAutoLayout(true);
-    SetSizer(sizerTop);
-    sizerTop->Fit(this);
-    sizerTop->SetSizeHints(this);
-    CentreOnScreen();
-}
-
-void CanLogForFrameDialog::ShowDialog(std::vector<std::string>& values)
-{
-    m_Log->Clear();
-    for(const auto i : values)
-    {
-        m_Log->Append(i);
-    }
-    ShowModal();
-}
-
-void CanLogForFrameDialog::OnApply(wxCommandEvent& WXUNUSED(event))
-{
-    Close();
-    m_Log->Clear();
-}
-
-wxBEGIN_EVENT_TABLE(CanUdsRawDialog, wxDialog)
-EVT_BUTTON(wxID_APPLY, CanUdsRawDialog::OnApply)
-wxEND_EVENT_TABLE()
-
-CanUdsRawDialog::CanUdsRawDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "CAN UDS Raw", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    sizerTop = new wxBoxSizer(wxVERTICAL);
-    wxStaticBoxSizer* sizerMsgs_sender = new wxStaticBoxSizer(wxVERTICAL, this, "&Send");
-    wxBoxSizer* h_sizer_0 = new wxBoxSizer(wxHORIZONTAL);
-    h_sizer_0->Add(new wxStaticText(this, wxID_ANY, "Sender FrameID:"));
-    m_SenderId = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(75, 25));
-    h_sizer_0->Add(m_SenderId);
-    sizerMsgs_sender->AddSpacer(5);
-
-    h_sizer_0->Add(new wxStaticText(this, wxID_ANY, "Receiver FrameID:"));
-    m_ReceiverId = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(75, 25));
-    h_sizer_0->Add(m_ReceiverId);
-    //sizerMsgs_sender->Add(h_sizer_0);
-
-
-    h_sizer_0->Add(new wxStaticText(this, wxID_ANY, "Frame delay:"));
-    m_DelayBetweenFrames = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(75, 25));
-    h_sizer_0->Add(m_DelayBetweenFrames);
-
-    h_sizer_0->Add(new wxStaticText(this, wxID_ANY, "Recv delay:"));
-    m_RecvDelayFrames = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(75, 25));
-    h_sizer_0->Add(m_RecvDelayFrames);
-    sizerMsgs_sender->Add(h_sizer_0);
-
-    sizerMsgs_sender->AddSpacer(10);
-
-    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
-    
-    m_ReadDid = new wxButton(this, wxID_ANY, "Read DID", wxDefaultPosition, wxDefaultSize);
-    m_ReadDid->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            m_DataToSend->SetValue("10 03\r\n22 4000");
-        });
-    h_sizer->Add(m_ReadDid);
-
-    m_WriteDid = new wxButton(this, wxID_ANY, "Write DID", wxDefaultPosition, wxDefaultSize);
-    h_sizer->Add(m_WriteDid);
-    m_WriteDid->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            m_DataToSend->SetValue("10 03\r\n2E 4000 0C\r\nDELAY 10\r\n22 4000");
-        });
-
-    m_EcuReset = new wxButton(this, wxID_ANY, "ECU Reset", wxDefaultPosition, wxDefaultSize);
-    h_sizer->Add(m_EcuReset);
-    m_EcuReset->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            m_DataToSend->SetValue("10 02");
-        });
-
-    m_Clear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);
-    m_Clear->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            m_DataToSend->SetValue("");
-            m_DataRecv->SetValue("");
-        });
-
-    h_sizer->Add(m_Clear);
-    sizerMsgs_sender->Add(h_sizer);
-
-    sizerMsgs_sender->AddSpacer(10);
-
-    wxStaticText* data_to_send_text = new wxStaticText(this, wxID_ANY, "UDS Data to send:");
-    data_to_send_text->SetToolTip("10 - Diagnostic Session Control\n11 - ECU Reset\n3E - Tester present\n22 - Read Data By Identifier\n23 - Read Memory By Address\n\
-24 - Read Scaling Data By Identifier\n2A - Read Data By Identifier Periodic\n2E - Write Data By Identifier\n3D - Write Memory By Address\n14 - Delete all DTC\n\
-19 - Read DTC Information");
-
-    sizerMsgs_sender->Add(data_to_send_text);
-    m_DataToSend = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(250, 100), wxTE_MULTILINE);
-    sizerMsgs_sender->Add(m_DataToSend, 1, wxLEFT | wxEXPAND, 0);
-
-    wxBoxSizer* h_sizer_3 = new wxBoxSizer(wxHORIZONTAL);
-    m_SendBtn = new wxButton(this, wxID_ANY, "Send", wxDefaultPosition, wxDefaultSize);
-    m_SendBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            HandleFrameSending();
-        });
-
-    h_sizer_3->AddStretchSpacer();
-    h_sizer_3->Add(m_SendBtn);
-    sizerMsgs_sender->Add(h_sizer_3);
-
-    sizerTop->Add(sizerMsgs_sender, wxSizerFlags(1).Expand().Border());
-
-    wxStaticBoxSizer* sizerMsgs_recv = new wxStaticBoxSizer(wxVERTICAL, this, "&Receive");
-    wxStaticText* data_to_recv_text = new wxStaticText(this, wxID_ANY, "UDS Response:");
-    data_to_recv_text->SetToolTip("11 - serviceNotSupported\n12 - subFunctionNotSupported\n14 - responseTooLong\n21 - busyRepeatReques\n22 - conditionsNotCorrect\n\
-31 - requestOutOfRange\n33 - securityAccessDenied\n78 - ResponsePending\n7E - subFunctionNotSupportedInActiveSession\n7F -serviceNotSupportedInActiveSession");
-
-    sizerMsgs_recv->Add(data_to_recv_text);
-    m_DataRecv = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(250, 100), wxTE_MULTILINE);
-    sizerMsgs_recv->Add(m_DataRecv, 1, wxLEFT | wxEXPAND, 0);
-    sizerTop->Add(sizerMsgs_recv, wxSizerFlags(1).Expand().Border());
-
-    // finally buttons to show the resulting message box and close this dialog
-    sizerTop->Add(CreateStdDialogButtonSizer(wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
-
-    sizerTop->SetMinSize(wxSize(640, 480));
-    SetAutoLayout(true);
-    SetSizer(sizerTop);
-    sizerTop->Fit(this);
-    sizerTop->SetSizeHints(this);
-    CentreOnScreen();
-}
-
-void CanUdsRawDialog::ShowDialog()
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    if(m_LastUdsSenderId == 0)
-    {
-        m_LastUdsSenderId = can_handler->GetDefaultEcuId();
-        m_LastUdsReceiverId = can_handler->GetIsoTpResponseFrameId();
-        m_LastDelayBetweenFrames = 100;
-        m_LastRecvWaitingTime = 350;
-        m_LastUdsInput.clear();
-    }
-
-    m_IsApplyClicked = false;
-    m_SenderId->SetValue(wxString::Format("%X", m_LastUdsSenderId));
-    m_ReceiverId->SetValue(wxString::Format("%X", m_LastUdsReceiverId));
-    m_DelayBetweenFrames->SetValue(wxString::Format("%d", m_LastDelayBetweenFrames));
-    m_RecvDelayFrames->SetValue(wxString::Format("%d", m_LastRecvWaitingTime));
-    m_DataRecv->SetValue("");
-    ShowModal();
-}
-
-uint32_t CanUdsRawDialog::GetSenderId()
-{
-    uint32_t ret = 0;
-    try
-    {
-        ret = std::stoi(m_SenderId->GetValue().ToStdString(), 0, 16);
-    }
-    catch(const std::exception& e)
-    {
-        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
-    }
-    return ret;
-}
-
-uint32_t CanUdsRawDialog::GetReceiverId()
-{
-    uint32_t ret = 0;
-    try
-    {
-        ret = std::stoi(m_ReceiverId->GetValue().ToStdString(), 0, 16);
-    }
-    catch(const std::exception& e)
-    {
-        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
-    }
-    return ret;
-}
-
-uint32_t CanUdsRawDialog::GetDelayBetweenFrames()
-{
-    uint32_t ret = 0;
-    try
-    {
-        ret = std::stoi(m_DelayBetweenFrames->GetValue().ToStdString());
-    }
-    catch(const std::exception& e)
-    {
-        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
-    }
-    return ret;
-}
-
-uint32_t CanUdsRawDialog::GetWaitingTimeForFrames()
-{
-    uint32_t ret = 0;
-    try
-    {
-        ret = std::stoi(m_RecvDelayFrames->GetValue().ToStdString());
-    }
-    catch(const std::exception& e)
-    {
-        LOG(LogLevel::Warning, "stoi exception: {}", e.what());
-    }
-    return ret;
-}
-
-std::string CanUdsRawDialog::GetSentData()
-{
-    return m_DataToSend->GetValue().ToStdString();
-}
-
-void CanUdsRawDialog::OnApply(wxCommandEvent& WXUNUSED(event))
-{
-    m_IsApplyClicked = true;
-    Close();
-}
-
-void CanUdsRawDialog::HandleFrameSending()
-{
-    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-
-    m_LastUdsSenderId = GetSenderId();
-    m_LastUdsReceiverId = GetReceiverId();
-    m_LastUdsInput = GetSentData();
-    m_LastDelayBetweenFrames = GetDelayBetweenFrames();
-
-    auto& uds_responses = can_handler->GetUdsRawBuffer();
-    uds_responses.clear();  /* Clear every older request */
-
-    uint32_t old_recv_frame_id = can_handler->GetIsoTpResponseFrameId();
-    std::vector<std::string> lines;
-    boost::split(lines, m_LastUdsInput, [](char input) { return input == '\n' || input == ';'; }, boost::algorithm::token_compress_on);
-    for(auto& hex_str : lines)
-    {
-        int delay = 0;
-        int delay_check = sscanf(hex_str.c_str(), "DELAY%*c%d%*c[^\n]", &delay);
-        if(delay_check == 1)
-        {
-            {
-                LOG(LogLevel::Notification, "Sending ISO-TP Frame, Delay: {}ms", delay);
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-            continue;
-        }
-
-        char byte_array[MAX_ISOTP_FRAME_LEN];
-        boost::algorithm::erase_all(hex_str, " ");
-        boost::algorithm::erase_all(hex_str, ".");
-        utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
-
-        uint16_t len = (hex_str.length() / 2);
-        if(len == 0)
-        {
-            LOG(LogLevel::Warning, "Skipping IsoTP frame, input length is zero");
-            continue;
-        }
-        can_handler->SendIsoTpFrame(m_LastUdsSenderId, (uint8_t*)byte_array, len);
-        LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", m_LastUdsSenderId, can_handler->GetIsoTpResponseFrameId(), len);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(m_LastDelayBetweenFrames));
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));  /* TODO: use mutex or something else */
-
-    while(can_handler->GetElapsedTimeSinceLastUdsFrame() < m_LastDelayBetweenFrames)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-
-    std::string response;
-    for(auto& i : uds_responses)
-    {
-        std::string tmp;
-        utils::ConvertHexBufferToString(i.c_str(), i.length(), tmp);
-        response += tmp + "\r\n";
-    }
-    uds_responses.clear();
-    m_DataRecv->SetValue(response);
-
-    if(old_recv_frame_id != m_LastUdsReceiverId)
-        can_handler->SetIsoTpResponseFrame(old_recv_frame_id);
 }

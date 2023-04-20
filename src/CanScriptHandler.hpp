@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ICanResultPanel.hpp"
+#include "ICanObserver.hpp"
 #include "Logger.hpp"
 
 #include <map>
@@ -8,7 +9,7 @@
 using CanScriptReturn = void;
 using OperandParams = std::vector<std::string>;
 
-class CanScriptHandler
+class CanScriptHandler : public ICanObserver
 {
 public:
     CanScriptHandler(ICanResultPanel& result_panel);
@@ -17,7 +18,6 @@ public:
     void RunScript(std::string script);
     bool IsScriptRunning();
     void AbortRunningScript();
-    void OnFrameAppearedOnBus(uint32_t frame_id, uint8_t* data);
 
 private:
     bool __forceinline CheckParams(uint8_t actual, uint8_t required)
@@ -40,6 +40,9 @@ private:
     CanScriptReturn SendFrame(std::any required_params, OperandParams& params);
     CanScriptReturn WaitForFrame(std::any required_params, OperandParams& params);
     CanScriptReturn Sleep(std::any required_params, OperandParams& params);
+
+    void OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size) override;
+    void OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t size) override;
 
     std::map<std::string, std::function<CanScriptReturn(std::any, OperandParams&)>> m_operands;
     

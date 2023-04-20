@@ -86,8 +86,16 @@ DebugPanel::DebugPanel(wxFrame* parent)
 		});
 	h_sizer->Add(m_CpuPowerApply);
 
+
 	bSizer1->AddSpacer(10);
 	bSizer1->Add(h_sizer);
+
+	m_TestCrashHandler = new wxButton(this, wxID_ANY, "Test CrashHandler", wxDefaultPosition, wxDefaultSize);
+	bSizer1->Add(m_TestCrashHandler);
+	m_TestCrashHandler->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+	        {
+				*((unsigned int*)0) = 0xDEAD;
+			});
 
 	this->SetSizer(bSizer1);
 	this->Layout();

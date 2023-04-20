@@ -46,6 +46,7 @@ public:
     wxButton* m_SaveCache = nullptr;
 
     void UpdateDidList();
+    void WriteDid(uint16_t did, uint8_t* data_to_write, uint16_t size);
     void On100msTimer();
 
 private:

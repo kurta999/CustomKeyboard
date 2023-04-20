@@ -520,8 +520,7 @@ void CanEntryHandler::OnFrameSent(uint32_t frame_id, uint8_t data_len, uint8_t* 
         m_LogEntries.push_back(std::make_unique<CanLogEntry>(CAN_LOG_DIR_TX, frame_id, data, data_len, time_now));
     }
 
-    if(m_ScriptHandler)
-        m_ScriptHandler->OnFrameAppearedOnBus(frame_id, data);
+    NotifyFrameOnBus(frame_id, data, data_len);
 
     tx_frame_cnt++;
 }
@@ -558,17 +557,15 @@ void CanEntryHandler::OnFrameReceived(uint32_t frame_id, uint8_t data_len, uint8
         uint16_t recv_size = 0;
         if(isotp_receive(&link, m_uds_recv_data, sizeof(m_uds_recv_data), &recv_size) == ISOTP_RET_OK)
         {
+            DBG("iso-tp recv: %d", recv_size);
             m_UdsFrames.push_back(std::string((const char*)m_uds_recv_data, recv_size));
             last_uds_frame_received = std::chrono::steady_clock::now();
 
-            std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
-            did_handler->OnIsoTpFrameReceived(m_uds_recv_data, recv_size);
+            NotifyIsoTpData(frame_id, m_uds_recv_data, recv_size);
         }
-        DBG("finish");
     }
 
-    if(m_ScriptHandler)
-        m_ScriptHandler->OnFrameAppearedOnBus(frame_id, data);
+    NotifyFrameOnBus(frame_id, data, data_len);
 
     m_cv.notify_all();
 }
@@ -1009,6 +1006,7 @@ extern "C" void isotp_user_debug(const char* message, ...)
     vsnprintf(buffer, sizeof(buffer), message, args);
 
     LOG(LogLevel::Verbose, "IsoTP: {}", buffer);
+    DBG(buffer);
     //do something with the error
 
     va_end(args);

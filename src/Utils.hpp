@@ -86,7 +86,7 @@ namespace utils
         {
             LOG(LogLevel::Error, "Exception with boost::algorithm::unhex, str: {}", in);
         }
-        if(hash.size() < out.size_bytes())
+        if(hash.size() <= out.size_bytes())
             std::copy(hash.begin(), hash.end(), out.data());
         else
         {
@@ -178,6 +178,9 @@ namespace utils
         std::uniform_int_distribution<T> distr(min_val, max_val);
         return distr(gen);
     }
+
+    std::string decode64(const std::string& val);
+    std::string encode64(const std::string& val);
 
 #ifndef _WIN32
     uint32_t GetTickCount();

@@ -346,7 +346,13 @@
     <ClInclude Include="src\ExceptionHandler.hpp" />
     <ClInclude Include="src\framework.hpp" />
     <ClInclude Include="src\GuiEditor.hpp" />
-    <ClInclude Include="src\gui\CanPanel.hpp" />
+    <ClInclude Include="src\gui\CanPanel\BitEditorDialog.hpp" />
+    <ClInclude Include="src\gui\CanPanel\CanLogPanel.hpp" />
+    <ClInclude Include="src\gui\CanPanel\CanPanel.hpp" />
+    <ClInclude Include="src\gui\CanPanel\CanScriptPanel.hpp" />
+    <ClInclude Include="src\gui\CanPanel\CanSenderPanel.hpp" />
+    <ClInclude Include="src\gui\CanPanel\CanUdsRawDialog.hpp" />
+    <ClInclude Include="src\gui\CanPanel\pch.hpp" />
     <ClInclude Include="src\gui\CmdExecutorPanel.hpp" />
     <ClInclude Include="src\gui\Configuration.hpp" />
     <ClInclude Include="src\gui\ConfigurationBackup.hpp" />
@@ -366,6 +372,7 @@
     <ClInclude Include="src\gui\TrayIcon.hpp" />
     <ClInclude Include="src\IdlePowerSaver.hpp" />
     <ClInclude Include="src\interface\ICanDevice.hpp" />
+    <ClInclude Include="src\interface\ICanObserver.hpp" />
     <ClInclude Include="src\interface\ICanResultPanel.hpp" />
     <ClInclude Include="src\interface\ICmdHelper.hpp" />
     <ClInclude Include="src\interface\IDatabase.hpp" />
@@ -521,7 +528,12 @@
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\ExceptionHandler.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
-    <ClCompile Include="src\gui\CanPanel.cpp" />
+    <ClCompile Include="src\gui\CanPanel\BitEditorDialog.cpp" />
+    <ClCompile Include="src\gui\CanPanel\CanLogPanel.cpp" />
+    <ClCompile Include="src\gui\CanPanel\CanPanel.cpp" />
+    <ClCompile Include="src\gui\CanPanel\CanScriptPanel.cpp" />
+    <ClCompile Include="src\gui\CanPanel\CanSenderPanel.cpp" />
+    <ClCompile Include="src\gui\CanPanel\CanUdsRawDialog.cpp" />
     <ClCompile Include="src\gui\CmdExecutorPanel.cpp" />
     <ClCompile Include="src\gui\Configuration.cpp" />
     <ClCompile Include="src\gui\ConfigurationBackup.cpp" />

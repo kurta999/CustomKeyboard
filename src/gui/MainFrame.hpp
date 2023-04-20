@@ -7,7 +7,7 @@
 #include "Editor.hpp"
 #include "Configuration.hpp"
 #include "FilePanel.hpp"
-#include "CanPanel.hpp"
+#include "CanPanel/CanPanel.hpp"
 #include "ModbusMasterPanel.hpp"
 #include "CmdExecutorPanel.hpp"
 #include "MapConverterPanel.hpp"
@@ -55,6 +55,7 @@ enum PopupMsgIds : uint8_t
 	CanLogSaved,
 	CommandsSaved,
 	DidCacheSaved,
+	DidUpdated,
 	EverythingSaved,
 	SelectedLogsCopied,
 };

@@ -11,7 +11,7 @@ bool MyApp::OnInit()
 
     can_entry = std::make_unique<CanEntryHandler>(xml, rx_xml, mapping_xml);
     cmd_executor = std::make_unique<CmdExecutor>();
-    did_handler = std::make_unique<DidHandler>(did_xml_loader, did_xml_chace_loader);
+    did_handler = std::make_unique<DidHandler>(did_xml_loader, did_xml_chace_loader, can_entry.get());
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();

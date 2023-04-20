@@ -28,8 +28,9 @@ void CanDeviceStm32::ProcessReceivedFrames()
     {
         do
         {
-            char uart_data[sizeof(UartCanData)];
-            std::copy(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData), uart_data);
+            char uart_data[sizeof(UartCanData)] = {};
+            if(m_CircBuff.size() >= sizeof(UartCanData))  /* TODO: solve this ssue with a better solution */
+                std::copy(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData), uart_data);
 
             if(*(uint32_t*)&uart_data == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
             {

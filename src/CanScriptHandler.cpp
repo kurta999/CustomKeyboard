@@ -12,11 +12,17 @@ CanScriptHandler::CanScriptHandler(ICanResultPanel& result_panel) :
     m_operands["CheckFrameBlock"] = std::bind(&CanScriptHandler::WaitForFrame, this, 3, std::placeholders::_2);
     m_operands["Sleep"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
     m_operands["Wait"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
+
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    can_handler->RegisterObserver(this);
 }
 
 CanScriptHandler::~CanScriptHandler()
 {
+    std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    can_handler->UnregisterObserver(this);
 
+    AbortRunningScript();
 }
 
 void CanScriptHandler::ExecuteScript(std::string script)
@@ -77,7 +83,11 @@ void CanScriptHandler::AbortRunningScript()
     raw_frame_blocks.clear();
     m_FrameValues.clear();
     m_FrameIDValues.clear();
-    LOG(LogLevel::Normal, "Running script aborted");
+
+    if(m_FutureHandle.valid())
+        if(m_FutureHandle.wait_for(std::chrono::milliseconds(10)) == std::future_status::ready)
+            m_FutureHandle.get();
+    //LOG(LogLevel::Normal, "Running script aborted");
 }
 
 void CanScriptHandler::RunScript(std::string script)
@@ -98,15 +108,20 @@ bool CanScriptHandler::IsScriptRunning()
     return ret;
 }
 
-void CanScriptHandler::OnFrameAppearedOnBus(uint32_t frame_id, uint8_t* data)
+void CanScriptHandler::OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size)
 {
     if(m_WaitingFrame == frame_id && m_WaitingFrame != std::numeric_limits<uint32_t>::max() && !m_WaitingFrameReceived)
     {
         std::unique_lock<std::mutex> lk(cv_m);
         m_WaitingFrameReceived = true;
-        m_WaitingFrameData.assign(data, data + 8);
+        m_WaitingFrameData.assign(data, data + size);
         cv.notify_all();
     }
+}
+
+void CanScriptHandler::OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t size)
+{
+
 }
 
 template <typename T> void CanScriptHandler::HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::string& new_data)
@@ -413,13 +428,27 @@ CanScriptReturn CanScriptHandler::WaitForFrame(std::any required_params, Operand
     m_WaitingFrameReceived = false;
     std::unique_lock<std::mutex> lk(cv_m);
     auto now = std::chrono::system_clock::now();
-    bool ret = cv.wait_until(lk, now + std::chrono::milliseconds(wait_ms), [this]() {return m_WaitingFrameReceived; });
+    bool ret = cv.wait_until(lk, now + std::chrono::milliseconds(wait_ms), [this]() { return m_WaitingFrameReceived || m_IsAborted.load(); });
     if(ret)
     {
-        if(raw_frame_blocks[frame_id] == m_WaitingFrameData)
-            m_Result.AddToLog(std::format("WaitForFrame OK {} (FrameID: {:X})\n", field_name, frame_id));
+        if(m_WaitingFrameReceived && !m_IsAborted)
+        {
+            if(raw_frame_blocks[frame_id] == m_WaitingFrameData)
+                m_Result.AddToLog(std::format("WaitForFrame OK {} (FrameID: {:X})\n", field_name, frame_id));
+            else
+            {
+                std::string recv;
+                utils::ConvertHexBufferToString((const char*)m_WaitingFrameData.data(), m_WaitingFrameData.size(), recv);
+                std::string expected;
+                utils::ConvertHexBufferToString((const char*)raw_frame_blocks[frame_id].data(), raw_frame_blocks[frame_id].size(), expected);
+
+                m_Result.AddToLog(std::format("WaitForFrame INVALID DATA Recv: {}, Expected: {} (FrameName: {}, FrameID: {:X})\n", recv, expected, field_name, frame_id));
+            }
+        }
         else
-            m_Result.AddToLog(std::format("WaitForFrame INVALID DATA {} (FrameID: {:X})\n", field_name, frame_id));
+        {
+            m_Result.AddToLog(std::format("WaitForFrame FAILED with ABORT {} (FrameID: {:X})\n", field_name, frame_id));
+        }
     }
     else
     {
@@ -446,6 +475,13 @@ CanScriptReturn CanScriptHandler::Sleep(std::any required_params, OperandParams&
         return;
     }
 
-    m_Result.AddToLog(std::format("Wait {} ms\n", sleep_ms));
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+    m_Result.AddToLog(std::format("Wait {} ms... ", sleep_ms));
+
+    std::unique_lock<std::mutex> lk(cv_m);
+    auto now = std::chrono::system_clock::now();
+    bool ret = cv.wait_until(lk, now + std::chrono::milliseconds(sleep_ms), [this]() {return m_IsAborted.load(); });
+    if(ret)  /* This is in reverse */
+        m_Result.AddToLog("Aborted\n");
+    else
+        m_Result.AddToLog("OK\n");
 }

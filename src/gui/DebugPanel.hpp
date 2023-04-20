@@ -23,6 +23,7 @@ public:
 	wxSpinCtrl* m_CpuMaxPowerPercent = nullptr;
 	wxButton* m_CpuPowerRefresh = nullptr;
 	wxButton* m_CpuPowerApply = nullptr;
+	wxButton* m_TestCrashHandler = nullptr;
 
 private:
 	std::future<void> keypress_future;

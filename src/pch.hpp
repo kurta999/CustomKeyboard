@@ -26,7 +26,13 @@ namespace std
 }
 #endif
 
-#include "gui/CanPanel.hpp"
+#include "gui/CanPanel/BitEditorDialog.hpp"
+#include "gui/CanPanel/CanLogPanel.hpp"
+#include "gui/CanPanel/CanPanel.hpp"
+#include "gui/CanPanel/CanScriptPanel.hpp"
+#include "gui/CanPanel/CanSenderPanel.hpp"
+#include "gui/CanPanel/CanUdsRawDialog.hpp"
+
 #include "gui/Configuration.hpp"
 #include "gui/ConfigurationBackup.hpp"
 #include "gui/DebugPanel.hpp"
@@ -124,6 +130,9 @@ namespace std
 #include <wx/artprov.h>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/algorithm/hex.hpp>
 #include <boost/crc.hpp>

@@ -753,6 +753,14 @@ void MyFrame::HandleNotifications()
 #endif
 						});
 					break;
+				}				
+				case DidUpdated:
+				{
+					ShowNotificaiton("DID updated", wxString::Format("DID value has been updated!"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+
+						});
+					break;
 				}
 				case SelectedLogsCopied:
 				{

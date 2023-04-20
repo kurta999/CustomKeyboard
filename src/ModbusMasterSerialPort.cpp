@@ -87,6 +87,8 @@ void ModbusMasterSerialPort::Init()
     {
         if(!m_worker)
             m_worker = std::make_unique<std::jthread>(std::bind(&ModbusMasterSerialPort::UartReceiveThread, this, std::placeholders::_1, std::ref(m_cv), std::ref(m_mutex)));
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "ModbusMasterSerialPort");
     }
     else
     {

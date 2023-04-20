@@ -52,6 +52,12 @@
     <Filter Include="libs\isotp">
       <UniqueIdentifier>{b54c9ce8-326b-400e-bd2b-aae2a28aaa38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gui\CanPanel">
+      <UniqueIdentifier>{69c58e68-407d-4fdb-9ce4-a7b80105b5f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gui\CanPanel">
+      <UniqueIdentifier>{fceea4ce-640e-474c-bb44-903f99757bd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\sqlite\sqlite3.h">
@@ -195,9 +201,6 @@
     <ClInclude Include="src\CryptoPrice.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\CanPanel.hpp">
-      <Filter>Header Files\gui</Filter>
-    </ClInclude>
     <ClInclude Include="src\CanSerialPort.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -304,6 +307,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\interface\IDidLoader.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\CanPanel.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\pch.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\BitEditorDialog.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\CanLogPanel.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\CanScriptPanel.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\CanUdsRawDialog.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\CanPanel\CanSenderPanel.hpp">
+      <Filter>Header Files\gui\CanPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\ICanObserver.hpp">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
   </ItemGroup>
@@ -425,9 +452,6 @@
     <ClCompile Include="src\CryptoPrice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\CanPanel.cpp">
-      <Filter>Source Files\gui</Filter>
-    </ClCompile>
     <ClCompile Include="src\CanSerialPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -502,6 +526,24 @@
     </ClCompile>
     <ClCompile Include="src\DidHandler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\CanPanel.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\BitEditorDialog.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\CanLogPanel.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\CanScriptPanel.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\CanSenderPanel.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\CanPanel\CanUdsRawDialog.cpp">
+      <Filter>Source Files\gui\CanPanel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

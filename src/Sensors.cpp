@@ -115,12 +115,12 @@ void Sensors::WriteGraphs()
 {
     WriteGraph<decltype(Measurement::temp)>("Temperature.html", 15, 35, "Temperature", offsetof(Measurement, temp));
     WriteGraph<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
-    WriteGraph<decltype(Measurement::co2)>("CO2.html", 150, 3000, "CO2", offsetof(Measurement, co2));
+    WriteGraph<decltype(Measurement::co2)>("CO2.html", 150, 5000, "CO2", offsetof(Measurement, co2));
     WriteGraph<decltype(Measurement::voc)>("VOC.html", 0, 65535, "VOC", offsetof(Measurement, voc));
     WriteGraph<decltype(Measurement::co)>("CO.html", 0, 65535, "CO", offsetof(Measurement, co));
     WriteGraph<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "PM2.5", offsetof(Measurement, pm25));
     WriteGraph<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "PM10", offsetof(Measurement, pm10));
-    WriteGraph<decltype(Measurement::pressure)>("Pressure.html", 0, 1200, "Pressure", offsetof(Measurement, pressure));
+    WriteGraph<decltype(Measurement::pressure)>("Pressure.html", 950, 1200, "Pressure", offsetof(Measurement, pressure));
     WriteGraph<decltype(Measurement::lux)>("Lux.html", 0, 10000, "Lux", offsetof(Measurement, lux));
     WriteGraph<decltype(Measurement::cct)>("CCT.html", 0, 10000, "CCT", offsetof(Measurement, cct));
     WriteGraph<decltype(Measurement::r)>("R.html", 0, 10000, "R", offsetof(Measurement, r));

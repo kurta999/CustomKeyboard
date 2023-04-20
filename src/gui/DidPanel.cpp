@@ -219,8 +219,23 @@ DidPanel::DidPanel(wxFrame* parent)
     m_SaveCache->SetToolTip("Save cached values for DIDs)");
     m_SaveCache->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+            std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
             std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
-            did_handler->SaveChache();
+            
+            bool ret = did_handler->SaveChache();
+            if(ret)
+            {
+                std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+                int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+                char work_dir[1024] = {};
+#ifdef _WIN32
+                GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
+#endif
+                MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                std::lock_guard lock(frame->mtx);
+                frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::DidCacheSaved), dif, std::string(work_dir) + "\\" + DID_CACHE_FILENAME });
+            }
         });
     h_sizer_2->Add(m_SaveCache);
 
@@ -324,6 +339,17 @@ void DidPanel::On100msTimer()
     }
 }
 
+void DidPanel::WriteDid(uint16_t did, uint8_t* data_to_write, uint16_t size)
+{
+    std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
+    did_handler->WriteDid(did, data_to_write, size);
+    did_handler->NotifyDidUpdate();
+
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    std::lock_guard lock(frame->mtx);
+    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::DidUpdated) });
+
+}
 void DidPanel::OnSize(wxSizeEvent& evt)
 {
     evt.Skip(true);
@@ -366,22 +392,19 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
                 case DET_UI8:
                 {
                     uint8_t val_to_write = static_cast<uint8_t>(hex_val);
-                    did_handler->WriteDid(did_it->id, &val_to_write, sizeof(val_to_write));
-                    did_handler->NotifyDidUpdate();
+                    WriteDid(did_it->id, &val_to_write, sizeof(val_to_write));
                     break;
                 }
                 case DET_UI16:
                 {
                     uint16_t val_to_write = static_cast<uint8_t>(hex_val);
-                    did_handler->WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
-                    did_handler->NotifyDidUpdate();
+                    WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
                     break;
                 }
                 case DET_UI32:
                 {
                     uint32_t val_to_write = static_cast<uint8_t>(hex_val);
-                    did_handler->WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
-                    did_handler->NotifyDidUpdate();
+                    WriteDid(did_it->id, (uint8_t*)&val_to_write, sizeof(val_to_write));
                     break;
                 }
                 case DET_STRING:
@@ -398,8 +421,8 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
                         hex_str.erase(did_it->len - 1, hex_str.length() - did_it->len);
                     }
                     uint8_t* byte_array = (uint8_t*)const_cast<const char*>(hex_str.c_str());
-                    did_handler->WriteDid(did_it->id, byte_array, hex_str.length());
-                    did_handler->NotifyDidUpdate();
+
+                    WriteDid(did_it->id, byte_array, hex_str.length());
                     break;
                 }
                 case DET_BYTEARRAY:
@@ -429,8 +452,7 @@ void DidPanel::OnCellValueChanged(wxGridEvent& ev)
 
                     utils::ConvertHexStringToBuffer(hex_str, std::span{ byte_array });
 
-                    did_handler->WriteDid(did_it->id, (uint8_t*)&byte_array, len);
-                    did_handler->NotifyDidUpdate();
+                    WriteDid(did_it->id, (uint8_t*)&byte_array, len);
                     break;
                 }
             }
