@@ -48,7 +48,7 @@ If you want to use/resuse some part(s) of the project or you have a question, fe
 
 ### 3. For Personal use:
 
-1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for transmitting keypresses to PC and additionally an USB A to MicroUSB adapter if your keyboard has USB A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way. Macros can be added in configuration page or in settings.ini file directly. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
+1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART-TTL to USB adapter for transmitting keypresses to PC and additionally an USB A to MicroUSB adapter if your keyboard has USB A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be binded to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
 
 2. **Sensors** - Backend means simple TCP server where sensor connencts and sends measurements. Each measurement is inserted to a local SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel. Graphs can be seen at "localhost:2005/graphs" by default.
 
@@ -174,7 +174,7 @@ Sleep 500
 
 ![Alt text](/github_screens/sensors_js_graph.png?raw=true "Temperature graph for last week")
 
-**CAN-USB Transceiver **
+**CAN-USB Transceiver**
 
 ![Alt text](/github_screens/can_usb.png?raw=true "CAN-USB GUI")
 
