@@ -33,18 +33,23 @@ class FilePanel : public wxPanel
 {
 public:
 	FilePanel(wxFrame* parent);
+	~FilePanel();
+
 	void OnSize(wxSizeEvent& evt);
 	void OnItemActivated(wxTreeListEvent& evt);
 	void GenerateTree();
 	void ClearTree();
 
+private:
 	wxButton* m_OkButton = nullptr;
 	wxTextCtrl* m_DirText = nullptr;
-	wxStaticText* m_FileInfo = nullptr;
+	wxStaticText* m_ProcessInfo = nullptr;
 	wxButton* m_Generate = nullptr;
 	wxButton* m_Clear = nullptr;
 	wxTreeListCtrl* tree = nullptr;
 	MyComparator m_comparator;
+
+	bool m_IsAborted = false;
 private:
 
 	std::map<size_t, std::unique_ptr<DirItems>> dir_map;
