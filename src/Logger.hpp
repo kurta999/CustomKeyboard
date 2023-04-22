@@ -70,7 +70,7 @@ public:
         file(file_), message(message_)
     {
 
-    }
+    }    
 
     wxString file;
     wxString message;
@@ -158,6 +158,8 @@ public:
         const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
         typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], formatted_msg));
 
+        std::unique_lock lock(m_mutex);
+
         F filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
         for(int i = strlen_helper(file); i > 0; i--)
         {
@@ -171,25 +173,10 @@ public:
         if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
         {
             fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
-            fLog.flush();
+            fLog.flush();  /* File operation is handled directly here (at least for now - no time for fully async logger), it's not an expensive operation on modern SSDs */
         }
 
-        bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(10));
-        if(ret)
-        {
-            MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-            if(wxGetApp().is_init_finished && frame && frame->log_panel && frame->log_panel->m_Log && m_helper)
-            {
-                m_helper->AppendLog(file, str, true);
-            }
-            else
-                preinit_entries.push_back({ wxString(file), wxString(str) });
-        }
-
-        if(ret)
-            m_mutex.unlock();
-        else
-            preinit_entries.push_back({ wxString(file), wxString(str) });
+        preinit_entries.push_back({ wxString(file), wxString(str) });
     }
 
     template<typename F = const char*, typename G = const char*, typename... Args>
@@ -270,26 +257,12 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
 }
 
 #endif
-
     // !\brief Append log messages to log panel which were logged before log panel was constructor
-    void AppendPreinitedEntries()
-    {
-        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame && frame->log_panel && m_helper)
-        {
-            bool ret = m_mutex.try_lock_for(std::chrono::milliseconds(1000));
-            if(ret)
-            {
-                for(auto& i : preinit_entries)
-                {
-                    if(!i.message.empty())
-                        m_helper->AppendLog(i.file.ToStdString(), i.message.ToStdString(), false);
-                }
-                preinit_entries.clear();
-                m_mutex.unlock();
-            }
-        }
-    }
+    void AppendPreinitedEntries();
+
+    // !\brief Tick funciton
+    void Tick();
+
 
 private:
     // !\brief File handle for log 
@@ -302,5 +275,5 @@ private:
     ILogHelper* m_helper = nullptr;
 
     // !\brief Logger's mutex
-    std::timed_mutex m_mutex;
+    std::mutex m_mutex;
 };

@@ -281,6 +281,7 @@ void MyFrame::On10msTimer(wxTimerEvent& event)
 	HandleAlwaysOnNumlock();
 	if(can_panel)
 		can_panel->On10MsTimer();
+	Logger::Get()->Tick();
 }
 
 void MyFrame::On100msTimer(wxTimerEvent& event)
@@ -587,7 +588,7 @@ void MyFrame::HandleNotifications()
 						{
 #ifdef _WIN32
 							wchar_t work_dir[1024];
-							GetCurrentDirectory(sizeof(work_dir) - 1, work_dir);
+							GetCurrentDirectory(WXSIZEOF(work_dir) - 1, work_dir);
 							StrCatW(work_dir, L"\\settings.ini");
 							ShellExecute(NULL, L"open", work_dir, NULL, NULL, SW_SHOW);
 #endif
@@ -720,7 +721,12 @@ void MyFrame::HandleNotifications()
 						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 						{
 #ifdef _WIN32
-							std::string cmdline = std::string("/select,\"" + filename);
+							char work_dir[1024];
+							GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
+							std::string abs_file = work_dir + std::string("\\") + filename;
+
+							boost::algorithm::replace_all(abs_file, "/", "\\");  /* Fix for path separator */
+							std::string cmdline = std::string("/select,\"" + abs_file + "\"");
 							ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
 #endif
 						});
@@ -774,7 +780,7 @@ void MyFrame::HandleNotifications()
 					ShowNotificaiton("Configurations saved", wxString::Format("Every configuration has been saved"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
 						{
 							wchar_t work_dir[1024] = {};
-							GetCurrentDirectoryW(sizeof(work_dir) - 1, work_dir);
+							GetCurrentDirectoryW(WXSIZEOF(work_dir) - 1, work_dir);
 							ShellExecuteW(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
 						});
 					break;

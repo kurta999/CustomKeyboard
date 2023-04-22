@@ -32,12 +32,12 @@ bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level
 	while(std::getline(in, line, '\n'))  /* "2022.08.12.591 15:54:00 [Warning] [CorsairHid.cpp:59 - CorsairHid::ExecuteInitSequence] 5 \n" */
 	{
 		int year, month, day, hour, minute, second, millisecond;
-		char level[32];
-		char cppfile[64];
+		char level[32] = {};
+		char cppfile[64] = {};
 		int linenumber;
-		char funcname[256];
-		char logstr[512];
-		int ret = sscanf(line.c_str(), "%d.%d.%d %d:%d:%d.%d [%32[^]]] [%64[^:]:%d - %256[^]]] %512[^\n]",
+		char funcname[256] = {};
+		char logstr[512] = {};
+		int ret = sscanf(line.c_str(), "%d.%d.%d %d:%d:%d.%d [%31[^]]] [%63[^:]:%d - %255[^]]] %511[^\n]",
 			&year, &month, &day, &hour, &minute, &second, &millisecond, level, cppfile, &linenumber, funcname, logstr);
 		if(ret == 12)
 		{
@@ -50,4 +50,24 @@ bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level
 		}
 	}
 	return true;
+}
+
+void Logger::AppendPreinitedEntries()
+{
+	MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+	if(frame && frame->log_panel && m_helper)
+	{
+		std::unique_lock lock(m_mutex);
+		for(auto& i : preinit_entries)
+		{
+			if(!i.message.empty())
+				m_helper->AppendLog(i.file.ToStdString(), i.message.ToStdString(), false);
+		}
+		preinit_entries.clear();
+	}
+}
+
+void Logger::Tick()
+{
+	AppendPreinitedEntries();
 }
