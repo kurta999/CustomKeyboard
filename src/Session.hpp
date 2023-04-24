@@ -17,7 +17,7 @@ class Session : public std::enable_shared_from_this<Session>
 {
 	friend class Server;
 public:
-	Session(boost::asio::io_service& io_service, std::unique_ptr<ITcpMessageExecutor>&& executor);
+	Session(boost::asio::io_service& io_service, std::mutex& io_mutex, std::unique_ptr<ITcpMessageExecutor>&& executor);
 
 	~Session();
 
@@ -58,10 +58,13 @@ public:
 	std::string sessionAddress;
 
 	// !\brief Port of session
-	unsigned short sessionPort;
+	unsigned short sessionPort = 0;
 
 	// !\brief ASIO TCP socket of session
 	boost::asio::ip::tcp::socket sessionSocket;
+
+	// !\brief Mutex for IO operations
+	std::mutex& m_IoMutex;
 
 	// !\brief Is write in progress?
 	bool writeInProgress = false;

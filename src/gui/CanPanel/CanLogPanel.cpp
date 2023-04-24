@@ -142,8 +142,6 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
 void CanLogPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    //std::scoped_lock lock{ can_handler->m };
-
     static std::string last_search_pattern;
     static uint64_t last_tx_cnt = 0, last_rx_cnt = 0;
 
@@ -310,7 +308,7 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
                 wxString str_to_copy;
                 for(auto& row : rows)
                 {
-                    for(uint8_t col = 0; col < CanSenderGridCol::Sender_Max - 1; col++)
+                    for(uint8_t col = 0; col < CanLogGridCol::Log_Max - 1; col++)
                     {
                         str_to_copy += m_grid->GetCellValue(row, col);
                         str_to_copy += '\t';

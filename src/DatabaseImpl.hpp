@@ -27,7 +27,8 @@ class Sqlite3Database final : public IDatabase
 {
 public:
     Sqlite3Database() = default;
-    ~Sqlite3Database() = default;
+    virtual ~Sqlite3Database() { };
+
     bool Open(const char* db_name) override;
     bool Close() override;
     void ExecuteQuery(std::string&& query) override;

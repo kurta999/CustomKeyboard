@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-extern std::mutex mutex;
-
 Server::Server()
 {
 
@@ -11,31 +9,27 @@ Server::~Server()
 {
     StopAsync();
     if(m_worker)
-    {
-        if(m_worker->joinable())
-            m_worker->join();
         m_worker.reset(nullptr);
-    }
 }
 
 void Server::Init(void)
 {
     if(is_enabled)
     {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(m_IoMutex);
         if(!CreateAcceptor(tcp_port))
         {
             LOG(LogLevel::Error, "createAcceptor fail!");
             return;
         }
-        m_worker = std::make_unique <std::thread>(&Server::StartAsync, this);
+        m_worker = std::make_unique<std::jthread>(std::bind_front(&Server::StartAsync, this));
         if(m_worker)
             utils::SetThreadName(*m_worker, "Server");
         DatabaseLogic::Get()->GenerateGraphs();
     }
 }
 
-void Server::StartAsync()
+void Server::StartAsync(std::stop_token token)
 {
     unsigned short port = acceptor->local_endpoint().port();
     io_service.reset();
@@ -48,7 +42,7 @@ void Server::BroadcastMessage(const std::string& msg)
 {
     if(is_enabled)
     {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(m_IoMutex);
         for(auto& i : sessions)
         {
             i->SendAsync(msg);
@@ -98,7 +92,7 @@ void Server::StopAsync()
 {
     if(is_enabled)
     {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(m_IoMutex);
         if(acceptor)
         {
             acceptor->close();
@@ -116,13 +110,13 @@ void Server::StopAsync()
 
 void Server::StartAccept()
 {
-    SharedSession session = std::make_shared<Session>(io_service, std::make_unique<TcpMessageExecutor>());
+    SharedSession session = std::make_shared<Session>(io_service, m_IoMutex, std::make_unique<TcpMessageExecutor>());
     acceptor->async_accept(session->sessionSocket, std::bind(&Server::HandleAccept, this, std::placeholders::_1, session));
 }
 
 void Server::HandleAccept(const boost::system::error_code& error, SharedSession session)
 {
-    std::scoped_lock lock(mutex);
+    std::scoped_lock lock(m_IoMutex);
     if(acceptor)
     {
         if(!error)

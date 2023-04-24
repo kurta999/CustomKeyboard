@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-constexpr uint64_t CRYPTO_PRICE_UPDATE = 5 * 60 * 1000;
-
 CryptoPrice::CryptoPrice()
 {
 
@@ -9,7 +7,7 @@ CryptoPrice::CryptoPrice()
 
 void CryptoPrice::ExecuteApiRead()
 {
-    if(!Settings::Get()->fetch_crypto_prices)
+    if(Settings::Get()->crypto_price_update == 0)
         return;
 
     std::vector<std::string> arr;
@@ -66,14 +64,14 @@ void CryptoPrice::ExecuteApiRead()
 
 void CryptoPrice::UpdatePrices(bool force)
 {
-    if(!Settings::Get()->fetch_crypto_prices)
+    if(!Settings::Get()->crypto_price_update)
     {
         last_update = std::chrono::steady_clock::now();
         return;
     }
 
-    uint64_t dif = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_update).count();
-    if(dif > CRYPTO_PRICE_UPDATE || force)
+    uint64_t dif = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - last_update).count();
+    if(dif > (Settings::Get()->crypto_price_update * 60) || force)
     {
         if(m_api_future.valid())
             if(m_api_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)

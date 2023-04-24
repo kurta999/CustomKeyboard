@@ -10,6 +10,7 @@
 #include <ctime>
 #include <fstream>
 #include <filesystem>
+#include <source_location>
 
 #include "ILogHelper.hpp"
 
@@ -48,20 +49,6 @@ enum LogLevel
 
 #define WIDEN(quote) WIDEN2(quote)
 #define WIDEN2(quote) L##quote
-
-#define LOG(level, message, ...) \
-    do {\
-    {Logger::Get()->Log(level, __FILE__, __LINE__, __FUNCTION__, message, ##__VA_ARGS__);} \
-} while(0)
-
-#ifdef _WIN32
-#define LOGW(level, message, ...) \
-    do {\
-    {Logger::Get()->Log(level, WIDEN(__FILE__), __LINE__, WIDEN(__FUNCTION__), message, ##__VA_ARGS__);} \
-} while(0)
-#else
-#define LOGW(str, ...)
-#endif
 
 class LogEntry
 {
@@ -149,8 +136,8 @@ public:
     template <> struct get_fmt_ret_string_type<const char> { using type = std::string; };
     template <> struct get_fmt_ret_string_type<char> { using type = std::string; };
 
-    template<typename F = const char*, typename G = const char*, class T, typename... Args>
-    void LogInternal(LogLevel lvl, F file, long line, G function, std::basic_string_view<T> msg, Args &&...args)
+    template<class T, typename... Args>
+    void LogInternal(LogLevel lvl, const std::source_location& location, std::basic_string_view<T> msg, Args &&...args)
     {
         using string_type = get_fmt_ret_string_type<T>::type;
         typename get_fmt_ret_string_type<T>::type formatted_msg = (sizeof...(args) != 0) ? std::vformat(msg, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(args...)) : msg.data();
@@ -160,35 +147,50 @@ public:
 
         std::unique_lock lock(m_mutex);
 
-        F filename = file;  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
-        for(int i = strlen_helper(file); i > 0; i--)
+        const char* file_name_only = nullptr;
+        const char* filename = location.file_name();  /* get filename from file path - __FILE__ macro gives abosulte path for filename */
+        for(int i = strlen_helper(location.file_name()); i > 0; i--)
         {
-            if(file[i] == HelperTraits<string_type>::slash || file[i] == HelperTraits<string_type>::backslash)
+            if(filename[i] == HelperTraits<string_type>::slash || filename[i] == HelperTraits<string_type>::backslash)
             {
-                filename = &file[i + 1];
+                file_name_only = &filename[i + 1];
                 break;
             }
         }
-
+        
         if(lvl >= LogLevel::Verbose && lvl <= LogLevel::Critical)
         {
-            fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], filename, line, function, formatted_msg);
+            /* if we're using wide strings */
+            if constexpr(std::is_same_v<string_type, std::wstring>)
+            {
+                std::string str_filename = std::string(file_name_only);
+                std::string str_function = std::string(location.function_name());
+
+                std::wstring wfilename_only = std::wstring(str_filename.begin(), str_filename.end());
+                std::wstring wfunction_name = std::wstring(str_function.begin(), str_function.end());
+                fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], wfilename_only, location.line(), wfunction_name, formatted_msg);
+            }
+            else
+            {
+                fLog << std::format(HelperTraits<string_type>::log_str, now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], file_name_only, location.line(), location.function_name(), formatted_msg);
+            }
+
             fLog.flush();  /* File operation is handled directly here (at least for now - no time for fully async logger), it's not an expensive operation on modern SSDs */
         }
 
-        preinit_entries.push_back({ wxString(file), wxString(str) });
+        preinit_entries.push_back({ wxString(file_name_only), wxString(str) });
     }
 
-    template<typename F = const char*, typename G = const char*, typename... Args>
-    void LogM(LogLevel lvl, F file, long line, G function, std::string_view msg, Args &&...args)
+    template<typename... Args>
+    void LogM(LogLevel lvl, const std::source_location& location, std::string_view msg, Args &&...args)
     {
-        LogInternal(lvl, file, line, function, msg, std::forward<Args>(args)...);
+        LogInternal(lvl, location, msg, std::forward<Args>(args)...);
     }
 
-    template<typename F = const char*, typename G = const char*, typename... Args>
-    void LogW(LogLevel lvl, F file, long line, G function, std::wstring_view msg, Args &&...args)
+    template<typename... Args>
+    void LogW(LogLevel lvl, const std::source_location& location, std::wstring_view msg, Args &&...args)
     {
-        LogInternal(lvl, file, line, function, msg, std::forward<Args>(args)...);
+        LogInternal(lvl, location, msg, std::forward<Args>(args)...);
     }
 
     // !\brief Write given log message to logfile.txt & LogPanel
@@ -199,16 +201,16 @@ public:
     // !\param msg [in] Message to log
     // !\param args [in] va_args arguments for std::format
     template<typename F = const char*, typename G = const char*, class T, typename... Args>
-    void Log(LogLevel lvl, F file, long line, G function, T msg, Args &&...args)
+    void Log(LogLevel lvl, const std::source_location& location, T msg, Args &&...args)
     {
         using X = std::decay_t<decltype(msg)>;
         if constexpr(std::is_same_v<X, const char*>)
         {
-            LogM(lvl, file, line, function, msg, std::forward<Args>(args)...);
+            LogM(lvl, location, msg, std::forward<Args>(args)...);
         }
         else if constexpr(std::is_same_v<X, const wchar_t*>)
         {
-            LogW(lvl, file, line, function, msg, std::forward<Args>(args)...);
+            LogW(lvl, location, msg, std::forward<Args>(args)...);
         }
         else
         {
@@ -277,3 +279,17 @@ private:
     // !\brief Logger's mutex
     std::mutex m_mutex;
 };
+
+/* Global LOG function */
+template <typename... Ts>
+struct LOG
+{
+    LOG(LogLevel lvl, Ts&&... ts, const std::source_location& loc = std::source_location::current())
+    {
+        Logger::Get()->Log(lvl, loc, std::forward<Ts>(ts)...);
+    }
+    ~LOG() = default;
+};
+
+template <typename... Ts>
+LOG(LogLevel lvl, Ts&&...) -> LOG<Ts...>;

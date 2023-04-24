@@ -23,18 +23,25 @@ public:
     // !\brief Initialize HID polling for Corsair G-Keys
     bool Init();
 
+    // !\brief Set debouncing interval
+    // !\param interval Debouncing interval [ms
+    void SetDebouncingInterval(const uint16_t interval);
+
+    // !\brief Get debouncing interval [ms]
+    // !\return Debouncing interval [ms]
+    uint16_t GetDebouncingInterval() const;
+
 private:
     // !\brief Execute init sequence for HID
     // !\details Initialization can't be in main thread because sometime hid_open_path take more than 1 minute to finish
     //            and entrie app will be blocked
     bool ExecuteInitSequence();
 
-
     // !\brief Destroys working thread
     void DestroyWorkingThread();
 
     // !\brief Thread function
-    void ThreadFunc();
+    void ThreadFunc(std::stop_token token);
 
     // !\brief Handle keypress (like bounce checking)
     void HandleKeypress(const std::string& key);
@@ -50,14 +57,17 @@ private:
     // !\brief Timepoint when the key was pressed
     std::chrono::steady_clock::time_point last_keypress;
 
-    // !\brief Exit polling thread when set to true
-    std::atomic<bool> m_exit = false;
-
-    // !\brief Future for executing HID initialization
-    std::future<bool> m_hid_init_future;
+    // !\brief Debouncing interval
+    uint16_t m_DebouncingInterval = 350;
 
     // !\brief Pointer to worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
+    std::unique_ptr<std::jthread> m_worker = nullptr;
+
+    // !\brief Conditional variable for main thread exiting
+    std::condition_variable_any m_cv;
+
+    // !\brief Mutex for conditional variable
+    std::mutex m_Mutex;
 
     // !\brief Map with G-Key values and it's name
     const std::map<int, std::string> corsair_GKeys =

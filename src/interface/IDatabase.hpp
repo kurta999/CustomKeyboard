@@ -7,6 +7,7 @@ class IDatabase
 {
 public:
     virtual ~IDatabase() { }
+
     virtual bool Open(const char* db_name) = 0;
     virtual bool Close() = 0;
     virtual void ExecuteQuery(std::string&& query) = 0;

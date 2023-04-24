@@ -98,7 +98,7 @@ private:
     std::atomic<bool> is_notification_pending = false;
 
     // !\brief Conditional variable for main thread exiting
-    std::condition_variable m_cv;
+    std::condition_variable_any m_cv;
 
     // !\brief Mutex for main thread
     std::mutex m_mutex;

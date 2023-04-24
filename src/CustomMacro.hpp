@@ -57,6 +57,7 @@ public:
     IKey() {}
     IKey(const IKey&) {}
     virtual ~IKey() {}
+
     virtual IKey* Clone() = 0;
     virtual void Execute() = 0;
     virtual std::string GenerateText(bool is_ini_format) = 0;

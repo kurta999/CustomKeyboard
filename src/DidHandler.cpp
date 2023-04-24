@@ -3,7 +3,7 @@
 constexpr const char* DID_LIST_FILENAME = "DidList.xml";
 
 constexpr uint8_t MAX_EXTENDED_SESSION_RETRIES = 5;
-constexpr auto UDS_TIMEOUT_FOR_RESPONSE = 15000ms;
+constexpr auto UDS_TIMEOUT_FOR_RESPONSE = 12000ms;
 
 constexpr auto MAIN_THREAD_SLEEP = 350ms;
 
@@ -15,6 +15,8 @@ DidHandler::DidHandler(IDidLoader& loader, IDidLoader& cache_loader, CanEntryHan
 
 DidHandler::~DidHandler()
 {
+    m_PendingDidReads.clear();
+    m_PendingDidWrites.clear();
     m_IsoTpBufLen = 0xFFFF;
     m_CanMessageCv.notify_all();
     m_Semaphore.release();
@@ -54,6 +56,20 @@ void DidHandler::NotifyDidUpdate()
     m_Semaphore.release();
 }
 
+void DidHandler::AbortDidUpdate()
+{
+    {
+        std::unique_lock lock{ m };
+        m_PendingDidReads.clear();
+        m_PendingDidWrites.clear();
+    }
+
+    m_IsAborted = true;
+    m_IsoTpBufLen = 0xFFFF;
+
+    LOG(LogLevel::Normal, "In progress DID updating has been aborted");
+}
+
 void DidHandler::OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size)
 {
 
@@ -67,7 +83,7 @@ void DidHandler::OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t 
 
     std::string hex;
     utils::ConvertHexBufferToString((const char*)m_IsoTpBuffer, m_IsoTpBufLen.load(), hex);
-    LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {} | \"{}\"", size, hex);
+//    LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {} | \"{}\"", size, hex);
 }
 
 XmlDidLoader::~XmlDidLoader()
@@ -304,7 +320,7 @@ bool DidHandler::SendUdsFrameAndWaitForResponse(std::vector<uint8_t> frame)
 
 bool DidHandler::WaitForResponse()
 {
-    std::unique_lock<std::mutex> lk(m_CanMessageMutex);
+    std::unique_lock lk(m_CanMessageMutex);
     auto now = std::chrono::system_clock::now();
     bool ret = m_CanMessageCv.wait_until(lk, now + UDS_TIMEOUT_FOR_RESPONSE, [this]() {return m_IsoTpBufLen != 0; });
     if(ret)
@@ -325,6 +341,10 @@ bool DidHandler::WaitForResponse()
 
 void DidHandler::ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry)
 {
+    std::unique_lock lock(m);
+    entry->nrc = 0x0;
+    entry->last_update = boost::posix_time::second_clock::local_time();
+
     switch(entry->type)
     {
         case DET_UI8:
@@ -376,23 +396,31 @@ void DidHandler::ProcessReadDidResponse(std::unique_ptr<DidEntry>& entry)
         }
     }
 
+    m_PendingDidReads.pop_front();
+    m_UpdatedDids.push_back(entry->id);
+
     LOG(LogLevel::Verbose, "Received response for DID: {:X} | \"{}\"", entry->id, entry->value_str);
 }
 
 void DidHandler::ProcessRejectedNrc(std::unique_ptr<DidEntry>& entry)
 {
     LOG(LogLevel::Warning, "Rejected");
+    std::unique_lock lock(m);
+    entry->nrc = 0x10;
+    entry->last_update = boost::posix_time::second_clock::local_time();
     m_PendingDidReads.pop_front();
 }
 
-void DidHandler::HandleDidReading(std::stop_token& stop_token)
+void DidHandler::HandleDidReading(std::stop_token& token)
 {
     uint8_t extended_session_retry_count = 0;
-    while(m_PendingDidReads.size() > 0)
+    while(m_PendingDidReads.size() > 0 && !token.stop_requested() && !m_IsAborted)
     {
         {
-            std::unique_lock lock{ m };
+            m.lock();
             uint16_t curr_did = m_PendingDidReads.front();
+            m.unlock();
+
             auto& did_it = m_DidList[curr_did];
 
             //m_PendingDids.pop_front();
@@ -408,22 +436,21 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
                 is_ok = SendUdsFrameAndWaitForResponse(std::vector<uint8_t>(data, data + 3));
                 if(is_ok)
                 {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    {
+                        std::unique_lock lock{ m };
+                        m_CanMessageCv.wait_for(lock, token, 50ms, []() { return 0 == 1; });
+                    }
+
                     if(m_IsoTpBuffer[0] == 0x62)
                     {
                         ProcessReadDidResponse(did_it);
-                        did_it->nrc = 0x0;
-                        did_it->last_update = boost::posix_time::second_clock::local_time();
-
-                        m_PendingDidReads.pop_front();
-                        m_UpdatedDids.push_back(curr_did);
                     }
                     else if(m_IsoTpBuffer[0] == 0x7F)
                     {
                         LOG(LogLevel::Warning, "7F received for DID ({:X} {:X}): {:X}", m_IsoTpBuffer[1], m_IsoTpBuffer[2], did_it->id);
                         if(m_IsoTpBuffer[1] == 0x22 && m_IsoTpBuffer[2] == 0x78)  /* Response pending */
                         {
-                            while(1)
+                            while(!token.stop_requested() && !m_IsAborted)
                             {
                                 m_IsoTpBufLen = 0;
                                 bool is_recv_ok = WaitForResponse();
@@ -437,8 +464,6 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
                                 if(m_IsoTpBuffer[0] == 0x62)
                                 {
                                     ProcessReadDidResponse(did_it);
-                                    did_it->nrc = 0x0;
-                                    did_it->last_update = boost::posix_time::second_clock::local_time();
                                     break;
                                 }
                                 else if(m_IsoTpBuffer[1] == 0x22 && m_IsoTpBuffer[2] == 0x78)
@@ -449,8 +474,6 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
                                 else if(m_IsoTpBuffer[2] == 0x10)
                                 {
                                     ProcessRejectedNrc(did_it);
-                                    did_it->nrc = 0x10;
-                                    did_it->last_update = boost::posix_time::second_clock::local_time();
                                     break;
                                 }
                                 else if(m_IsoTpBuffer[2] == 0x22 && (m_IsoTpBuffer[2] >= 0x11 && m_IsoTpBuffer[2] <= 0x93))
@@ -474,8 +497,6 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
                             if(m_IsoTpBuffer[2] == 0x10)  /* Rejected */
                             {
                                 ProcessRejectedNrc(did_it);
-                                did_it->nrc = 0x10;
-                                did_it->last_update = boost::posix_time::second_clock::local_time();
                             }
                             else if(m_IsoTpBuffer[2] == 0x22 && (m_IsoTpBuffer[2] >= 0x11 && m_IsoTpBuffer[2] <= 0x93))
                             {
@@ -510,18 +531,20 @@ void DidHandler::HandleDidReading(std::stop_token& stop_token)
                 }
             }
         }
-        std::this_thread::sleep_for(MAIN_THREAD_SLEEP);
+
+        {
+            std::unique_lock lock{ m };
+            m_CanMessageCv.wait_for(lock, token, MAIN_THREAD_SLEEP, []() { return 0 == 1; });
+        }
     }
 }
 
-void DidHandler::HandleDidWriting(std::stop_token& stop_token)
+void DidHandler::HandleDidWriting(std::stop_token& token)
 {
-    if(m_PendingDidWrites.size() > 0)
+    if(m_PendingDidWrites.size() > 0 && !token.stop_requested() && !m_IsAborted)
     {
         for(auto& [did, raw_value] : m_PendingDidWrites)
         {
-            std::unique_lock lock{ m };
-
             bool is_ok = SendUdsFrameAndWaitForResponse({ 0x10, 0x03 });
             if(is_ok)
             {
@@ -543,7 +566,7 @@ void DidHandler::HandleDidWriting(std::stop_token& stop_token)
                         LOG(LogLevel::Warning, "7F received for write DID ({:X} {:X}): {:X}", m_IsoTpBuffer[1], m_IsoTpBuffer[2], did);
                         if(m_IsoTpBuffer[1] == 0x2E && m_IsoTpBuffer[2] == 0x78)  /* Response pending */
                         {
-                            while(1)
+                            while(!token.stop_requested() && !m_IsAborted)
                             {
                                 m_IsoTpBufLen = 0;
                                 bool is_recv_ok = WaitForResponse();
@@ -590,10 +613,19 @@ void DidHandler::HandleDidWriting(std::stop_token& stop_token)
                     }
                 }
             }
+
+            {
+                std::unique_lock lock{ m };
+                m_CanMessageCv.wait_for(lock, token, MAIN_THREAD_SLEEP, []() { return 0 == 1; });
+            }
         }
-        m_PendingDidWrites.clear();
-        std::this_thread::sleep_for(MAIN_THREAD_SLEEP);
+
+        {
+            std::unique_lock lock{ m };
+            m_PendingDidWrites.clear();
+        }
     }
+    m_IsAborted = false;
 }
 
 void DidHandler::WorkerThread(std::stop_token token)

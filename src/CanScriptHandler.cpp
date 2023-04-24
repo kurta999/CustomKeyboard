@@ -20,7 +20,8 @@ CanScriptHandler::CanScriptHandler(ICanResultPanel& result_panel) :
 CanScriptHandler::~CanScriptHandler()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    can_handler->UnregisterObserver(this);
+    if(can_handler.get())
+        can_handler->UnregisterObserver(this);
 
     AbortRunningScript();
 }
@@ -81,7 +82,6 @@ void CanScriptHandler::AbortRunningScript()
     cv.notify_all();
 
     raw_frame_blocks.clear();
-    m_FrameValues.clear();
     m_FrameIDValues.clear();
 
     if(m_FutureHandle.valid())
@@ -112,7 +112,7 @@ void CanScriptHandler::OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t s
 {
     if(m_WaitingFrame == frame_id && m_WaitingFrame != std::numeric_limits<uint32_t>::max() && !m_WaitingFrameReceived)
     {
-        std::unique_lock<std::mutex> lk(cv_m);
+        std::unique_lock lk(cv_m);
         m_WaitingFrameReceived = true;
         m_WaitingFrameData.assign(data, data + size);
         cv.notify_all();
@@ -228,7 +228,7 @@ CanScriptReturn CanScriptHandler::SetFrameField(std::any required_params, Operan
 
     try
     {
-        m_FrameValues[field_name] = strtoull(frame_value.c_str(), NULL, 16);
+        //m_FrameValues[field_name] = strtoull(frame_value.c_str(), NULL, 16);
     }
     catch(const std::exception& e)
     {
@@ -426,7 +426,7 @@ CanScriptReturn CanScriptHandler::WaitForFrame(std::any required_params, Operand
 
     m_WaitingFrame = frame_id;
     m_WaitingFrameReceived = false;
-    std::unique_lock<std::mutex> lk(cv_m);
+    std::unique_lock lk(cv_m);
     auto now = std::chrono::system_clock::now();
     bool ret = cv.wait_until(lk, now + std::chrono::milliseconds(wait_ms), [this]() { return m_WaitingFrameReceived || m_IsAborted.load(); });
     if(ret)
@@ -477,7 +477,7 @@ CanScriptReturn CanScriptHandler::Sleep(std::any required_params, OperandParams&
 
     m_Result.AddToLog(std::format("Wait {} ms... ", sleep_ms));
 
-    std::unique_lock<std::mutex> lk(cv_m);
+    std::unique_lock lk(cv_m);
     auto now = std::chrono::system_clock::now();
     bool ret = cv.wait_until(lk, now + std::chrono::milliseconds(sleep_ms), [this]() {return m_IsAborted.load(); });
     if(ret)  /* This is in reverse */

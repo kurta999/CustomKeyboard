@@ -76,15 +76,10 @@ void CanPanel::SaveMapping()
 void CanPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    bool is_lock_ok = can_handler->m.try_lock();
-    if(!is_lock_ok)
-    {
-        DBG("\n\nCanSenderPanel::On10MsTimer lock failed\n\n");
-        return;
-    }
+    std::scoped_lock lock{ can_handler->m };
+
     sender->On10MsTimer();
     log->On10MsTimer();
-    can_handler->m.unlock();
 }
 
 void CanPanel::Changeing(wxAuiNotebookEvent& event)

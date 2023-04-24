@@ -99,7 +99,7 @@ public:
     }
     union
     {
-        uint32_t frame_id_and_direction;
+        uint32_t frame_id_and_direction = 0;
         struct
         {
             uint32_t frame_id : 29;
@@ -167,6 +167,8 @@ using CanFrameDirectionMapping = std::map<uint32_t, char>;  /* TODO: this is was
 class ICanEntryLoader
 {
 public:
+    virtual ~ICanEntryLoader() { }
+
     virtual bool Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) = 0;
     virtual bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) = 0;
 };
@@ -183,6 +185,8 @@ public:
 class ICanRxEntryLoader
 {
 public:
+    virtual ~ICanRxEntryLoader() { }
+
     virtual bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
     virtual bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
 };
@@ -199,6 +203,8 @@ public:
 class ICanMappingLoader
 {
 public:
+    virtual ~ICanMappingLoader() { }
+
     virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
     virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
 };
@@ -253,6 +259,9 @@ private:
 class ICanSubscriber 
 {
 public:
+    ICanSubscriber() = default;
+    ~ICanSubscriber() = default;
+
     void RegisterObserver(ICanObserver* observer) 
     {
         m_Observers.push_back(observer);
@@ -260,7 +269,7 @@ public:
 
     void UnregisterObserver(ICanObserver* observer)
     {
-        m_Observers.push_back(observer);
+        m_Observers.remove(observer);
     }
 
 protected:
@@ -510,7 +519,7 @@ private:
     std::unique_ptr<std::jthread> m_worker;
 
     // !\brief Conditional variable for main thread exiting
-    std::condition_variable m_cv;
+    std::condition_variable_any m_cv;
 
     // !\brief Starting time
     std::chrono::steady_clock::time_point start_time;

@@ -53,7 +53,7 @@ TcpMessageReturn TcpMessageExecutor::HandleOpenExplorer(std::any param)
 #else
 
 #endif
-	LOGW(LogLevel::Normal, L"Explorer open recv: {}", cmdline);
+	LOG(LogLevel::Normal, L"Explorer open recv: {}", cmdline);
 	return std::make_tuple(true, true, "");
 }
 

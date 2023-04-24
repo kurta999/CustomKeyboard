@@ -4,8 +4,6 @@ constexpr int HID_READ_TIMEOUT = 100;
 constexpr int READ_DATA_BUFFER_SIZE = 64;
 constexpr int MIN_READ_DATA_SIZE = 20;
 
-constexpr int DEBOUNCING_INTERVAL = 350;
-
 CorsairHid::~CorsairHid()
 {
     DestroyWorkingThread();
@@ -13,15 +11,26 @@ CorsairHid::~CorsairHid()
 
 bool CorsairHid::Init()
 {
+#ifdef USE_HIDAPI
     LOG(LogLevel::Notification, "CorsairHid::Init");
     if(hid_inited)
         DestroyWorkingThread();
 
-    if(m_hid_init_future.valid())
-        if(m_hid_init_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)
-            return false;
-    m_hid_init_future = std::async(&CorsairHid::ExecuteInitSequence, this);
+    m_worker = std::make_unique<std::jthread>(std::bind_front(&CorsairHid::ThreadFunc, this));
+    if(m_worker)
+        utils::SetThreadName(*m_worker, "CorsairHid");
+#endif
     return true;
+}
+
+void CorsairHid::SetDebouncingInterval(const uint16_t interval)
+{
+    m_DebouncingInterval = interval;
+}
+
+uint16_t CorsairHid::GetDebouncingInterval() const
+{
+    return m_DebouncingInterval;
 }
 
 bool CorsairHid::ExecuteInitSequence()
@@ -41,9 +50,9 @@ bool CorsairHid::ExecuteInitSequence()
     hid_device_info* device_info = hid_enumerate(0, 0);  /* Enumerate over all HID devices */
     while(device_info != NULL)
     {
-        LOGW(LogLevel::Normal, L"HID Device: \"{}\", VID: 0x{:X}, PID: 0x{:X}, UsagePage: 0x{:X}, Usage: 0x{:X}",
+        LOG(LogLevel::Normal, L"HID Device: \"{}\", VID: 0x{:X}, PID: 0x{:X}, UsagePage: 0x{:X}, Usage: 0x{:X}",
             device_info->product_string, device_info->vendor_id, device_info->product_id, device_info->usage_page, device_info->usage);
-
+            
         if(device_info->vendor_id == 0x1B1C && device_info->product_id == 0x1B11 && device_info->usage_page == 0xFFC0 && device_info->usage == 2)  /* K95 RGB (older) with 18 macro keys */
         {
             hid_path = device_info->path;
@@ -68,11 +77,6 @@ bool CorsairHid::ExecuteInitSequence()
             LOG(LogLevel::Critical, "hid_open failed");
             return false;
         }
-
-        m_exit = false;
-        m_worker = std::make_unique<std::thread>(&CorsairHid::ThreadFunc, this);
-        if(m_worker)
-            utils::SetThreadName(*m_worker, "CorsairHid");
     }
     else
     {
@@ -92,17 +96,17 @@ void CorsairHid::DestroyWorkingThread()
     hid_inited = false;
 
     bool ret = hid_exit();
+    m_worker.reset(nullptr);
 #endif
-    m_exit = true;
-    if(m_worker && m_worker->joinable())
-        m_worker->join();
 }
 
-void CorsairHid::ThreadFunc()
+void CorsairHid::ThreadFunc(std::stop_token token)
 {
 #ifdef USE_HIDAPI
+    ExecuteInitSequence();
+
     LOG(LogLevel::Notification, "ThreadFunc");
-    while(!m_exit)
+    while(!token.stop_requested())
     {
         uint8_t recv_data[READ_DATA_BUFFER_SIZE];
         if(hid_handle)
@@ -110,8 +114,10 @@ void CorsairHid::ThreadFunc()
             int read_bytes = hid_read_timeout(hid_handle, recv_data, sizeof(recv_data), HID_READ_TIMEOUT);
             if(read_bytes == 0xFFFFFFFF)
             {
-                LOGW(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000)); /* Sleep for one second after error happend */
+                LOG(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
+
+                std::unique_lock lock{ m_Mutex };
+                m_cv.wait_for(lock, token, 1000ms, []() { return 0 == 1; }); /* Sleep for one second after error happend */
             }
             else if(read_bytes > MIN_READ_DATA_SIZE)
             {
@@ -122,8 +128,11 @@ void CorsairHid::ThreadFunc()
                     HandleKeypress(it->second);
                 }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                
         }
+
+        std::unique_lock lock{ m_Mutex };
+        m_cv.wait_for(lock, token, 1ms, []() { return 0 == 1; });
     }
 #endif
 }
@@ -132,7 +141,7 @@ void CorsairHid::HandleKeypress(const std::string& key)
 {
     std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now();
     uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_keypress).count();
-    if(elapsed > DEBOUNCING_INTERVAL)
+    if(elapsed > m_DebouncingInterval)
     {
         last_keypress = std::chrono::steady_clock::now();
         CustomMacro::Get()->SimulateKeypress(key);

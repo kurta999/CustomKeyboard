@@ -282,7 +282,7 @@ void MainPanel::UpdateKeybindings()
 
 void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell)
 {
-	if(Settings::Get()->fetch_crypto_prices)
+	if(Settings::Get()->crypto_price_update != 0)
 	{
 		m_EthPrice->SetLabelText(wxString::Format("ETH: %.1f - %.1f", eth_buy, eth_sell));
 		m_BtcPrice->SetLabelText(wxString::Format("BTC: %.1f - %.1f", btc_buy, btc_sell));

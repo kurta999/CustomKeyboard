@@ -13,7 +13,7 @@ CanDeviceLawicel::~CanDeviceLawicel()
 
 }
 
-void CanDeviceLawicel::ProcessReceivedFrames()
+void CanDeviceLawicel::ProcessReceivedFrames(std::mutex& rx_mutex)
 {
     while(m_CircBuff.size() > 0)
     {
@@ -52,7 +52,9 @@ void CanDeviceLawicel::ProcessReceivedFrames()
             size_t data_len = it_end - it_start;
             if(data_len >= sizeof(data))
             {
-                LOG(LogLevel::Warning, "Invalid CAN data received, too much! Erasing circular buffer");
+                std::string hex;
+                utils::ConvertHexBufferToString((const char*)data, data_len, hex);
+                LOG(LogLevel::Warning, "Invalid CAN data received, {} is more than {}! Erasing circular buffer: {}", data_len, sizeof(data), hex);
                 m_CircBuff.erase(m_CircBuff.begin(), it_end);
                 return;
             }
@@ -92,14 +94,14 @@ void CanDeviceLawicel::ProcessReceivedFrames()
                 LOG(LogLevel::Warning, "Invalid CAN data received! Erasing circular buffer");
             }
         }
-        else  /* If no valid data received, wait for next iteration */
+        else  /* If no valid data was received, wait for the next iteration */
         {
             break;
         }
     }
 }
 
-size_t CanDeviceLawicel::PrepareSendDataFormat(std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
+size_t CanDeviceLawicel::PrepareSendDataFormat(const std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
 {
     switch(device_state)
     {

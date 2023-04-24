@@ -22,15 +22,15 @@ CanDeviceStm32::~CanDeviceStm32()
 
 }
 
-void CanDeviceStm32::ProcessReceivedFrames()
+void CanDeviceStm32::ProcessReceivedFrames(std::mutex& rx_mutex)
 {
+    std::unique_lock lock(rx_mutex);
     while(m_CircBuff.size() >= sizeof(UartCanData))
     {
         do
         {
             char uart_data[sizeof(UartCanData)] = {};
-            if(m_CircBuff.size() >= sizeof(UartCanData))  /* TODO: solve this ssue with a better solution */
-                std::copy(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData), uart_data);
+            std::copy(m_CircBuff.begin(), m_CircBuff.begin() + sizeof(UartCanData), uart_data);
 
             if(*(uint32_t*)&uart_data == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
             {
@@ -61,7 +61,7 @@ void CanDeviceStm32::ProcessReceivedFrames()
     }
 }
 
-size_t CanDeviceStm32::PrepareSendDataFormat(std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
+size_t CanDeviceStm32::PrepareSendDataFormat(const std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
 {
     UartCanData* d = reinterpret_cast<UartCanData*>(out);
     assert(max_size >= sizeof(*d));

@@ -402,5 +402,8 @@ void CmdExecutor::WriteDefaultCommandsFile()
     </Page_2>\
 </Commands>";
     std::ofstream out(COMMAND_FILE_PATH, std::ofstream::binary);
-    out << file_content;
+    if(out)
+        out << file_content;
+    else
+        LOG(LogLevel::Error, "Failed to write default commands file!");
 }

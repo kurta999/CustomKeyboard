@@ -110,7 +110,8 @@ void Settings::LoadFile()
         }
         always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());
         shared_drive_letter = pt.get_child("App").find("SharedDriveLetter")->second.data()[0];
-        fetch_crypto_prices = utils::stob(pt.get_child("App").find("FetchCryptoPrices")->second.data());
+        crypto_price_update = utils::stoi<uint16_t>(pt.get_child("App").find("CryptoPriceUpdate")->second.data());
+        CorsairHid::Get()->SetDebouncingInterval(utils::stoi<uint16_t>(pt.get_child("App").find("CorsairDebouncingInterval")->second.data()));
 
         PrintScreenSaver::Get()->screenshot_key = std::move(pt.get_child("Screenshot").find("ScreenshotKey")->second.data());
         PrintScreenSaver::Get()->timestamp_format = std::move(pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data());
@@ -301,7 +302,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "LastWindowSize = " << std::format("{}, {}", window_size.x, window_size.y) << "\n";
     out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
     out << "SharedDriveLetter = " << shared_drive_letter << "\n";
-    out << "FetchCryptoPrices = " << fetch_crypto_prices << "\n";
+    out << "CryptoPriceUpdate = " << crypto_price_update << "\n";
+    out << "CorsairDebouncingInterval = " << CorsairHid::Get()->GetDebouncingInterval() << "\n";
     out << "\n";
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";

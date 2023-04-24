@@ -124,14 +124,14 @@ void CanSerialPort::WorkerThread(std::stop_token token)
                 {
                     std::unique_lock lock(m_mutex);
                     auto now = std::chrono::system_clock::now();
-                    bool ret = m_cv.wait_until(lock, now + CAN_SERIAL_PORT_TIMEOUT, [this]() { return is_notification_pending != 0; });
+                    bool ret = m_cv.wait_until(lock, token, now + CAN_SERIAL_PORT_TIMEOUT, [this]() { return is_notification_pending != 0; });
                     if(!ret)
                     {
                         LOG(LogLevel::Error, "CV timeout");
                     }
                 }
 
-                m_Device->ProcessReceivedFrames();
+                m_Device->ProcessReceivedFrames(m_RxMutex);
 
                 SendPendingCanFrames(serial);
                 is_notification_pending = false;
@@ -156,14 +156,14 @@ void CanSerialPort::WorkerThread(std::stop_token token)
             err_msg.clear();
 
             std::unique_lock lock(m_mutex);
-            m_cv.wait_for(lock, 1000ms);
+            m_cv.wait_for(lock, token, 1000ms, []() { return 1 == 0; });
         }
     }
 }
 
 void CanSerialPort::OnDataReceived(const char* data, unsigned int len)
 {
-    std::lock_guard guard(m_RxMutex);
+    std::scoped_lock guard(m_RxMutex);
     m_CircBuff.insert(m_CircBuff.end(), data, data + len);
     NotifiyMainThread();
 }
@@ -177,7 +177,7 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
         bool is_remove = false;
 
         {
-            std::unique_lock lock(m_mutex);
+            std::scoped_lock lock(m_mutex);
             char data[CAN_SERIAL_TX_BUFFER_SIZE];
             size_t size = m_Device->PrepareSendDataFormat(data_ptr, data, sizeof(data), is_remove);
 
@@ -191,6 +191,6 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
         if(is_remove)
             m_TxQueue.pop();
 
-        std::this_thread::sleep_for(1ms);  /* This delay is needed because UART timeout won't happen if everything is sent at once */
+        std::this_thread::sleep_for(std::chrono::microseconds(100));  /* This delay is needed because UART timeout won't happen if everything is sent at once */
     }
 }

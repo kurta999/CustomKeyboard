@@ -29,7 +29,7 @@ public:
     void Init();
 
     // !\brief Start async operations
-    void StartAsync();
+    void StartAsync(std::stop_token token);
 
     // !\brief Broadcast message to every session
     // !\param msg [in] TCP Server port
@@ -62,10 +62,13 @@ private:
     std::set<SharedSession> sessions;
 
     // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
+    std::unique_ptr<std::jthread> m_worker = nullptr;
 
     // !\brief ASIO Acceptor
     SharedAcceptor acceptor;
+
+    // !\brief Mutex for IO operations
+    std::mutex m_IoMutex;
 
     // !\brief IO Service
     boost::asio::io_service io_service;

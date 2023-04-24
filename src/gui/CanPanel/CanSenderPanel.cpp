@@ -611,15 +611,6 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
 void CanSenderPanel::On10MsTimer()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
-    //std::scoped_lock lock{ can_handler->m };
-    /*
-    bool is_lock_ok = can_handler->m.try_lock();
-    if(!is_lock_ok)
-    {
-        DBG("\n\nCanSenderPanel::On10MsTimer lock failed\n\n");
-        return;
-    }
-    */
     if(search_pattern_rx.empty())
     {
         for(auto& entry : can_handler->m_rxData)
@@ -674,7 +665,6 @@ void CanSenderPanel::On10MsTimer()
             }
         }
     }
-    //can_handler->m.unlock();
 }
 
 void CanSenderPanel::RefreshSubpanels()

@@ -117,7 +117,7 @@ void SerialForwarder::Init()
 {
     if(is_enabled)
     {
-        m_worker = std::make_unique<std::thread>([this] {
+        m_worker = std::make_unique<std::jthread>([this] {
 #ifdef _WIN32
             try
             {
@@ -158,9 +158,8 @@ void SerialForwarder::Init()
 SerialForwarder::~SerialForwarder()
 {
     io_context.stop();
-    if(m_worker && m_worker->joinable())
-        m_worker->join();
-    m_worker.reset(nullptr);
+    if(m_worker)
+        m_worker.reset(nullptr);
 }
 
 void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, size_t len)

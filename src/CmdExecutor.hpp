@@ -74,6 +74,8 @@ using CommandStorage = std::vector<std::vector<std::vector<CommandTypes>>>;
 class ICommandLoader
 {
 public:
+    virtual ~ICommandLoader() { }
+
     virtual bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
     virtual bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
 };
@@ -96,6 +98,8 @@ private:
 class ICmdExecutor
 {
 public:
+    virtual ~ICmdExecutor() { }
+
     virtual void Init() = 0;
     virtual void SetMediator(ICmdHelper* mediator) = 0;
     virtual void AddCommand(uint8_t page, uint8_t col, Command cmd) = 0;

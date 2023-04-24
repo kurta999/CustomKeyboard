@@ -84,7 +84,7 @@ void TrayIcon::OnOpenRootFolder(wxCommandEvent& WXUNUSED(event))
 {
 #ifdef _WIN32
 	wchar_t work_dir[1024] = {};
-	GetCurrentDirectoryW(sizeof(work_dir) - 1, work_dir);
+	GetCurrentDirectoryW(WXSIZEOF(work_dir) - 1, work_dir);
 	ShellExecuteW(NULL, NULL, work_dir, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }

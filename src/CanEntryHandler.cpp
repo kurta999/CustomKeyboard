@@ -55,8 +55,8 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
                 continue;
             }
 
-            const auto it = std::find_if(e.cbegin(), e.cend(), [&frame_id](const auto& item) { return item->id == frame_id; });
-            if(it != e.cend())
+            auto frame_cnt = std::ranges::count(e, frame_id, &CanTxEntry::id);
+            if(frame_cnt != 0)
             {
                 LOG(LogLevel::Warning, "CAN frame with FrameID {} has been already added to the TX List, skipping this one", frame_id_str);
                 continue;
@@ -94,7 +94,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             e.push_back(std::move(local_entry));
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
@@ -146,6 +146,8 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
     return ret;
 }
 
+#include <source_location>
+
 bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels)
 {
     bool ret = true;
@@ -167,8 +169,8 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
                 continue;
             }
 
-            const auto it = e.find(frame_id);
-            if(it != e.cend())
+            auto frame_cnt = std::ranges::count(e, frame_id, [](const auto& item) { return item.first; });
+            if(frame_cnt != 0)
             {
                 LOG(LogLevel::Warning, "CAN frame with FrameID {} has been already added to the RX List, skipping this one", frame_id_str);
                 continue;
@@ -273,10 +275,10 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
 
                     if(mapping.contains(frame_id))
                     {
-                        const auto it = std::find_if(mapping[frame_id].cbegin(), mapping[frame_id].cend(), [&offset](const auto& item) { return item.first == offset; });
-                        if(it != mapping[frame_id].cend())
+                        auto offset_cnt = std::ranges::count(mapping[frame_id], offset, [](const auto& item) { return item.first; });
+                        if(offset_cnt != 0)
                         {
-                            LOG(LogLevel::Warning, "Duplicate offset for FrameID: {}, Name: {}", frame_id_str, name);
+                            LOG(LogLevel::Warning, "Duplicate offset for FrameID: {}, Name: {}, Offset: {} - skipping this one", frame_id_str, name, offset);
                             continue;
                         }
                     }
@@ -363,7 +365,7 @@ bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& ma
         auto it_direction = directions.find(m.first);
         frame_node.add("Name", it_name != names.end() ? it_name->second : "");
         frame_node.add("Size", it_size != sizes.end() ? it_size->second : 0);
-        frame_node.add("Direction", it_direction != directions.end() ? it_direction->second : 0);
+        frame_node.add("Direction", std::format("{:c}", it_direction != directions.end() ? it_direction->second : 'T'));
 
         for(auto& o : m.second)
         {
@@ -473,7 +475,7 @@ void CanEntryHandler::WorkerThread(std::stop_token token)
                 }
             }
 
-            m_cv.wait_for(lock, 1ms);
+            m_cv.wait_for(lock, token, 1ms, []() { return 0 == 1; });
             isotp_poll(&link);
         }
     }
@@ -718,6 +720,10 @@ bool CanEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
             out.flush();
             ret = true;
         }
+        else
+        {
+            LOG(LogLevel::Error, "Failed to open file for saving CAN recording: {}", path.generic_string());
+        }
     }
 
     if(ret)
@@ -726,7 +732,7 @@ bool CanEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
         int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
         MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        std::lock_guard lock(frame->mtx);
+        std::unique_lock lock(frame->mtx);
         frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::CanLogSaved), dif, path.generic_string()});
     }
     return ret;

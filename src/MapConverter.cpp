@@ -8,6 +8,7 @@ class GtaEntityBase
 public:
     GtaEntityBase(const std::string& name_, Vec3D pos_, Vec3D rot_, uint8_t interior_, int world_) :
         name(name_), pos(pos_), rot(rot_), interior(interior_), world(world_) {}
+    virtual ~GtaEntityBase() { }
 
     virtual std::string ConvertToSampFormat(MapConverterFlags flags, Vec3D offset) = 0;
 

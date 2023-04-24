@@ -80,7 +80,7 @@ void SerialPort::DestroyWorkerThread()
     if(m_worker)
     {
         {
-            std::lock_guard guard(m_mutex);
+            std::unique_lock guard(m_mutex);
             to_exit = true;
             m_cv.notify_all();
         }

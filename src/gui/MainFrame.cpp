@@ -551,7 +551,7 @@ MyFrame::MyFrame(const wxString& title)
 
 void MyFrame::HandleNotifications()
 {
-	std::lock_guard lock(mtx);
+	std::scoped_lock lock(mtx);
 	if(pending_msgs.size() > 0)
 	{
 		try

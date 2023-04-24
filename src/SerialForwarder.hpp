@@ -48,6 +48,6 @@ private:
     boost::asio::io_context io_context;
 
     // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
+    std::unique_ptr<std::jthread> m_worker = nullptr;
 
 };

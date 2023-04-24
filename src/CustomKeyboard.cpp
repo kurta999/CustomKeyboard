@@ -45,9 +45,9 @@ int MyApp::OnExit()
     
     CanSerialPort::CSingleton::Destroy();
 
+    did_handler.reset(nullptr);  /* First this has to be destructed, because it uses CanEntryHandler */
     can_entry.reset(nullptr);
     cmd_executor.reset(nullptr);
-    did_handler.reset(nullptr);
 
     IdlePowerSaver::CSingleton::Destroy();  /* Restore CPU power to 100%, this has to be destructed before Logger */
     Settings::CSingleton::Destroy();

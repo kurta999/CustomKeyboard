@@ -7,18 +7,6 @@ EVT_GRID_EDITOR_SHOWN(DidPanel::OnCellEditorShown)
 EVT_CHAR_HOOK(DidPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
-DidMap::iterator did_it;
-
-enum class DidStateMachine
-{
-    Start,
-    Send,
-    Receive,
-    Idle,
-};
-
-DidStateMachine can_sender_state = DidStateMachine::Idle;
-
 DidGrid::DidGrid(wxWindow* parent)
 {
     m_grid = new wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(1024, 600), 0);
@@ -137,42 +125,8 @@ DidPanel::DidPanel(wxFrame* parent)
     static_box_grid->GetStaticBox()->SetForegroundColour(*wxRED);
 
     did_grid = new DidGrid(this);
-
-    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_RefreshDids = new wxButton(this, wxID_ANY, "Refresh", wxDefaultPosition, wxDefaultSize);
-    m_RefreshDids->SetToolTip("Start refreshing process for DIDs)");
-    m_RefreshDids->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            if(can_sender_state != DidStateMachine::Idle)  /* Abort */
-            {
-                m_RefreshDids->SetLabelText("Refresh");
-                m_RefreshDids->SetBackgroundColour(wxNullColour);
-                can_sender_state = DidStateMachine::Idle;
-                did_cnt = 0;
-
-                std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
-                did_it = did_handler->m_DidList.end();
-            }
-            else  /* Refresh */
-            {
-                m_RefreshDids->SetLabelText("Interrupt");
-                m_RefreshDids->SetBackgroundColour(*wxRED);
-                can_sender_state = DidStateMachine::Start;
-
-                int num_rows = did_grid->m_grid->GetNumberRows();
-                for(int i = 0; i != num_rows; i++)
-                {
-                    //wxFont cell_font = did_grid->m_grid->GetCellFont(i, Did_Name);
-                    wxFont cell_font;
-                    cell_font.SetWeight(wxFONTWEIGHT_NORMAL);
-                    did_grid->m_grid->SetCellFont(i, Did_Name, cell_font);
-                    did_grid->m_grid->SetCellBackgroundColour(did_cnt, DidGridCol::Did_Value, wxNullColour);
-                }
-                did_grid->m_grid->Update();
-            }
-        });
-    h_sizer->Add(m_RefreshDids);    
     
+    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_RefreshSelected = new wxButton(this, wxID_ANY, "Refresh selected", wxDefaultPosition, wxDefaultSize);
     m_RefreshSelected->SetToolTip("Start refreshing process for selected DIDs)");
     m_RefreshSelected->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -192,6 +146,17 @@ DidPanel::DidPanel(wxFrame* parent)
             did_handler->NotifyDidUpdate();
         });
     h_sizer->Add(m_RefreshSelected);
+
+    m_Abort = new wxButton(this, wxID_ANY, "Abort", wxDefaultPosition, wxDefaultSize);
+    m_Abort->SetToolTip("Abort DID update)");
+    m_Abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            std::unique_ptr<DidHandler>& did_handler = wxGetApp().did_handler;
+            wxGrid* m_grid = did_grid->m_grid;
+
+            did_handler->AbortDidUpdate();
+        });
+    h_sizer->Add(m_Abort);
 
     m_ClearDids = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);
     m_ClearDids->SetToolTip("Clear refreshed DID values)");
@@ -233,7 +198,7 @@ DidPanel::DidPanel(wxFrame* parent)
                 GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
 #endif
                 MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-                std::lock_guard lock(frame->mtx);
+                std::unique_lock lock(frame->mtx);
                 frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::DidCacheSaved), dif, std::string(work_dir) + "\\" + DID_CACHE_FILENAME });
             }
         });
@@ -287,7 +252,6 @@ void DidPanel::On100msTimer()
             did_grid->AddRow(i.second);
         }
         is_dids_initialized = true;
-        did_it = did_handler->m_DidList.end();
     }
 
     if(!did_handler->m_UpdatedDids.empty())
@@ -346,7 +310,7 @@ void DidPanel::WriteDid(uint16_t did, uint8_t* data_to_write, uint16_t size)
     did_handler->NotifyDidUpdate();
 
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-    std::lock_guard lock(frame->mtx);
+    std::unique_lock lock(frame->mtx);
     frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::DidUpdated) });
 
 }

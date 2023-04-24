@@ -40,8 +40,8 @@ public:
     DidGrid* did_grid;
     wxStaticBoxSizer* static_box_grid = nullptr;
 
-    wxButton* m_RefreshDids = nullptr;
     wxButton* m_RefreshSelected = nullptr;
+    wxButton* m_Abort = nullptr;
     wxButton* m_ClearDids = nullptr;
     wxButton* m_SaveCache = nullptr;
 

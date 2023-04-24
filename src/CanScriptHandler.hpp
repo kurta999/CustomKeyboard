@@ -15,11 +15,21 @@ public:
     CanScriptHandler(ICanResultPanel& result_panel);
     ~CanScriptHandler();
 
+    // !\brief Execute script
+    // !\param script Script to execute
     void RunScript(std::string script);
+
+    // !\brief Is script running
+    // !\return true if script is running, otherwise false
     bool IsScriptRunning();
+
+    // !\brief Abort running script
     void AbortRunningScript();
 
 private:
+    // !\brief Check if params count is correct
+    // !\param actual Actual params count
+    // !\param required Required params count
     bool __forceinline CheckParams(uint8_t actual, uint8_t required)
     {
         if(actual != required)
@@ -30,6 +40,8 @@ private:
         return true;
     }
 
+    // !\brief Execute script
+    // !\param script Script to execute
     void ExecuteScript(std::string script);
 
     template <typename T> void HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::string& new_data);
@@ -44,26 +56,37 @@ private:
     void OnFrameOnBus(uint32_t frame_id, uint8_t* data, uint16_t size) override;
     void OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t size) override;
 
+    // !\brief Bound operands
     std::map<std::string, std::function<CanScriptReturn(std::any, OperandParams&)>> m_operands;
-    
-    std::map<std::string, uint64_t> m_FrameValues;
+
+    // !\brief Frame values set by SetFrameField
     std::map<uint32_t, uint64_t> m_FrameIDValues;
+
+    // !\brief Result panel
     ICanResultPanel& m_Result;
 
+    // !\brief Is running script aborted?
     std::atomic<bool> m_IsAborted{};
 
+    // !\brief Conditon variable for waiting
     std::condition_variable cv;
+
+    // !\brief Mutex for condition variable
     std::mutex cv_m;
 
+    // !\brief Waiting Frame ID
     uint32_t m_WaitingFrame = std::numeric_limits<uint32_t>::max();
 
+    // !\brief Is the frame received which we are waiting for?
     bool m_WaitingFrameReceived = false;
 
+    // !\brief Data received for the waiting frame
     std::vector<uint8_t> m_WaitingFrameData;
 
-    // !\brief Future for executing async crypto price reading
+    // !\brief Future for executing CAN script
     std::future<void> m_FutureHandle;
 
+    // !\brief RAW frame values set by SetFrameFieldRaw
     std::map<uint16_t, std::vector<uint8_t>> raw_frame_blocks;
 
 };

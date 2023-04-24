@@ -1,9 +1,7 @@
 #include "pch.hpp"
 
-std::mutex mutex;
-
-Session::Session(boost::asio::io_service& io_service, std::unique_ptr<ITcpMessageExecutor>&& executor) : 
-	sessionSocket(io_service), transferTimer(io_service), m_msgExecutor(std::move(executor))
+Session::Session(boost::asio::io_service& io_service, std::mutex& io_mutex, std::unique_ptr<ITcpMessageExecutor>&& executor) :
+	sessionSocket(io_service), m_IoMutex(io_mutex), transferTimer(io_service), m_msgExecutor(std::move(executor))
 {
 
 }
@@ -15,7 +13,7 @@ Session::~Session()
 
 void Session::HandleRead(const boost::system::error_code& error, std::size_t bytesTransferred)
 {
-	std::scoped_lock lock(mutex);
+	std::scoped_lock lock(m_IoMutex);
 	if(!error)
 	{
 		receivedData[bytesTransferred] = 0;
@@ -42,7 +40,7 @@ void Session::HandleRead(const boost::system::error_code& error, std::size_t byt
 
 void Session::HandleTransferTimer(const boost::system::error_code& error)
 {
-	std::scoped_lock lock(mutex);
+	std::scoped_lock lock(m_IoMutex);
 	if(!error)
 	{
 		if(!pendingMessages.empty())
