@@ -740,6 +740,9 @@ void CustomMacro::ExecuteKeypresses()
 
     auto ExecuteGlobalMacro = [this]()
     {
+        if(macros.empty())
+            return;
+
         const auto it = macros[0]->key_vec.find(pressed_keys);
         if(it != macros[0]->key_vec.end())
         {
