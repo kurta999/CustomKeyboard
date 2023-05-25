@@ -2,6 +2,8 @@ This is a personal project for myself to improve my daily computer usage, partic
 
 If you want to use/resuse some part(s) of the project or you have a question, feel free to open a Pull Request.
 
+Work in progress Qt port of this application is available here: https://github.com/kurta999/QustomKeyboard
+
 # Quick overview
 ### 1. For Automotive development:
 1. **CAN-USB Transceiver** - Send and Receive standard and ISO-TP CAN Frames over CAN bus via computer trough USB - see more info below
