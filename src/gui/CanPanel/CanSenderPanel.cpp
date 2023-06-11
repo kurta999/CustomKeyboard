@@ -731,8 +731,8 @@ void CanSenderPanel::OnCellValueChanged(wxGridEvent& ev)
     if(ev.GetEventObject() == dynamic_cast<wxObject*>(can_grid_rx->m_grid))
     {
         wxString new_value = can_grid_rx->m_grid->GetCellValue(row, col);
-            switch(col)
-            {
+        switch(col)
+        {
             case CanSenderGridCol::Sender_LogLevel:
             {
                 wxString frame_str = can_grid_rx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
@@ -1101,6 +1101,8 @@ void CanSenderPanel::OnGridLabelRightClick(wxGridEvent& ev)
                         LOG(LogLevel::Warning, "stoi exception: {}", e.what());
                     }
                     can_handler->SetFavouriteLevel(favourite_level);
+
+                    RefreshTx();
                 }
 
                 break;

@@ -115,7 +115,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
     h_sizer->Add(m_LogLevelCtrl);
 
     m_RecordingSave = new wxButton(this, wxID_ANY, "Save log", wxDefaultPosition, wxDefaultSize);
-    m_RecordingSave->SetToolTip("Save recording");
+    m_RecordingSave->SetToolTip("Save recording to file");
     m_RecordingSave->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
 #ifdef _WIN32
@@ -171,8 +171,8 @@ void CanLogPanel::On10MsTimer()
         if(!is_something_inserted)
             inserted_until = 0;
 
-        auto it = can_handler->m_LogEntries.begin() + inserted_until;
-        //std::advance(it, inserted_until);
+        auto it = can_handler->m_LogEntries.begin();
+        std::advance(it, inserted_until);
         if(it == can_handler->m_LogEntries.end())
         {
             //DBG("shit happend");
@@ -217,8 +217,9 @@ void CanLogPanel::On10MsTimer()
 
                 if(insert_row)
                     InsertRow((*it)->last_execution, (*it)->direction, (*it)->frame_id, (*it)->data, comment);
+                inserted_until++;
             }
-            inserted_until = std::distance(can_handler->m_LogEntries.begin(), it);
+            //inserted_until = std::distance(can_handler->m_LogEntries.begin(), it);
             is_something_inserted = true;
         }
     }
@@ -271,63 +272,63 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
     {
         switch(evt.GetKeyCode())
         {
-        case 'F':
-        {
-            wxWindow* focus = wxWindow::FindFocus();
-            if(focus == m_grid)
+            case 'F':
             {
-                wxTextEntryDialog d(this, "Enter frame name for what you want to filter", "Frame filter");
-                int ret = d.ShowModal();
-                if(ret == wxID_OK)
+                wxWindow* focus = wxWindow::FindFocus();
+                if(focus == m_grid)
                 {
-                    std::string new_search_pattern = d.GetValue().ToStdString();
-                    if(new_search_pattern != search_pattern)
+                    wxTextEntryDialog d(this, "Enter frame name for what you want to filter", "Frame filter");
+                    int ret = d.ShowModal();
+                    if(ret == wxID_OK)
                     {
-                        search_pattern = new_search_pattern;
-                        ClearRecordingsFromGrid();
+                        std::string new_search_pattern = d.GetValue().ToStdString();
+                        if(new_search_pattern != search_pattern)
+                        {
+                            search_pattern = new_search_pattern;
+                            ClearRecordingsFromGrid();
+                        }
+                        /*
+                        if(search_pattern.empty())
+                            //static_box_tx->GetStaticBox()->SetLabelText("Transmit");
+                        else
+                            //static_box_tx->GetStaticBox()->SetLabelText(wxString::Format("Transmit - Search filter: %s", search_pattern_tx));
+                            */
+                            //RefreshTx();
                     }
-                    /*
-                    if(search_pattern.empty())
-                        //static_box_tx->GetStaticBox()->SetLabelText("Transmit");
-                    else
-                        //static_box_tx->GetStaticBox()->SetLabelText(wxString::Format("Transmit - Search filter: %s", search_pattern_tx));
-                        */
-                        //RefreshTx();
                 }
+                break;
             }
-            break;
-        }
-        case 'C':
-        {
-            wxWindow* focus = wxWindow::FindFocus();
-            if(focus == m_grid)
+            case 'C':
             {
-                wxArrayInt rows = m_grid->GetSelectedRows();
-                if(rows.empty()) return;
-
-                wxString str_to_copy;
-                for(auto& row : rows)
+                wxWindow* focus = wxWindow::FindFocus();
+                if(focus == m_grid)
                 {
-                    for(uint8_t col = 0; col < CanLogGridCol::Log_Max - 1; col++)
+                    wxArrayInt rows = m_grid->GetSelectedRows();
+                    if(rows.empty()) return;
+
+                    wxString str_to_copy;
+                    for(auto& row : rows)
                     {
-                        str_to_copy += m_grid->GetCellValue(row, col);
-                        str_to_copy += '\t';
+                        for(uint8_t col = 0; col < CanLogGridCol::Log_Max - 1; col++)
+                        {
+                            str_to_copy += m_grid->GetCellValue(row, col);
+                            str_to_copy += '\t';
+                        }
+                        str_to_copy += '\n';
                     }
-                    str_to_copy += '\n';
-                }
-                if(str_to_copy.Last() == '\n')
-                    str_to_copy.RemoveLast();
+                    if(str_to_copy.Last() == '\n')
+                        str_to_copy.RemoveLast();
 
-                if(wxTheClipboard->Open())
-                {
-                    wxTheClipboard->SetData(new wxTextDataObject(str_to_copy));
-                    wxTheClipboard->Close();
-                    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-                    frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SelectedLogsCopied) });
+                    if(wxTheClipboard->Open())
+                    {
+                        wxTheClipboard->SetData(new wxTextDataObject(str_to_copy));
+                        wxTheClipboard->Close();
+                        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SelectedLogsCopied) });
+                    }
                 }
+                break;
             }
-            break;
-        }
         }
     }
 }

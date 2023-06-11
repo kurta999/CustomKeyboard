@@ -105,7 +105,7 @@ void Settings::LoadFile()
 
             if(window_size.x < WINDOW_SIZE_X)
                 window_size.x = WINDOW_SIZE_X;
-            if(window_size.y < WINDOW_SIZE_X)
+            if(window_size.y < WINDOW_SIZE_Y)
                 window_size.y = WINDOW_SIZE_Y;
         }
         always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());

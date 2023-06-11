@@ -159,9 +159,9 @@ void StructParser::PreParseStructure(std::string& input, std::string& output)
 		boost::split(defines, header, boost::is_any_of("\n"));
 		for(auto& i : defines)
 		{
-			char name[32];
-			int32_t val;
-			int ret = sscanf(&i.c_str()[8], "%32[^ ]%d", name, &val);  /* no time for low-level solution */
+			char name[32] = {0};
+			int32_t val = 0;
+			int ret = sscanf(&i.c_str()[8], "%31[^ ]%d", name, &val);  /* no time for low-level solution */
 			if(ret == 2)
 			{
 				definitions[name] = val;
@@ -272,12 +272,16 @@ void StructParser::ConstructStuctureInMemory(std::string& input, uint32_t defaul
 							std::shared_ptr<ClassElement> e = std::get<std::shared_ptr<ClassElement>>(*m);
 							if(e->GetSize() > biggest_element)
 								biggest_element = e->GetSize();
+
+							DBG("class element in union: %s\n", e->name.c_str());
+
 							++m;
 						}
 						else if(std::holds_alternative<std::shared_ptr<ClassContainer>>(*m))
 						{
-							classes.clear();
-							//wxMessageBox("Please remove the object from union.", "Object support in union is not implemented yet!");
+							DBG("found struct inside union\n");
+
+							p = std::get<std::shared_ptr<ClassContainer>>(*m);
 							break;
 						}
 					}
@@ -290,6 +294,8 @@ void StructParser::ConstructStuctureInMemory(std::string& input, uint32_t defaul
 							std::shared_ptr<ClassElement> e = std::get<std::shared_ptr<ClassElement>>(*m);
 							e->union_size = biggest_element;
 							++m;
+
+							DBG("class element %s\n", e->name.c_str());
 						}
 					}
 					p = nullptr;
@@ -382,6 +388,11 @@ void StructParser::GenerateOutput(std::string& output)
 
 			if(!was_container)
 			{
+				if(out_stack.top()->is_union)
+				{
+
+				}
+				DBG("!was_container\n");
 				std::shared_ptr<ClassContainer> c = out_stack.top();
 				out_stack.pop();
 				if(out_stack.empty())

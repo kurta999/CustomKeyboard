@@ -61,7 +61,7 @@ void Logger::AppendPreinitedEntries()
 		for(auto& i : preinit_entries)
 		{
 			if(!i.message.empty())
-				m_helper->AppendLog(i.file.ToStdString(), i.message.ToStdString(), false);
+				m_helper->AppendLog(i.file.ToStdString(), i.message.ToStdString(), true);
 		}
 		preinit_entries.clear();
 	}

@@ -97,7 +97,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 
 	m_OkButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
 		{
-			const uint8_t pointer_sizes[4] = { 1, 2, 4, 8 };
+			static const uint8_t pointer_sizes[4] = { 1, 2, 4, 8 };
 			bool is_modbus = m_IsModbus->GetValue();
 
 			assert(m_PointerSize->GetSelection() < 4);

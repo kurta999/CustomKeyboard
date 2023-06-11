@@ -780,10 +780,13 @@ template <typename T> void CanEntryHandler::HandleBitReading(uint32_t frame_id, 
 {
     if(is_rx)
     {
-        uint64_t value = get_bitfield(m_rxData[frame_id]->data.data(), m_rxData[frame_id]->data.size(), offset, m->m_Size);
-        T extracted_data = static_cast<T>(value);
-        info.push_back({ 
-            std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m.get()});
+        if(m_rxData.contains(frame_id))
+        {
+            uint64_t value = get_bitfield(m_rxData[frame_id]->data.data(), m_rxData[frame_id]->data.size(), offset, m->m_Size);
+            T extracted_data = static_cast<T>(value);
+            info.push_back({
+                std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m.get() });
+        }
     }
     else
     {
