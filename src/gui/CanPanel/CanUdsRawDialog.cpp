@@ -110,6 +110,13 @@ CanUdsRawDialog::CanUdsRawDialog(wxWindow* parent)
     CentreOnScreen();
 }
 
+CanUdsRawDialog::~CanUdsRawDialog()
+{
+    if(m_isotp_future.valid())
+        if(m_isotp_future.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)
+            m_isotp_future.get();
+}
+
 void CanUdsRawDialog::ShowDialog()
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -198,8 +205,6 @@ void CanUdsRawDialog::OnApply(wxCommandEvent& WXUNUSED(event))
     Close();
 }
 
-std::future<bool> m_isotp_global;
-
 bool SendIsoTpFrameGlobal(uint32_t sender_id, char* arr_to_send, uint16_t len)
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -248,14 +253,8 @@ void CanUdsRawDialog::HandleFrameSending()
             continue;
         }
 
-        if(m_isotp_global.valid())
-            if(m_isotp_global.wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready)
-                m_isotp_global.get();
-
-        m_isotp_global = std::async(&SendIsoTpFrameGlobal, m_LastUdsSenderId, byte_array, len);
-        {
-            LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", m_LastUdsSenderId, can_handler->GetIsoTpResponseFrameId(), len);
-        }
+        m_isotp_future = std::async(&SendIsoTpFrameGlobal, m_LastUdsSenderId, byte_array, len);
+        LOG(LogLevel::Notification, "Sending ISO-TP Frame, FrameID: {:X}, ResponseFrameID: {:X}, Len: {}", m_LastUdsSenderId, can_handler->GetIsoTpResponseFrameId(), len);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(m_LastDelayBetweenFrames));
     }

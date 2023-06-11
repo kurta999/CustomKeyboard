@@ -6,6 +6,7 @@ class CanUdsRawDialog : public wxDialog
 {
 public:
     CanUdsRawDialog(wxWindow* parent);
+    ~CanUdsRawDialog();
 
     void ShowDialog();
     bool IsApplyClicked() { return m_IsApplyClicked; }
@@ -40,6 +41,7 @@ private:
     uint32_t m_LastDelayBetweenFrames = 0;
     uint32_t m_LastRecvWaitingTime = 0;
     std::string m_LastUdsInput;
+    std::future<bool> m_isotp_future;
 
     bool m_IsApplyClicked = false;
 
