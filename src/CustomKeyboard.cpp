@@ -25,6 +25,7 @@ bool MyApp::OnInit()
     MacroRecorder::Get()->Init();
     SerialForwarder::Get()->Init();
     CorsairHid::Get()->Init();
+    BsecHandler::Get()->Init();
 
     can_entry->Init();
     cmd_executor->Init();

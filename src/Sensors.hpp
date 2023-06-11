@@ -23,11 +23,76 @@ public:
 
     }
     ~Measurement() = default;
-    Measurement(const Measurement&) = default;
+    Measurement(const Measurement&rhs)
+    {
+        this->operator+=(rhs);
+    }
+
+    Measurement& operator =(const Measurement& rhs)
+    {
+        temp = rhs.temp;
+        hum = rhs.hum;
+        pressure = rhs.pressure;
+        r = rhs.r;
+        g = rhs.g;
+        b = rhs.b;
+        co2 = rhs.co2;
+        voc = rhs.voc;
+        co = rhs.co;
+        pm25 = rhs.pm25;
+        pm10 = rhs.pm10;
+        lux = rhs.lux;
+        cct = rhs.cct;
+        uv = rhs.uv;
+        time = rhs.time;
+        return *this;
+    }
+
+    Measurement& operator +=(const Measurement& rhs)
+    {
+        temp += rhs.temp;
+        hum += rhs.hum;
+        pressure += rhs.pressure;
+        r += rhs.r;
+        g += rhs.g;
+        b += rhs.b;
+        co2 += rhs.co2;
+        voc += rhs.voc;
+        co += rhs.co;
+        pm25 += rhs.pm25;
+        pm10 += rhs.pm10;
+        lux += rhs.lux;
+        cct += rhs.cct;
+        uv += rhs.uv;
+        time += rhs.time;
+        cnt++;
+        return *this;
+    }
+
+    void Finalize()
+    {
+        temp /= cnt;
+        hum /= cnt;
+        pressure /= cnt;
+        r /= cnt;
+        g /= cnt;
+        b /= cnt;
+        co2 /= cnt;
+        voc /= cnt;
+        co /= cnt;
+        pm25 /= cnt;
+        pm10 /= cnt;
+        lux /= cnt;
+        cct /= cnt;
+        uv /= cnt;
+        cnt = 1;
+    }
 
     float temp = 0.0f, hum = 0.0f, pressure = 0.0f, r = 0.0f, g = 0.0f, b = 0.0f;
     int co2 = 0, voc = 0, co = 0, pm25 = 0, pm10 = 0, lux = 0, cct = 0, uv = 0;
     std::string time;
+
+    uint8_t cnt = 0;
 };
 #pragma pack(pop)
 
@@ -63,11 +128,50 @@ public:
     std::vector<std::unique_ptr<Measurement>> last_week[3];
 
 private:
+    enum
+    {
+        MEAS_INDEX_SCD_TEMP,
+        MEAS_INDEX_SCD_HUM,
+        MEAS_INDEX_SCD_CO2,
+        MEAS_INDEX_CO,
+        MEAS_INDEX_BME680_TEMP,
+        MEAS_INDEX_BME680_HUM,
+        MEAS_INDEX_BME680_PRESSURE,
+        MEAS_INDEX_BME680_GAS_RESISTANCE,
+        MEAS_INDEX_BME680_TIMESTAMP,
+        MEAS_INDEX_PM25,
+        MEAS_INDEX_PM10,
+        MEAS_INDEX_UV,
+        MEAS_INDEX_R,
+        MEAS_INDEX_G,
+        MEAS_INDEX_B,
+        MEAS_INDEX_CCT,
+        MEAS_INDEX_Lux,
+        MEAS_INDEX_Max
+    };
+
+    // \brief Main function for measurement handling
+    // \param meas_vec [in] - vector of string containing measurements
+    void HandleMeasurements(std::vector<std::string>& meas_vec);
+
+    // \brief Update GUI with given measurements
+    // \param m [in] - Measurement object whose params will be printed to the GUI
+    void UpdateGui(Measurement& m);
+
+    // \param Update measurement database if specified period elapsed
+    void UpdateDatabaseIfNeeded();
+
     template<typename T> T GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset);
     template<int i, typename T1, typename T2> int CalculateMinMaxAvg_Final(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<int i, typename T1, typename T2> int CalculateMinMaxAvg(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<typename T1, typename T2> void WriteDataToHtmlFromContainer(std::string* labels, std::string* data_values, T2* container, size_t offset);
     template<typename T1> void WriteGraph(const char* filename, uint16_t min_val, uint16_t max_val, const char* name, size_t offset_1);
+
+    // \brief Start of current integration period timestamp
+    std::chrono::steady_clock::time_point m_IntegrationStartTimestamp;
+
+    // \brief Pointer to current measurement
+    std::unique_ptr<Measurement> m_CurrMeas = nullptr;
 
     // \brief Dequeue for last X measurement
     std::deque<std::unique_ptr<Measurement>> last_meas;

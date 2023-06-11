@@ -2,6 +2,7 @@
 #include <regex>
 
 constexpr int64_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
+constexpr int64_t INTEGRATION_TIME = 10;  /* 10 seconds */
 
 void Sensors::Init()
 {
@@ -31,77 +32,32 @@ void Sensors::Init()
 bool Sensors::ProcessIncommingData(const char* recv_data, size_t data_len, const char* from_ip)
 {
     bool ret = true;
-    std::string s = std::string(recv_data, recv_data + data_len);
-    boost::algorithm::erase_all(s, "SCD30");
-    boost::algorithm::erase_all(s, "BME680");
-    boost::algorithm::erase_all(s, "VEML6070");
-    boost::algorithm::erase_all(s, "TCS");
-
-    std::regex num_regex("[-+]?(\\d+([.]\\d*)?|[.]\\d+)([eE][-+]?\\d+)?");
-    auto num_begin =
-        std::sregex_iterator(s.begin(), s.end(), num_regex);
-    auto num_end = std::sregex_iterator();
-
-    std::vector<std::string> matches;
-    for(std::sregex_iterator i = num_begin; i != num_end; ++i) 
-    {
-        std::smatch match = *i;
-        matches.push_back(match.str());
-    }
-    // MEAS_DATA SCD30: 23.8090,55.2170,2061.8943 BME680: 22.3400,54.9650,996.6300 HONEYWELL: 28,12 VEML6070: 0 TCS: 141.8489,110.6913,110.6913,3847,58
-
-    if(matches.size() < 14)  /* TODO: update this when CO is added */
-    {
-        LOG(LogLevel::Warning, "Too few measurements received from {} (data: {}, len: {})", from_ip, recv_data, data_len);
-        return false;
-    }
-
     try
-    {
-        //float temp = boost::lexical_cast<float>(matches[0]), hum = boost::lexical_cast<float>(matches[1]), pressure = boost::lexical_cast<float>(matches[5]);
-        float temp = boost::lexical_cast<float>(matches[3]), hum = boost::lexical_cast<float>(matches[1]), pressure = boost::lexical_cast<float>(matches[5]);
-        int co2 = utils::stoi<int>(matches[2]), voc = 0,
-            pm25 = utils::stoi<int>(matches[6]), pm10 = utils::stoi<int>(matches[7]), uv = utils::stoi<int>(matches[8]);
+    {  // MEAS_DATA SCD30: 25.7343,60.9436,717.7289 BME680: 24.0600,62.7400,1001.8600,75693,4253974 HONEYWELL: 3,4 VEML6070: 0 TCS: 114.1704,108.3750,107.7955,4841,92
+        std::string s = std::string(recv_data, recv_data + data_len);
+        boost::algorithm::erase_all(s, "SCD30");
+        boost::algorithm::erase_all(s, "CO");
+        boost::algorithm::erase_all(s, "BME680");
+        boost::algorithm::erase_all(s, "VEML6070");
+        boost::algorithm::erase_all(s, "TCS");
 
-        float r = boost::lexical_cast<float>(matches[9]), g = boost::lexical_cast<float>(matches[10]), b = boost::lexical_cast<float>(matches[11]);
-        uint16_t lux = utils::stoi<int>(matches[13]), cct = utils::stoi<int>(matches[12]);
-        int co = 0; /* TODO: finsih this */
+        std::regex num_regex("[-+]?(\\d+([.]\\d*)?|[.]\\d+)([eE][-+]?\\d+)?");
+        auto num_begin = std::sregex_iterator(s.begin(), s.end(), num_regex);
+        auto num_end = std::sregex_iterator();
 
-#ifdef _WIN32 /* TODO: remove once std::chrono::current_zone() support is added to clang */
-        const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
-
-        std::unique_ptr<Measurement> m = std::make_unique<Measurement>(temp, hum, co2, voc, co, pm25, pm10, pressure, r, g, b, lux, cct, uv, std::move(std::format("{:%H:%M:%OS}", now)));
-        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(wxGetApp().is_init_finished && frame && frame->main_panel)
+        std::vector<std::string> meas_vec;
+        for(std::sregex_iterator i = num_begin; i != num_end; ++i) 
         {
-            frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.1f"), m->temp));
-            frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.1f"), m->hum));
-            frame->main_panel->m_textCO2->SetLabelText(wxString::Format(wxT("CO2: %i"), m->co2));
-            frame->main_panel->m_textVOC->SetLabelText(wxString::Format(wxT("VOC: %i"), m->voc));
-            frame->main_panel->m_textCO->SetLabelText(wxString::Format(wxT("CO: %i"), m->co));
-            frame->main_panel->m_textPM25->SetLabelText(wxString::Format(wxT("PM2.5: %i"), m->pm25));
-            frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), m->pm10));
-            frame->main_panel->m_textPressure->SetLabelText(wxString::Format(wxT("Pressure: %.1f"), m->pressure));
-            frame->main_panel->m_textR->SetLabelText(wxString::Format(wxT("R: %.1f"), m->r));
-            frame->main_panel->m_textG->SetLabelText(wxString::Format(wxT("G: %.1f"), m->g));
-            frame->main_panel->m_textB->SetLabelText(wxString::Format(wxT("B: %.1f"), m->b));
-            frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), m->lux));
-            frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), m->cct));
-            frame->main_panel->m_textUV->SetLabelText(wxString::Format(wxT("UV: %i"), m->uv));
-            frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), std::format("{:%Y.%m.%d %H:%M:%OS} - {}", now, ++num_recv_meas)));
-            frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, VOC: %d, CO: %d, PM2.5: %d, PM10: %d, Pressure: %.1f, Lux: %d, CCT: %d, UV: %d"),
-                m->temp, m->hum, m->co2, m->voc, m->co, m->pm25, m->pm10, m->pressure, m->lux, m->cct, m->uv));
+            std::smatch match = *i;
+            meas_vec.push_back(match.str());
         }
 
-        DatabaseLogic::Get()->InsertMeasurement(m);
-        AddMeasurement(std::move(m));
-
-        int64_t diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
-        if(diff > GRAPHS_REGENERATION_INTERVAL)
-            DatabaseLogic::Get()->GenerateGraphs();
-        else
-            WriteGraphs();
-#endif
+        if(meas_vec.size() < MEAS_INDEX_Max)
+        {
+            LOG(LogLevel::Warning, "Too few measurements received from {} (data: {}, len: {})", from_ip, recv_data, data_len);
+            return false;
+        }
+        HandleMeasurements(meas_vec);
     }
     catch(const std::exception& e)
     {
@@ -109,6 +65,64 @@ bool Sensors::ProcessIncommingData(const char* recv_data, size_t data_len, const
         return false;
     }
     return true;
+}
+
+void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
+{
+    float temp = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_TEMP]),
+        hum = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_HUM]),
+        pressure = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_PRESSURE]);
+    int co2 = utils::stoi<int>(meas_vec[MEAS_INDEX_SCD_CO2]), voc = 0,
+        pm25 = utils::stoi<int>(meas_vec[MEAS_INDEX_PM25]), pm10 = utils::stoi<int>(meas_vec[MEAS_INDEX_PM10]), uv = utils::stoi<int>(meas_vec[MEAS_INDEX_UV]);
+
+    int gas_resistance = utils::stoi<int>(meas_vec[MEAS_INDEX_BME680_GAS_RESISTANCE]);
+    int b_timestamp = utils::stoi<int>(meas_vec[MEAS_INDEX_BME680_TIMESTAMP]);
+    BsecHandler::Get()->AddMeasurementsAndCalculate(b_timestamp, temp, pressure, hum, gas_resistance);
+    voc = roundf(BsecHandler::Get()->iaq * 10);
+
+    float r = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_R]), g = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_G]), b = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_B]);
+    uint16_t lux = utils::stoi<int>(meas_vec[MEAS_INDEX_Lux]), cct = utils::stoi<int>(meas_vec[MEAS_INDEX_CCT]);
+    int co = utils::stoi<int>(meas_vec[MEAS_INDEX_CO]);
+
+#ifdef _WIN32 /* TODO: remove once std::chrono::current_zone() support is added to clang */
+    const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+
+    Measurement temp_meas(temp, hum, co2, voc, co, pm25, pm10, pressure, r, g, b, lux, cct, uv, std::move(std::format("{:%H:%M:%OS}", now)));
+
+    bool do_not_update = false;
+    if(m_CurrMeas == nullptr)
+    {
+        LOG(LogLevel::Notification, "Add new meas");
+
+        m_CurrMeas = std::make_unique<Measurement>(temp_meas);
+        m_IntegrationStartTimestamp = std::chrono::steady_clock::now();
+        do_not_update = true;
+    }
+
+    UpdateGui(temp_meas);
+
+    bool add_to_db = false;
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    int64_t time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_IntegrationStartTimestamp).count();
+    if(time_elapsed > INTEGRATION_TIME * 1000)
+    {
+        LOG(LogLevel::Notification, "Add to db");
+        m_CurrMeas->Finalize();
+        DatabaseLogic::Get()->InsertMeasurement(m_CurrMeas);
+        AddMeasurement(std::move(m_CurrMeas));
+        m_CurrMeas = nullptr;
+
+        UpdateDatabaseIfNeeded();
+    }
+    else
+    {
+        if(!do_not_update)
+        {
+            *m_CurrMeas += temp_meas;
+            LOG(LogLevel::Notification, "Update {}", m_CurrMeas->cnt);
+        }
+    }
+#endif
 }
 
 void Sensors::WriteGraphs()
@@ -138,6 +152,42 @@ void Sensors::AddMeasurement(std::unique_ptr<Measurement>&& meas)
     last_meas.push_back(std::move(meas));
 }
 
+void Sensors::UpdateGui(Measurement& meas)
+{
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if(wxGetApp().is_init_finished && frame && frame->main_panel)
+    {
+        const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+        frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.1f"), meas.temp));
+        frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.1f"), meas.hum));
+        frame->main_panel->m_textCO2->SetLabelText(wxString::Format(wxT("CO2: %i"), meas.co2));
+        frame->main_panel->m_textVOC->SetLabelText(std::format("IAQ: {:.1f}, Gas: {:.1f}%", (float)(meas.voc / 10.0f), BsecHandler::Get()->gas_percentage));
+        frame->main_panel->m_textCO->SetLabelText(wxString::Format(wxT("CO: %i"), meas.co));
+        frame->main_panel->m_textPM25->SetLabelText(wxString::Format(wxT("PM2.5: %i"), meas.pm25));
+        frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), meas.pm10));
+        frame->main_panel->m_textPressure->SetLabelText(wxString::Format(wxT("Pressure: %.1f"), meas.pressure));
+        frame->main_panel->m_textR->SetLabelText(wxString::Format(wxT("R: %.1f"), meas.r));
+        frame->main_panel->m_textG->SetLabelText(wxString::Format(wxT("G: %.1f"), meas.g));
+        frame->main_panel->m_textB->SetLabelText(wxString::Format(wxT("B: %.1f"), meas.b));
+        frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), meas.lux));
+        frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), meas.cct));
+        frame->main_panel->m_textUV->SetLabelText(wxString::Format(wxT("UV: %i"), meas.uv));
+        frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), std::format("{:%Y.%m.%d %H:%M:%OS} - {}", now, ++num_recv_meas)));
+        frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, IAQ: %d, CO: %d, PM2.5: %d, PM10: %d, Pressure: %.1f, Lux: %d, CCT: %d, UV: %d"),
+            meas.temp, meas.hum, meas.co2, meas.voc / 10, meas.co, meas.pm25, meas.pm10, meas.pressure, meas.lux, meas.cct, meas.uv));
+    }
+}
+
+void Sensors::UpdateDatabaseIfNeeded()
+{
+    int64_t diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
+    if(diff > GRAPHS_REGENERATION_INTERVAL)
+        DatabaseLogic::Get()->GenerateGraphs();
+    else
+        WriteGraphs();
+
+}
+
 template<typename T> T Sensors::GetValueFromDequeue(const std::unique_ptr<Measurement>& meas, int offset)
 {
     T retval = *(T*)(((char*)meas.get() + (char)offset));
@@ -146,7 +196,7 @@ template<typename T> T Sensors::GetValueFromDequeue(const std::unique_ptr<Measur
 
 template<int i, typename T1, typename T2> int Sensors::CalculateMinMaxAvg_Final(int ai, std::string* labels, std::string* data_values, T2* container, size_t offset)
 {
-    DBG("final %d, %p, %p\n", i, labels, data_values);
+    //DBG("final %d, %p, %p\n", i, labels, data_values);
     WriteDataToHtmlFromContainer<T1, T2>(&labels[(ai - 1) - i], &data_values[(ai - 1) - i], &container[(ai - 1) - i], offset);
     return i;
 }
@@ -155,21 +205,21 @@ template< int i, typename T1, typename T2> int Sensors::CalculateMinMaxAvg(int a
 {
     if(i < ai) 
     {
-        DBG("generated function: %d, %d, %p, %p\n", ai, i, labels, data_values);
+        //DBG("generated function: %d, %d, %p, %p\n", ai, i, labels, data_values);
         /*return*/ CalculateMinMaxAvg_Final<i, T1>(ai, labels, data_values, container, offset);
     }
     {
-        DBG("r_dispatch labels %d, %d: result: %d\n\n", ai, i, ai - i);
+        //DBG("r_dispatch labels %d, %d: result: %d\n\n", ai, i, ai - i);
 
         if constexpr(i > 0)
         {
-            DBG("bigger %p, %p, %p, %lld\n", labels, data_values, container, offset);
-            DBG("\n\nadd size: %lld\n\n", sizeof(std::string))
+            //DBG("bigger %p, %p, %p, %lld\n", labels, data_values, container, offset);
+            //DBG("\n\nadd size: %lld\n\n", sizeof(std::string))
             return CalculateMinMaxAvg< i - 1, T1, T2 >(ai, labels, data_values, container, offset);
         }
         else
         {
-            DBG("smaller %d, %d\n", ai, i);
+            //DBG("smaller %d, %d\n", ai, i);
             return -1;
         }
     }

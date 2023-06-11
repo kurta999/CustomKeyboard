@@ -85,6 +85,7 @@ namespace std
 #include "TcpMessageExecutor.hpp"
 #include "CmdExecutor.hpp"
 #include "ExceptionHandler.hpp"
+#include "BsecHandler.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
@@ -195,6 +196,7 @@ namespace std
 extern "C"
 {
 	#include "sha256/sha256.h"
+	#include "bsec/bsec_interface.h"
 	#include <bitfield/bitfield.h>
 	#include <isotp/isotp.h>
 }
