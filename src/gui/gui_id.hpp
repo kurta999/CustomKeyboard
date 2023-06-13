@@ -23,6 +23,7 @@ enum
 	ID_CanSaveMapping,
 	ID_CanSaveAll,
 	ID_CmdExecutorSave,
+	ID_BsecSaveCache,
 	ID_SaveEverything,
 	ID_AppBindListMain,
 	ID_MacroDetails,

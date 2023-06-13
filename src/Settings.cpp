@@ -76,8 +76,11 @@ void Settings::LoadFile()
         SerialForwarder::Get()->bind_ip = std::move(pt.get_child("COM_TcpBackend").find("ListeningIp")->second.data());
         SerialForwarder::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_TcpBackend").find("ListeningPort")->second.data());
 
-        Server::Get()->is_enabled = utils::stob(pt.get_child("TCP_Backend").find("Enable")->second.data());
-        Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("TCP_Backend").find("TCP_Port")->second.data());
+        Server::Get()->is_enabled = utils::stob(pt.get_child("Sensors").find("Enable")->second.data());
+        Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("Sensors").find("TCP_Port")->second.data());
+        Sensors::Get()->SetGraphGenerationInterval(utils::stoi<uint16_t>(pt.get_child("Sensors").find("GraphGenerationInterval")->second.data()));
+        Sensors::Get()->SetGraphResolution(utils::stoi<uint16_t>(pt.get_child("Sensors").find("GraphResolution")->second.data()));
+        Sensors::Get()->SetIntegrationTime(utils::stoi<uint16_t>(pt.get_child("Sensors").find("IntegrationTime")->second.data()));
 
         std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
         CanSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("CANSender").find("Enable")->second.data()));
@@ -255,9 +258,12 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     }
 
     out << "\n";
-    out << "[TCP_Backend]\n";
-    out << "Enable = " << Server::Get()->is_enabled << "\n";
+    out << "[Sensors]\n";
+    out << "Enable = " << Server::Get()->is_enabled << " # Toggle TCP server" << "\n";
     out << "TCP_Port = " << Server::Get()->tcp_port << " # TCP Port for receiving measurements from sensors\n";
+    out << "GraphGenerationInterval = " << Sensors::Get()->GetGraphGenerationInterval() << " # Minutes\n";
+    out << "GraphResolution = " << Sensors::Get()->GetGraphResolution() << " # Number of different measurement points in generated graph\n";
+    out << "IntegrationTime = " << Sensors::Get()->GetIntegrationTime() << " # Seconds\n";
     out << "\n";
     out << "[COM_Backend]\n";
     out << "Enable = " << SerialPort::Get()->IsEnabled() << "\n";

@@ -103,32 +103,37 @@ void CanDeviceLawicel::ProcessReceivedFrames(std::mutex& rx_mutex)
 
 size_t CanDeviceLawicel::PrepareSendDataFormat(const std::shared_ptr<CanData>& data_ptr, char* out, size_t max_size, bool& remove_from_queue)
 {
+    size_t send_size = 0;
     switch(device_state)
     {
         case 0:  /* Initial CR */
         {
-            memcpy(out, "\r", 1);
+            send_size = 1;
+            memcpy(out, "\r", send_size);
             device_state++;
             std::this_thread::sleep_for(150ms);
             break;
         }
         case 1:  /* Get version */
         {
-            memcpy(out, "V\r", 2);  
+            send_size = 2;
+            memcpy(out, "V\r", send_size);  
             device_state++;
             std::this_thread::sleep_for(150ms);
             break;
         }
         case 2:  /* CAN Baudrate 500Kbps */
         {
-            memcpy(out, "S6\r", 3);  
+            send_size = 3;
+            memcpy(out, "S6\r", send_size);
             device_state++;
             std::this_thread::sleep_for(50ms);
             break;
         }
         case 3:  /* Open CAN channel */
         {
-            memcpy(out, "O\r", 2);  
+            send_size = 2;
+            memcpy(out, "O\r", send_size);
             device_state++;
             std::this_thread::sleep_for(200ms);
             break;
@@ -140,8 +145,9 @@ size_t CanDeviceLawicel::PrepareSendDataFormat(const std::shared_ptr<CanData>& d
             boost::algorithm::hex(data_ptr->data, data_ptr->data + data_ptr->data_len, std::back_inserter(out_hex));
 
             std::string out_str = std::format("{}{:X}{}{}\r", data_ptr->frame_id < 0x7FF ? 't' : 'T', data_ptr->frame_id, data_ptr->data_len, out_hex);
+            send_size = out_str.length();
             memcpy(out, out_str.c_str(), out_str.length());
-            return out_str.length();
+            break;
         }
         default:
         {
@@ -149,5 +155,5 @@ size_t CanDeviceLawicel::PrepareSendDataFormat(const std::shared_ptr<CanData>& d
             break;
         }
     }
-    return 0;
+    return send_size;
 }

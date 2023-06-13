@@ -20,6 +20,7 @@ EVT_MENU(ID_CanSaveRxList, MyFrame::OnCanSaveRxList)
 EVT_MENU(ID_CanLoadMapping, MyFrame::OnCanLoadMapping)
 EVT_MENU(ID_CanSaveMapping, MyFrame::OnCanSaveMapping)
 EVT_MENU(ID_CmdExecutorSave, MyFrame::OnSaveCmdExecutor)
+EVT_MENU(ID_BsecSaveCache, MyFrame::OnSaveBsecCache)
 EVT_MENU(ID_SaveEverything, MyFrame::OnSaveEverything)
 EVT_SIZE(MyFrame::OnSize)
 EVT_CLOSE(MyFrame::OnClose)
@@ -252,6 +253,13 @@ void MyFrame::OnSaveCmdExecutor(wxCommandEvent& event)
 	}
 }
 
+void MyFrame::OnSaveBsecCache(wxCommandEvent& event)
+{
+	std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+	std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+	bool ret = cmd->Save();
+}
+
 void MyFrame::OnSaveEverything(wxCommandEvent& event)
 {
 	Settings::Get()->SaveFile(false);
@@ -450,6 +458,7 @@ MyFrame::MyFrame(const wxString& title)
 	menuCan->Append(ID_CanSaveMapping, "&Save CAN mapping", "Save CAN mapping")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_CanSaveAll, "&Save all CAN", "Save TX,RX List & CAN mapping")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_CmdExecutorSave, "&Save CMDs", "Save commands from CMD Executor")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	menuCan->Append(ID_BsecSaveCache, "&Save BSEC", "Save BSEC Cache")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	menuCan->Append(ID_SaveEverything, "&Save everything", "Save everything (CAN, CmdExecutor, Settings, etc)")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(ID_About, "&About", "Read license")->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxART_OTHER, FromDIP(wxSize(16, 16))));

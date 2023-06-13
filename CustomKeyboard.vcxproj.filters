@@ -333,6 +333,9 @@
     <ClInclude Include="src\interface\ICanObserver.hpp">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
+    <ClInclude Include="src\BsecHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -544,6 +547,9 @@
     </ClCompile>
     <ClCompile Include="src\gui\CanPanel\CanUdsRawDialog.cpp">
       <Filter>Source Files\gui\CanPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BsecHandler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -117,6 +117,7 @@ private:
 	void OnCanSaveMapping(wxCommandEvent& event);
 	void OnCanSaveAll(wxCommandEvent& event);
 	void OnSaveCmdExecutor(wxCommandEvent& event);
+	void OnSaveBsecCache(wxCommandEvent& event);
 	void OnSaveEverything(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);

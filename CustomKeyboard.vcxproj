@@ -232,7 +232,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_82_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_stc.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Secur32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_stc.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Secur32.lib;hidapi.lib;PowrProf.lib;BSECLibrary64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib</AdditionalIncludeDirectories>
@@ -263,7 +263,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;BSECLibrary64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_82_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
@@ -328,6 +328,7 @@
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\AntiLock.hpp" />
+    <ClInclude Include="src\BsecHandler.hpp" />
     <ClInclude Include="src\CanEntryHandler.hpp" />
     <ClInclude Include="src\CanDeviceLawicel.hpp" />
     <ClInclude Include="src\CanScriptHandler.hpp" />
@@ -512,6 +513,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\AntiLock.cpp" />
+    <ClCompile Include="src\BsecHandler.cpp" />
     <ClCompile Include="src\CanEntryHandler.cpp" />
     <ClCompile Include="src\CanDeviceLawicel.cpp" />
     <ClCompile Include="src\CanScriptHandler.cpp" />

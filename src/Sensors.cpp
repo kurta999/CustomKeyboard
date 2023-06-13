@@ -1,9 +1,6 @@
 #include "pch.hpp"
 #include <regex>
 
-constexpr int64_t GRAPHS_REGENERATION_INTERVAL = 10 * 60;  /* 10 minutes */
-constexpr int64_t INTEGRATION_TIME = 10;  /* 10 seconds */
-
 void Sensors::Init()
 {
     std::error_code ec;
@@ -72,13 +69,13 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
     float temp = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_TEMP]),
         hum = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_HUM]),
         pressure = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_BME680_PRESSURE]);
-    int co2 = utils::stoi<int>(meas_vec[MEAS_INDEX_SCD_CO2]), voc = 0,
+    int co2 = utils::stoi<int>(meas_vec[MEAS_INDEX_SCD_CO2]),
         pm25 = utils::stoi<int>(meas_vec[MEAS_INDEX_PM25]), pm10 = utils::stoi<int>(meas_vec[MEAS_INDEX_PM10]), uv = utils::stoi<int>(meas_vec[MEAS_INDEX_UV]);
 
     int gas_resistance = utils::stoi<int>(meas_vec[MEAS_INDEX_BME680_GAS_RESISTANCE]);
     int b_timestamp = utils::stoi<int>(meas_vec[MEAS_INDEX_BME680_TIMESTAMP]);
     BsecHandler::Get()->AddMeasurementsAndCalculate(b_timestamp, temp, pressure, hum, gas_resistance);
-    voc = roundf(BsecHandler::Get()->iaq * 10);
+    float voc = BsecHandler::Get()->GetIaq();
 
     float r = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_R]), g = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_G]), b = boost::lexical_cast<float>(meas_vec[MEAS_INDEX_B]);
     uint16_t lux = utils::stoi<int>(meas_vec[MEAS_INDEX_Lux]), cct = utils::stoi<int>(meas_vec[MEAS_INDEX_CCT]);
@@ -92,7 +89,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
     bool do_not_update = false;
     if(m_CurrMeas == nullptr)
     {
-        LOG(LogLevel::Notification, "Add new meas");
+        //LOG(LogLevel::Notification, "Add new meas");
 
         m_CurrMeas = std::make_unique<Measurement>(temp_meas);
         m_IntegrationStartTimestamp = std::chrono::steady_clock::now();
@@ -103,10 +100,10 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
 
     bool add_to_db = false;
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-    int64_t time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_IntegrationStartTimestamp).count();
-    if(time_elapsed > INTEGRATION_TIME * 1000)
+    int64_t time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - m_IntegrationStartTimestamp).count();
+    if(time_elapsed > m_IntegrationTime)
     {
-        LOG(LogLevel::Notification, "Add to db");
+        //LOG(LogLevel::Notification, "Add to db");
         m_CurrMeas->Finalize();
         DatabaseLogic::Get()->InsertMeasurement(m_CurrMeas);
         AddMeasurement(std::move(m_CurrMeas));
@@ -119,7 +116,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
         if(!do_not_update)
         {
             *m_CurrMeas += temp_meas;
-            LOG(LogLevel::Notification, "Update {}", m_CurrMeas->cnt);
+            //LOG(LogLevel::Notification, "Update {}", m_CurrMeas->cnt);
         }
     }
 #endif
@@ -130,7 +127,7 @@ void Sensors::WriteGraphs()
     WriteGraph<decltype(Measurement::temp)>("Temperature.html", 15, 35, "Temperature", offsetof(Measurement, temp));
     WriteGraph<decltype(Measurement::hum)>("Humidity.html", 0, 100, "Humidity", offsetof(Measurement, hum));
     WriteGraph<decltype(Measurement::co2)>("CO2.html", 150, 5000, "CO2", offsetof(Measurement, co2));
-    WriteGraph<decltype(Measurement::voc)>("VOC.html", 0, 65535, "VOC", offsetof(Measurement, voc));
+    WriteGraph<decltype(Measurement::voc)>("VOC.html", 0, 1000, "VOC", offsetof(Measurement, voc));
     WriteGraph<decltype(Measurement::co)>("CO.html", 0, 65535, "CO", offsetof(Measurement, co));
     WriteGraph<decltype(Measurement::pm25)>("PM25.html", 0, 1000, "PM2.5", offsetof(Measurement, pm25));
     WriteGraph<decltype(Measurement::pm10)>("PM10.html", 0, 1000, "PM10", offsetof(Measurement, pm10));
@@ -146,7 +143,7 @@ void Sensors::WriteGraphs()
 void Sensors::AddMeasurement(std::unique_ptr<Measurement>&& meas)
 {
     size_t size = last_meas.size();
-    if(size >= MAX_MEAS_QUEUE)
+    if(size >= m_GraphResolution)
         last_meas.pop_front();
 
     last_meas.push_back(std::move(meas));
@@ -161,7 +158,7 @@ void Sensors::UpdateGui(Measurement& meas)
         frame->main_panel->m_textTemp->SetLabelText(wxString::Format(wxT("Temperature: %.1f"), meas.temp));
         frame->main_panel->m_textHum->SetLabelText(wxString::Format(wxT("Humidity: %.1f"), meas.hum));
         frame->main_panel->m_textCO2->SetLabelText(wxString::Format(wxT("CO2: %i"), meas.co2));
-        frame->main_panel->m_textVOC->SetLabelText(std::format("IAQ: {:.1f}, Gas: {:.1f}%", (float)(meas.voc / 10.0f), BsecHandler::Get()->gas_percentage));
+        frame->main_panel->m_textVOC->SetLabelText(std::format("IAQ: {:.1f}, Gas: {:.1f}%", meas.voc, BsecHandler::Get()->GetGasPercentage()));
         frame->main_panel->m_textCO->SetLabelText(wxString::Format(wxT("CO: %i"), meas.co));
         frame->main_panel->m_textPM25->SetLabelText(wxString::Format(wxT("PM2.5: %i"), meas.pm25));
         frame->main_panel->m_textPM10->SetLabelText(wxString::Format(wxT("PM10: %i"), meas.pm10));
@@ -180,8 +177,8 @@ void Sensors::UpdateGui(Measurement& meas)
 
 void Sensors::UpdateDatabaseIfNeeded()
 {
-    int64_t diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
-    if(diff > GRAPHS_REGENERATION_INTERVAL)
+    int64_t diff = std::chrono::duration_cast<std::chrono::minutes>(std::chrono::steady_clock::now() - DatabaseLogic::Get()->last_db_update).count();
+    if(diff > m_GraphGenerationInterval)
         DatabaseLogic::Get()->GenerateGraphs();
     else
         WriteGraphs();
@@ -291,7 +288,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
             std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_week[0],
             std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_week[1],
             std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_week[2],
-            "Last " + std::to_string(MAX_MEAS_QUEUE) + " measurements", "Last Day", "Last Week"));
+            "Last " + std::to_string(Sensors::Get()->GetGraphResolution()) + " measurements", "Last Day", "Last Week"));
         out << out_str;
         out.close();
     }

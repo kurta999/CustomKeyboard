@@ -17,7 +17,7 @@ public:
         TEMPERATURE, HUMIDITY, CO2, VOC, PM25, PM10, LUX, CCT, TIME
     };
 
-    Measurement(float _temp, float _hum, int _co2, int _voc, int _co, int _pm25, int _pm10, float _pressure, float _r, float _g, float _b, int _lux, int _cct, int _uv, std::string&& time_) :
+    Measurement(float _temp, float _hum, int _co2, float _voc, int _co, int _pm25, int _pm10, float _pressure, float _r, float _g, float _b, int _lux, int _cct, int _uv, std::string&& time_) :
         temp(_temp), hum(_hum), co2(_co2), voc(_voc), co(_co), pm25(_pm25), pm10(_pm10), pressure(_pressure), r(_r), g(_g), b(_b), lux(_lux), cct(_cct), uv(_uv), time(std::move(time_))
     {
 
@@ -71,14 +71,14 @@ public:
 
     void Finalize()
     {
-        temp /= cnt;
-        hum /= cnt;
-        pressure /= cnt;
-        r /= cnt;
-        g /= cnt;
-        b /= cnt;
+        temp /= static_cast<float>(cnt);
+        hum /= static_cast<float>(cnt);
+        pressure /= static_cast<float>(cnt);
+        r /= static_cast<float>(cnt);
+        g /= static_cast<float>(cnt);
+        b /= static_cast<float>(cnt);
         co2 /= cnt;
-        voc /= cnt;
+        voc /= static_cast<float>(cnt);
         co /= cnt;
         pm25 /= cnt;
         pm10 /= cnt;
@@ -88,15 +88,13 @@ public:
         cnt = 1;
     }
 
-    float temp = 0.0f, hum = 0.0f, pressure = 0.0f, r = 0.0f, g = 0.0f, b = 0.0f;
-    int co2 = 0, voc = 0, co = 0, pm25 = 0, pm10 = 0, lux = 0, cct = 0, uv = 0;
+    float temp = 0.0f, hum = 0.0f, voc = 0, pressure = 0.0f, r = 0.0f, g = 0.0f, b = 0.0f;
+    int co2 = 0, co = 0, pm25 = 0, pm10 = 0, lux = 0, cct = 0, uv = 0;
     std::string time;
 
     uint8_t cnt = 0;
 };
 #pragma pack(pop)
-
-constexpr size_t MAX_MEAS_QUEUE = 150;
 
 class Sensors : public CSingleton < Sensors >
 {
@@ -120,6 +118,15 @@ public:
 
     // \brief Returns last X measurements
     const std::deque<std::unique_ptr<Measurement>>& GetMeasurements() { return last_meas; }
+
+    void SetGraphGenerationInterval(uint16_t interval) { m_GraphGenerationInterval = interval; }
+    uint16_t GetGraphGenerationInterval() { return m_GraphGenerationInterval; }
+
+    void SetGraphResolution(uint16_t resolution) { m_GraphResolution = resolution; }
+    uint16_t GetGraphResolution() { return m_GraphResolution; }
+
+    void SetIntegrationTime(uint16_t integration_time) { m_IntegrationTime = integration_time; }
+    uint16_t GetIntegrationTime() { return m_IntegrationTime; }
 
     // \brief Vector of last day's measurement, array order is: avg, max, min
     std::vector<std::unique_ptr<Measurement>> last_day[3];
@@ -184,4 +191,13 @@ private:
 
     // \brief Number of received measurements
     size_t num_recv_meas = 0;
+
+    // \brief Graph (re)generation interval [min]
+    uint16_t m_GraphGenerationInterval = 10;
+
+    // \brief Number of different measurement points in generated graph
+    uint16_t m_GraphResolution = 150;
+
+    // \brief Integration time for measurements [s]
+    uint16_t m_IntegrationTime = 10;
 };

@@ -110,12 +110,6 @@ void BsecHandler::AddMeasurementsAndCalculate(int64_t time_stamp, float temp, fl
 
 	/* BSEC sensor settings struct */
 	bsec_bme_settings_t sensor_settings;
-
-	/* Save state variables */
-	uint8_t bsec_state[BSEC_MAX_STATE_BLOB_SIZE];
-	uint8_t work_buffer[BSEC_MAX_STATE_BLOB_SIZE];
-	uint32_t bsec_state_len = 0;
-
 	bsec_library_return_t bsec_status = BSEC_OK;
 
 	data.temperature = temp;// * 100.f;
@@ -168,16 +162,26 @@ void BsecHandler::AddMeasurementsAndCalculate(int64_t time_stamp, float temp, fl
 	/* Retrieve and store state if the passed save_intvl */
 	if(n_samples >= NUM_SAMPLES_BEFORE_SAVE)
 	{
-		int bsec_status = bsec_get_state(0, bsec_state, sizeof(bsec_state), work_buffer, sizeof(work_buffer), &bsec_state_len);
-		if(bsec_status == BSEC_OK)
-		{
-			std::ofstream out(std::string(BSEC_CACHE_FILENAME), std::ofstream::binary);
-			out.write((const char*)bsec_state, bsec_state_len);
-			out.flush();
-		}
-		LOG(LogLevel::Normal, "Bsec get_state return {}", bsec_status);
+		SaveCache();
 		n_samples = 0;
 	}
+}
+
+void BsecHandler::SaveCache()
+{
+	/* Save state variables */
+	uint8_t bsec_state[BSEC_MAX_STATE_BLOB_SIZE];
+	uint8_t work_buffer[BSEC_MAX_STATE_BLOB_SIZE];
+	uint32_t bsec_state_len = 0;
+
+	int bsec_status = bsec_get_state(0, bsec_state, sizeof(bsec_state), work_buffer, sizeof(work_buffer), &bsec_state_len);
+	if(bsec_status == BSEC_OK)
+	{
+		std::ofstream out(std::string(BSEC_CACHE_FILENAME), std::ofstream::binary);
+		out.write((const char*)bsec_state, bsec_state_len);
+		out.flush();
+	}
+	LOG(LogLevel::Normal, "Bsec get_state return {}", bsec_status);
 }
 
 void BsecHandler::ProcessData(bsec_input_t* bsec_inputs, uint8_t num_bsec_inputs)
