@@ -28,7 +28,7 @@ public:
     void Init();
 
     // !\brief Send data to remote server - this is blocking function
-    void Send(std::string& ip, uint16_t port, const char* data, size_t len);
+    bool Send(std::string& ip, uint16_t port, const char* data, size_t len, int timeout_ms = 300);
 
     // !\brief Enabled?
     bool is_enabled = false;

@@ -12,31 +12,48 @@ MainPanel::MainPanel(wxFrame* parent)
 	wxBoxSizer* horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 	m_RefreshButton = new wxButton(this, wxID_ANY, wxT("Refresh"), wxDefaultPosition, wxDefaultSize, 0);
 	m_RefreshButton->SetToolTip("Request new measurements");
-	horizontal_sizer->Add(m_RefreshButton, 0);
+	horizontal_sizer->Add(m_RefreshButton);
 	m_RefreshButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			Server::Get()->BroadcastMessage("SEND_SENSOR_DATA");
+			for(auto ip : Server::Get()->used_ip_addresses)
+			{
+				std::string sensor_ip = boost::asio::ip::address_v4(ip).to_string();
+				SerialForwarder::Get()->Send(sensor_ip, 80, "SEND_SENSOR_DATA", 16);
+			}
 		});
 
 	m_ResetButton = new wxButton(this, wxID_ANY, wxT("Reset"), wxDefaultPosition, wxDefaultSize, 0);
 	m_ResetButton->SetToolTip("Restart device");
-	horizontal_sizer->Add(m_ResetButton, 0);
+	horizontal_sizer->Add(m_ResetButton);
 	m_ResetButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
-			Server::Get()->BroadcastMessage("RESET");
+			for(auto ip : Server::Get()->used_ip_addresses)
+			{
+				std::string sensor_ip = boost::asio::ip::address_v4(ip).to_string();
+				SerialForwarder::Get()->Send(sensor_ip, 80, "RESET", 5);
+			}
 		});
-	bSizer1->Add(horizontal_sizer, 0, wxALL, 5);
+	bSizer1->Add(horizontal_sizer);
 
+	wxBoxSizer* horizontal_sizer_2 = new wxBoxSizer(wxHORIZONTAL);
 	m_GenerateGraphs = new wxButton(this, wxID_ANY, wxT("Generate graphs"), wxDefaultPosition, wxDefaultSize, 0);
 	m_GenerateGraphs->SetToolTip("Generate graphs from SQLite database");
-	bSizer1->Add(m_GenerateGraphs, 0, wxALL, 5);
+	horizontal_sizer_2->Add(m_GenerateGraphs);
 	m_GenerateGraphs->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{
 			DatabaseLogic::Get()->SetGraphHours(0, (uint32_t)m_GraphStartHours1->GetValue());
 			DatabaseLogic::Get()->SetGraphHours(1, (uint32_t)m_GraphStartHours2->GetValue());
 			DatabaseLogic::Get()->GenerateGraphs();
 		});
+	m_ClearMeasurements = new wxButton(this, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ClearMeasurements->SetToolTip("Clear measurements");
+	horizontal_sizer_2->Add(m_ClearMeasurements);
+	m_ClearMeasurements->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			Sensors::Get()->ResetMeasurements();
+		});
 
+	bSizer1->Add(horizontal_sizer_2);
 #if defined _WIN32
 #define ADD_MEASUREMENT_TEXT(var_name, html_name, name, tooltip, color) \
 	var_name = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxSize(-1, -1), 0); \

@@ -41,6 +41,9 @@ public:
     // !\brief TCP Server port
     uint16_t tcp_port = 2005;
 
+    // !\brief IP addresses used by connected sensor(s)
+    std::set<uint32_t> used_ip_addresses;
+
 private:
     
     // !\brief Create TCP acceptor

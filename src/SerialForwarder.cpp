@@ -162,7 +162,7 @@ SerialForwarder::~SerialForwarder()
         m_worker.reset(nullptr);
 }
 
-void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, size_t len)
+bool SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, size_t len, int timeout_ms)
 {
     boost::system::error_code ec;
     boost::asio::io_service ios;
@@ -181,17 +181,21 @@ void SerialForwarder::Send(std::string& ip, uint16_t port, const char* data, siz
             if(!ec)
                 is_connected = true;
         });
-    ios.run_for(std::chrono::duration<int, std::milli>(50));
+    ios.run_for(std::chrono::duration<int, std::milli>(timeout_ms));
 
     if(is_connected)
     {
         socket.send(boost::asio::buffer(data, len), 0, ec);
         if(ec)
+        {
             LOG(LogLevel::Error, "Failed to forward serial over TCP: {}", ec.message());
+            is_connected = false;
+        }
         socket.close(ec);
     }
     else
     {
         LOG(LogLevel::Error, "Failed to connect to the remote server!");
     }
+    return is_connected;
 }

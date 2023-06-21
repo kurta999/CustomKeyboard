@@ -14,6 +14,7 @@ public:
 	wxButton* m_RefreshButton = nullptr;
 	wxButton* m_ResetButton = nullptr;
 	wxButton* m_GenerateGraphs = nullptr;
+	wxButton* m_ClearMeasurements = nullptr;
 	wxStaticText* m_textTemp = nullptr;
 	wxStaticText* m_textHum = nullptr;
 	wxStaticText* m_textCO2 = nullptr;

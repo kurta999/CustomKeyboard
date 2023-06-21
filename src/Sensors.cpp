@@ -97,6 +97,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
     }
 
     UpdateGui(temp_meas);
+    num_recv_meas++;
 
     bool add_to_db = false;
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -169,10 +170,17 @@ void Sensors::UpdateGui(Measurement& meas)
         frame->main_panel->m_textLux->SetLabelText(wxString::Format(wxT("Lux: %i"), meas.lux));
         frame->main_panel->m_textCCT->SetLabelText(wxString::Format(wxT("CCT: %i"), meas.cct));
         frame->main_panel->m_textUV->SetLabelText(wxString::Format(wxT("UV: %i"), meas.uv));
-        frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), std::format("{:%Y.%m.%d %H:%M:%OS} - {}", now, ++num_recv_meas)));
-        frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, IAQ: %d, CO: %d, PM2.5: %d, PM10: %d, Pressure: %.1f, Lux: %d, CCT: %d, UV: %d"),
-            meas.temp, meas.hum, meas.co2, meas.voc / 10, meas.co, meas.pm25, meas.pm10, meas.pressure, meas.lux, meas.cct, meas.uv));
+        frame->main_panel->m_textTime->SetLabelText(wxString::Format(wxT("Time: %s"), std::format("{:%Y.%m.%d %H:%M:%OS} - {}", now, num_recv_meas)));
+        frame->SetIconTooltip(wxString::Format(wxT("T: %.1f, H: %.1f, CO2: %d, IAQ: %.1f, CO: %d, PM2.5: %d, PM10: %d, Pressure: %.1f, Lux: %d, CCT: %d, UV: %d"),
+            meas.temp, meas.hum, meas.co2, meas.voc, meas.co, meas.pm25, meas.pm10, meas.pressure, meas.lux, meas.cct, meas.uv));
     }
+}
+ 
+void Sensors::ResetMeasurements()
+{
+    Measurement m;
+    num_recv_meas = 0;
+    UpdateGui(m);
 }
 
 void Sensors::UpdateDatabaseIfNeeded()
