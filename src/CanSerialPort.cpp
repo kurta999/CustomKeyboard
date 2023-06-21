@@ -70,7 +70,7 @@ void CanSerialPort::AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* d
 
     if(m_TxQueue.size() > TX_QUEUE_MAX_SIZE)
     {
-        LOG(LogLevel::Error, "Queue overflow");
+        //LOG(LogLevel::Error, "Queue overflow");
         m_TxQueue.pop();
     }
     NotifiyMainThread();

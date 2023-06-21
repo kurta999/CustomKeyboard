@@ -278,6 +278,7 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
                 if(focus == m_grid)
                 {
                     wxTextEntryDialog d(this, "Enter frame name for what you want to filter", "Frame filter");
+                    d.SetValue(search_pattern);
                     int ret = d.ShowModal();
                     if(ret == wxID_OK)
                     {
@@ -287,13 +288,6 @@ void CanLogPanel::OnKeyDown(wxKeyEvent& evt)
                             search_pattern = new_search_pattern;
                             ClearRecordingsFromGrid();
                         }
-                        /*
-                        if(search_pattern.empty())
-                            //static_box_tx->GetStaticBox()->SetLabelText("Transmit");
-                        else
-                            //static_box_tx->GetStaticBox()->SetLabelText(wxString::Format("Transmit - Search filter: %s", search_pattern_tx));
-                            */
-                            //RefreshTx();
                     }
                 }
                 break;

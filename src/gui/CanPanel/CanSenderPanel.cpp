@@ -1237,6 +1237,7 @@ void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
                 if(focus == can_grid_tx->m_grid)
                 {
                     wxTextEntryDialog d(this, "Enter TX frame name for what you want to filter", "Search for frame");
+                    d.SetValue(search_pattern_tx);
                     int ret = d.ShowModal();
                     if(ret == wxID_OK)
                     {
@@ -1253,6 +1254,7 @@ void CanSenderPanel::OnKeyDown(wxKeyEvent& evt)
                 else if(focus == can_grid_rx->m_grid)
                 {
                     wxTextEntryDialog d(this, "Enter RX frame name for what you want to filter", "Search for frame");
+                    d.SetValue(search_pattern_rx);
                     int ret = d.ShowModal();
                     if(ret == wxID_OK)
                     {
