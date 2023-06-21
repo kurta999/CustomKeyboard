@@ -57,7 +57,7 @@ private:
     // !\brief Timepoint when the key was pressed
     std::chrono::steady_clock::time_point last_keypress;
 
-    // !\brief Debouncing interval
+    // !\brief Debouncing interval [ms]
     uint16_t m_DebouncingInterval = 350;
 
     // !\brief Pointer to worker thread

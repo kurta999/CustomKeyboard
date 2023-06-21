@@ -2,7 +2,12 @@
 
 #include "utils/CSingleton.hpp"
 #include <inttypes.h>
+
+#ifdef USE_BSEC
 #include "bsec/bsec_datatypes.h"
+#else
+using bsec_input_t = void;
+#endif
 
 class BsecHandler : public CSingleton < BsecHandler >
 {

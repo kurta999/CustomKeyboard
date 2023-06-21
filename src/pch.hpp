@@ -196,7 +196,9 @@ namespace std
 extern "C"
 {
 	#include "sha256/sha256.h"
+#ifdef USE_BSEC
 	#include "bsec/bsec_interface.h"
+#endif
 	#include <bitfield/bitfield.h>
 	#include <isotp/isotp.h>
 }

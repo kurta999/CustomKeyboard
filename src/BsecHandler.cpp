@@ -10,11 +10,14 @@ constexpr const char* BSEC_CACHE_FILENAME = "bsec.bin";
 
 void BsecHandler::Init()
 {
+#ifdef USE_BSEC
 	InitBackend(BSEC_SAMPLE_RATE_LP, bme680_temperature_offset_g);
+#endif
 }
 
 int BsecHandler::UpdateSubscription(float sample_rate)
 {
+#ifdef USE_BSEC
 	bsec_sensor_configuration_t requested_virtual_sensors[NUM_USED_OUTPUTS];
 	uint8_t n_requested_virtual_sensors = NUM_USED_OUTPUTS;
 
@@ -50,12 +53,15 @@ int BsecHandler::UpdateSubscription(float sample_rate)
 	/* Call bsec_update_subscription() to enable/disable the requested virtual sensors */
 	status = bsec_update_subscription(requested_virtual_sensors, n_requested_virtual_sensors, required_sensor_settings,
 		&n_required_sensor_settings);
-
+#else
+	uint8_t status = 0;
+#endif
 	return status;
 }
 
 int BsecHandler::InitBackend(float sample_rate, float temperature_offset)
 {
+#ifdef USE_BSEC
 	bsec_library_return_t bsec_status = BSEC_OK;
 
 	uint8_t bsec_state[BSEC_MAX_PROPERTY_BLOB_SIZE] = { 0 };
@@ -90,12 +96,15 @@ int BsecHandler::InitBackend(float sample_rate, float temperature_offset)
 	{
 		return ret;
 	}
-
+#else
+	uint8_t ret = 0;
+#endif
 	return ret;
 }
 
 void BsecHandler::AddMeasurementsAndCalculate(int64_t time_stamp, float temp, float pressure, float hum, float gas)
 {
+#ifdef USE_BSEC
 	if(time_stamp == last_timestamp)
 	{
 		return;
@@ -117,6 +126,7 @@ void BsecHandler::AddMeasurementsAndCalculate(int64_t time_stamp, float temp, fl
 	data.pressure = pressure * 100.f;
 	data.gas_resistance = gas;
 	/* convert the timestamp in nanoseconds before calling bsec_sensor_control() */
+	last_timestamp = timestamp;
 	time_stamp = time_stamp * 1000000;
 
 	/* Retrieve sensor settings to be used in this time instant by calling bsec_sensor_control */
@@ -165,10 +175,12 @@ void BsecHandler::AddMeasurementsAndCalculate(int64_t time_stamp, float temp, fl
 		SaveCache();
 		n_samples = 0;
 	}
+#endif
 }
 
 void BsecHandler::SaveCache()
 {
+#ifdef USE_BSEC
 	/* Save state variables */
 	uint8_t bsec_state[BSEC_MAX_STATE_BLOB_SIZE];
 	uint8_t work_buffer[BSEC_MAX_STATE_BLOB_SIZE];
@@ -182,10 +194,12 @@ void BsecHandler::SaveCache()
 		out.flush();
 	}
 	LOG(LogLevel::Normal, "Bsec get_state return {}", bsec_status);
+#endif
 }
 
 void BsecHandler::ProcessData(bsec_input_t* bsec_inputs, uint8_t num_bsec_inputs)
 {
+#ifdef USE_BSEC
 	/* Output buffer set to the maximum virtual sensor outputs supported */
 	bsec_output_t bsec_outputs[BSEC_NUMBER_OUTPUTS];
 	uint8_t num_bsec_outputs = 0;
@@ -264,7 +278,10 @@ void BsecHandler::ProcessData(bsec_input_t* bsec_inputs, uint8_t num_bsec_inputs
 			timestamp = bsec_outputs[index].time_stamp;
 		}
 
-		LOG(LogLevel::Normal, "IAQ: {:.1f} - {}, CO2EQ: {:.1f}, Gas: {:.1f} - status: {}\n", iaq, iaq_accuracy, co2_equivalent, gas_percentage, (int)bsec_status);
-		/* Pass the extracted outputs to the user provided output_ready() function. */
+		if(bsec_status != BSEC_OK)
+		{
+			LOG(LogLevel::Normal, "IAQ: {:.1f} - {}, CO2EQ: {:.1f}, Gas: {:.1f} - status: {}\n", iaq, iaq_accuracy, co2_equivalent, gas_percentage, (int)bsec_status);
+		}
 	}
+#endif
 }
