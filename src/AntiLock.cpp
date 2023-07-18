@@ -85,6 +85,9 @@ bool AntiLock::IsSessionActive()
 void AntiLock::SimulateUserActivity()
 {
 #ifdef _WIN32
+    if(is_suspended)
+        return;
+
     POINT pos;
     GetCursorPos(&pos);
     m_StepForward ^= m_StepForward;

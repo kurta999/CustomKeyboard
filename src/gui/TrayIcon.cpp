@@ -5,6 +5,7 @@ EVT_TASKBAR_LEFT_DCLICK(TrayIcon::OnLeftDoubleClick)
 EVT_MENU(TrayIcon::ID::OpenScreenshots, TrayIcon::OnOpenScreenshots)
 EVT_MENU(TrayIcon::ID::OpenRootFolder, TrayIcon::OnOpenRootFolder)
 EVT_MENU(TrayIcon::ID::ReloadConfig, TrayIcon::OnReload)
+EVT_MENU(TrayIcon::ID::ToggleAntilock, TrayIcon::OnToggleAntiLock)
 EVT_MENU(TrayIcon::ID::Exit, TrayIcon::OnQuit)
 END_EVENT_TABLE()
 
@@ -69,6 +70,8 @@ wxMenu* TrayIcon::CreatePopupMenu()
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
+	popup->Append(TrayIcon::ID::ToggleAntilock, wxT("Toggle AntiLock"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_CDROM, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
+	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::Exit, wxT("E&xit"))->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	return popup;
 }
@@ -106,6 +109,12 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	mainFrame->cmd_panel->ReloadCommands();
 	LOG(LogLevel::Normal, "Settings has been reloaded");
 	mainFrame->SetCurrentPage(Settings::Get()->default_page);
+}
+
+void TrayIcon::OnToggleAntiLock(wxCommandEvent& WXUNUSED(event))
+{
+	AntiLock::Get()->is_suspended ^= 1;
+	LOG(LogLevel::Verbose, "AntiLock suspended: {}", AntiLock::Get()->is_suspended);
 }
 
 void TrayIcon::OnQuit(wxCommandEvent& WXUNUSED(event))

@@ -33,6 +33,7 @@ public:
 	void OnOpenScreenshots(wxCommandEvent& event);
 	void OnOpenRootFolder(wxCommandEvent& event);
 	void OnReload(wxCommandEvent& event);
+	void OnToggleAntiLock(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	virtual wxMenu* CreatePopupMenu();
 
@@ -42,6 +43,7 @@ public:
 		ReloadConfig,
 		OpenScreenshots,
 		OpenRootFolder,
+		ToggleAntilock,
 		DoBackup = 1500,
 	};
 	static int max_backups;
