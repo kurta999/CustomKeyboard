@@ -71,7 +71,7 @@ public:
     // !\bried Shared drive mapped letter
     char shared_drive_letter = 'Z';
 
-    // !\brief Crypto prices (currently ETH & BTC) update interval from coinbase.com
+    // !\brief Crypto prices (currently ETH & BTC) update interval from coinbase.com [seconds]
     // !\note 0 - disabled
     uint16_t crypto_price_update = 5;
 private:

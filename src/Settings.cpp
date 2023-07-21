@@ -308,7 +308,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "LastWindowSize = " << std::format("{}, {}", window_size.x, window_size.y) << "\n";
     out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
     out << "SharedDriveLetter = " << shared_drive_letter << "\n";
-    out << "CryptoPriceUpdate = " << crypto_price_update << "\n";
+    out << "CryptoPriceUpdate = " << crypto_price_update << " # Unit: Seconds, 0 = disabled\n";
     out << "CorsairDebouncingInterval = " << CorsairHid::Get()->GetDebouncingInterval() << "\n";
     out << "\n";
     out << "[Screenshot]\n";
