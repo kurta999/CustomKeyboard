@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-static constexpr const char* COMMAND_FILE_PATH = "Cmds.xml";
-
 void Command::Execute()
 {
     HandleHarcdodedCommand();
@@ -95,7 +93,7 @@ XmlCommandLoader::~XmlCommandLoader()
 
 }
 
-bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
+bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names, CommandPageIcons& icons)
 {
     if(!std::filesystem::exists(COMMAND_FILE_PATH))
     {
@@ -124,6 +122,8 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
 
             std::string page_name = pages_child->get<std::string>("<xmlattr>.name");
             names.push_back(std::move(page_name));
+            std::string page_icon = pages_child->get<std::string>("<xmlattr>.icon");
+            icons.push_back(std::move(page_icon));
 
             m_Cols = pages_child->get_child("Columns").get_value<uint8_t>();
             if(m_Mediator)
@@ -150,6 +150,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         boost::optional<std::string> color;
                         boost::optional<std::string> bg_color;
                         boost::optional<std::string> is_bold;
+                        boost::optional<std::string> font_face;
                         boost::optional<std::string> scale;
 
                         auto is_name_present = v.second.get_child_optional("Execute");
@@ -162,6 +163,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
                             utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
                             utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
+                            utils::xml::ReadChildIfexists<std::string>(v, "FontFace", font_face);
                             utils::xml::ReadChildIfexists<std::string>(v, "Scale", scale);
                         }
                         else
@@ -173,6 +175,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             color = v.second.get_optional<std::string>("<xmlattr>.color");
                             bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
                             is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
+                            font_face = v.second.get_optional<std::string>("<xmlattr>.font_face");
                             scale = v.second.get_optional<std::string>("<xmlattr>.scale");
                         }
 
@@ -190,6 +193,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             color.has_value() ? utils::ColorStringToInt(*color) : 0,
                             bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
                             is_bold.has_value() ? utils::stob(*is_bold) : false,
+                            font_face.has_value() ? *font_face : "",
                             scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0);
 
                         if(command)
@@ -215,7 +219,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
             storage.push_back(std::move(temp_cmds_per_page));
 
             if(m_Mediator)
-                m_Mediator->OnPostReload(p, m_Cols, names);
+                m_Mediator->OnPostReload(p, m_Cols, names, icons);
         }
     }
     catch(boost::property_tree::xml_parser_error& e)
@@ -231,7 +235,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
     return ret;
 }
 
-bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names)
+bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names, CommandPageIcons& icons)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -242,9 +246,10 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
     for(auto& page : storage)
     {
         uint8_t cnt = 1;
-
+        
         auto& page_node = root_node.add_child(std::format("Page_{}", page_cnt), boost::property_tree::ptree{});
         page_node.put("<xmlattr>.name", names[page_cnt - 1]);
+        page_node.put("<xmlattr>.icon", icons[page_cnt - 1]);
         page_node.put("Columns", std::to_string(page.size()));
         for(auto& col : page)
         {
@@ -266,6 +271,7 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
                             cmd_node.add("Color", utils::ColorIntToString(c->GetColor()));
                             cmd_node.add("BackgroundColor", utils::ColorIntToString(c->GetBackgroundColor()));
                             cmd_node.add("Bold", c->IsBold());
+                            cmd_node.add("FontFace", c->GetFontFace());
                             cmd_node.add("Scale", c->GetScale());
                         }
                         else if constexpr(std::is_same_v<T, Separator>)
@@ -283,13 +289,8 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
 
     try
     {
-#ifdef DEBUG
-        boost::property_tree::write_xml("Cmds2.xml", pt, std::locale(),
-            boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
-#else
         boost::property_tree::write_xml(path.generic_string(), pt, std::locale(),
             boost::property_tree::xml_writer_make_settings<boost::property_tree::ptree::key_type>('\t', 1));
-#endif
     }
     catch(...)
     {
@@ -328,16 +329,89 @@ bool CmdExecutor::AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& 
     return false;
 }
 
-bool CmdExecutor::ReloadCommandsFromFile()
+void CmdExecutor::AddCol(uint8_t page, uint8_t dest_index)
 {
-    XmlCommandLoader loader(m_CmdMediator);
-    return loader.Load(COMMAND_FILE_PATH, m_Commands, m_CommandPageNames);
+    std::vector<CommandTypes> temp_cmds_per_page;
+    m_Commands[page].insert(m_Commands[page].begin() + dest_index, temp_cmds_per_page);
 }
 
-bool CmdExecutor::Save()
+void CmdExecutor::DeleteCol(uint8_t page, uint8_t dest_index)
+{
+    m_Commands[page].erase(m_Commands[page].begin() + dest_index);
+}
+
+void CmdExecutor::AddPage(uint8_t page, uint8_t dest_index)
+{
+    std::vector<std::vector<CommandTypes>> temp_cmds_per_page;
+
+    std::vector<CommandTypes> cmd_types;
+    cmd_types.push_back(std::make_shared<Command>("New cmd, empty", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, "", 2.0f));
+    temp_cmds_per_page.push_back(std::move(cmd_types));
+
+    m_Commands.insert(m_Commands.begin() + dest_index, temp_cmds_per_page);
+    m_CommandPageNames.insert(m_CommandPageNames.begin() + dest_index, "New Page");
+    m_CommandPageIcons.insert(m_CommandPageIcons.begin() + dest_index, "wxART_HARDDISK");
+}
+
+void CmdExecutor::CopyPage(uint8_t page, uint8_t dest_index)
+{
+    std::vector<std::vector<CommandTypes>> temp_cmds_per_page;
+
+    for(auto& cmd : m_Commands[page])
+    {
+        std::vector<CommandTypes> cmd_types;
+        for(auto& col_cmd : cmd)
+        {
+            std::visit([this, &cmd_types](auto& c)
+                {
+                    using T = std::decay_t<decltype(c)>;
+                    if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+                    {
+                        cmd_types.push_back(std::make_shared<Command>(*c));
+                    }
+                    else if constexpr(std::is_same_v<T, Separator>)
+                    {
+                        cmd_types.push_back(c);
+                    }
+                    else
+                        static_assert(always_false_v<T>, "CmdExecutor::CopyPage Bad visitor!");
+                }, col_cmd);
+        }
+        temp_cmds_per_page.push_back(std::move(cmd_types));
+    }
+    m_Commands.insert(m_Commands.begin() + dest_index, temp_cmds_per_page);
+    m_CommandPageNames.insert(m_CommandPageNames.begin() + dest_index, m_CommandPageNames[page]);
+    m_CommandPageIcons.insert(m_CommandPageIcons.begin() + dest_index, m_CommandPageIcons[page]);
+}
+
+void CmdExecutor::DeletePage(uint8_t page)
+{
+    m_Commands.erase(m_Commands.begin() + page);
+    m_CommandPageNames.erase(m_CommandPageNames.begin() + page);
+    m_CommandPageIcons.erase(m_CommandPageIcons.begin() + page);
+}
+
+bool CmdExecutor::ReloadCommandsFromFile(const char* path)
 {
     XmlCommandLoader loader(m_CmdMediator);
-    return loader.Save(COMMAND_FILE_PATH, m_Commands, m_CommandPageNames);
+    return loader.Load(path, m_Commands, m_CommandPageNames, m_CommandPageIcons);
+}
+
+bool CmdExecutor::Save(const char* path)
+{
+    XmlCommandLoader loader(m_CmdMediator);
+    return loader.Save(path, m_Commands, m_CommandPageNames, m_CommandPageIcons);
+}
+
+bool CmdExecutor::SaveToTempAndReload()
+{
+    const char* tempfile = "temp_cmds.xml";
+    bool ret = Save(tempfile);
+    if(ret)
+        ret = ReloadCommandsFromFile(tempfile);
+    if(std::filesystem::exists(tempfile))  /* Just to make sure */
+        std::filesystem::remove(tempfile);
+    return ret;
 }
 
 uint8_t CmdExecutor::GetColumns()
@@ -353,6 +427,11 @@ CommandStorage& CmdExecutor::GetCommands()
 CommandPageNames& CmdExecutor::GetPageNames()
 {
     return m_CommandPageNames;
+}
+
+CommandPageIcons& CmdExecutor::GetPageIcons()
+{
+    return m_CommandPageIcons;
 }
 
 void CmdExecutor::WriteDefaultCommandsFile()

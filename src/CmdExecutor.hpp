@@ -8,15 +8,27 @@
 
 #include "ICmdHelper.hpp"
 
+static constexpr const char* COMMAND_FILE_PATH = "Cmds.xml";
+
 class Command
 {
 public:
-    Command(const std::string& name, const std::string& cmd, const std::string& param, uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
-        m_name(name), m_cmd(cmd), m_param(param), m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
+    Command(const std::string& name, const std::string& cmd, const std::string& param, uint32_t color, uint32_t bg_color, bool is_bold, const std::string& font_face, float scale) :
+        m_name(name), m_cmd(cmd), m_param(param), m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_font_face(font_face), m_scale(scale)
     {
 
     }
 
+    Command(Command& rhs) :
+        m_name(rhs.m_name), m_cmd(rhs.m_cmd), m_param(rhs.m_param), m_color(rhs.m_color), m_bg_color(rhs.m_bg_color), m_is_bold(rhs.m_is_bold), m_font_face(rhs.m_font_face), m_scale(rhs.m_scale)
+    {
+
+    }
+
+    Command(Command&& rhs)
+    {
+        /* TODO: implement it */
+    }
     void Execute();
 
     const std::string& GetName() { return m_name; }
@@ -37,6 +49,9 @@ public:
     bool IsBold() { return m_is_bold; }
     Command& SetBold(bool is_bold) { m_is_bold = is_bold; return *this; }
 
+    const std::string& GetFontFace() { return m_font_face; }
+    Command& SetFontFace(const std::string& font_face) { m_font_face = font_face; return *this; }
+
     float GetScale() { return m_scale; }
     Command& SetScale(float scale) { m_scale = scale; return *this; }
 
@@ -54,6 +69,7 @@ private:
     uint32_t m_color;
     uint32_t m_bg_color;
     bool m_is_bold;
+    std::string m_font_face;
     float m_scale;
 };
 
@@ -76,8 +92,8 @@ class ICommandLoader
 public:
     virtual ~ICommandLoader() { }
 
-    virtual bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
-    virtual bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) = 0;
+    virtual bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) = 0;
+    virtual bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) = 0;
 };
 
 class XmlCommandLoader : public ICommandLoader
@@ -86,8 +102,8 @@ public:
     XmlCommandLoader(ICmdHelper* mediator);
     virtual ~XmlCommandLoader();
 
-    bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) override;
-    bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names) override;
+    bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) override;
+    bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) override;
 
 private:
     uint8_t m_Cols = 0;
@@ -103,11 +119,18 @@ public:
     virtual void Init() = 0;
     virtual void SetMediator(ICmdHelper* mediator) = 0;
     virtual void AddCommand(uint8_t page, uint8_t col, Command cmd) = 0;
-    virtual bool ReloadCommandsFromFile() = 0;
-    virtual bool Save() = 0;
+    virtual void AddCol(uint8_t page, uint8_t dest_index) = 0;
+    virtual void DeleteCol(uint8_t page, uint8_t dest_index) = 0;
+    virtual void AddPage(uint8_t page, uint8_t dest_index) = 0;
+    virtual void CopyPage(uint8_t page, uint8_t dest_index) = 0;
+    virtual void DeletePage(uint8_t page) = 0;
+    virtual bool ReloadCommandsFromFile(const char* path) = 0;
+    virtual bool Save(const char* path) = 0;
+    virtual bool SaveToTempAndReload() = 0;
     virtual uint8_t GetColumns() = 0;
     virtual CommandStorage& GetCommands() = 0;
     virtual CommandPageNames& GetPageNames() = 0;
+    virtual CommandPageIcons& GetPageIcons() = 0;
 };
 
 class CmdExecutor : public ICmdExecutor
@@ -119,11 +142,18 @@ public:
     void Init() override;
     void SetMediator(ICmdHelper* mediator) override;
     void AddCommand(uint8_t page, uint8_t col, Command cmd) override;
-    bool ReloadCommandsFromFile() override;
-    bool Save() override;
+    void AddCol(uint8_t page, uint8_t dest_index) override;
+    void DeleteCol(uint8_t page, uint8_t dest_index) override;
+    void AddPage(uint8_t page, uint8_t dest_index) override;
+    void CopyPage(uint8_t page, uint8_t dest_index) override;
+    void DeletePage(uint8_t page) override;
+    bool ReloadCommandsFromFile(const char* path = COMMAND_FILE_PATH) override;
+    bool Save(const char* path = COMMAND_FILE_PATH) override;
+    bool SaveToTempAndReload() override;
     uint8_t GetColumns() override;
     CommandStorage& GetCommands() override;
     CommandPageNames& GetPageNames() override;
+    CommandPageIcons& GetPageIcons() override;
 
     static void WriteDefaultCommandsFile();
 private:
@@ -132,5 +162,6 @@ private:
     uint8_t m_Cols = 2;
     CommandStorage m_Commands;
     CommandPageNames m_CommandPageNames;
+    CommandPageIcons m_CommandPageIcons;
     ICmdHelper* m_CmdMediator = nullptr;
 };

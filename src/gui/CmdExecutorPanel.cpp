@@ -49,6 +49,12 @@ CmdExecutorEditDialog::CmdExecutorEditDialog(wxWindow* parent)
     }
 
     {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Font Type:"));
+        m_fontFace = new wxFontPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_fontFace);
+    }
+
+    {
         sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Scale:"));
         m_scale = new wxSpinCtrlDouble(this, wxID_ANY, "0.0", wxDefaultPosition, wxDefaultSize, 16384, 0.0, 10.0, 1.0, 0.2);
         sizerMsgs->Add(m_scale);
@@ -63,13 +69,20 @@ CmdExecutorEditDialog::CmdExecutorEditDialog(wxWindow* parent)
     CentreOnScreen();
 }
 
-void CmdExecutorEditDialog::ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, uint32_t color, uint32_t bg_color, bool is_bold, float scale)
+void CmdExecutorEditDialog::ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, uint32_t color, uint32_t bg_color, bool is_bold, const wxString& font_face, float scale)
 {
     m_commandName->SetLabel(cmd_name);
     m_cmdToExecute->SetLabel(cmd_to_execute);
     m_color->SetColour(RGB_TO_WXCOLOR(color));
     m_backgroundColor->SetColour(RGB_TO_WXCOLOR(bg_color));
     m_isBold->SetValue(is_bold);
+
+    if(!font_face.empty())
+    {
+        wxFont f;
+        f.SetFaceName(font_face);
+        m_fontFace->SetSelectedFont(f);
+    }
     m_scale->SetValue(static_cast<double>(scale));
 
     m_IsApplyClicked = false;
@@ -98,6 +111,15 @@ CmdExecutorPanelBase::CmdExecutorPanelBase(wxFrame* parent)
     ReloadCommands();
     m_notebook->Layout();
     Show();
+
+    Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelBase::OnPanelRightClick, this);
+}
+
+
+void CmdExecutorPanelBase::OnPanelRightClick(wxMouseEvent& event)
+{
+    DBG("click");
+    event.Skip();
 }
 
 void CmdExecutorPanelBase::ReloadCommands()
@@ -116,24 +138,29 @@ void CmdExecutorPanelBase::OnSize(wxSizeEvent& evt)
 
 void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
 {
-    int page_id = evt.GetSelection();
+    int page_id = m_CurrentPage = evt.GetSelection();
 
     wxMenu menu;
     menu.Append(ID_CmdExecutorEditPageName, "&Rename")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
-    //menu.Append(ID_CmdExecutorAddPage, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(14, 14))));
-    //menu.Append(ID_CmdExecutorDeletePage, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorChangeIcon, "&Change icon")->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorAddPage, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_ADD_BOOKMARK, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorDeletePage, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorDuplicatePageBefore, "&Duplicate Before")->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorDuplicatePageAfter, "&Duplicate After")->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
     int ret = GetPopupMenuSelectionFromUser(menu);
 
     switch(ret)
     {
         case ID_CmdExecutorEditPageName:
         {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            CommandPageNames& page_names = cmd->GetPageNames();
+
             wxTextEntryDialog d(this, "Type new page name here", "Rename");
+            d.SetValue(page_names[page_id]);
             int ret = d.ShowModal();
             if(ret == wxID_OK)
             {
-                std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
-                CommandPageNames page_names = cmd->GetPageNames();
 
                 m_notebook->Freeze();
                 m_notebook->SetPageText(page_id, d.GetValue());
@@ -143,9 +170,31 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             }
             break;
         }
+        case ID_CmdExecutorChangeIcon:
+        {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            CommandPageIcons& page_icons = cmd->GetPageIcons();
+
+            wxTextEntryDialog d(this, "Type new page icon's name here", "Change icon");
+            d.SetValue(page_icons[page_id]);
+            int ret = d.ShowModal();
+            if(ret == wxID_OK)
+            {
+                wxString icon_name = d.GetValue();
+                m_notebook->Freeze();
+                m_notebook->SetPageBitmap(page_id, wxArtProvider::GetBitmap(icon_name, wxART_OTHER, FromDIP(wxSize(16, 16))));
+                m_notebook->Thaw();
+
+                page_icons[page_id] = icon_name.ToStdString();
+            }
+            break;
+        }
         case ID_CmdExecutorAddPage:
         {
-            /* Not implemented */
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            cmd->AddPage(page_id, page_id + 1);
+
+            cmd->SaveToTempAndReload();
             break;
         }        
         case ID_CmdExecutorDeletePage:
@@ -155,7 +204,25 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             if(ret_code == wxID_OK)  /* OK */
             {
                 std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+                cmd->DeletePage(page_id);
+                cmd->SaveToTempAndReload();
             }
+            break;
+        }
+        case ID_CmdExecutorDuplicatePageBefore:
+        {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            cmd->CopyPage(page_id, page_id);
+
+            cmd->SaveToTempAndReload();
+            break;
+        }
+        case ID_CmdExecutorDuplicatePageAfter:
+        {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            cmd->CopyPage(page_id, page_id + 1);
+
+            cmd->SaveToTempAndReload();
             break;
         }
     }
@@ -191,12 +258,14 @@ void CmdExecutorPanelBase::OnCommandLoaded(uint8_t page, uint8_t col, CommandTyp
     m_Pages[page - 1]->OnCommandLoaded(col, cmd);
 }
 
-void CmdExecutorPanelBase::OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names)
+void CmdExecutorPanelBase::OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names, CommandPageIcons& icons)
 {
     m_Pages[page - 1]->OnPostReloadUpdate();
 
     m_notebook->Freeze();
     m_notebook->SetPageText(page - 1, names.back());
+    if(!icons.back().empty())
+        m_notebook->SetPageBitmap(page - 1, wxArtProvider::GetBitmap(icons.back(), wxART_OTHER, FromDIP(wxSize(16, 16))));
     m_notebook->Thaw();
 }
 
@@ -233,7 +302,9 @@ void CmdExecutorPanelPage::ToggleAllButtonClickability(bool toggle)
 void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
 {
     wxMenu menu;
-    menu.Append(ID_CmdExecutorAdd, "&Add")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorAdd, "&Add", "Add command to selected column")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorAddCol, "&Add col")->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorDeleteCol, "&Delete col")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorSave, "&Save")->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorReload, "&Reload")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(14, 14))));
 
@@ -246,24 +317,10 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
     uint8_t curr_sizer = 0xFF;
     for(auto& i : m_VertialBoxes)
     {
-        wxSize sizer_pos_min = i->GetSize();
-        if(col == 1)
-            sizer_pos_min = wxSize(0, 0);
-        else
-            sizer_pos_min.x = sizer_pos_min.x * col;  
+        wxPoint sizer_pos = i->GetPosition();
+        wxSize sizer_size = i->GetSize();
 
-        wxSize sizer_pos_max = i->GetSize();
-        if(col == 1)
-            sizer_pos_max.x = sizer_pos_max.x * col;
-        else
-            sizer_pos_max.x = sizer_pos_max.x * (2 * col);
-
-        DBG("mouse pos: %d, %d\n", mouseX, mouseY);
-        DBG("sizer size: %d, %d\n", i->GetSize().x, i->GetSize().y);
-        DBG("sizer min: %d\n", (i->GetSize().x * (col - 1)));
-        DBG("sizer max: %d\n", (i->GetSize().x * col));
-        DBG("sizer pos: %d\n\n", (i->GetPosition().x * col));
-        if(mouseX > sizer_pos_min.x && mouseX < sizer_pos_max.x)
+        if(mouseX > sizer_pos.x && mouseX < (sizer_pos.x + sizer_size.x))
         {
             curr_sizer = col - 1;
                 break;
@@ -283,8 +340,24 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
         case ID_CmdExecutorAdd:
         {           
             std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
-            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, 1.0f));
+            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, "", 1.0f));
             m_BaseGrid->Layout();
+            break;
+        }
+        case ID_CmdExecutorAddCol:
+        {           
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            cmd->AddCol(CmdExecutorPanelBase::m_CurrentPage, col);
+
+            cmd->SaveToTempAndReload();
+            break;
+        }
+        case ID_CmdExecutorDeleteCol:
+        {           
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+            cmd->DeleteCol(CmdExecutorPanelBase::m_CurrentPage, col);
+
+            cmd->SaveToTempAndReload();
             break;
         }
         case ID_CmdExecutorSave:
@@ -349,6 +422,7 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
 
     wxMenu menu;
     menu.Append(ID_CmdExecutorEdit, "&Edit")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorDuplicate, "&Duplicate")->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorDelete, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
     int ret = GetPopupMenuSelectionFromUser(menu);
     
@@ -356,7 +430,7 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
     {
         case ID_CmdExecutorEdit:
         {
-            edit_dlg->ShowDialog(c->GetName(), c->GetCmd(), c->GetColor(), c->GetBackgroundColor(), c->IsBold(), c->GetScale());
+            edit_dlg->ShowDialog(c->GetName(), c->GetCmd(), c->GetColor(), c->GetBackgroundColor(), c->IsBold(), c->GetFontFace(), c->GetScale());
             if(!edit_dlg->IsApplyClicked()) return;
 
             const std::string cmd_name = edit_dlg->GetCmdName().ToStdString();
@@ -364,11 +438,47 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
             wxColor color = edit_dlg->GetTextColor();
             wxColor bg_color = edit_dlg->GetBgColor();
             bool is_bold = edit_dlg->IsBold();
+            const std::string font_face = edit_dlg->GetFontFace().ToStdString();
             float scale = edit_dlg->GetScale();
 
-            c->SetName(cmd_name).SetCmd(cmd).SetColor(WXCOLOR_TO_RGB(color.GetRGB())).SetBackgroundColor(WXCOLOR_TO_RGB(bg_color.GetRGB())).SetBold(is_bold).SetScale(scale);
+            c->SetName(cmd_name).SetCmd(cmd).SetColor(WXCOLOR_TO_RGB(color.GetRGB())).SetBackgroundColor(WXCOLOR_TO_RGB(bg_color.GetRGB())).
+                SetBold(is_bold).SetFontFace(font_face).SetScale(scale);
 
             UpdateCommandButon(c, btn, true);
+            break;
+        }
+        case ID_CmdExecutorDuplicate:
+        {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+
+            uint8_t col = 0xFF;
+            auto it = m_ButtonMap.begin();
+            while(it != m_ButtonMap.end())
+            {
+                bool ret = std::visit([btn, &it, this](auto& it_button)
+                    {
+                        using T = std::decay_t<decltype(it_button)>;
+                        if constexpr(std::is_same_v<T, wxButton*>)
+                        {
+                            if(it_button == btn)
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }, it->second);
+
+                if(ret)
+                {
+                    col = it->first;
+                    break;
+                }
+                else
+                    ++it;
+            }
+
+            cmd->AddCommand(m_Id, col + 1, Command(*c));
+            m_BaseGrid->Layout();
             break;
         }
         case ID_CmdExecutorDelete:
@@ -451,6 +561,7 @@ void CmdExecutorPanelPage::OnPreload(uint8_t cols)
     for(uint8_t i = 0; i != cols; i++)
     {
         wxBoxSizer* box_sizer = new wxBoxSizer(wxVERTICAL);
+        box_sizer->SetMinSize(wxSize(100, 100));
         m_BaseGrid->Add(box_sizer);
         m_VertialBoxes.push_back(box_sizer);
     }
@@ -503,6 +614,9 @@ void CmdExecutorPanelPage::UpdateCommandButon(Command* c, wxButton* btn, bool fo
     font.Scale(1.0f);  /* Scale has to be set to default first */
     btn->SetFont(font);
     font.Scale(c->GetScale());
+
+    if(!c->GetFontFace().empty())
+        font.SetFaceName(c->GetFontFace());
     btn->SetFont(font);
 
     if(force_font_reset)

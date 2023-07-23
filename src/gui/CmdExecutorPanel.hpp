@@ -4,6 +4,7 @@
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
 #include <wx/clrpicker.h>
+#include <wx/fontpicker.h>
 
 #include "ICmdHelper.hpp"
 
@@ -12,7 +13,7 @@ class CmdExecutorEditDialog : public wxDialog
 public:
     CmdExecutorEditDialog(wxWindow* parent);
 
-    void ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, uint32_t color, uint32_t bg_color, bool is_bold, float scale);
+    void ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, uint32_t color, uint32_t bg_color, bool is_bold, const wxString& font_face, float scale);
 
     const wxString GetCmdName() { return m_commandName->GetValue(); }
     const wxString GetCmd() { return m_cmdToExecute->GetValue(); }
@@ -21,6 +22,7 @@ public:
     const wxColor GetBgColor() { return m_backgroundColor->GetColour(); }
 
     bool IsBold() { return m_isBold->GetValue(); }
+    wxString GetFontFace() { return m_fontFace->GetSelectedFont().GetFaceName(); }
     float GetScale() { return static_cast<float>(m_scale->GetValue()); }
 
     bool IsApplyClicked() { return m_IsApplyClicked; }
@@ -33,6 +35,7 @@ private:
     wxColourPickerCtrl* m_color = nullptr;
     wxColourPickerCtrl* m_backgroundColor = nullptr;
     wxCheckBox* m_isBold = nullptr;
+    wxFontPickerCtrl* m_fontFace = nullptr;
     wxSpinCtrlDouble* m_scale = nullptr;
 
     wxStaticText* m_labelResult = nullptr;
@@ -52,6 +55,7 @@ public:
 
 	void ReloadCommands();
 
+    static inline uint8_t m_CurrentPage = 0;
 private:
     void OnSize(wxSizeEvent& evt);
     void OnAuiRightClick(wxAuiNotebookEvent& evt);
@@ -59,8 +63,10 @@ private:
 	void OnPreReload(uint8_t page) override;
 	void OnPreReloadColumns(uint8_t pages, uint8_t cols) override;
 	void OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd) override;
-	void OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names) override;
+	void OnPostReload(uint8_t page, uint8_t cols, CommandPageNames& names, CommandPageIcons& icons) override;
 	
+    void OnPanelRightClick(wxMouseEvent& event);
+
     wxAuiNotebook* m_notebook = nullptr;
 
     std::vector<CmdExecutorPanelPage*> m_Pages;
