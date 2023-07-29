@@ -201,7 +201,7 @@ public:
                     ret += std::format("\tAddVehicleComponentInline(tempvehid, ");
                     for(auto i : upgrades)
                         ret += std::to_string(i) + ", ";
-                    if(ret.back() == ' ')
+                    if(ret.size() > 2 && ret.back() == ' ')
                     {
                         ret.pop_back();
                         ret.pop_back();

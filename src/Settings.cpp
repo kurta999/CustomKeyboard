@@ -358,7 +358,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             {
                 key += x.generic_wstring() + '|';
             }
-            if(key.back() == '|')
+            if(!key.empty() && key.back() == '|')
                 key.pop_back();
             out << "To = " << key << '\n';
             key.clear();
@@ -366,7 +366,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             {
                 key += x + '|';
             }
-            if(key.back() == '|')
+            if(!key.empty() && key.back() == '|')
                 key.pop_back();
 
             std::string ignore_list;

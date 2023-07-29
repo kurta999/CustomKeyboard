@@ -68,7 +68,7 @@ std::string KeyCombination::GenerateText(bool is_ini_format)
     {
         text += CustomMacro::Get()->GetKeyStringFromScanCode(i) + "+";
     }
-    if(text.back() == '+')
+    if(!text.empty() && text.back() == '+')
         text.pop_back();
     std::string ret = is_ini_format ? std::format(" KEY_SEQ[{}]", text) : text;
     return ret;

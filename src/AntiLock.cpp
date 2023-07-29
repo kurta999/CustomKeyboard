@@ -21,7 +21,7 @@ const std::string AntiLock::SaveExclusions()
     {
         exclusions += x + '|';
     }
-    if(exclusions.back() == '|')
+    if(!exclusions.empty() && exclusions.back() == '|')
         exclusions.pop_back();
     return exclusions;
 }
