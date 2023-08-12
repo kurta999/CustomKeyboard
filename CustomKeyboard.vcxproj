@@ -286,7 +286,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_82_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
