@@ -33,6 +33,21 @@ uint16_t CorsairHid::GetDebouncingInterval() const
     return m_DebouncingInterval;
 }
 
+CorsairDeviceType CorsairHid::GetDeviceType() const
+{
+    return m_DeviceType;
+}
+
+const std::string& CorsairHid::GetDeviceName() const
+{
+    return m_DeviceName;
+}
+
+bool CorsairHid::IsOk()
+{
+    return m_IsOk;
+}
+
 bool CorsairHid::ExecuteInitSequence()
 {
 #ifdef USE_HIDAPI
@@ -55,6 +70,8 @@ bool CorsairHid::ExecuteInitSequence()
             
         if(device_info->vendor_id == 0x1B1C && device_info->product_id == 0x1B11 && device_info->usage_page == 0xFFC0 && device_info->usage == 2)  /* K95 RGB (older) with 18 macro keys */
         {
+            m_DeviceType = CorsairDeviceType::K95_18GKEY;
+            m_DeviceName = "Corsair K95";
             hid_path = device_info->path;
             LOG(LogLevel::Normal, "Corsair K95 18 macro key found");
             break;
@@ -62,6 +79,8 @@ bool CorsairHid::ExecuteInitSequence()
 
         if(std::wstring(device_info->product_string).find(L"Corsair Gaming K95") != std::wstring::npos)  /* Corsair Gaming K95 RGB PLATINUM Keyboard */
         {
+            m_DeviceType = CorsairDeviceType::K95_PLATINUM;
+            m_DeviceName = "Corsair K95 RGB PLATINUM";
             hid_path = device_info->path;
             LOG(LogLevel::Normal, "Corsair K95 Platinum found");
             break;
@@ -75,12 +94,14 @@ bool CorsairHid::ExecuteInitSequence()
         if(!hid_handle)
         {
             LOG(LogLevel::Critical, "hid_open failed");
+            m_DeviceName = "Corsair device is'nt found";
             return false;
         }
     }
     else
     {
         LOG(LogLevel::Error, "Unable to find Corsair K95");
+        m_DeviceName = "Corsair device is'nt found";
         return false;
     }
 #endif
@@ -108,12 +129,13 @@ void CorsairHid::ThreadFunc(std::stop_token token)
     LOG(LogLevel::Notification, "ThreadFunc");
     while(!token.stop_requested())
     {
-        uint8_t recv_data[READ_DATA_BUFFER_SIZE];
         if(hid_handle)
         {
+            uint8_t recv_data[READ_DATA_BUFFER_SIZE];
             int read_bytes = hid_read_timeout(hid_handle, recv_data, sizeof(recv_data), HID_READ_TIMEOUT);
             if(read_bytes == 0xFFFFFFFF)
             {
+                m_IsOk = false;
                 LOG(LogLevel::Error, L"HID read error: {}", hid_error(hid_handle));
 
                 std::unique_lock lock{ m_Mutex };
@@ -121,6 +143,8 @@ void CorsairHid::ThreadFunc(std::stop_token token)
             }
             else if(read_bytes > MIN_READ_DATA_SIZE)
             {
+                m_IsOk = true;
+
                 uint32_t gkey_code = *reinterpret_cast<uint32_t*>(recv_data + 16);
                 auto it = corsair_GKeys.find(gkey_code);
                 if(it != corsair_GKeys.end())

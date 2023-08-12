@@ -222,6 +222,11 @@ MainPanel::MainPanel(wxFrame* parent)
 	
 	wxBoxSizer* third_vertical = new wxBoxSizer(wxVERTICAL);
 
+	m_CorsairDeviceName = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_CorsairDeviceName->SetForegroundColour(*wxBLUE);
+	third_vertical->Add(m_CorsairDeviceName);
+	third_vertical->AddSpacer(5);
+
 	wxGridSizer* g_key_box_sizer_1 = new wxGridSizer(2, 3, 0, 0);
 	ADD_GKEY("G1",	"G1",	g1, g_key_box_sizer_1);
 	ADD_GKEY("G2",	"G2",	g2, g_key_box_sizer_1);
@@ -230,7 +235,9 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_GKEY("G5",	"G5",	g5, g_key_box_sizer_1);
 	ADD_GKEY("G6",	"G6",	g6, g_key_box_sizer_1);
 	third_vertical->Add(g_key_box_sizer_1);
-	third_vertical->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL), wxSizerFlags(0));
+
+	m_CorsairSeparatorLine_1 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL);
+	third_vertical->Add(m_CorsairSeparatorLine_1, wxSizerFlags(0));
 	
 	wxGridSizer* g_key_box_sizer_2 = new wxGridSizer(2, 3, 0, 0);
 	ADD_GKEY("G7",	"G7",	g7, g_key_box_sizer_2);
@@ -240,7 +247,9 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_GKEY("G11",	"G11",	g11, g_key_box_sizer_2);
 	ADD_GKEY("G12",	"G12",	g12, g_key_box_sizer_2);
 	third_vertical->Add(g_key_box_sizer_2);
-	third_vertical->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL), wxSizerFlags(0));
+
+	m_CorsairSeparatorLine_2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, 3), wxLI_HORIZONTAL);
+	third_vertical->Add(m_CorsairSeparatorLine_2, wxSizerFlags(0));
 
 	wxGridSizer* g_key_box_sizer_3 = new wxGridSizer(2, 3, 0, 0);
 	ADD_GKEY("G13", "G13",	g13, g_key_box_sizer_3);
@@ -295,6 +304,49 @@ void MainPanel::UpdateKeybindings()
 		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
 		it->second->SetForegroundColour(*wxRED);
 	}
+
+	if(CorsairHid::Get()->GetDeviceType() == CorsairDeviceType::NONE)
+	{
+		if(key_map["G18"]->IsShown())
+		{
+			for(uint8_t i = 0; i <= 18; i++)
+			{
+				key_map["G" + std::to_string(i)]->Hide();
+			}
+		}
+
+		m_CorsairSeparatorLine_1->Hide();
+		m_CorsairSeparatorLine_2->Hide();
+	}
+	else if(CorsairHid::Get()->GetDeviceType() == CorsairDeviceType::K95_PLATINUM)
+	{
+		if(key_map["G18"]->IsShown())
+		{
+			for(uint8_t i = 7; i <= 18; i++)
+			{
+				key_map["G" + std::to_string(i)]->Hide();
+			}
+		}
+
+		m_CorsairSeparatorLine_1->Hide();
+		m_CorsairSeparatorLine_2->Hide();
+	}
+	else if(CorsairHid::Get()->GetDeviceType() == CorsairDeviceType::K95_18GKEY)
+	{
+		if(!key_map["G18"]->IsShown())
+		{
+			for(uint8_t i = 7; i <= 18; i++)
+			{
+				key_map["G" + std::to_string(i)]->Show();
+			}
+		}
+
+		m_CorsairSeparatorLine_1->Show();
+		m_CorsairSeparatorLine_2->Show();
+	}
+
+	m_CorsairDeviceName->SetLabelText(wxString::Format("%s - %s", CorsairHid::Get()->GetDeviceName(), CorsairHid::Get()->IsOk() ? "OK" : "ERROR"));
+	m_CorsairDeviceName->SetForegroundColour(CorsairHid::Get()->IsOk() ? *wxBLUE : *wxRED);
 }
 
 void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell)

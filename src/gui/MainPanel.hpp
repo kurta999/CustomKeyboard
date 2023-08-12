@@ -2,6 +2,7 @@
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
+#include <wx/statline.h>
 
 class MainPanel : public wxPanel
 {
@@ -43,6 +44,8 @@ private:
 	wxString FormatCurrentWeekNumber();
 
 	std::map<std::string, wxStaticBox*> key_map;
-
+	wxStaticText* m_CorsairDeviceName = nullptr;
+	wxStaticLine* m_CorsairSeparatorLine_1 = nullptr;
+	wxStaticLine* m_CorsairSeparatorLine_2 = nullptr;
 	wxDECLARE_EVENT_TABLE();
 };

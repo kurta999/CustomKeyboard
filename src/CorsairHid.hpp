@@ -12,6 +12,13 @@ extern "C"
 }
 #endif
 
+enum class CorsairDeviceType
+{
+    NONE,
+    K95_18GKEY,
+    K95_PLATINUM
+};
+
 class CorsairHid : public CSingleton < CorsairHid >
 {
     friend class CSingleton < CorsairHid >;
@@ -30,6 +37,18 @@ public:
     // !\brief Get debouncing interval [ms]
     // !\return Debouncing interval [ms]
     uint16_t GetDebouncingInterval() const;
+
+    // !\brief Get device type
+    // !\return Device type
+    CorsairDeviceType GetDeviceType() const;
+
+    // !\brief Get device name
+    // !\return Const reference to device name
+    const std::string& GetDeviceName() const;
+
+    // !\brief Is keyboard status OK?
+    // !\return true if OK, false in case of error with HID communication
+    bool IsOk();
 
 private:
     // !\brief Execute init sequence for HID
@@ -68,6 +87,15 @@ private:
 
     // !\brief Mutex for conditional variable
     std::mutex m_Mutex;
+
+    // !\brief Name of the device
+    std::string m_DeviceName = "Corsair device is'nt found";
+
+    // !\brief Type of the device
+    CorsairDeviceType m_DeviceType;
+
+    // !\brief Is HID communication OK?
+    bool m_IsOk = true;
 
     // !\brief Map with G-Key values and it's name
     const std::map<int, std::string> corsair_GKeys =
