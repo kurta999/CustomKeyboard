@@ -1,44 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Commands>
-  <Pages>2</Pages>
-  <Page_1 name = "Board">
-    <Columns>4</Columns>
-    <Col_1>
-	    <Cmd>
-        <Name>Directory</Name>
-        <Execute>cd C:\ & dir & ping 127.0.0.1 -n [({PARAM:3})] > nul</Execute>
-        <Color>0xFF0000</Color>
-        <BackgroundColor>green</BackgroundColor>
-        <Bold>true</Bold>
-        <Scale>2.0</Scale>
-      </Cmd>
-	  <Cmd>
-        <Name>Set date</Name>
-        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
-        <Color>0xFF0000</Color>
-        <BackgroundColor>green</BackgroundColor>
-        <Bold>true</Bold>
-        <Scale>2.0</Scale>
-      </Cmd>
-	    <Cmd>cd ..</Cmd>
-      <Separator>4</Separator>
-      <Cmd>cd2 ..</Cmd>
-    </Col_1>  
-    <Col_2>
-	    <Cmd>dir C:</Cmd>
-	    <Cmd>cd ../..</Cmd>
-    </Col_2>
-  </Page_1>
-  <Page_2 name = "Liunx VM">
-    <Columns>2</Columns>
-    <Col_1>
-      <Cmd>
-        <Name>Print directory</Name>
-        <Execute>cd C:\ & dir & ping 127.0.0.1 -n 3 > nul</Execute>
-        <Color>0xFF0001</Color>
-        <BackgroundColor>green</BackgroundColor>
-        <Bold>true</Bold>
-        <Scale>2.0</Scale>
-      </Cmd>
-    </Col_1>>
-    </Page_2>
+	<Pages>5</Pages>
+	<Page_1 name="Board" icon="wxART_COPY">
+		<Columns>4</Columns>
+		<Col_1>
+			<Cmd>
+				<Name>Directory</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n [({PARAM:3})] &gt; nul</Execute>
+				<Color>red</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>Set date</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>red</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+			<Cmd>
+				<Execute>cd ..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Separator>4</Separator>
+			<Cmd>
+				<Execute>cd2 ..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>Open chrome</Name>
+				<Execute>start chrome</Execute>
+				<Color>0xFF</Color>
+				<BackgroundColor>0xFF0080</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>3</Scale>
+			</Cmd>
+			<Separator>10</Separator>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_1>
+		<Col_2/>
+		<Col_3>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_3>
+		<Col_4>
+			<Cmd>
+				<Execute>dir C:</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Execute>cd ../..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>5</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>5</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>5</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>5</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>0x8000FF</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace>Segoe UI</FontFace>
+				<Scale>5</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_4>
+	</Page_1>
+	<Page_2 name="Board" icon="">
+		<Columns>2</Columns>
+		<Col_1>
+			<Cmd>
+				<Name>Directory</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n [({PARAM:3})] &gt; nul</Execute>
+				<Color>red</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>Set date</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>red</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+			<Cmd>
+				<Execute>cd ..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Separator>4</Separator>
+			<Cmd>
+				<Execute>cd2 ..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_1>
+		<Col_2>
+			<Cmd>
+				<Execute>dir C:</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Execute>cd ../..</Execute>
+				<Color>black</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_2>
+	</Page_2>
+	<Page_3 name="Liunx VM" icon="">
+		<Columns>1</Columns>
+		<Col_1>
+			<Cmd>
+				<Name>Print directory</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>0xFF0001</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+		</Col_1>
+	</Page_3>
+	<Page_4 name="L�szar" icon="wxART_ADD_BOOKMARK">
+		<Columns>2</Columns>
+		<Col_1>
+			<Cmd>
+				<Name>Print directory</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>0xFF0001</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+		</Col_1>
+		<Col_2/>
+	</Page_4>
+	<Page_5 name="Liunx VM" icon="">
+		<Columns>3</Columns>
+		<Col_1>
+			<Cmd>
+				<Name>Print directory</Name>
+				<Execute>cd C:\ &amp; dir &amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>0xFF0001</Color>
+				<BackgroundColor>green</BackgroundColor>
+				<Bold>true</Bold>
+				<FontFace/>
+				<Scale>2</Scale>
+			</Cmd>
+		</Col_1>
+		<Col_2>
+			<Separator>10</Separator>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_2>
+		<Col_3>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+			<Cmd>
+				<Name>New cmd</Name>
+				<Execute>&amp; ping 127.0.0.1 -n 3 &gt; nul</Execute>
+				<Color>green</Color>
+				<BackgroundColor>white</BackgroundColor>
+				<Bold>false</Bold>
+				<FontFace/>
+				<Scale>1</Scale>
+			</Cmd>
+		</Col_3>
+	</Page_5>
 </Commands>

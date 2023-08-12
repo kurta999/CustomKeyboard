@@ -42,7 +42,7 @@ Work in progress Qt port of this application is available here: https://github.c
 
 ### 2. For General development:
 
-1. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml or in the "CMD Executor" panel. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias. Currently one variable parameter can be added to each command, you can change that before execution by clicking with MIDDLE mouse to the command button instead of the LEFT. 
+1. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml or in the "CMD Executor" panel. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias. Currently one variable parameter can be added to each command, you can change that before execution by clicking with MIDDLE mouse to the command button instead of the LEFT. Command button customization (like bold font, color, font face name), duplication - everything can be done over GUI.
 
 2. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 

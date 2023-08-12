@@ -319,6 +319,13 @@ void CmdExecutor::AddCommand(uint8_t page, uint8_t col, Command cmd)
     }
 }
 
+void CmdExecutor::AddSeparator(uint8_t page, uint8_t col, Separator sep)
+{
+    m_Commands[page - 1][col - 1].push_back(sep); /* TODO: refactor it with AddItem */
+    if(m_CmdMediator)
+        m_CmdMediator->OnCommandLoaded(page, col, m_Commands[page - 1][col - 1].back());
+}
+
 bool CmdExecutor::AddItem(uint8_t page, uint8_t col, std::shared_ptr<Command>&& cmd)
 {
     if(col <= m_Commands.size())
