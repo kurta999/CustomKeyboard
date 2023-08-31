@@ -14,18 +14,19 @@ void CryptoPrice::ExecuteApiRead()
 #ifdef _WIN32
     CStringA str = utils::ExecuteCmdWithoutWindow(L"/C curl --silent https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell", 5000);
   
-    boost::algorithm::split_regex(arr, str.GetString(), boost::regex("{\"data\":{\"base\":\""));
+    boost::algorithm::split_regex(arr, str.GetString(), boost::regex("{\"data\":{"));
 #else
     std::string buy_price_str = utils::exec("curl https://api.coinbase.com/v2/prices/ETH-USD/buy -: https://api.coinbase.com/v2/prices/ETH-USD/sell -: https://api.coinbase.com/v2/prices/BTC-USD/buy -: https://api.coinbase.com/v2/prices/BTC-USD/sell");
-    boost::algorithm::split_regex(arr, buy_price_str, boost::regex("{\"data\":{\"base\":\""));
+    boost::algorithm::split_regex(arr, buy_price_str, boost::regex("{\"data\":{"));
 #endif
 
     if(arr[0].find("not recognized") == std::string::npos) /* 'curl' is not recognized as an internal or external command, operable program or batch file. */
     {
-        if(arr.begin() != arr.end())
-            arr.erase(arr.begin());
-        if(arr.size() == 4)
+        if(arr.size() == 5)
         {
+            if(arr.begin() != arr.end())
+                arr.erase(arr.begin());
+
             auto ExtractAmount = [](std::string& str, std::atomic<float>& out)
             {
                 try
@@ -53,6 +54,7 @@ void CryptoPrice::ExecuteApiRead()
         else
         {
             LOG(LogLevel::Error, "Invalid number of requrests received from curl. Expected: 4, Current: {}", arr.size());
+            LOG(LogLevel::Error, "Received data: {}", arr[0]);
         }
     }
     else
