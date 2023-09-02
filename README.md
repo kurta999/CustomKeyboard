@@ -2,7 +2,7 @@ This is a personal project for myself to improve my daily computer usage, partic
 
 If you want to use/resuse some part(s) of the project or you have a question, feel free to open a Pull Request.
 
-Work in progress Qt port of this application is available here: https://github.com/kurta999/QustomKeyboard
+Work in progress Qt port of this application is available here: https://gitlab.com/kurta999/QustomKeyboard
 
 # Quick overview
 ### 1. For Automotive development:
@@ -80,20 +80,20 @@ Work in progress Qt port of this application is available here: https://github.c
 - [BSEC](https://www.bosch-sensortec.com/software-tools/software/bsec/ "Bosch's BSEC Homepage")
 
 Required external depencencies:
-- [Boost 1.82.0](https://www.boost.org/ "Boost's Homepage")
+- [Boost 1.83.0](https://www.boost.org/ "Boost's Homepage")
 - [wxWidgets 3.2.2](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 - [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
 Required external hardware:
-- Second keyboard & Sensors: [AirQualitySensors](https://github.com/kurta999/AirQualitySensors "AirQualitySensors") 
+- Second keyboard & Sensors: [AirQualitySensors](https://gitlab.com/kurta999/AirQualitySensors "AirQualitySensors + UsbHost") 
 - Second keyboard only: [UsbHost](https://github.com/kurta999/UsbHost "UsbHot")
-- CAN: [STM32 CAN USB](https://github.com/kurta999/CANUSB "STM32 CAN USB") OR  [Lawicel CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB") 
+- CAN: [STM32 CAN USB](https://gitlab.com/kurta999/CanUsbTransceiver "STM32 CAN USB") OR  [Lawicel CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB") 
 
 ## Building
 
 **Windows**
 1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_81_0
+- boost: C:\Program Files\boost\boost_1_83_0
 - wxWidgets: C:\wxWidgets-3.2.2
 - HIDAPI: C:\hidapi (*)
 
@@ -108,13 +108,13 @@ Available build configurations:
 - x64 - Debug, Release, Static Release
 
 CMake support for windows is available, hovewer I'm not using it so it's abandoned. Up to date version is only for Linux, use .sln files when using Windows! Example command for CMake on Windows:
-cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_81_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.2 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_81_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_81_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
+cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_83_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.2 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_83_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_83_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
 
 **Linux**
 
 The project is using C++20 features, so I recommend using the newest compilers. I'm using clang15 because it's faster for me than GCC.
 
-1. Install boost 1.82.0, wxWidgets 3.2.2, fmt 8.0.0, hidapi
+1. Install boost 1.83.0, wxWidgets 3.2.2, fmt 8.0.0, hidapi
 2. Execute these commands in project root directory:
 
 If you do not want to use HIDAPI, you can disable it by setting USE_HIDAPI CMake option to false. (cmake .. -DUSE_HIDAPI=false or do it within CMake GUI)
