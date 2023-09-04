@@ -18,7 +18,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 
 ### 3. For Personal use:
 1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
-2. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs - Source code for STM32 which processes the sensors are available here: https://github.com/kurta999/AirQualitySensors
+2. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs - Source code for STM32 which processes the sensors are available here: https://gitlab.com/kurta999/AirQualitySensors
 3. **Backend for Corsair's G Keys** - Bind macros to G keys as those were on second keyboard, without even installing iCUE
 4. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval. Can be useful for workstations if you can't disable idle logout or you're being monitored.
 5. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
@@ -34,7 +34,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 
 # In depth details of implemented features
 ### 1. For Automotive development:
-1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://github.com/kurta999/CANUSB
+1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://gitlab.com/kurta999/CanUsbTransceiver
 
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 
@@ -50,7 +50,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 
 ### 3. For Personal use:
 
-1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost
+1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://gitlab.com/kurta999/UsbHost
 
 2. **Sensors** - Backend means simple TCP server where sensor connencts and sends measurements. Average of easurements within specified integration period is inserted to SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel. Graphs can be seen at "you_local_ip:2005/graphs" by default. If your computer running and your sensor is connected, you can see the graphs in real time - even from your phone. 
 
@@ -86,7 +86,7 @@ Required external depencencies:
 
 Required external hardware:
 - Second keyboard & Sensors: [AirQualitySensors](https://gitlab.com/kurta999/AirQualitySensors "AirQualitySensors + UsbHost") 
-- Second keyboard only: [UsbHost](https://github.com/kurta999/UsbHost "UsbHot")
+- Second keyboard only: [UsbHost](https://gitlab.com/kurta999/UsbHost "UsbHot")
 - CAN: [STM32 CAN USB](https://gitlab.com/kurta999/CanUsbTransceiver "STM32 CAN USB") OR  [Lawicel CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB") 
 
 ## Building
@@ -104,11 +104,18 @@ Feel free to change, but don't forget to change them too in Visual Studio's proj
 2. Open CustomKeyboard.sln and build the desired build.
 
 Available build configurations:
-- x86 - Debug, Release, Static Release
-- x64 - Debug, Release, Static Release
+- x86 - Debug, Release, Static Release, Release_BSec (release with BOSCH's BSec library)
+- x64 - Debug, Release, Static Release, Release_BSec (release with BOSCH's BSec library)
 
 CMake support for windows is available, hovewer I'm not using it so it's abandoned. Up to date version is only for Linux, use .sln files when using Windows! Example command for CMake on Windows:
 cmake .. -DCMAKE_PREFIX_PATH="C:\GIT_Local\CustomKeyboard\fmt-8.1.1\build;C:\Program Files\boost\boost_1_83_0\stage\lib\cmake" -DwxWidgets_ROOT_DIR=C:\wxWidgets-3.2.2 -DBoost_INCLUDE_DIR="C:\Program Files\boost\boost_1_83_0" -DBoost_LIBRARY_DIR="C:\Program Files\boost\boost_1_83_0\stage\lib" -DFMT_LIB_DIR=C:\GIT_Local\CustomKeyboard\fmt-8.1.1 -G "Visual Studio 17 2022"
+
+Creating symlinks on Windows when debugging under VS for x64/Debug, Release, Release_BSec folder
+
+mklink "TxList.xml" ..\..\TxList.xml
+mklink "RxList.xml" ..\..\RxList.xml
+mklink "FrameMapping.xml" ..\..\FrameMapping.xml
+mklink "settings.ini" ..\..\settings.ini
 
 **Linux**
 
