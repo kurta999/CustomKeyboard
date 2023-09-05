@@ -2,6 +2,10 @@
 
 constexpr size_t CAN_SERIAL_RESPONSE_BUFFER_SIZE = 64;
 
+constexpr const char MESSAGE_TRANSMIT_STANDARD_FRAME = 't';
+constexpr const char MESSAGE_TRANSMIT_EXTENDED_FRAME = 'T';
+constexpr const char MESSAGE_TRANSMIT_VERSION_INFO = 'V';
+
 CanDeviceLawicel::CanDeviceLawicel(boost::circular_buffer<char>& CircBuff) :
     m_CircBuff(CircBuff)
 {
@@ -23,20 +27,20 @@ void CanDeviceLawicel::ProcessReceivedFrames(std::mutex& rx_mutex)
         for(boost::circular_buffer<char>::iterator i = m_CircBuff.begin(); i != m_CircBuff.end(); ++i)
         {
             char start_char = *i;
-            if(start_char == 't' && it_start == m_CircBuff.end())
+            if(start_char == MESSAGE_TRANSMIT_STANDARD_FRAME && it_start == m_CircBuff.end())
             {
                 it_start = i;
-                data_type = 't';
+                data_type = MESSAGE_TRANSMIT_STANDARD_FRAME;
             }            
-            else if(start_char == 'T' && it_start == m_CircBuff.end())
+            else if(start_char == MESSAGE_TRANSMIT_EXTENDED_FRAME && it_start == m_CircBuff.end())
             {
                 it_start = i;
-                data_type = 'T';
+                data_type = MESSAGE_TRANSMIT_EXTENDED_FRAME;
             } 
-            else if(start_char == 'V' && it_start == m_CircBuff.end())
+            else if(start_char == MESSAGE_TRANSMIT_VERSION_INFO && it_start == m_CircBuff.end())
             {
                 it_start = i;
-                data_type = 'V';
+                data_type = MESSAGE_TRANSMIT_VERSION_INFO;
             }
 
             if(start_char == '\r' && it_start != m_CircBuff.end())
@@ -63,7 +67,7 @@ void CanDeviceLawicel::ProcessReceivedFrames(std::mutex& rx_mutex)
             m_CircBuff.erase(m_CircBuff.begin(), it_end);
 
             data[data_len] = 0;
-            if(data_type == 'V')
+            if(data_type == MESSAGE_TRANSMIT_VERSION_INFO)
             {
                 LOG(LogLevel::Notification, "LAWICEL CANUSB version: {}", data);
                 return;
@@ -75,7 +79,7 @@ void CanDeviceLawicel::ProcessReceivedFrames(std::mutex& rx_mutex)
             char response[64] = {};
             uint8_t newline = 0;
 
-            if(data_type == 't')  // (00:58 : 20.531) t3F4 7 80 83 00 00 00 00 00 66 90
+            if(data_type == MESSAGE_TRANSMIT_STANDARD_FRAME)  // (00:58 : 20.531) t3F4 7 80 83 00 00 00 00 00 66 90
                 ret = sscanf(data, "%*c%03s%c%64[^\r]%c", frame_id_str, &frame_length, response, &newline);
             else
                 ret = sscanf(data, "%*c%08s%c%64[^\r]%c", frame_id_str, &frame_length, response, &newline);

@@ -3,6 +3,7 @@
 #include "utils/CSingleton.hpp"
 #include <filesystem>
 
+#include "ICanEntry.hpp"
 #include "ICanObserver.hpp"
 
 extern "C"
@@ -10,6 +11,8 @@ extern "C"
 #include <bitfield/bitfield.h>
 #include <isotp/isotp.h>
 }
+
+#include "IBasicGuiCustomization.hpp"
 
 constexpr uint8_t CAN_LOG_DIR_TX = 0;
 constexpr uint8_t CAN_LOG_DIR_RX = 1;
@@ -40,6 +43,12 @@ class CanEntryTransmitInfo
 public:
     CanEntryTransmitInfo() = default;
 
+    CanEntryTransmitInfo(uint32_t period_, uint8_t log_level_, uint8_t favourite_level_) :
+        period(period_), log_level(log_level_), favourite_level(favourite_level_)
+    {
+
+    }
+
     CanEntryTransmitInfo(const CanEntryTransmitInfo& from) :
         period(from.period), log_level(from.log_level)
     {
@@ -56,16 +65,31 @@ class CanTxEntry : public CanEntryBase, public CanEntryTransmitInfo
 {
 public:
     CanTxEntry() = default;
+    CanTxEntry(uint32_t id_, uint8_t* data_, uint8_t data_len_, uint32_t period_, uint8_t log_level_, uint8_t favourite_level_, const std::string& comment_, 
+        std::optional<uint32_t> color_, std::optional<uint32_t> bg_color_, std::optional<bool> is_bold_) :
+        id(id_), CanEntryBase(data_, data_len_), CanEntryTransmitInfo(period_, log_level_, favourite_level_), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
+    {
+
+    }
+
     ~CanTxEntry() = default;
     CanTxEntry(const CanTxEntry& from) : 
         CanEntryBase(from), id(from.id + 1), CanEntryTransmitInfo(from), comment(from.comment), m_color(from.m_color), m_bg_color(from.m_bg_color), m_is_bold(from.m_is_bold)
     { 
 
     }
+
+    // !\brief CAN Frame ID
     uint32_t id{};
+
+    // !\brief Comment for frame
     std::string comment{};
-    bool send = false;
-    bool single_shot = false;
+
+    // !\brief Has frame to be sent periodically?
+    bool send{ false };
+
+    // !\brief Is frame single shot?
+    bool single_shot{ false };
 
     // !\brief Text color
     std::optional<uint32_t> m_color;
@@ -74,7 +98,7 @@ public:
     std::optional<uint32_t> m_bg_color;
 
     // !\brief Is text bold?
-    bool m_is_bold = false;
+    bool m_is_bold{ false };
 };
 
 class CanRxData : public CanEntryBase, public CanEntryTransmitInfo
@@ -113,13 +137,13 @@ enum CanBitfieldType : uint8_t
     CBT_BOOL, CBT_UI8, CBT_I8, CBT_UI16, CBT_I16, CBT_UI32, CBT_I32, CBT_UI64, CBT_I64, CBT_FLOAT, CBT_DOUBLE, CBT_INVALID
 };
 
-class CanMap
+class CanMap : public BasicGuiTextCustomization
 {
 public:
     CanMap(const std::string& name, CanBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description, 
         uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
         m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
-        m_color(color), m_bg_color(bg_color), m_is_bold(is_bold), m_scale(scale)
+        BasicGuiTextCustomization(color, bg_color, is_bold, scale)
     {
 
     }
@@ -143,35 +167,9 @@ public:
     
     // !\brief Description (or whatever, more info about bitfields)
     std::string m_Description;
-
-    // !\brief Text color
-    uint32_t m_color;
-
-    // !\brief Text background color
-    uint32_t m_bg_color;
-
-    // !\brief Is text bold?
-    bool m_is_bold;
-
-    // !\brief Text scale
-    float m_scale;
 };
-
-using CanMapping = std::map<uint32_t, std::map<uint8_t, std::unique_ptr<CanMap>>>;  /* [frame_id] = map[bit pos, size] */
-using CanFrameNameMapping = std::map<uint32_t, std::string>;  /* TODO: this is wasteful as fuck, rewrite it */
-using CanFrameSizeMapping = std::map<uint32_t, uint8_t>;  /* TODO: this is wasteful as fuck, rewrite it */
-using CanFrameDirectionMapping = std::map<uint32_t, char>;  /* TODO: this is wasteful as fuck, rewrite it */
 
 //using CanBitfieldInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
-
-class ICanEntryLoader
-{
-public:
-    virtual ~ICanEntryLoader() { }
-
-    virtual bool Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) = 0;
-    virtual bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) = 0;
-};
 
 class XmlCanEntryLoader : public ICanEntryLoader
 {
@@ -179,16 +177,7 @@ public:
     virtual ~XmlCanEntryLoader();
 
     bool Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) override;
-    bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) override;
-};
-
-class ICanRxEntryLoader
-{
-public:
-    virtual ~ICanRxEntryLoader() { }
-
-    virtual bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
-    virtual bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
+    bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) const override;
 };
 
 class XmlCanRxEntryLoader : public ICanRxEntryLoader
@@ -197,16 +186,7 @@ public:
     virtual ~XmlCanRxEntryLoader();
 
     bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) override;
-    bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) override;
-};
-
-class ICanMappingLoader
-{
-public:
-    virtual ~ICanMappingLoader() { }
-
-    virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
-    virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
+    bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) const override;
 };
 
 class XmlCanMappingLoader : public ICanMappingLoader
@@ -215,7 +195,7 @@ public:
     virtual ~XmlCanMappingLoader();
 
     bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) override;
-    bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) override;
+    bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) const override;
 
     static CanBitfieldType GetTypeFromString(const std::string_view& input);
     static const std::string_view GetStringFromType(CanBitfieldType type);
@@ -317,7 +297,7 @@ public:
     
     // !\param Get CAN auto send state
     // !\return Is auto send toggled?
-    bool IsAutoSend() { return auto_send; }
+    bool IsAutoSend() const { return auto_send; }
 
     // !\brief Toggle automatic CAN frame recording
     // !\param toggle [in] Toggle auto recording?
@@ -325,7 +305,7 @@ public:
 
     // !\param Is auto recording enabled?
     // !\return Is auto recording enabled?
-    bool IsAutoRecord() { return auto_recording; }
+    bool IsAutoRecord() const { return auto_recording; }
 
     // !\brief Toggle recording
     // !\param toggle [in] Toggle recording?
@@ -385,14 +365,14 @@ public:
     void SetRecordingLogLevel(uint8_t log_level) { m_RecodingLogLevel = log_level; }
 
     // !\brief Get favourite level
-    uint8_t GetFavouriteLevel() { return m_DefaultFavouriteLevel; }
+    uint8_t GetFavouriteLevel() const { return m_DefaultFavouriteLevel; }
 
     // !\brief Set favourite level
     // !\param favourite_level [in] Favourite level
     void SetFavouriteLevel(uint8_t favourite_level) { m_DefaultFavouriteLevel = favourite_level; }
 
     // !\brief Get default ECU ID
-    uint32_t GetDefaultEcuId() { return m_DefaultEcuId; }
+    uint32_t GetDefaultEcuId() const { return m_DefaultEcuId; }
 
     // !\brief Set default ECU ID
     // !\param ecu_id [in] Default ECU ID
@@ -409,15 +389,15 @@ public:
     void SetIsoTpResponseFrame(uint32_t frame_id) { m_IsoTpResponseId = frame_id; }
 
     // !\brief Get ISO-TP response Frame ID
-    uint32_t GetIsoTpResponseFrameId() { return m_IsoTpResponseId; };
+    uint32_t GetIsoTpResponseFrameId() const { return m_IsoTpResponseId; };
 
     // !\brief Return TX Frame count
     // !\return TX Frame count
-    uint64_t GetTxFrameCount() { return tx_frame_cnt; }
+    uint64_t GetTxFrameCount() const { return tx_frame_cnt; }
 
     // !\brief Return RX Frame count
     // !\return RX Frame count
-    uint64_t GetRxFrameCount() { return rx_frame_cnt; }
+    uint64_t GetRxFrameCount() const { return rx_frame_cnt; }
 
     // !\brief Get map for frame id (in string format)
     // !\param frame_id [in] CAN Frame ID
@@ -429,14 +409,20 @@ public:
     // !\param new_data [in] Vector of strings of new data
     void ApplyEditingOnFrameId(uint32_t frame_id, std::vector<std::string> new_data);
 
+    // !\brief Find CAN Frame ID on FrameMap by it's name
     uint32_t FindFrameIdOnMapByName(const std::string& name);
 
+    // !\brief Return CAN mapping object
     CanMapping& GetMapping() { return m_mapping; }
 
+    // !\brief Return RAW UDS buffer
     std::vector<std::string>& GetUdsRawBuffer() { return m_UdsFrames; }
 
-    uint32_t GetElapsedTimeSinceLastUdsFrame();
+    // !\brief Return elapsed time since last UDS frame was received
+    uint32_t GetElapsedTimeSinceLastUdsFrame() const;
 
+    // !\brief Return start time of CAN entry handler
+    // !\details Can be used for relative time calculations for CAN frames
     std::chrono::steady_clock::time_point GetStartTime() { return start_time; }
 
     // !\brief Vector of CAN TX entries
@@ -556,5 +542,6 @@ public:
     // !\brief ISO-TP Response Frame ID
     uint32_t m_IsoTpResponseId = 0x7DA;
 
+    // !\brief Time when the last UDS frame was received
     std::chrono::steady_clock::time_point last_uds_frame_received;
 };

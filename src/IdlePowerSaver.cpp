@@ -62,19 +62,19 @@ void IdlePowerSaver::Process(uint32_t idle_time)
             {
                 if(median_load < min_load_threshold)
                 {
-                    LOG(LogLevel::Normal, "Limit CPU frequency");
+                    LOG(LogLevel::Verbose, "Limit CPU frequency");
                     SetCpuPowerPercent(MIN_CPU_PERCENT_POWER_SAVE, reduced_power_percent);
                     is_power_reduced = true;
                 }
                 else
                 {
-                    LOG(LogLevel::Normal, "Median load too big, limit won't be applied: {} (threshold: {})", median_load, min_load_threshold);
+                    LOG(LogLevel::Verbose, "Median load too big, limit won't be applied: {} (threshold: {})", median_load, min_load_threshold);
                 }
             }
         }
         else if(is_power_reduced && idle_time < (timeout - timeout_hystheresis))
         {
-            LOG(LogLevel::Normal, "Restore CPU frequency");
+            LOG(LogLevel::Verbose, "Restore CPU frequency");
             SetCpuPowerPercent(MIN_CPU_PERCENT_PERFORMANCE, 100);
             is_power_reduced = false;
         }
@@ -107,14 +107,14 @@ void IdlePowerSaver::Process(uint32_t idle_time)
                 const auto median_it = copy_vec.begin() + copy_vec.size() / 2;
                 std::nth_element(copy_vec.begin(), median_it, copy_vec.end());
                 median_load = *median_it;
-                //LOG(LogLevel::Notification, "Median CPU: {}, {}", real_cpu_usage, median_load);
+                LOG(LogLevel::Debug, "Median CPU: {}, {}", real_cpu_usage, median_load);
             }
 
             if(is_power_reduced && median_load > max_load_threshold)
             {
                 SetCpuPowerPercent(MIN_CPU_PERCENT_PERFORMANCE, 100);
                 is_power_reduced = false;
-                LOG(LogLevel::Normal, "Restore CPU frequency - too much load: {} (threshold: {})", median_load, max_load_threshold);
+                LOG(LogLevel::Verbose, "Restore CPU frequency - too much load: {} (threshold: {})", median_load, max_load_threshold);
             }
         }
     }

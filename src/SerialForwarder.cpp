@@ -90,7 +90,7 @@ boost::asio::awaitable<void> SerialForwarder::echo(tcp_socket socket)
             co_await boost::asio::async_write(socket, boost::asio::buffer(data, n));
         }
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception: {}", e.what());
     }
@@ -125,9 +125,9 @@ void SerialForwarder::Init()
                 io_context.run();
                 LOG(LogLevel::Notification, "iocontext finish");
             }
-            catch(std::exception& e)
+            catch(const std::exception& e)
             {
-                LOG(LogLevel::Error, "Boost exception: {}", e.what());
+                LOG(LogLevel::Error, "std exception: {}", e.what());
             }
             catch(...)
             {

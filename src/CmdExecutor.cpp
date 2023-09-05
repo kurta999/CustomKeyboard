@@ -222,12 +222,12 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                 m_Mediator->OnPostReload(p, m_Cols, names, icons);
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;
@@ -235,7 +235,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
     return ret;
 }
 
-bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names, CommandPageIcons& icons)
+bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names, CommandPageIcons& icons) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -421,7 +421,7 @@ bool CmdExecutor::SaveToTempAndReload()
     return ret;
 }
 
-uint8_t CmdExecutor::GetColumns()
+uint8_t CmdExecutor::GetColumns() const
 {
     return m_Cols;
 }

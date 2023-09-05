@@ -21,7 +21,7 @@ public:
 
     // !\brief Is script running
     // !\return true if script is running, otherwise false
-    bool IsScriptRunning();
+    bool IsScriptRunning() const;
 
     // !\brief Abort running script
     void AbortRunningScript();

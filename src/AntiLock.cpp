@@ -14,7 +14,7 @@ void AntiLock::LoadExclusions(const std::string& input)
     }
 }
 
-const std::string AntiLock::SaveExclusions()
+const std::string AntiLock::SaveExclusions() const
 {
     std::string exclusions;
     for(auto& x : AntiLock::Get()->exclusions)
@@ -26,7 +26,7 @@ const std::string AntiLock::SaveExclusions()
     return exclusions;
 }
 
-bool AntiLock::IsSessionActive()
+bool AntiLock::IsSessionActive() const
 {
 #ifdef _WIN32
     typedef BOOL(PASCAL* WTSQuerySessionInformation)(HANDLE hServer, DWORD SessionId, WTS_INFO_CLASS WTSInfoClass, LPTSTR* ppBuffer, DWORD* pBytesReturned);
@@ -119,7 +119,7 @@ void AntiLock::SimulateUserActivity()
     LOG(LogLevel::Normal, "AntiLock executed");
 }
 
-void AntiLock::StartScreenSaver()
+void AntiLock::StartScreenSaver() const
 {
 #ifdef _WIN32
     static const std::string screensavers[] = { "PhotoScreensaver", "Mystify", "Ribbons" };
@@ -131,7 +131,7 @@ void AntiLock::StartScreenSaver()
 #endif
 }
 
-bool AntiLock::IsAnExclusion(std::string&& p)
+bool AntiLock::IsAnExclusion(const std::string& p) const
 {
     for(auto& i : exclusions)
     {

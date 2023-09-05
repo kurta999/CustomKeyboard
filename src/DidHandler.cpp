@@ -34,7 +34,7 @@ void DidHandler::Init()
     m_can_handler->RegisterObserver(this);
 }
 
-bool DidHandler::SaveChache()
+bool DidHandler::SaveChache() const
 {
     std::filesystem::path cache_path = DID_CACHE_FILENAME;
     bool ret = m_cache_loader.Save(cache_path, m_DidList);
@@ -83,7 +83,7 @@ void DidHandler::OnIsoTpDataReceived(uint32_t frame_id, uint8_t* data, uint16_t 
 
     std::string hex;
     utils::ConvertHexBufferToString((const char*)m_IsoTpBuffer, m_IsoTpBufLen.load(), hex);
-//    LOG(LogLevel::Verbose, "OnIsoTpFrameReceived: {} | \"{}\"", size, hex);
+    LOG(LogLevel::Debug, "OnIsoTpFrameReceived: {} | \"{}\"", size, hex);
 }
 
 XmlDidLoader::~XmlDidLoader()
@@ -133,27 +133,22 @@ bool XmlDidLoader::Load(const std::filesystem::path& path, DidMap& m)
                 continue;
             }
 
-            std::unique_ptr<DidEntry> entry = std::make_unique<DidEntry>();
-            entry->id = did;
-            entry->type = did_value_type;
-            entry->name = v.second.get_child("Name").get_value<std::string>();
-            entry->min = v.second.get_child("Min").get_value<std::string>();
-            entry->max = v.second.get_child("Max").get_value<std::string>();
-
             std::string str_len = v.second.get_child("Length").get_value<std::string>();
+            size_t len = 0;
             try
             {
-                entry->len = std::stoi(str_len);
+                len = std::stoi(str_len);
             }
             catch(...)
             {
-                entry->len = 0;
             }
 
+            std::unique_ptr<DidEntry> entry = std::make_unique<DidEntry>(did, did_value_type, v.second.get_child("Name").get_value<std::string>(),
+                v.second.get_child("Min").get_value<std::string>(), v.second.get_child("Max").get_value<std::string>(), len);
             m[did] = std::move(entry);
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
@@ -166,7 +161,7 @@ bool XmlDidLoader::Load(const std::filesystem::path& path, DidMap& m)
     return ret;
 }
 
-bool XmlDidLoader::Save(const std::filesystem::path& path, DidMap& m)
+bool XmlDidLoader::Save(const std::filesystem::path& path, const DidMap& m) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -245,7 +240,7 @@ bool XmlDidCacheLoader::Load(const std::filesystem::path& path, DidMap& m)
                 did_it->second->last_update = boost::posix_time::from_iso_extended_string(last_update_str);
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
@@ -258,7 +253,7 @@ bool XmlDidCacheLoader::Load(const std::filesystem::path& path, DidMap& m)
     return ret;
 }
 
-bool XmlDidCacheLoader::Save(const std::filesystem::path& path, DidMap& m)
+bool XmlDidCacheLoader::Save(const std::filesystem::path& path, const DidMap& m) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;

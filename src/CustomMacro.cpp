@@ -501,7 +501,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<KeyDelay>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for DELAY: {} ({})", sequence, e.what());
                 }
@@ -515,7 +515,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseMovement>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for MOUSE_MOVE: {} ({})", sequence, e.what());
                 }
@@ -529,7 +529,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseInterpolate>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for MOUSE_INTERPOLATE: {} ({})", sequence, e.what());
                 }
@@ -543,7 +543,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MousePress>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for MOUSE_PRESS: {} ({})", sequence, e.what());
                 }
@@ -557,7 +557,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseRelease>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for MOUSE_RELEASE: {} ({})", sequence, e.what());
                 }
@@ -571,7 +571,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 {
                     c->key_vec[key_code].push_back(std::make_unique<MouseClick>(std::move(sequence)));
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Invalid argument for MOUSE_CLICK: {} ({})", sequence, e.what());
                 }
@@ -625,7 +625,7 @@ void CustomMacro::ProcessReceivedData(const char* data, unsigned int len)
     }
 
     KeyData_t* k = (KeyData_t*)data;
-    uint16_t crc = utils::crc16_modbus((void*)data, len - 2);
+    uint16_t crc = utils::crc16_modbus((void*)data, len - sizeof(KeyData_t::crc));
     if(!strncmp(data, "reset", 5) && crc == 0x6bd8) /* in case of suddenly reset of STM32 */
     {
         LOG(LogLevel::Verbose, "Reset received");

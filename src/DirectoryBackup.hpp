@@ -13,11 +13,11 @@ public:
         bool calculate_hash_, size_t hash_buf_size_);
 
     // !\brief Is constructed backup entry valid?
-    bool IsValid();
+    bool IsValid() const;
 
     // !\brief Return true if the given file is in ignore list
     // !\param p [in] File to check
-    bool IsInIgnoreList(std::wstring&& p);
+    bool IsInIgnoreList(std::wstring&& p) const;
 
     // !\brief Backup source path
     std::filesystem::path from;
@@ -58,7 +58,7 @@ public:
     void BackupFile(int id);
 
     // !\brief Is backup in progess?
-    bool IsInProgress();
+    bool IsInProgress() const;
 
     // !\brief Delete all backups from backup list
     void Clear();

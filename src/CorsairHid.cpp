@@ -1,8 +1,8 @@
 #include "pch.hpp"
 
-constexpr int HID_READ_TIMEOUT = 100;
-constexpr int READ_DATA_BUFFER_SIZE = 64;
-constexpr int MIN_READ_DATA_SIZE = 20;
+constexpr int HID_READ_TIMEOUT = 100;  /* Timeout value for hid_read_timeout function */
+constexpr int READ_DATA_BUFFER_SIZE = 64;  /* Buffer size for hid_read_timeout function */
+constexpr int MIN_READ_DATA_SIZE = 20;  /* Minimum data size which should be read if everything is OK */
 
 CorsairHid::~CorsairHid()
 {

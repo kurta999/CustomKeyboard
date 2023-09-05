@@ -107,7 +107,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
     return ret;
 }
 
-bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
+bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -146,8 +146,6 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
     return ret;
 }
 
-#include <source_location>
-
 bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels)
 {
     bool ret = true;
@@ -181,7 +179,7 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
             loglevels[frame_id] = v.second.get_child("LogLevel").get_value<uint8_t>();
         }
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
@@ -194,7 +192,7 @@ bool XmlCanRxEntryLoader::Load(const std::filesystem::path& path, std::unordered
     return ret;
 }
 
-bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels)
+bool XmlCanRxEntryLoader::Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -350,7 +348,7 @@ bool XmlCanMappingLoader::Load(const std::filesystem::path& path, CanMapping& ma
     return ret;
 }
 
-bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions)
+bool XmlCanMappingLoader::Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -1000,7 +998,7 @@ uint32_t CanEntryHandler::FindFrameIdOnMapByName(const std::string& name)
     return ret;
 }
 
-uint32_t CanEntryHandler::GetElapsedTimeSinceLastUdsFrame()
+uint32_t CanEntryHandler::GetElapsedTimeSinceLastUdsFrame() const
 {
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     int64_t diff = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - last_uds_frame_received).count();

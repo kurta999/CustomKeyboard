@@ -37,7 +37,7 @@ void CryptoPrice::ExecuteApiRead()
                         out = std::stof(&str[pos + 10]);
                     }
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
                     LOG(LogLevel::Error, "Exception: {}", e.what());
                 }

@@ -609,12 +609,12 @@ std::string MapConverter::MtaToSamp(const std::string& input, MapConverterFlags 
 
         items.clear();
     }
-    catch(boost::property_tree::xml_parser_error& e)
+    catch(const boost::property_tree::xml_parser_error& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}, {}", e.filename(), e.what());
         ret = false;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception thrown: {}", e.what());
         ret = false;

@@ -57,6 +57,9 @@ public:
 	// !\brief IP Address of session
 	std::string sessionAddress;
 
+	// !\brief IP Address of session (in integer form)
+	int sessionIntAddr;
+
 	// !\brief Port of session
 	unsigned short sessionPort = 0;
 

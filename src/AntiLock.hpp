@@ -15,13 +15,13 @@ public:
     void LoadExclusions(const std::string& input);
 
     // !\brief Generate writable string from exclusions
-    const std::string SaveExclusions();
+    const std::string SaveExclusions() const;
 
     // !\brief Process for antilock
     void Process();
 
     // !\brief Return last activity time
-    uint32_t GetLastActivityTime() { return m_LastActivityTime;  }
+    uint32_t GetLastActivityTime() const { return m_LastActivityTime;  }
     
     // !\brief Is enabled?
     bool is_enabled = false;
@@ -40,17 +40,17 @@ public:
 private:
     // !\brief Check if current session active (user is logged in)
     // \return Is session active?
-    bool IsSessionActive();
+    bool IsSessionActive() const;
 
     // !\brief Simulate user activity
-    void SimulateUserActivity();    
+    void SimulateUserActivity();
     
     // !\brief Simulate user activity
-    void StartScreenSaver();
+    void StartScreenSaver() const;
 
     // !\brief Return true if the given window is in exclusion list
     // \param p [in] Window name to check
-    bool IsAnExclusion(std::string&& p);
+    bool IsAnExclusion(const std::string& p) const;
 
     // !\brief Mouse step
     bool m_StepForward = false;

@@ -75,7 +75,7 @@ void MyApp::OnUnhandledException()
     {
         throw;
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
 #ifdef _WIN32
         MessageBoxA(NULL, e.what(), "std::exception caught", MB_OK);

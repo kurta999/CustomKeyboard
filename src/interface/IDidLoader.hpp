@@ -15,5 +15,5 @@ public:
     virtual ~IDidLoader() { }
 
     virtual bool Load(const std::filesystem::path& path, DidMap& m) = 0;
-    virtual bool Save(const std::filesystem::path& path, DidMap& m) = 0;
+    virtual bool Save(const std::filesystem::path& path, const DidMap& m) const = 0;
 };

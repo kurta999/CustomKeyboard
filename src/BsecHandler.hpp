@@ -21,8 +21,8 @@ public:
     void AddMeasurementsAndCalculate(int64_t time_stamp, float temp, float pressure, float hum, float gas);
     void SaveCache();
 
-    float GetIaq() { return iaq; }
-    float GetGasPercentage() { return gas_percentage; }
+    float GetIaq() const { return iaq; }
+    float GetGasPercentage() const { return gas_percentage; }
 
 private:
     int UpdateSubscription(float sample_rate);

@@ -18,6 +18,12 @@ using DidValueType = std::variant<uint8_t, uint16_t, uint32_t, uint64_t, std::st
 class DidEntry
 {
 public:
+    DidEntry(uint16_t id_, DidEntryType type_, const std::string& name_, const std::string& min_, const std::string& max_, size_t len_) :
+        id(id_), type(type_), name(name_), min(min_), max(max_), len(len_)
+    {
+
+    }
+
     uint16_t id = 0;
     DidEntryType type;
     std::string name;
@@ -37,7 +43,7 @@ public:
     virtual ~XmlDidLoader();
 
     bool Load(const std::filesystem::path& path, DidMap& m) override;
-    bool Save(const std::filesystem::path& path, DidMap& m) override;
+    bool Save(const std::filesystem::path& path, const DidMap& m) const override;
 
     static DidEntryType GetTypeFromString(const std::string_view& input);
     static const std::string_view GetStringFromType(DidEntryType type);
@@ -61,7 +67,7 @@ public:
     virtual ~XmlDidCacheLoader();
 
     bool Load(const std::filesystem::path& path, DidMap& m) override;
-    bool Save(const std::filesystem::path& path, DidMap& m) override;
+    bool Save(const std::filesystem::path& path, const DidMap& m) const override;
 
 private:
 
@@ -77,7 +83,7 @@ public:
     void Init();
 
     // !\brief Save DID cache
-    bool SaveChache();
+    bool SaveChache() const;
 
     // !\brief Add DID to read queue which is being read by this handler
     // !\param did [in] DID to add

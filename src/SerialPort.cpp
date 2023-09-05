@@ -142,7 +142,7 @@ void SerialPort::WorkerThread()
 
             }
         }
-        catch(std::exception& e)
+        catch(const std::exception& e)
         {
             err_msg = e.what();
         }

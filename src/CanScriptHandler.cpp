@@ -99,7 +99,7 @@ void CanScriptHandler::RunScript(std::string script)
     m_FutureHandle = std::async(&CanScriptHandler::ExecuteScript, this, script);
 }
 
-bool CanScriptHandler::IsScriptRunning()
+bool CanScriptHandler::IsScriptRunning() const
 {
     bool ret = false;
     if(m_FutureHandle.valid())

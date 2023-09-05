@@ -89,7 +89,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
     bool do_not_update = false;
     if(m_CurrMeas == nullptr)
     {
-        //LOG(LogLevel::Notification, "Add new meas");
+        LOG(LogLevel::Debug, "Add new meas");
 
         m_CurrMeas = std::make_unique<Measurement>(temp_meas);
         m_IntegrationStartTimestamp = std::chrono::steady_clock::now();
@@ -104,7 +104,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
     int64_t time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - m_IntegrationStartTimestamp).count();
     if(time_elapsed > m_IntegrationTime)
     {
-        //LOG(LogLevel::Notification, "Add to db");
+        LOG(LogLevel::Debug, "Add to db");
         m_CurrMeas->Finalize();
         DatabaseLogic::Get()->InsertMeasurement(m_CurrMeas);
         AddMeasurement(std::move(m_CurrMeas));
@@ -117,7 +117,7 @@ void Sensors::HandleMeasurements(std::vector<std::string>& meas_vec)
         if(!do_not_update)
         {
             *m_CurrMeas += temp_meas;
-            //LOG(LogLevel::Notification, "Update {}", m_CurrMeas->cnt);
+            LOG(LogLevel::Debug, "Update {}", m_CurrMeas->cnt);
         }
     }
 #endif
@@ -300,7 +300,7 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
         out << out_str;
         out.close();
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Error, "Exception: {}", e.what());
     }

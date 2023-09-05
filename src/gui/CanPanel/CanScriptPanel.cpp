@@ -98,7 +98,7 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
                 boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
                 m_Script->RunScript(input);
             }
-            catch(std::exception& e)
+            catch(const std::exception& e)
             {
                 LOG(LogLevel::Error, "Exception: {}", e.what());
                 wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
@@ -140,7 +140,7 @@ CanScriptPanel::CanScriptPanel(wxWindow* parent)
                 boost::algorithm::replace_all(input, "\r", "");  /* Thanks Windows */
                 m_Script->RunScript(input);
             }
-            catch(std::exception& e)
+            catch(const std::exception& e)
             {
                 LOG(LogLevel::Error, "Exception: {}", e.what());
                 wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();

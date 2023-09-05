@@ -113,13 +113,8 @@ void Session::StartAsync()
 	
 	sessionSocket.async_read_some(boost::asio::buffer(receivedData, sizeof(receivedData)), 
 		std::bind(&Session::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-	Server::Get()->sessions.emplace(shared_from_this());
 
-	uint32_t ip_addr = remoteEndpoint.address().to_v4().to_ulong();
-	if(Server::Get()->used_ip_addresses.emplace(ip_addr).second)
-	{
-		LOG(LogLevel::Error, "New sensor connected, IP: {}:{}", sessionAddress, sessionPort);
-	}
+	sessionIntAddr = remoteEndpoint.address().to_v4().to_ulong();
 }
 
 void Session::StopAsync(bool remove_from_session_list)

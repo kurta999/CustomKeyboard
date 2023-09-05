@@ -124,7 +124,7 @@ ParserPanel::ParserPanel(wxFrame* parent)
 			{
 				StructParser::Get()->ParseStructure(input, output, struct_padding, pointer_size);
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				LOG(LogLevel::Error, "Exception: {}", e.what());
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();

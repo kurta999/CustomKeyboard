@@ -4,6 +4,7 @@ constexpr size_t TX_QUEUE_MAX_SIZE = 100;
 constexpr size_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
 constexpr size_t CAN_SERIAL_TX_BUFFER_SIZE = 64;
 constexpr auto CAN_SERIAL_PORT_TIMEOUT = 5000ms;
+constexpr auto SEND_DELAY_BETWEEN_FRAMES = 100us;
 
 CanSerialPort::CanSerialPort() : m_CircBuff(RX_CIRCBUFF_SIZE)
 {
@@ -46,7 +47,7 @@ void CanSerialPort::SetEnabled(bool enable)
     is_enabled = enable;
 }
 
-bool CanSerialPort::IsEnabled()
+bool CanSerialPort::IsEnabled() const
 {
     return is_enabled;
 }
@@ -56,7 +57,7 @@ void CanSerialPort::SetComPort(uint16_t port)
     com_port = port;
 }
 
-uint16_t CanSerialPort::GetComPort()
+uint16_t CanSerialPort::GetComPort() const
 {
     return com_port;
 }
@@ -145,7 +146,7 @@ void CanSerialPort::WorkerThread(std::stop_token token)
 
             }
         }
-        catch(std::exception& e)
+        catch(const std::exception& e)
         {
             err_msg = e.what();
         }
@@ -191,6 +192,6 @@ void CanSerialPort::SendPendingCanFrames(CallbackAsyncSerial& serial_port)
         if(is_remove)
             m_TxQueue.pop();
 
-        std::this_thread::sleep_for(std::chrono::microseconds(100));  /* This delay is needed because UART timeout won't happen if everything is sent at once */
+        std::this_thread::sleep_for(SEND_DELAY_BETWEEN_FRAMES);  /* This delay is needed because UART timeout won't happen if everything is sent at once */
     }
 }

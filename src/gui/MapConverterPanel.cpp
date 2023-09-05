@@ -103,7 +103,7 @@ MapConverterPanel::MapConverterPanel(wxFrame* parent)
 			{
 				output = MapConverter::Get()->MtaToSamp(input, flags, offset);
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				LOG(LogLevel::Error, "Exception: {}", e.what());
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();

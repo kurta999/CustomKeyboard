@@ -966,7 +966,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<KeyDelay>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -978,7 +978,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<MouseMovement>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -990,7 +990,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<MouseInterpolate>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -1002,7 +1002,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<MousePress>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -1014,7 +1014,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<MouseRelease>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -1026,7 +1026,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<MouseClick>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -1038,7 +1038,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<BashCommand>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}
@@ -1050,7 +1050,7 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			{
 				AddOrModifyMacro<CommandExecute>(x, id, add, std::move(edit_str));
 			}
-			catch(std::exception& e)
+			catch(const std::exception& e)
 			{
 				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
 			}

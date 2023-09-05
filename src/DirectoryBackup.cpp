@@ -9,7 +9,7 @@ BackupEntry::BackupEntry(std::filesystem::path&& from_, std::vector<std::filesys
 		return;
 }
 
-bool BackupEntry::IsValid()
+bool BackupEntry::IsValid() const
 {
 	if(!std::filesystem::exists(from))
 	{
@@ -25,7 +25,7 @@ bool BackupEntry::IsValid()
 	return true;
 }
 
-bool BackupEntry::IsInIgnoreList(std::wstring&& p)
+bool BackupEntry::IsInIgnoreList(std::wstring&& p) const
 {
 	for(auto& i : ignore_list)
 	{
@@ -68,7 +68,7 @@ void DirectoryBackup::BackupFile(int id)
 	}
 }
 
-bool DirectoryBackup::IsInProgress()
+bool DirectoryBackup::IsInProgress() const
 {
 	bool ret = false;
 	if(backup_future.valid())

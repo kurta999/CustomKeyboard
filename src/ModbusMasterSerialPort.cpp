@@ -200,7 +200,7 @@ void ModbusMasterSerialPort::UartReceiveThread(std::stop_token stop_token, std::
 
             }
         }
-        catch(std::exception& e)
+        catch(const std::exception& e)
         {
             LOG(LogLevel::Error, "Exception MODBUS Master serial: {}", e.what());
             {

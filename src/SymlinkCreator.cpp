@@ -58,7 +58,7 @@ void SymlinkCreator::Place(bool is_symlink)
 					else
 						std::filesystem::create_symlink(item, dest_with_name);
 				}
-				catch(std::filesystem::filesystem_error const& e)
+				catch(const std::filesystem::filesystem_error& e)
 				{
 					LOG(LogLevel::Error, "Exception during creating symlinks ({}): {}", dest_with_name.generic_string(), e.what());
 					break;
@@ -80,7 +80,7 @@ void SymlinkCreator::Place(bool is_symlink)
 				{
 					std::filesystem::create_hard_link(item, dest_with_name);
 				}
-				catch(std::filesystem::filesystem_error const& e)
+				catch(const std::filesystem::filesystem_error& e)
 				{
 					LOG(LogLevel::Error, "Exception during creating hardlinks ({}): {}", dest_with_name.generic_string(), e.what());
 					break;

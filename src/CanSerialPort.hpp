@@ -47,22 +47,26 @@ public:
     // !\brief Initialize CanSerialPort
     void Init();
 
+    // !\brief Set CAN Device Type
     void SetDeviceType(CanDeviceType device_type) { m_DeviceType = device_type; }
-    CanDeviceType GetDeviceType() { return m_DeviceType; }
 
+    // !\brief Get CAN Device Type
+    CanDeviceType GetDeviceType() const { return m_DeviceType; }
+
+    // !\brief Set internal CAN device
     void SetDevice(std::unique_ptr<ICanDevice>&& device);
 
     // !\brief Set this module enabled
     void SetEnabled(bool enable);
 
     // !\brief Is this module enabled?
-    bool IsEnabled();
+    bool IsEnabled() const;
 
     // !\brief Set serial port
     void SetComPort(uint16_t port);
 
     // !\brief Get serial port
-    uint16_t GetComPort();
+    uint16_t GetComPort() const;
 
     // !\brief Add CAN frame to TX queue
     void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
@@ -70,6 +74,7 @@ public:
     // !\brief Add CAN frame to RX queue
     void AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
+    // !\brief Send pending CAN Frames from the internal buffer
     void SendPendingCanFrames(CallbackAsyncSerial& serial_port);
 
 private:
@@ -79,6 +84,7 @@ private:
     // !\brief Worker thread
     void WorkerThread(std::stop_token token);
 
+    // !\brief Notifies main thread's semaphore
     void NotifiyMainThread();
 
     // !\brief Called when data was received via serial port (called by boost::asio::read_some)
@@ -95,6 +101,7 @@ private:
     // !\brief Worker thread
     std::unique_ptr<std::jthread> m_worker;
 
+    // !\brief Is notification pending?
     std::atomic<bool> is_notification_pending = false;
 
     // !\brief Conditional variable for main thread exiting

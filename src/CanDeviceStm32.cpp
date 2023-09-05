@@ -19,7 +19,7 @@ CanDeviceStm32::CanDeviceStm32(boost::circular_buffer<char>& CircBuff) :
 
 CanDeviceStm32::~CanDeviceStm32()
 {
-
+    
 }
 
 void CanDeviceStm32::ProcessReceivedFrames(std::mutex& rx_mutex)
@@ -35,7 +35,7 @@ void CanDeviceStm32::ProcessReceivedFrames(std::mutex& rx_mutex)
             if(*(uint32_t*)&uart_data == MAGIC_NUMBER_RECV_DATA_FROM_CAN_BUS)
             {
                 UartCanData* d = (UartCanData*)uart_data;
-                uint16_t crc = utils::crc16_modbus((void*)uart_data, sizeof(UartCanData) - 2);
+                uint16_t crc = utils::crc16_modbus((void*)uart_data, sizeof(UartCanData) - sizeof(UartCanData::crc));
                 if(crc == d->crc)
                 {
                     CanSerialPort::Get()->AddToRxQueue(d->frame_id, d->data_len, d->data);
@@ -70,7 +70,7 @@ size_t CanDeviceStm32::PrepareSendDataFormat(const std::shared_ptr<CanData>& dat
     d->frame_id = data_ptr->frame_id;
     d->data_len = data_ptr->data_len;
     memcpy(d->data, data_ptr->data, d->data_len);
-    d->crc = utils::crc16_modbus((void*)d, sizeof(*d) - 2);
+    d->crc = utils::crc16_modbus((void*)d, sizeof(*d) - sizeof(UartCanData::crc));
     remove_from_queue = true;
     return sizeof(*d);
 }

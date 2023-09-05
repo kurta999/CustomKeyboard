@@ -122,6 +122,11 @@ void Server::HandleAccept(const boost::system::error_code& error, SharedSession 
         if(!error)
         {
             session->StartAsync();
+            sessions.emplace(session);
+            if(Server::Get()->used_ip_addresses.emplace(session->sessionIntAddr).second)
+            {
+                LOG(LogLevel::Error, "New sensor connected, IP: {}:{}", session->sessionAddress, session->sessionPort);
+            }
             StartAccept();
         }
     }
