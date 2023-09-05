@@ -39,6 +39,7 @@ DECLARE_APP(MyApp);
 
 enum LogLevel
 {
+    Debug,
     Verbose,
     Normal,
     Notification,
@@ -70,6 +71,10 @@ public:
     Logger();
     ~Logger() = default;
     void SetLogHelper(ILogHelper* helper);
+    void SetDefaultLogLevel(LogLevel level);
+    LogLevel GetDefaultLogLevel() const;
+    void SetLogLevelAsString(const std::string& level);
+    const std::string GetLogLevelAsString();
     bool SearchInLogFile(std::string_view filter, std::string_view log_level);
 
 #ifdef _WIN32  /* std::format version with both std::string & std::wstring support - GCC's std::format and std::chrono::current_zone implementation is still missing - 2022.10.28 */
@@ -85,7 +90,7 @@ public:
     template <>
     struct HelperTraits<std::string>
     {
-        static constexpr std::string_view serverities[] = { "Verbose", "Normal", "Notification", "Warning", "Error", "Critical" };
+        static constexpr std::string_view serverities[] = { "Debug", "Verbose", "Normal", "Notification", "Warning", "Error", "Critical" };
         static constexpr char slash = '/';
         static constexpr char backslash = '\\';
         static constexpr std::string_view gui_str = LOG_GUI_FORMAT;
@@ -95,7 +100,7 @@ public:
     template <>
     struct HelperTraits<std::wstring>
     {
-        static constexpr std::wstring_view serverities[] = { L"Verbose", L"Normal", L"Notification", L"Warning", L"Error", L"Critical" };
+        static constexpr std::wstring_view serverities[] = { L"Debug", L"Verbose", L"Normal", L"Notification", L"Warning", L"Error", L"Critical"};
         static constexpr wchar_t slash = L'/';
         static constexpr wchar_t backslash = L'\\';
         static constexpr std::wstring_view gui_str = WIDEN(LOG_GUI_FORMAT);
@@ -144,6 +149,9 @@ public:
         const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
         const auto now_truncated_to_ms = std::chrono::floor<std::chrono::milliseconds>(now);
         typename get_fmt_ret_string_type<T>::type str = std::vformat(HelperTraits<string_type>::gui_str, std::make_format_args<typename get_fmt_mkarg_type<T>::type>(now_truncated_to_ms, HelperTraits<string_type>::serverities[lvl], formatted_msg));
+
+        if(lvl < m_DefaultLogLevel)
+            return;
 
         std::unique_lock lock(m_mutex);
 
@@ -243,7 +251,7 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
             break;
         }
     }
-    if(lvl > LogLevel::Verbose && lvl <= LogLevel::Critical)
+    if(lvl > LogLevel::Debug && lvl <= LogLevel::Critical)
     {
         fLog << fmt::format("{:%Y.%m.%d %H:%M:%S} [{}] [{}:{} - {}] {}\n", *current_tm, severity_str[lvl], filename, line, function, formatted_msg);
         fLog.flush();
@@ -265,8 +273,14 @@ void Log(LogLevel lvl, const char* file, long line, const char* function, const 
     // !\brief Tick funciton
     void Tick();
 
-
 private:
+    LogLevel StringToLogLevel(const std::string& level);
+
+    std::string LogLevelToString(LogLevel level);
+
+    // !\brief Default log level
+    LogLevel m_DefaultLogLevel = LogLevel::Verbose;
+
     // !\brief File handle for log 
     std::ofstream fLog;
 

@@ -12,6 +12,8 @@ LogPanel::LogPanel(wxFrame* parent)
 
 	wxArrayString filters;
 	filters.Add("All");
+	filters.Add("Debug");
+	filters.Add("Verbose");
 	filters.Add("Normal");
 	filters.Add("Notification");
 	filters.Add("Warning");
@@ -51,6 +53,37 @@ LogPanel::LogPanel(wxFrame* parent)
 	m_AutoScrollBtn->SetToolTip("Toggle auto-scroll");
 	v_sizer->Add(m_AutoScrollBtn, 0, wxALL, 5);
 	bSizer1->Add(v_sizer, 0, wxALL, 5);
+
+	wxBoxSizer* v_sizer_2 = new wxBoxSizer(wxHORIZONTAL);
+	v_sizer_2->Add(new wxStaticText(this, wxID_ANY, "Default log level:"));
+	v_sizer_2->AddSpacer(10);
+
+	wxArrayString default_filters;
+	default_filters.Add("Debug");
+	default_filters.Add("Verbose");
+	default_filters.Add("Normal");
+	default_filters.Add("Notification");
+	default_filters.Add("Warning");
+	default_filters.Add("Error");
+	default_filters.Add("Critical");
+	m_DefaultLogLevel = new wxComboBox(this, wxID_ANY, "All", wxDefaultPosition, wxDefaultSize, default_filters, wxTE_PROCESS_ENTER | wxTE_READONLY);
+	v_sizer_2->AddSpacer(10);
+
+	int log_level = static_cast<int>(Logger::Get()->GetDefaultLogLevel());
+	m_DefaultLogLevel->SetSelection(log_level);
+	v_sizer_2->Add(m_DefaultLogLevel);
+
+	m_ApplyButton = new wxButton(this, wxID_ANY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ApplyButton->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			int log_level = m_DefaultLogLevel->GetSelection();
+			Logger::Get()->SetDefaultLogLevel(static_cast<LogLevel>(log_level));
+		});
+
+
+	v_sizer_2->Add(m_ApplyButton);
+
+	bSizer1->Add(v_sizer_2, 0, wxALL, 5);
 
 	m_AutoScrollBtn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
 		{

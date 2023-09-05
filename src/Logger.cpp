@@ -13,6 +13,27 @@ void Logger::SetLogHelper(ILogHelper* helper)
     m_helper = helper;
 }
 
+void Logger::SetDefaultLogLevel(LogLevel level)
+{
+	m_DefaultLogLevel = level;
+}
+
+LogLevel Logger::GetDefaultLogLevel() const
+{
+	return m_DefaultLogLevel;
+}
+
+void Logger::SetLogLevelAsString(const std::string& level)
+{
+	m_DefaultLogLevel = StringToLogLevel(level);
+}
+
+const std::string Logger::GetLogLevelAsString()
+{
+	const std::string ret = LogLevelToString(m_DefaultLogLevel);
+	return ret;
+}
+
 bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level)
 {
 	std::ifstream in(LOG_FILENAME);
@@ -70,4 +91,53 @@ void Logger::AppendPreinitedEntries()
 void Logger::Tick()
 {
 	AppendPreinitedEntries();
+}
+
+LogLevel Logger::StringToLogLevel(const std::string& level)
+{
+	LogLevel ret = LogLevel::Verbose;
+	if(boost::algorithm::icontains(level, "Debug"))
+		ret = LogLevel::Debug;
+/*
+	else if(level == "Verbose")
+		ret = LogLevel::Verbose;
+*/
+	else if(boost::algorithm::icontains(level, "Normal"))
+		ret = LogLevel::Normal;
+	else if(boost::algorithm::icontains(level, "Notification"))
+		ret = LogLevel::Notification;
+	else if(boost::algorithm::icontains(level, "Warning"))
+		ret = LogLevel::Warning;
+	else if(boost::algorithm::icontains(level, "Error"))
+		ret = LogLevel::Error;
+	else if(boost::algorithm::icontains(level, "Critical"))
+		ret = LogLevel::Critical;
+	else
+		LOG(LogLevel::Error, "Invalid log level: {}", level);
+	return ret;
+}
+
+std::string Logger::LogLevelToString(LogLevel level)
+{
+	std::string ret = "Verbose";
+	if(level == LogLevel::Debug)
+		ret = "Debug";
+/*
+	else if(level == LogLevel::Verbose)
+		ret = LogLevel::Verbose;
+*/
+	else if(level == LogLevel::Normal)
+		ret = "Normal";
+	else if(level == LogLevel::Notification)
+		ret = "Notification";
+	else if(level == LogLevel::Warning)
+		ret = "Warning";
+	else if(level == LogLevel::Error)
+		ret = "Error";
+	else if(level == LogLevel::Critical)
+		ret = "Critical";
+	else
+		LOG(LogLevel::Error, "Invalid log level: {}", static_cast<int>(level));
+	return ret;
+
 }

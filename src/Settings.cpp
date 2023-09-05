@@ -15,7 +15,7 @@ void Settings::LoadFile()
     {
         boost::property_tree::ini_parser::read_ini(SETTINGS_FILE_PATH, pt);
     }
-    catch(boost::property_tree::ptree_error& e)
+    catch(const boost::property_tree::ptree_error& e)
     {
         LOG(LogLevel::Critical, "Exception: {}", e.what());
     }
@@ -99,6 +99,7 @@ void Settings::LoadFile()
 
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
+        Logger::Get()->SetLogLevelAsString(pt.get_child("App").find("DefaultLogLevel")->second.data());
         default_page = utils::stoi<decltype(default_page)>(pt.get_child("App").find("DefaultPage")->second.data());
         remember_window_size = utils::stoi<decltype(remember_window_size)>(pt.get_child("App").find("RememberWindowSize")->second.data());
         if(remember_window_size)
@@ -172,11 +173,11 @@ void Settings::LoadFile()
         const std::string& pages_str = pt.get_child("App").find("UsedPages")->second.data();
         used_pages = ParseUsedPagesFromString(pages_str);
     }
-    catch(boost::property_tree::ptree_error& e)
+    catch(const boost::property_tree::ptree_error& e)
     {
         LOG(LogLevel::Critical, "Ptree exception: {}", e.what());
     }
-    catch(std::exception& e)
+    catch(const std::exception& e)
     {
         LOG(LogLevel::Critical, "Exception {}", e.what());
     }
@@ -297,6 +298,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
+    out << "DefaultLogLevel = " << Logger::Get()->GetLogLevelAsString() << "\n";
     out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
     out << "UsedPages = " << ParseUsedPagesToString(used_pages) << "\n";
     out << "RememberWindowSize = " << remember_window_size << "\n";

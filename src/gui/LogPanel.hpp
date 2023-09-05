@@ -21,11 +21,13 @@ private:
 	bool m_AutoScroll = true;
 	std::vector<wxString> m_LogFilters;
 
-	wxComboBox* m_FilterLevel;
-	wxTextCtrl* m_FilterText;
+	wxComboBox* m_FilterLevel = nullptr;
+	wxTextCtrl* m_FilterText = nullptr;
 	wxButton* m_ApplyFilter = nullptr;
 	wxButton* m_AutoScrollBtn = nullptr;
 	wxButton* m_ClearButton = nullptr;
+	wxComboBox* m_DefaultLogLevel = nullptr;
+	wxButton* m_ApplyButton = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };
