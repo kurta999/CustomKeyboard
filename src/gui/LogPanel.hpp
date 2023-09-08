@@ -12,14 +12,13 @@ public:
 
 private:
 	void ExecuteSearchInLogfile();
-	template <typename T> bool IsFilterered(const T& file);
+	//template <typename T> bool IsFilterered(const T& file);
 
 	virtual void ClearEntries() override;
 	virtual void AppendLog(const std::string& file, const std::string& line, bool scroll_to_end = false) override;
 	virtual void AppendLog(const std::wstring& file, const std::wstring& line, bool scroll_to_end = false) override;
 
 	bool m_AutoScroll = true;
-	std::vector<wxString> m_LogFilters;
 
 	wxComboBox* m_FilterLevel = nullptr;
 	wxTextCtrl* m_FilterText = nullptr;
@@ -28,6 +27,7 @@ private:
 	wxButton* m_ClearButton = nullptr;
 	wxComboBox* m_DefaultLogLevel = nullptr;
 	wxButton* m_ApplyButton = nullptr;
+	wxButton* m_FilterList = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };

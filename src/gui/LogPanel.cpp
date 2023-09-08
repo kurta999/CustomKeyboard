@@ -79,9 +79,25 @@ LogPanel::LogPanel(wxFrame* parent)
 			int log_level = m_DefaultLogLevel->GetSelection();
 			Logger::Get()->SetDefaultLogLevel(static_cast<LogLevel>(log_level));
 		});
-
-
 	v_sizer_2->Add(m_ApplyButton);
+	v_sizer_2->AddSpacer(15);
+
+	m_FilterList = new wxButton(this, wxID_ANY, wxT("Filters"), wxDefaultPosition, wxDefaultSize, 0);
+	m_FilterList->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+		{
+			std::string filters = Logger::Get()->GetLogFilters();
+			boost::algorithm::replace_all(filters, "|", "\n");
+
+			wxTextEntryDialog d(this, "Enter below destiantion list where backup(s) will be placed", "Enter filters", filters, wxOK | wxCANCEL | wxTE_MULTILINE);
+			int ret_code = d.ShowModal();
+			if(ret_code == wxID_OK)  /* OK */
+			{
+				std::string result = d.GetValue().ToStdString();
+				boost::algorithm::replace_all(result, "\n", "|");
+				Logger::Get()->SetLogFilters(result);
+			}
+		});
+	v_sizer_2->Add(m_FilterList);
 
 	bSizer1->Add(v_sizer_2, 0, wxALL, 5);
 
@@ -131,7 +147,7 @@ void LogPanel::ExecuteSearchInLogfile()
 	if(ret)
 		m_Log->ScrollLines(m_Log->GetCount());
 }
-
+/*
 template<typename T> bool LogPanel::IsFilterered(const T& file)
 {
 	for(auto& i : m_LogFilters)
@@ -144,7 +160,7 @@ template<typename T> bool LogPanel::IsFilterered(const T& file)
 	}
 	return false;
 }
-
+*/
 void LogPanel::ClearEntries()
 {
 	m_Log->Clear();
@@ -152,20 +168,14 @@ void LogPanel::ClearEntries()
 
 void LogPanel::AppendLog(const std::string& file, const std::string& line, bool scroll_to_end)
 {
-	if(!IsFilterered(file))
-	{
-		m_Log->Append(wxString(line));
-		if(scroll_to_end && m_AutoScroll)
-			m_Log->ScrollLines(m_Log->GetCount());
-	}
+	m_Log->Append(wxString(line));
+	if(scroll_to_end && m_AutoScroll)
+		m_Log->ScrollLines(m_Log->GetCount());
 }
 
 void LogPanel::AppendLog(const std::wstring& file, const std::wstring& line, bool scroll_to_end)
 {
-	if(!IsFilterered(file))
-	{
-		m_Log->Append(wxString(line));
-		if(scroll_to_end && m_AutoScroll)
-			m_Log->ScrollLines(m_Log->GetCount());
-	}
+	m_Log->Append(wxString(line));
+	if(scroll_to_end && m_AutoScroll)
+		m_Log->ScrollLines(m_Log->GetCount());
 }

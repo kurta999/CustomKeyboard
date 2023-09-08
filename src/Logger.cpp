@@ -34,6 +34,28 @@ const std::string Logger::GetLogLevelAsString()
 	return ret;
 }
 
+void Logger::SetLogFilters(const std::string& filter_list)
+{
+	m_LogFilters.clear();
+	std::vector<std::string> filters;
+	boost::split(filters, filter_list, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
+	for(auto& i : filters)
+		m_LogFilters.push_back(i);
+}
+
+std::string Logger::GetLogFilters()
+{
+	std::string ret;
+	for(auto& i : m_LogFilters)
+	{
+		ret += i + "|";
+	}
+
+	if(!ret.empty() && ret.back() == '|')
+		ret.pop_back();
+	return ret;
+}
+
 bool Logger::SearchInLogFile(std::string_view filter, std::string_view log_level)
 {
 	std::ifstream in(LOG_FILENAME);

@@ -75,6 +75,8 @@ public:
     LogLevel GetDefaultLogLevel() const;
     void SetLogLevelAsString(const std::string& level);
     const std::string GetLogLevelAsString();
+    void SetLogFilters(const std::string& filter_list);
+    std::string GetLogFilters();
     bool SearchInLogFile(std::string_view filter, std::string_view log_level);
 
 #ifdef _WIN32  /* std::format version with both std::string & std::wstring support - GCC's std::format and std::chrono::current_zone implementation is still missing - 2022.10.28 */
@@ -152,6 +154,15 @@ public:
 
         if(lvl < m_DefaultLogLevel)
             return;
+
+        for(auto& i : m_LogFilters)
+        {
+            if(i.empty()) continue;
+            if(std::search(msg.begin(), msg.end(), i.begin(), i.end()) != msg.end())
+            {
+                return;
+            }
+        }
 
         std::unique_lock lock(m_mutex);
 
@@ -289,6 +300,9 @@ private:
 
     // !\brief Pointer to LogPanel
     ILogHelper* m_helper = nullptr;
+
+    // !\brief Log filters
+    std::vector<wxString> m_LogFilters;
 
     // !\brief Logger's mutex
     std::mutex m_mutex;
