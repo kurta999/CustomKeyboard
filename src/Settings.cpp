@@ -100,6 +100,7 @@ void Settings::LoadFile()
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
         Logger::Get()->SetLogLevelAsString(pt.get_child("App").find("DefaultLogLevel")->second.data());
+        Logger::Get()->SetLogFilters(pt.get_child("App").find("LogFilters")->second.data());
         default_page = utils::stoi<decltype(default_page)>(pt.get_child("App").find("DefaultPage")->second.data());
         remember_window_size = utils::stoi<decltype(remember_window_size)>(pt.get_child("App").find("RememberWindowSize")->second.data());
         if(remember_window_size)
@@ -161,6 +162,7 @@ void Settings::LoadFile()
 
             DirectoryBackup::Get()->LoadEntry(pt.get_child(key).find("From")->second.data(), pt.get_child(key).find("To")->second.data(),
                 pt.get_child(key).find("Ignore")->second.data(), utils::stoi<size_t>(pt.get_child(key).find("MaxBackups")->second.data()),
+                utils::stob(pt.get_child(key).find("Compress")->second.data()),
                 utils::stob(pt.get_child(key).find("CalculateHash")->second.data()), utils::stob(pt.get_child(key).find("BufferSize")->second.data()));
             backup_counter++;
         }
@@ -299,6 +301,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
     out << "MinimizeOnStartup = " << minimize_on_startup<< "\n";
     out << "DefaultLogLevel = " << Logger::Get()->GetLogLevelAsString() << "\n";
+    out << "LogFilters = " << Logger::Get()->GetLogFilters() << "\n";
     out << "DefaultPage = " << static_cast<uint16_t>(default_page) << "\n";
     out << "UsedPages = " << ParseUsedPagesToString(used_pages) << "\n";
     out << "RememberWindowSize = " << remember_window_size << "\n";
@@ -375,6 +378,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
             utils::WStringToMBString(key, ignore_list);
             out << "Ignore = " << ignore_list << '\n';
             out << "MaxBackups = " << i->max_backups << '\n';
+            out << "Compress = " << i->m_Compress << '\n';
             out << "CalculateHash = " << i->calculate_hash << '\n';
             out << "BufferSize = " << i->hash_buf_size << " # Buffer size for file operations - determines how much data is read once, Unit: Megabytes" << '\n';
         }
@@ -386,6 +390,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
         out << "To = C:\\Users\\Ati\\Desktop\\folder_where_to_backup|F:\\Backup\\folder_where_to_backup\n";
         out << "Ignore = git/COMMIT_EDITMSG|.git|.vs|Debug|Release|Screenshots|x64|Graphs/Line Chart|Graphs/Temperature.html|Graphs/Humidity.html|Graphs/CO2.html|Graphs/Lux.html|Graphs/VOC.html|Graphs/CCT.html|Graphs/PM10.html|Graphs/PM25.html\n";
         out << "MaxBackups = 5\n";
+        out << "Compress = 0\n";
         out << "CalculateHash = 1\n";
         out << "BufferSize = 2\n";
     }

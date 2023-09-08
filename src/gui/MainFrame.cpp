@@ -33,8 +33,9 @@ wxEND_EVENT_TABLE()
 
 void MyFrame::OnHelp(wxCommandEvent& event)
 {
-	wxMessageBox("This is a personal project for myself to improve my daily computer usage.\n\
-I've implemented things what I really needed to be more productive and accomplish things faster", "Help");
+	wxMessageBox("This is a personal project for myself to improve my daily computer usage, particularly with programming and testing\n\
+I've implemented things what I really needed to be more productive and accomplish things faster\n\
+It's open source, because why not, maybe somebody will benefit from it one day.", "Help");
 }
 
 void MyFrame::OnAbout(wxCommandEvent& event)
@@ -328,12 +329,22 @@ void MyFrame::HandleBackupProgressDialog()
 
 	if(backup_prog != NULL)
 	{
-		backup_prog->Pulse();
-		if(backup_prog && backup_prog->WasCancelled())
+		try
 		{
-			backup_prog->Destroy();
-			backup_prog = NULL;
-			DirectoryBackup::Get()->is_cancelled = true;
+			std::lock_guard lock(DirectoryBackup::Get()->m_TitleMutex);
+			std::string current_file = DirectoryBackup::Get()->m_currentFile;
+			if(!current_file.empty())
+				backup_prog->Pulse(wxString::Format("Please wait while files being backed up\nIt can take a few minutes...Be patient\nCurrent file: %s", current_file));
+			if(backup_prog && backup_prog->WasCancelled())
+			{
+				backup_prog->Destroy();
+				backup_prog = NULL;
+				DirectoryBackup::Get()->is_cancelled = true;
+			}
+		}
+		catch(std::exception& e) /* TODO: solve possible deadlock in the future, there are no time for tihs right now */
+		{
+			LOG(LogLevel::Error, "Exception: {}", e.what());
 		}
 	}
 

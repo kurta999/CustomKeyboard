@@ -1,9 +1,9 @@
 #include "pch.hpp"
 
 BackupEntry::BackupEntry(std::filesystem::path&& from_, std::vector<std::filesystem::path>&& to_, std::vector<std::wstring>&& ignore_list_, int max_backups_,
-	bool calculate_hash_, size_t hash_buf_size_) :
+	bool compress_, bool calculate_hash_, size_t hash_buf_size_) :
 	from(std::move(from_)), to(std::move(to_)), ignore_list(std::move(ignore_list_)), max_backups(max_backups_),
-	calculate_hash(calculate_hash_), hash_buf_size(hash_buf_size_)
+	m_Compress(compress_), calculate_hash(calculate_hash_), hash_buf_size(hash_buf_size_)
 {
 	if(!IsValid())
 		return;
@@ -42,7 +42,7 @@ void DirectoryBackup::Init()
 
 }
 
-void DirectoryBackup::LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool calculate_hash, size_t buffer_size)
+void DirectoryBackup::LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool compress_, bool calculate_hash, size_t buffer_size)
 {
 	std::filesystem::path from_path = from;
 
@@ -53,7 +53,7 @@ void DirectoryBackup::LoadEntry(const std::string& from, const std::string& to, 
 	std::wstring ignore_w;
 	utils::MBStringToWString(ignore, ignore_w);
 	boost::split(ignore_list, ignore, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
-	std::unique_ptr<BackupEntry> b = std::make_unique<BackupEntry>(std::move(from_path), std::move(to_path), std::move(ignore_list), max_backups, calculate_hash, buffer_size);
+	std::unique_ptr<BackupEntry> b = std::make_unique<BackupEntry>(std::move(from_path), std::move(to_path), std::move(ignore_list), max_backups, compress_, calculate_hash, buffer_size);
 
 	DirectoryBackup::Get()->backups.push_back(std::move(b));
 }
@@ -125,6 +125,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 	if(backup->calculate_hash)
 		sha256_init(&ctx_from);
 	bool fail = false;
+
+	std::chrono::steady_clock::time_point backup_start = std::chrono::steady_clock::now();
 	for(auto& t : backup->to)
 	{
 		if(is_cancelled)
@@ -158,6 +160,16 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 
 			if(backup->IsInIgnoreList(rel_path.generic_wstring())) continue;
 			//DBGW(L"f: %d, %s\n", is_file, p.path().c_str());
+
+			std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+			int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - backup_start).count();
+
+			if(dif > 3500 || m_currentFile.empty())
+			{
+				std::lock_guard lock(m_TitleMutex);
+				m_currentFile = p.path().generic_string();
+				backup_start = std::chrono::steady_clock::now();
+			}
 
 			bool is_symlink = std::filesystem::is_symlink(p.path());
 			if(is_symlink)
@@ -203,6 +215,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 					fail = true;
 					break;
 				}
+
+				RestoreAttributes(p, destination_path);
 			}
 			else
 			{  
@@ -279,6 +293,34 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 				break;
 			}
 		}
+
+		if(backup->m_Compress && !fail)
+		{
+			m_currentFile = "Compressing";
+			CompressAndRemoveFinalBackup(destination_dir);
+		}
+
+		/*
+		if(backup->m_Compress)
+		{
+			std::filesystem::path dest_dir_name = destination_dir.filename();
+
+			std::string cmdline = std::format("7z a \"{}\" \"{}\"", destination_dir.generic_string(), destination_dir.generic_string());
+			std::wstring cmdlinew(cmdline.begin(), cmdline.end());
+
+			std::string ret = utils::exec(cmdline.c_str());
+			if(ret.find("Everything is Ok"))
+			{
+				std::filesystem::remove_all(destination_dir);
+			}
+			else
+			{
+				LOG(LogLevel::Error, "Failed to compress backup with command line arguments: {}", cmdline);
+				fail = true;
+				break;
+			}
+		}
+		*/
 		dest_count++;
 	}
 	if(hash_buf)
@@ -334,4 +376,36 @@ void DirectoryBackup::BackupRotation(BackupEntry* backup)
 			}
 		}
 	}
+}
+
+void DirectoryBackup::RestoreAttributes(const std::filesystem::path& src, const std::filesystem::path& dst)
+{
+#ifdef _WIN32
+	DWORD attributes = GetFileAttributesA(src.generic_string().c_str());
+	if(attributes & FILE_ATTRIBUTE_HIDDEN)
+	{
+		SetFileAttributesA(dst.generic_string().c_str(), attributes);
+	}
+#endif
+}
+
+bool DirectoryBackup::CompressAndRemoveFinalBackup(const std::filesystem::path& dst)
+{
+	bool ret = true;
+	std::filesystem::path dest_dir_name = dst.filename();
+
+	std::string cmdline = std::format("7z a \"{}\" \"{}\"", dst.generic_string(), dst.generic_string());
+	std::wstring cmdlinew(cmdline.begin(), cmdline.end());
+
+	std::string result = utils::exec(cmdline.c_str());
+	if(result.find("Everything is Ok"))
+	{
+		std::filesystem::remove_all(dst);
+	}
+	else
+	{
+		LOG(LogLevel::Error, "Failed to compress backup with command line arguments: {}", cmdline);
+		ret = false;
+	}
+	return ret;
 }

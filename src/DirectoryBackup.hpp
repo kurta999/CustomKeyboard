@@ -10,7 +10,7 @@ class BackupEntry
 {
 public:
     BackupEntry(std::filesystem::path&& from_, std::vector<std::filesystem::path>&& to_, std::vector<std::wstring>&& ignore_list_, int max_backups_,
-        bool calculate_hash_, size_t hash_buf_size_);
+        bool compress, bool calculate_hash_, size_t hash_buf_size_);
 
     // !\brief Is constructed backup entry valid?
     bool IsValid() const;
@@ -34,6 +34,9 @@ public:
     // !\brief Calculate hash for backups (hash of destination folder)
     bool calculate_hash;
 
+    // !\brief Compress backed up folder after copy? Currently only 7z is available
+    bool m_Compress;
+
     // !\brief Hash buffer size [MB]
     size_t hash_buf_size;
 };
@@ -51,7 +54,7 @@ public:
     void Init(void);
 
     // !\brief Construct backup entry from string
-    void LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool calculate_hash, size_t buffer_size);
+    void LoadEntry(const std::string& from, const std::string& to, const std::string& ignore, int max_backups, bool compress_, bool calculate_hash, size_t buffer_size);
 
     // !\brief Starts backup with given id
     // \param id [in] ID of backup entry to execute
@@ -70,7 +73,11 @@ public:
     std::vector<std::unique_ptr<BackupEntry>> backups;
     
     // !\brief Is backup cancelled?
-    bool is_cancelled = false;
+    std::atomic<bool> is_cancelled{ false };
+
+    std::mutex m_TitleMutex;
+
+    std::string m_currentFile;
 
 protected:
     // !\brief Backups given backup entry
@@ -80,6 +87,12 @@ protected:
     // !\brief Execute backup rotation (removing older backups)
     // !\param backup [in] Backup entry to execute
     void BackupRotation(BackupEntry* backup);
+
+    // !\brief Execute backup rotation (removing older backups)
+    void RestoreAttributes(const std::filesystem::path& src, const std::filesystem::path& dst);
+
+    // !\brief Compresses and remove the final backup
+    bool CompressAndRemoveFinalBackup(const std::filesystem::path& dst);
 
     // !\brief Future for backup async operations
     std::future<void> backup_future;

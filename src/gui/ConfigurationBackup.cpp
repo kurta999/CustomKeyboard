@@ -28,7 +28,7 @@ void BackupPanel::OnItemContextMenu(wxTreeListEvent& evt)
 			const wxString& item_str = tree->GetItemText(item, 1);
 
 			std::unique_ptr<BackupEntry> p = std::make_unique<BackupEntry>(L"C:\\folder_non_exists", std::vector<std::filesystem::path>{L"C:\\backup"},
-				std::vector<std::wstring>({ L".gitignore", L".txt" }), 2, 0, 1);
+				std::vector<std::wstring>({ L".gitignore", L".txt" }), 2, false, 0, 1);
 			DirectoryBackup::Get()->backups.push_back(std::move(p));
 
 			UpdateMainTree();
@@ -140,6 +140,18 @@ void BackupPanel::OnItemActivated(wxTreeListEvent& evt)
 				}
 			}
 		}
+		else if(type_str == "Compress")
+		{
+			wxTextEntryDialog d(this, "Enter 0 or 1 to toggle file compressing after backup\n7z has to be installed on the system, to make it work", 
+				"Toggle backup compressing", std::to_string(DirectoryBackup::Get()->backups[id]->m_Compress), wxOK | wxCANCEL);
+			d.SetTextValidator(wxFILTER_DIGITS);
+			int ret_code = d.ShowModal();
+			if(ret_code == wxID_OK)  /* OK */
+			{
+				DirectoryBackup::Get()->backups[id]->m_Compress = utils::stob(d.GetValue().ToStdString());
+				UpdateMainTree();
+			}
+		}
 		else if(type_str == "Calculate hash")
 		{
 			wxTextEntryDialog d(this, "Enter 0 or 1 to toggle hash calculating\nEnabled hash calculation will result in more reliable backup, but takes longer", 
@@ -201,6 +213,8 @@ void BackupPanel::UpdateMainTree()
 		tree->SetItemText(bind_item, 1, str_ignore);
 		bind_item = tree->AppendItem(item, "Max backups");
 		tree->SetItemText(bind_item, 1, std::to_string(i->max_backups));
+		bind_item = tree->AppendItem(item, "Compress");
+		tree->SetItemText(bind_item, 1, i->m_Compress ? "Yes" : "No");
 		bind_item = tree->AppendItem(item, "Calculate hash");
 		tree->SetItemText(bind_item, 1, i->calculate_hash ? "Yes" : "No");
 		bind_item = tree->AppendItem(item, "Hash buffer size");

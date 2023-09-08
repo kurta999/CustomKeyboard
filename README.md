@@ -24,7 +24,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 5. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
 6. **CPU Power Saver** - Saves power by reducing CPU frequency after X idle time to Y percent. For example I can save 10-15W hourly by reducing my overclocked i7 10700K to 800 - 1200Mhz while my PC is in idle. If the median CPU usage gets above max configured percent due to some background tasks, the frequency will be restored and won't be limited again until it falls below configured minimum median load again.
 7. **ScreenshotSaver** - Saving screenshot to .png from clipboard
-8. **DirectoryBackup** - Backup folders to another place(s) from tray menu
+8. **DirectoryBackup** - Backup folders to another place(s) from tray menu - with checksum and compression support
 9. **Filesystem browser** - List files and directories recursively by size starting from specific path - useful for finding bloat on storage
 10. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
 11. **MTA -> SA-MP MapConverter** - Convert maps from MTA-SA Race and MTA:SA DM to SA-MP with every item which is supported by SA-MP; objects, actors, vehicles with components, checkpoints and pickups.
