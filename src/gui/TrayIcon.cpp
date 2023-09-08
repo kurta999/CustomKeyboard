@@ -70,7 +70,7 @@ wxMenu* TrayIcon::CreatePopupMenu()
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::ReloadConfig, wxT("Reload config"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
-	popup->Append(TrayIcon::ID::ToggleAntilock, wxT("Toggle AntiLock"))->SetBitmap(wxArtProvider::GetBitmap(wxART_TIP, wxART_CDROM, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
+	popup->Append(TrayIcon::ID::ToggleAntilock, wxT("Toggle AntiLock"))->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	popup->AppendSeparator();
 	popup->Append(TrayIcon::ID::Exit, wxT("E&xit"))->SetBitmap(wxArtProvider::GetBitmap(wxART_QUIT, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 	return popup;

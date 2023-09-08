@@ -14,7 +14,7 @@ using CommandPageIcons = std::vector<std::string>;
 class ICmdHelper
 {
 public:
-    virtual ~ICmdHelper() { }
+    virtual ~ICmdHelper() = default;
 
     virtual void OnPreReload(uint8_t page) = 0;
     virtual void OnPreReloadColumns(uint8_t pages, uint8_t cols) = 0;

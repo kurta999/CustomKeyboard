@@ -174,7 +174,7 @@ public:
 class XmlCanEntryLoader : public ICanEntryLoader
 {
 public:
-    virtual ~XmlCanEntryLoader();
+    virtual ~XmlCanEntryLoader() = default;
 
     bool Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) override;
     bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) const override;
@@ -183,7 +183,7 @@ public:
 class XmlCanRxEntryLoader : public ICanRxEntryLoader
 {
 public:
-    virtual ~XmlCanRxEntryLoader();
+    virtual ~XmlCanRxEntryLoader() = default;
 
     bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) override;
     bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) const override;
@@ -192,7 +192,7 @@ public:
 class XmlCanMappingLoader : public ICanMappingLoader
 {
 public:
-    virtual ~XmlCanMappingLoader();
+    virtual ~XmlCanMappingLoader() = default;
 
     bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) override;
     bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) const override;

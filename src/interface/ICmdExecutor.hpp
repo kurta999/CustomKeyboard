@@ -10,7 +10,7 @@ using CommandStorage = std::vector<std::vector<std::vector<CommandTypes>>>;
 class ICommandLoader
 {
 public:
-    virtual ~ICommandLoader() { }
+    virtual ~ICommandLoader() = default;
 
     virtual bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) = 0;
     virtual bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) const = 0;
@@ -19,7 +19,7 @@ public:
 class ICmdExecutor
 {
 public:
-    virtual ~ICmdExecutor() { }
+    virtual ~ICmdExecutor() = default;
 
     virtual void Init() = 0;
     virtual void SetMediator(ICmdHelper* mediator) = 0;

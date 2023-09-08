@@ -16,7 +16,7 @@ using CanFrameDirectionMapping = std::map<uint32_t, char>;  /* TODO: this is was
 class ICanEntryLoader
 {
 public:
-    virtual ~ICanEntryLoader() { }
+    virtual ~ICanEntryLoader() = default;
 
     virtual bool Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) = 0;
     virtual bool Save(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e) const = 0;
@@ -25,7 +25,7 @@ public:
 class ICanRxEntryLoader
 {
 public:
-    virtual ~ICanRxEntryLoader() { }
+    virtual ~ICanRxEntryLoader() = default;
 
     virtual bool Load(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) = 0;
     virtual bool Save(const std::filesystem::path& path, std::unordered_map<uint32_t, std::string>& e, std::unordered_map<uint32_t, uint8_t>& loglevels) const = 0;
@@ -34,7 +34,7 @@ public:
 class ICanMappingLoader
 {
 public:
-    virtual ~ICanMappingLoader() { }
+    virtual ~ICanMappingLoader() = default;
 
     virtual bool Load(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) = 0;
     virtual bool Save(const std::filesystem::path& path, CanMapping& mapping, CanFrameNameMapping& names, CanFrameSizeMapping& sizes, CanFrameDirectionMapping& directions) const = 0;

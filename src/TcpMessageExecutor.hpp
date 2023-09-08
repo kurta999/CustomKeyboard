@@ -6,7 +6,7 @@ class TcpMessageExecutor : public ITcpMessageExecutor
 {
 public:
     TcpMessageExecutor();
-    virtual ~TcpMessageExecutor();
+    virtual ~TcpMessageExecutor() = default;
 
     virtual void SetCurrentSession(SharedSession session, size_t len) override;
     virtual TcpMessageReturn Process(std::any param) override;

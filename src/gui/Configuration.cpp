@@ -473,7 +473,7 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			if(m_CanSerial->GetSelection() > 0)
 				CanSerialPort::Get()->SetComPort(atoi(&com_str_can.c_str().AsChar()[2]));
 			can_handler->default_tx_list = m_CanDefaultTxList->GetValue().ToStdString();
-			can_handler->default_rx_list = m_CanDefaultTxList->GetValue().ToStdString();
+			can_handler->default_rx_list = m_CanDefaultRxList->GetValue().ToStdString();
 
 			SerialForwarder::Get()->is_enabled = m_SerialForwarderIsEnabled->GetValue();
 			SerialForwarder::Get()->bind_ip = m_SerialForwarderBindIp->GetValue().ToStdString();

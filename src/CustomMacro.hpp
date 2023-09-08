@@ -56,7 +56,7 @@ class IKey
 public:
     IKey() {}
     IKey(const IKey&) {}
-    virtual ~IKey() {}
+    virtual ~IKey() = default;
 
     virtual IKey* Clone() = 0;
     virtual void Execute() = 0;
@@ -69,7 +69,7 @@ class KeyText final : public IKey
 public:
     KeyText(std::string&& keys) { seq = std::move(keys); }
     KeyText(const KeyText& from) { seq = from.seq; }
-    virtual ~KeyText() { }
+    virtual ~KeyText() = default;
     KeyText* Clone() override { return new KeyText(*this); }
     void Execute() override;
     std::string GenerateText(bool is_ini_format) override;
@@ -94,7 +94,7 @@ public:
     KeyCombination(std::vector<uint16_t>&& keys) { seq = std::move(keys); }    
     KeyCombination(std::string&& str);
     KeyCombination(const KeyCombination& from) { seq = from.seq; }
-    virtual ~KeyCombination() { }
+    virtual ~KeyCombination() = default;
     KeyCombination* Clone() override { return new KeyCombination(*this); }
     void Execute() override;
 
@@ -123,7 +123,7 @@ public:
     KeyDelay(uint32_t start_, uint32_t end_) : delay(std::array<uint32_t, 2>{start_, end_}) { }
     KeyDelay(std::string&& str);
     KeyDelay(const KeyDelay& from) { delay = from.delay; }
-    virtual ~KeyDelay() { }
+    virtual ~KeyDelay() = default;
     KeyDelay* Clone() override { return new KeyDelay(*this); }
 
     void Execute() override;
@@ -144,7 +144,7 @@ public:
     MouseMovement(LPPOINT* pos_) { memcpy(&m_pos, pos_, sizeof(m_pos)); }
     MouseMovement(const MouseMovement& from) { memcpy(&m_pos, &from.m_pos, sizeof(m_pos)); }
     MouseMovement(std::string&& str);
-    virtual ~MouseMovement() { }
+    virtual ~MouseMovement() = default;
     MouseMovement* Clone() override { return new MouseMovement(*this); }
     void Execute() override;
 
@@ -167,7 +167,7 @@ public:
     MouseInterpolate(LPPOINT* pos_) { memcpy(&m_pos, pos_, sizeof(m_pos)); }
     MouseInterpolate(const MouseInterpolate& from) { memcpy(&m_pos, &from.m_pos, sizeof(m_pos)); }
     MouseInterpolate(std::string&& str);
-    virtual ~MouseInterpolate() { }
+    virtual ~MouseInterpolate() = default;
     MouseInterpolate* Clone() override { return new MouseInterpolate(*this); }
     void Execute() override;
 
@@ -190,7 +190,7 @@ public:
     MousePress(uint16_t key_) : key(key_) {}
     MousePress(const MousePress& from) { key = from.key; }
     MousePress(const std::string&& str);
-    virtual ~MousePress() { }
+    virtual ~MousePress() = default;
     MousePress* Clone() override { return new MousePress(*this); }
     void Execute() override;
 
@@ -214,7 +214,7 @@ public:
     MouseRelease(uint16_t key_) : key(key_) {}
     MouseRelease(const MouseRelease& from) { key = from.key; }
     MouseRelease(const std::string&& str);
-    virtual ~MouseRelease() { }
+    virtual ~MouseRelease() = default;
     MouseRelease* Clone() override { return new MouseRelease(*this); }
     void Execute() override;
 
@@ -238,7 +238,7 @@ public:
     MouseClick(uint16_t key_) : key(key_) {}
     MouseClick(const MouseClick& from) { key = from.key; }
     MouseClick(const std::string&& str);
-    virtual ~MouseClick() { }
+    virtual ~MouseClick() = default;
     MouseClick* Clone() override { return new MouseClick(*this); }
     void Execute() override;
 
@@ -263,7 +263,7 @@ public:
     BashCommand(const BashCommand& from) { cmd = from.cmd; }
     /*BashCommand(const std::string&& str) : cmd(str)
     {}*/
-    virtual ~BashCommand() { }
+    virtual ~BashCommand() = default;
     BashCommand* Clone() override { return new BashCommand(*this); }
     void Execute() override;
 
@@ -287,7 +287,7 @@ public:
     CommandExecute(const CommandExecute& from) { cmd = from.cmd; }
     /*BashCommand(const std::string&& str) : cmd(str)
     {}*/
-    virtual ~CommandExecute() { }
+    virtual ~CommandExecute() = default;
     CommandExecute* Clone() override { return new CommandExecute(*this); }
     void Execute() override;
 

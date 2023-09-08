@@ -6,7 +6,7 @@ class CanData;
 class ICanDevice
 {
 public:
-    virtual ~ICanDevice() { }
+    virtual ~ICanDevice() = default;
 
     // !\brief Process received CAN frames
     virtual void ProcessReceivedFrames(std::mutex& rx_mutex) = 0;

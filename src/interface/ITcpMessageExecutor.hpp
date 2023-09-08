@@ -12,7 +12,7 @@ using TcpMessageReturn = std::tuple<bool, bool, std::string>;
 class ITcpMessageExecutor
 {
 public:
-    virtual ~ITcpMessageExecutor() {}
+    virtual ~ITcpMessageExecutor() = default;
 
     virtual void SetCurrentSession(SharedSession session, size_t len) = 0;
     virtual TcpMessageReturn Process(std::any param) = 0;

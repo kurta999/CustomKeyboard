@@ -19,21 +19,6 @@ CanEntryHandler::~CanEntryHandler()
     m_worker.reset(nullptr);
 }
 
-XmlCanEntryLoader::~XmlCanEntryLoader()
-{
-
-}
-
-XmlCanRxEntryLoader::~XmlCanRxEntryLoader()
-{
-
-}
-
-XmlCanMappingLoader::~XmlCanMappingLoader()
-{
-
-}
-
 bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std::unique_ptr<CanTxEntry>>& e)
 {
     bool ret = true;

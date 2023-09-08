@@ -25,11 +25,6 @@ TcpMessageExecutor::TcpMessageExecutor()
 	m_cmds["GET /Line%20Chart%20Multiple%20Axes_files/utils.js.download"] = std::bind(&TcpMessageExecutor::HandleGraphs, this, "utils.js.download");
 }
 
-TcpMessageExecutor::~TcpMessageExecutor()
-{
-
-}
-
 void TcpMessageExecutor::SetCurrentSession(SharedSession session, size_t len)
 {
 	m_session = session;
