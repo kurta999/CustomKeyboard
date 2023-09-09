@@ -557,4 +557,42 @@ namespace utils
 		return theTick;
 	}
 #endif
+
+	bool SendTcpBlocking(std::string& ip, uint16_t port, const char* data, size_t len, int timeout_ms)
+	{
+		boost::system::error_code ec;
+		boost::asio::io_service ios;
+		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip, ec), port);
+		boost::asio::ip::tcp::socket socket(ios);
+		if(ec)
+			LOG(LogLevel::Error, "Failed to create endpoint from ip address: {}", ec.message());
+
+		socket.set_option(boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>{ 200 }, ec);
+		if(ec)
+			LOG(LogLevel::Error, "set_option error: {}", ec.message());
+
+		bool is_connected = false;
+		socket.async_connect(endpoint, [&is_connected](const boost::system::error_code& ec)
+			{
+				if(!ec)
+					is_connected = true;
+			});
+		ios.run_for(std::chrono::duration<int, std::milli>(timeout_ms));
+
+		if(is_connected)
+		{
+			socket.send(boost::asio::buffer(data, len), 0, ec);
+			if(ec)
+			{
+				LOG(LogLevel::Error, "Failed to forward serial over TCP: {}", ec.message());
+				is_connected = false;
+			}
+			socket.close(ec);
+		}
+		else
+		{
+			LOG(LogLevel::Error, "Failed to connect to the remote server!");
+		}
+		return is_connected;
+	}
 }

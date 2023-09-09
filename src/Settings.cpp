@@ -30,7 +30,6 @@ void Settings::LoadFile()
                 utils::ini::ReadValueIfexists(opt_section, "UseAdvancedKeyBinding", CustomMacro::Get()->advanced_key_binding);
                 utils::ini::ReadValueIfexists(opt_section, "BringToForegroundKey", CustomMacro::Get()->bring_to_foreground_key);
             }
-
         }
 
         CustomMacro::Get()->macros.clear();
@@ -72,9 +71,9 @@ void Settings::LoadFile()
         SerialPort::Get()->SetRemoteTcpIp(pt.get_child("COM_Backend").find("RemoteTcpIp")->second.data());
         SerialPort::Get()->SetRemoteTcpPort(utils::stoi<uint16_t>(pt.get_child("COM_Backend").find("RemoteTcpPort")->second.data()));
 
-        SerialForwarder::Get()->is_enabled = utils::stob(pt.get_child("COM_TcpBackend").find("Enable")->second.data());
-        SerialForwarder::Get()->bind_ip = std::move(pt.get_child("COM_TcpBackend").find("ListeningIp")->second.data());
-        SerialForwarder::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_TcpBackend").find("ListeningPort")->second.data());
+        SerialTcpBackend::Get()->is_enabled = utils::stob(pt.get_child("COM_TcpBackend").find("Enable")->second.data());
+        SerialTcpBackend::Get()->bind_ip = std::move(pt.get_child("COM_TcpBackend").find("ListeningIp")->second.data());
+        SerialTcpBackend::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("COM_TcpBackend").find("ListeningPort")->second.data());
 
         Server::Get()->is_enabled = utils::stob(pt.get_child("Sensors").find("Enable")->second.data());
         Server::Get()->tcp_port = utils::stoi<uint16_t>(pt.get_child("Sensors").find("TCP_Port")->second.data());
@@ -276,9 +275,9 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "RemoteTcpPort = " << SerialPort::Get()->GetRemoteTcpPort() << "\n";
     out << "\n";
     out << "[COM_TcpBackend]\n";
-    out << "Enable = " << SerialForwarder::Get()->is_enabled << " # Listening port from second instance where the TCP Forwarder forwards data received from COM port\n";
-    out << "ListeningIp = " << SerialForwarder::Get()->bind_ip << "\n";
-    out << "ListeningPort = " << SerialForwarder::Get()->tcp_port << "\n";
+    out << "Enable = " << SerialTcpBackend::Get()->is_enabled << " # Listening port from second instance where the TCP Forwarder forwards data received from COM port\n";
+    out << "ListeningIp = " << SerialTcpBackend::Get()->bind_ip << "\n";
+    out << "ListeningPort = " << SerialTcpBackend::Get()->tcp_port << "\n";
     out << "\n";
     out << "[CANSender]\n";
     out << "Enable = " << CanSerialPort::Get()->IsEnabled() << "\n";

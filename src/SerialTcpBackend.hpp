@@ -17,13 +17,13 @@ using tcp_socket = use_awaitable_t<>::as_default_on_t<tcp::socket>;
 namespace this_coro = boost::asio::this_coro;
 #endif
 
-class SerialForwarder : public CSingleton < SerialForwarder >
+class SerialTcpBackend : public CSingleton < SerialTcpBackend >
 {
-    friend class CSingleton < SerialForwarder >;
+    friend class CSingleton < SerialTcpBackend >;
 
 public:
-    SerialForwarder();
-    ~SerialForwarder();
+    SerialTcpBackend();
+    ~SerialTcpBackend();
 
     void Init();
 

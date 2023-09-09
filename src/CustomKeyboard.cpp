@@ -23,7 +23,7 @@ bool MyApp::OnInit()
     PrintScreenSaver::Get()->Init();
     DirectoryBackup::Get()->Init();
     MacroRecorder::Get()->Init();
-    SerialForwarder::Get()->Init();
+    SerialTcpBackend::Get()->Init();
     CorsairHid::Get()->Init();
     BsecHandler::Get()->Init();
 
@@ -61,7 +61,7 @@ int MyApp::OnExit()
     DirectoryBackup::CSingleton::Destroy();
     MacroRecorder::CSingleton::Destroy();
     DatabaseLogic::CSingleton::Destroy();
-    SerialForwarder::CSingleton::Destroy();
+    SerialTcpBackend::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
     ModbusMasterSerialPort::CSingleton::Destroy();
     CorsairHid::CSingleton::Destroy();

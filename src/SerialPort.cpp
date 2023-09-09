@@ -95,7 +95,7 @@ void SerialPort::OnDataReceived(const char* data, unsigned int len)
     if(forward_serial_to_tcp)
     {
         if(IsUsingVmOrWsl())
-            SerialForwarder::Get()->Send(remote_tcp_ip, remote_tcp_port, data, len);
+            utils::SendTcpBlocking(remote_tcp_ip, remote_tcp_port, data, len);
         else
             CustomMacro::Get()->ProcessReceivedData(data, len);
     }

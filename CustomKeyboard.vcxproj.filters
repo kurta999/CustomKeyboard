@@ -189,7 +189,7 @@
     <ClInclude Include="src\DatabaseImpl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\SerialForwarder.hpp">
+    <ClInclude Include="src\SerialTcpBackend.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SerialPort.hpp">
@@ -452,7 +452,7 @@
     <ClCompile Include="src\DatabaseImpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SerialForwarder.cpp">
+    <ClCompile Include="src\SerialTcpBackend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SerialPort.cpp">

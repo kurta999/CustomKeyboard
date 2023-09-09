@@ -494,7 +494,7 @@
     <ClInclude Include="src\PrintScreenSaver.hpp" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\Sensors.hpp" />
-    <ClInclude Include="src\SerialForwarder.hpp" />
+    <ClInclude Include="src\SerialTcpBackend.hpp" />
     <ClInclude Include="src\SerialPort.hpp" />
     <ClInclude Include="src\Server.hpp" />
     <ClInclude Include="src\Session.hpp" />
@@ -702,7 +702,7 @@
     </ClCompile>
     <ClCompile Include="src\PrintScreenSaver.cpp" />
     <ClCompile Include="src\Sensors.cpp" />
-    <ClCompile Include="src\SerialForwarder.cpp" />
+    <ClCompile Include="src\SerialTcpBackend.cpp" />
     <ClCompile Include="src\SerialPort.cpp" />
     <ClCompile Include="src\Server.cpp" />
     <ClCompile Include="src\Session.cpp" />

@@ -18,7 +18,7 @@ MainPanel::MainPanel(wxFrame* parent)
 			for(auto ip : Server::Get()->used_ip_addresses)
 			{
 				std::string sensor_ip = boost::asio::ip::address_v4(ip).to_string();
-				SerialForwarder::Get()->Send(sensor_ip, 80, "SEND_SENSOR_DATA", 16);
+				utils::SendTcpBlocking(sensor_ip, 80, "SEND_SENSOR_DATA", 16);
 			}
 		});
 
@@ -30,7 +30,7 @@ MainPanel::MainPanel(wxFrame* parent)
 			for(auto ip : Server::Get()->used_ip_addresses)
 			{
 				std::string sensor_ip = boost::asio::ip::address_v4(ip).to_string();
-				SerialForwarder::Get()->Send(sensor_ip, 80, "RESET", 5);
+				utils::SendTcpBlocking(sensor_ip, 80, "RESET", 5);
 			}
 		});
 	bSizer1->Add(horizontal_sizer);
@@ -283,26 +283,42 @@ void MainPanel::UpdateKeybindings()
 		i.second->SetForegroundColour(*wxGREEN);
 	}
 
+	auto MarkFunctionalKey = [this](wxStaticBox* box, const wxString& text)
+		{
+			box->SetLabelText(text);
+			box->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+			box->SetForegroundColour(*wxRED);
+		};
+
+
 	auto it = key_map.find(PrintScreenSaver::Get()->screenshot_key);
 	if(it != key_map.end())
 	{
-		it->second->SetLabelText("SCREEN");
-		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
-		it->second->SetForegroundColour(*wxRED);
+		MarkFunctionalKey(it->second, "SCREEN");
 	}
 	it = key_map.find(PathSeparator::Get()->replace_key);
 	if(it != key_map.end())
 	{
-		it->second->SetLabelText("PATH");
-		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
-		it->second->SetForegroundColour(*wxRED);
+		MarkFunctionalKey(it->second, "PATH");
 	}
 	it = key_map.find(CustomMacro::Get()->bring_to_foreground_key);
 	if(it != key_map.end())
 	{
-		it->second->SetLabelText("TOGGLE");
-		it->second->SetFont(wxFont(wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
-		it->second->SetForegroundColour(*wxRED);
+		MarkFunctionalKey(it->second, "TOGGLE");
+	}
+	it = key_map.find(SymlinkCreator::Get()->mark_key);
+	if(it != key_map.end())
+	{
+		MarkFunctionalKey(it->second, "MARK");
+	}
+	it = key_map.find(SymlinkCreator::Get()->place_symlink_key);
+	if(it != key_map.end())
+	{
+		MarkFunctionalKey(it->second, "SYMLINK");
+	}	it = key_map.find(SymlinkCreator::Get()->place_hardlink_key);
+	if(it != key_map.end())
+	{
+		MarkFunctionalKey(it->second, "HARDLINK");
 	}
 
 	if(CorsairHid::Get()->GetDeviceType() == CorsairDeviceType::NONE)

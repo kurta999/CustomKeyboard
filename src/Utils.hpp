@@ -186,6 +186,8 @@ namespace utils
     uint32_t GetTickCount();
 #endif
 
+    bool SendTcpBlocking(std::string& ip, uint16_t port, const char* data, size_t len, int timeout_ms = 300);
+
     constexpr unsigned long RGB_TO_INT(int r, int g, int b)
     {
         return ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);

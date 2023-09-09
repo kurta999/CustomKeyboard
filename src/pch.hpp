@@ -64,7 +64,7 @@ namespace std
 #include "PrintScreenSaver.hpp"
 #include "PathSeparator.hpp"
 #include "Session.hpp"
-#include "SerialForwarder.hpp"
+#include "SerialTcpBackend.hpp"
 #include "SymlinkCreator.hpp"
 #include "MacroRecorder.hpp"
 #include "AntiLock.hpp"
