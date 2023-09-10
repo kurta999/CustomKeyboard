@@ -51,17 +51,15 @@ void SymlinkCreator::Place(bool is_symlink)
 			for(auto& item : m_SelectedItems)
 			{
 				std::filesystem::path dest_with_name = dest_path / std::filesystem::path(item).filename();
-				try
+				boost::system::error_code ec;
+				if(std::filesystem::is_directory(item))
+					std::filesystem::create_directory_symlink(item, dest_with_name, ec);
+				else
+					std::filesystem::create_symlink(item, dest_with_name, ec);
+
+				if(ec)
 				{
-					if(std::filesystem::is_directory(item))
-						std::filesystem::create_directory_symlink(item, dest_with_name);
-					else
-						std::filesystem::create_symlink(item, dest_with_name);
-				}
-				catch(const std::filesystem::filesystem_error& e)
-				{
-					LOG(LogLevel::Error, "Exception during creating symlinks ({}): {}", dest_with_name.generic_string(), e.what());
-					break;
+					LOG(LogLevel::Error, "Exception during creating symlinks ({}): {}", dest_with_name.generic_string(), ec.message());
 				}
 			}
 
@@ -76,14 +74,11 @@ void SymlinkCreator::Place(bool is_symlink)
 			for(auto& item : m_SelectedItems)
 			{
 				std::filesystem::path dest_with_name = dest_path / std::filesystem::path(item).filename();
-				try
+				boost::system::error_code ec;
+				std::filesystem::create_hard_link(item, dest_with_name, ec);
+				if(ec)
 				{
-					std::filesystem::create_hard_link(item, dest_with_name);
-				}
-				catch(const std::filesystem::filesystem_error& e)
-				{
-					LOG(LogLevel::Error, "Exception during creating hardlinks ({}): {}", dest_with_name.generic_string(), e.what());
-					break;
+					LOG(LogLevel::Error, "Exception during creating hardlinks ({}): {}", dest_with_name.generic_string(), ec.message());
 				}
 			}
 
