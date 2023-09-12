@@ -112,9 +112,9 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 		LOG(LogLevel::Warning, "Backup time isn't set, backup functionality might not work as expected!");
 	}
 
-	char* hash_buf = nullptr;
+	std::unique_ptr<char[]> hash_buf = nullptr; 
 	if(backup->calculate_hash)
-		hash_buf = new char[backup->hash_buf_size * 1024 * 1024];
+		hash_buf = std::make_unique_for_overwrite<char[]>(backup->hash_buf_size * 1024 * 1024);
 
 	bool first_run_hash = false;
 	size_t file_count = 0, files_size = 0, dest_count = 0;
@@ -238,8 +238,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 						f.peek();
 						while(f.good())
 						{
-							std::streamsize chars_read = f.read(hash_buf, backup->hash_buf_size * 1024 * 1024).gcount();
-							sha256_update(&ctx_to, (uint8_t*)hash_buf, chars_read);
+							std::streamsize chars_read = f.read(hash_buf.get(), backup->hash_buf_size * 1024 * 1024).gcount();
+							sha256_update(&ctx_to, (uint8_t*)hash_buf.get(), chars_read);
 						}
 						f.close();
 					}
@@ -263,8 +263,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 						f.peek();
 						while(f.good())
 						{
-							std::streamsize chars_read = f.read(hash_buf, backup->hash_buf_size * 1024 * 1024).gcount();
-							sha256_update(&ctx_from, (uint8_t*)hash_buf, chars_read);
+							std::streamsize chars_read = f.read(hash_buf.get(), backup->hash_buf_size * 1024 * 1024).gcount();
+							sha256_update(&ctx_from, (uint8_t*)hash_buf.get(), chars_read);
 						}
 						f.close();
 					}
@@ -299,32 +299,8 @@ void DirectoryBackup::DoBackup(BackupEntry* backup)
 			m_currentFile = "Compressing";
 			CompressAndRemoveFinalBackup(destination_dir);
 		}
-
-		/*
-		if(backup->m_Compress)
-		{
-			std::filesystem::path dest_dir_name = destination_dir.filename();
-
-			std::string cmdline = std::format("7z a \"{}\" \"{}\"", destination_dir.generic_string(), destination_dir.generic_string());
-			std::wstring cmdlinew(cmdline.begin(), cmdline.end());
-
-			std::string ret = utils::exec(cmdline.c_str());
-			if(ret.find("Everything is Ok"))
-			{
-				std::filesystem::remove_all(destination_dir);
-			}
-			else
-			{
-				LOG(LogLevel::Error, "Failed to compress backup with command line arguments: {}", cmdline);
-				fail = true;
-				break;
-			}
-		}
-		*/
 		dest_count++;
 	}
-	if(hash_buf)
-		delete[] hash_buf;
 
 	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
