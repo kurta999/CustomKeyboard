@@ -6,7 +6,7 @@ class Result;
 class IDatabase
 {
 public:
-    virtual ~IDatabase() { }
+    virtual ~IDatabase() = default;
 
     virtual bool Open(const char* db_name) = 0;
     virtual bool Close() = 0;

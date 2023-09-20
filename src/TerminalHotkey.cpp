@@ -83,6 +83,7 @@ void TerminalHotkey::OpenTerminal(std::wstring& path)
 		default:  /* WINDOWS_TERMINAL */
 		{
 			ShellExecute(NULL, L"open", L"wt", std::format(L"/d \"{}\"", path).c_str(), NULL, SW_SHOW);
+			break;
 		}
 	}
 #endif

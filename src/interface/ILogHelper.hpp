@@ -5,7 +5,7 @@
 class ILogHelper
 {
 public:
-    virtual ~ILogHelper() { }
+    virtual ~ILogHelper() = default;
 
     virtual void ClearEntries() = 0;
     virtual void AppendLog(const std::string& file, const std::string& line, bool scroll_to_end = false) = 0;

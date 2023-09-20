@@ -71,12 +71,31 @@ public:
     Logger();
     ~Logger() = default;
     void SetLogHelper(ILogHelper* helper);
+
+    // !\brief Set default log level
+    // !\param level [in] Log level
     void SetDefaultLogLevel(LogLevel level);
+
+    // !\brief Get default log level
+    // !\return Log level
     LogLevel GetDefaultLogLevel() const;
+
+    // !\brief Set default log level as string
+    // !\param level [in] Set log level as string
+    // !\return Log level
     void SetLogLevelAsString(const std::string& level);
+
+    // !\brief Get default log level as string
     const std::string GetLogLevelAsString();
+
+    // !\brief Set log filters as string separated by | character
     void SetLogFilters(const std::string& filter_list);
+
+    // !\brief Get log filters as string separated by | character
     std::string GetLogFilters();
+
+    // !\brief Execute search for a specific string in the log file
+    // !\brief log_level Log level name in string format
     bool SearchInLogFile(std::string_view filter, std::string_view log_level);
 
 #ifdef _WIN32  /* std::format version with both std::string & std::wstring support - GCC's std::format and std::chrono::current_zone implementation is still missing - 2022.10.28 */
