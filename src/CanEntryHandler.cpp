@@ -47,35 +47,44 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
                 continue;
             }
 
-            std::unique_ptr<CanTxEntry> local_entry = std::make_unique<CanTxEntry>();
-            local_entry->id = frame_id;
-
             char bytes[128] = { 0 };
             std::string hex_str = v.second.get_child("Data").get_value<std::string>();
             boost::algorithm::erase_all(hex_str, " ");
             if(hex_str.length() > 16)
                 hex_str.erase(16, hex_str.length() - 16);
             utils::ConvertHexStringToBuffer(hex_str, std::span{ bytes });
-            local_entry->data.assign(bytes, bytes + (hex_str.length() / 2));
-            local_entry->period = v.second.get_child("Period").get_value<int>();
-            local_entry->log_level = v.second.get_child("LogLevel").get_value<uint8_t>();
-            local_entry->favourite_level = v.second.get_child("Favourite").get_value<uint8_t>();
-            local_entry->comment = v.second.get_child("Comment").get_value<std::string>();
 
             boost::optional<std::string> color;
             boost::optional<std::string> bg_color;
             boost::optional<bool> is_bold;
+            boost::optional<float> is_scale;
+            boost::optional<std::string> is_font_face;
             utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
             utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
-            utils::xml::ReadChildIfexists<bool>(v, "Bold", is_bold);
+            utils::xml::ReadChildIfexists<float>(v, "Scale", is_scale);
+            utils::xml::ReadChildIfexists<std::string>(v, "FontFace", is_font_face);
 
-            if(color)
-                local_entry->m_color = utils::ColorStringToInt(*color);
-            if(bg_color)
-                local_entry->m_bg_color = utils::ColorStringToInt(*bg_color);
-            if(is_bold && *is_bold)
-                local_entry->m_is_bold = true;
+            std::optional<uint32_t> color_;
+            std::optional<uint32_t> bg_color_;
+            std::optional<bool> is_bold_;
+            std::optional<float> is_scale_;
+            std::optional<std::string> is_font_face_;
 
+            if(color.has_value())
+                color_ = utils::ColorStringToInt(*color);
+            if(bg_color.has_value())
+                bg_color_ = utils::ColorStringToInt(*bg_color);
+            if(is_bold.has_value() && *is_bold)
+                is_bold_ = true;
+            if(is_scale.has_value())
+                is_scale_ = *is_scale;
+            if(is_font_face.has_value())
+                is_font_face_ = *is_font_face;
+
+            size_t data_len = (hex_str.length() / 2);
+            std::unique_ptr<CanTxEntry> local_entry = std::make_unique<CanTxEntry>(frame_id, (uint8_t*)bytes, data_len, v.second.get_child("Period").get_value<int>(), v.second.get_child("LogLevel").get_value<uint8_t>(), v.second.get_child("Favourite").get_value<uint8_t>(), v.second.get_child("Comment").get_value<std::string>(), 
+                color_, bg_color_, is_bold_, is_scale_, is_font_face_);
+                
             e.push_back(std::move(local_entry));
         }
     }
@@ -116,6 +125,10 @@ bool XmlCanEntryLoader::Save(const std::filesystem::path& path, std::vector<std:
             frame_node.add("BackgroundColor", utils::ColorIntToString(*i->m_bg_color));
         if(i->m_is_bold)
             frame_node.add("Bold", "1");
+        if(i->m_scale != 1.0f)
+            frame_node.add("Scale", std::format("{:.1f}", i->m_scale));
+        if(!i->m_font_face.empty())
+            frame_node.add("FontFace", i->m_font_face);
     }
 
     try

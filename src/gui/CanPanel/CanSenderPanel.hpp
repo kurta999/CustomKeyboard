@@ -2,6 +2,8 @@
 
 #include <wx/wx.h>
 #include <wx/grid.h>
+#include <wx/clrpicker.h>
+#include <wx/fontpicker.h>
 
 #include <map>
 
@@ -11,6 +13,7 @@ class CanByteEditorDialog;
 class BitEditorDialog;
 class CanLogForFrameDialog;
 class CanUdsRawDialog;
+class CanSenderEditDialog;
 class CanMap;
 class IResultPanel;
 
@@ -117,6 +120,7 @@ private:
     BitEditorDialog* m_BitfieldEditor = nullptr;
     CanLogForFrameDialog* m_LogForFrame = nullptr;
     CanUdsRawDialog* m_UdsRawDialog = nullptr;
+    CanSenderEditDialog* m_StyleEditDialog = nullptr;
 
     wxString file_path_tx;
     wxString file_path_rx;
@@ -126,4 +130,39 @@ private:
     std::string search_pattern_rx;
 
     wxDECLARE_EVENT_TABLE();
+};
+
+class CanSenderEditDialog : public wxDialog
+{
+public:
+    CanSenderEditDialog(wxWindow* parent);
+
+    void ShowDialog(std::optional<uint32_t> color, std::optional<uint32_t> bg_color, bool is_bold, const wxString& font_face, float scale);
+
+    std::optional<uint32_t> GetTextColor();
+    std::optional<uint32_t> GetBgColor();
+
+    bool IsBold() { return m_isBold->GetValue(); }
+    wxString GetFontFace() { return m_fontFace->GetSelectedFont().GetFaceName(); }
+    float GetScale() { return static_cast<float>(m_scale->GetValue()); }
+
+    bool IsApplyClicked() { return m_IsApplyClicked; }
+protected:
+    void OnApply(wxCommandEvent& event);
+    //void OnTimer(wxTimerEvent& event);
+private:
+    wxCheckBox* m_useCustomColor = nullptr;
+    wxColourPickerCtrl* m_color = nullptr;
+    wxCheckBox* m_useCustomBackgroundColor = nullptr;
+    wxColourPickerCtrl* m_backgroundColor = nullptr;
+    wxCheckBox* m_isBold = nullptr;
+    wxFontPickerCtrl* m_fontFace = nullptr;
+    wxSpinCtrlDouble* m_scale = nullptr;
+
+    wxStaticText* m_labelResult = nullptr;
+    bool m_IsApplyClicked = false;
+    wxTimer* m_timer = nullptr;
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(CanSenderEditDialog);
 };

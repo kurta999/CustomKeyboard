@@ -12,6 +12,10 @@ EVT_GRID_LABEL_RIGHT_CLICK(CanSenderPanel::OnGridLabelRightClick)
 EVT_CHAR_HOOK(CanSenderPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
+wxBEGIN_EVENT_TABLE(CanSenderEditDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, CanSenderEditDialog::OnApply)
+wxEND_EVENT_TABLE()
+
 CanGrid::CanGrid(wxWindow* parent)
 {
     m_grid = new wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(800, 250), 0);
@@ -128,10 +132,20 @@ void CanGrid::AddRow(std::unique_ptr<CanTxEntry>& e)
             m_grid->SetCellBackgroundColour(cnt, i, (cnt & 1) ? 0xE6E6E6 : 0xFFFFFF);
     }
 
-    if(e->m_is_bold)
+    if(e->m_is_bold || e->m_scale != 1.0 || !e->m_font_face.empty())
     {
         wxFont font;
-        font.SetWeight(wxFONTWEIGHT_BOLD);
+        font.SetWeight(e->m_is_bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
+        font.Scale(1.0f);  /* Scale has to be set to default first */
+        
+        for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
+            m_grid->SetCellFont(cnt, i, font);
+        
+        font.Scale(e->m_scale);
+
+        if(!e->m_font_face.empty())
+            font.SetFaceName(e->m_font_face);
+
         for(uint8_t i = 0; i != CanSenderGridCol::Sender_Max; i++)
             m_grid->SetCellFont(cnt, i, font);
     }
@@ -262,6 +276,7 @@ CanSenderPanel::CanSenderPanel(wxWindow* parent)
     m_BitfieldEditor = new BitEditorDialog(this);
     m_LogForFrame = new CanLogForFrameDialog(this);
     m_UdsRawDialog = new CanUdsRawDialog(this);
+    m_StyleEditDialog = new CanSenderEditDialog(this);
 
     {
         static_box_rx = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Receive");
@@ -925,6 +940,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
         wxMenu menu;
         menu.Append(ID_CanSenderMoreInfo, "&Show bits")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_CanSenderLogForFrame, "&Log")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        menu.Append(ID_CanSenderEditStyle, "&Edit style")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_CanSenderRemoveRxFrame, "&Remove")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
         int ret = GetPopupMenuSelectionFromUser(menu);
 
@@ -963,6 +979,11 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     m_LogForFrame->ShowDialog(logs);
                 break;
             }
+            case ID_CanSenderEditStyle:
+            {
+
+                break;
+            }
             case ID_CanSenderRemoveRxFrame:
             {
                 std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
@@ -979,6 +1000,7 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
     {
         wxMenu menu;
         menu.Append(ID_CanSenderMoreInfo, "&Edit bits")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        menu.Append(ID_CanSenderEditStyle, "&Edit style")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_CanSenderLogForFrame, "&Log")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, FromDIP(wxSize(14, 14))));
         int ret = GetPopupMenuSelectionFromUser(menu);
 
@@ -1026,6 +1048,31 @@ void CanSenderPanel::OnCellRightClick(wxGridEvent& ev)
                     {
                         to_exit = true;
                         break;
+                    }
+                }
+                break;
+            }
+            case ID_CanSenderEditStyle:
+            {
+                std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+                wxString frame_str = can_grid_tx->m_grid->GetCellValue(row, CanSenderGridCol::Sender_Id);
+                uint32_t frame_id = std::stoi(frame_str.ToStdString(), nullptr, 16);
+
+                auto tx_entry_opt = can_handler->FindTxCanEntryByFrame(frame_id);
+                if(tx_entry_opt.has_value())
+                {
+                    CanTxEntry& tx_entry = tx_entry_opt->get();
+                    m_StyleEditDialog->ShowDialog(tx_entry.m_color, tx_entry.m_bg_color, tx_entry.m_is_bold, tx_entry.m_font_face, tx_entry.m_scale);
+
+                    if(m_StyleEditDialog->IsApplyClicked())
+                    {
+                        tx_entry.m_color = m_StyleEditDialog->GetTextColor();
+                        tx_entry.m_bg_color = m_StyleEditDialog->GetBgColor();
+                        tx_entry.m_is_bold = m_StyleEditDialog->IsBold();
+                        tx_entry.m_scale = m_StyleEditDialog->GetScale();
+                        tx_entry.m_font_face = m_StyleEditDialog->GetFontFace();
+
+                        RefreshTx();
                     }
                 }
                 break;
@@ -1393,4 +1440,107 @@ void CanSenderPanel::UpdateGridForTxFrame(uint32_t frame_id, uint8_t* buffer)
             break;
         }
     }
+}
+
+CanSenderEditDialog::CanSenderEditDialog(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, "CAN Style editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
+
+    wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&CAN style properties");
+    {
+        m_useCustomColor = new wxCheckBox(this, wxID_ANY, "Use custom color?");
+        sizerMsgs->Add(m_useCustomColor);
+
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Color:"));
+        m_color = new wxColourPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_color);
+    }
+
+    {
+        m_useCustomBackgroundColor = new wxCheckBox(this, wxID_ANY, "Use custom background color?");
+        sizerMsgs->Add(m_useCustomBackgroundColor);
+
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Background color:"));
+        m_backgroundColor = new wxColourPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_backgroundColor);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Bold?"));
+        m_isBold = new wxCheckBox(this, wxID_ANY, "");
+        sizerMsgs->Add(m_isBold);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Font Type:"));
+        m_fontFace = new wxFontPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_fontFace);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Scale:"));
+        m_scale = new wxSpinCtrlDouble(this, wxID_ANY, "0.0", wxDefaultPosition, wxDefaultSize, 16384, 0.0, 10.0, 1.0, 0.2);
+        sizerMsgs->Add(m_scale);
+    }
+
+    sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
+
+    // finally buttons to show the resulting message box and close this dialog
+    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
+
+    SetSizerAndFit(sizerTop);
+    CentreOnScreen();
+}
+
+void CanSenderEditDialog::ShowDialog(std::optional<uint32_t> color, std::optional<uint32_t> bg_color, bool is_bold, const wxString& font_face, float scale)
+{
+    uint32_t color_rgb = color.has_value() ? *color : 0xFFFFFF;
+    uint32_t bg_color_rgb = bg_color.has_value() ? *bg_color : 0xFFFFFF;
+
+    m_useCustomColor->SetValue(color.has_value());
+    m_color->SetColour(RGB_TO_WXCOLOR(color_rgb));
+    m_backgroundColor->SetColour(RGB_TO_WXCOLOR(bg_color_rgb));
+    m_useCustomBackgroundColor->SetValue(bg_color.has_value());
+    m_isBold->SetValue(is_bold);
+
+    if(!font_face.empty())
+    {
+        wxFont f;
+        f.SetFaceName(font_face);
+        m_fontFace->SetSelectedFont(f);
+    }
+    m_scale->SetValue(static_cast<double>(scale));
+
+    m_IsApplyClicked = false;
+    ShowModal();
+    DBG("isapply: %d", IsApplyClicked());
+}
+
+std::optional<uint32_t> CanSenderEditDialog::GetTextColor()
+{
+    std::optional<uint32_t> ret;
+    if(m_useCustomColor->IsChecked())
+    {
+        uint32_t color = m_color->GetColour().GetRGB();
+        ret = WXCOLOR_TO_RGB(color);
+    }
+    return ret;
+}
+
+std::optional<uint32_t> CanSenderEditDialog::GetBgColor()
+{
+    std::optional<uint32_t> ret;
+    if(m_useCustomBackgroundColor->IsChecked())
+    {
+        uint32_t color = m_backgroundColor->GetColour().GetRGB();
+        ret = WXCOLOR_TO_RGB(color);
+    }
+    return ret;
+}
+
+void CanSenderEditDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+{
+    Close();
+    m_IsApplyClicked = true;
 }

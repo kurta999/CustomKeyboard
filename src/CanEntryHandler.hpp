@@ -2,6 +2,8 @@
 
 #include "utils/CSingleton.hpp"
 #include <filesystem>
+#include <list>
+#include <boost/optional.hpp>
 
 #include "ICanEntry.hpp"
 #include "ICanObserver.hpp"
@@ -66,10 +68,13 @@ class CanTxEntry : public CanEntryBase, public CanEntryTransmitInfo
 public:
     CanTxEntry() = default;
     CanTxEntry(uint32_t id_, uint8_t* data_, uint8_t data_len_, uint32_t period_, uint8_t log_level_, uint8_t favourite_level_, const std::string& comment_, 
-        std::optional<uint32_t> color_, std::optional<uint32_t> bg_color_, std::optional<bool> is_bold_) :
+        std::optional<uint32_t> color_, std::optional<uint32_t> bg_color_, std::optional<bool> is_bold_, std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
         id(id_), CanEntryBase(data_, data_len_), CanEntryTransmitInfo(period_, log_level_, favourite_level_), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
-
+        if(scale.has_value())
+            m_scale = *scale;
+        if(font_face.has_value())
+            m_font_face = *font_face;
     }
 
     ~CanTxEntry() = default;
@@ -99,6 +104,12 @@ public:
 
     // !\brief Is text bold?
     bool m_is_bold{ false };
+
+    // !\brief Text scale
+    float m_scale{ 1.0f };
+
+    // !\brief Font face
+    std::string m_font_face;
 };
 
 class CanRxData : public CanEntryBase, public CanEntryTransmitInfo
@@ -461,6 +472,9 @@ public:
     // !\brief Can frame direction mapping [frame_id] = name
     CanFrameDirectionMapping m_frame_direction_mapping;
 
+    // !\brief Find CAN TX Entry by Frame ID
+    std::optional<std::reference_wrapper<CanTxEntry>> FindTxCanEntryByFrame(uint32_t frame_id);
+
     // !\brief Assigns new TX buffer to TX entry
     void AssignNewBufferToTxEntry(uint32_t frame_id, uint8_t* buffer, size_t size);
 
@@ -470,9 +484,6 @@ private:
 
     // !\brief Handle bit writing of a frame
     template <typename T> void HandleBitWriting(uint32_t frame_id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data);
-
-    // !\brief Find CAN TX Entry by Frame ID
-    std::optional<std::reference_wrapper<CanTxEntry>> FindTxCanEntryByFrame(uint32_t frame_id);
 
     // !\brief Reference to CAN TX entry loader
     ICanEntryLoader& m_CanEntryLoader;
