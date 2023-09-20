@@ -70,6 +70,7 @@ namespace std
 #include "AntiLock.hpp"
 #include "IdlePowerSaver.hpp"
 #include "TerminalHotkey.hpp"
+#include "SerialPortBase.hpp"
 #include "SerialPort.hpp"
 #include "CanSerialPort.hpp"
 #include "CanDeviceStm32.hpp"

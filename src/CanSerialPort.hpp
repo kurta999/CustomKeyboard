@@ -36,7 +36,7 @@ public:
 
 /* TODO: create asbtraction for this & SerialPort because it's the same - but no time currently */
 class CallbackAsyncSerial;
-class CanSerialPort : public CSingleton < CanSerialPort >
+class CanSerialPort : public SerialPortBase, public CSingleton < CanSerialPort >
 {
     friend class CSingleton < CanSerialPort >;
 
@@ -56,18 +56,6 @@ public:
     // !\brief Set internal CAN device
     void SetDevice(std::unique_ptr<ICanDevice>&& device);
 
-    // !\brief Set this module enabled
-    void SetEnabled(bool enable);
-
-    // !\brief Is this module enabled?
-    bool IsEnabled() const;
-
-    // !\brief Set serial port
-    void SetComPort(uint16_t port);
-
-    // !\brief Get serial port
-    uint16_t GetComPort() const;
-
     // !\brief Add CAN frame to TX queue
     void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 
@@ -78,19 +66,13 @@ public:
     void SendPendingCanFrames(CallbackAsyncSerial& serial_port);
 
 private:
-    // !\brief Stops worker thread
-    void DestroyWorkerThread();
-
-    // !\brief Worker thread
-    void WorkerThread(std::stop_token token);
-
-    // !\brief Notifies main thread's semaphore
-    void NotifiyMainThread();
-
     // !\brief Called when data was received via serial port (called by boost::asio::read_some)
     // !\param serial_port [in] Pointer to received data
     // !\param len [in] Received data length
     void OnDataReceived(const char* data, unsigned int len);
+
+    // !\brief On data sent
+    void OnDataSent(CallbackAsyncSerial& serial_port);
 
     // !\brief Is serial port data receiving enabled?
     bool is_enabled = true;

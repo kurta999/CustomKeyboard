@@ -3,7 +3,7 @@
 #include <condition_variable>
 #include <string>
 
-class SerialPort : public CSingleton < SerialPort >
+class SerialPort : public SerialPortBase, public CSingleton < SerialPort >
 {
     friend class CSingleton < SerialPort >;
 
@@ -13,18 +13,6 @@ public:
 
     // !\brief Initialize KeyboardSerialPort
     void Init();
-
-    // !\brief Set this module enabled
-    void SetEnabled(bool enable);
-
-    // !\brief Is this module enabled?
-    bool IsEnabled();
-
-    // !\brief Set serial port
-    void SetComPort(uint16_t port);
-
-    // !\brief Get serial port
-    uint16_t GetComPort();
 
     // !\brief Toggle TCP forwarding of received data
     void SetForwardToTcp(bool enable);
