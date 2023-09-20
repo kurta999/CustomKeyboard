@@ -241,6 +241,20 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		tcp_horizontal_1->Add(new wxStaticText(this, wxID_ANY, wxT("TCP port:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 		m_TcpPortSpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
 		tcp_horizontal_1->Add(m_TcpPortSpin, 0, wxALL, 5);
+
+		tcp_horizontal_1->Add(new wxStaticText(this, wxID_ANY, wxT("Graph Gen interval:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_GraphGenInterval = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		tcp_horizontal_1->Add(m_GraphGenInterval, 0, wxALL, 5);
+
+		tcp_horizontal_1->Add(new wxStaticText(this, wxID_ANY, wxT("Graph Resolution:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_GraphResolution = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		tcp_horizontal_1->Add(m_GraphResolution, 0, wxALL, 5);
+
+		tcp_horizontal_1->Add(new wxStaticText(this, wxID_ANY, wxT("Graph Integration:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_GraphIntegrationTime = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65535, 0);
+		tcp_horizontal_1->Add(m_GraphIntegrationTime, 0, wxALL, 5);
+
+
 		static_box_sizer->Add(tcp_horizontal_1);
 
 		wxBoxSizer* tcp_horizontal_2 = new wxBoxSizer(wxHORIZONTAL);
@@ -291,6 +305,9 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
 		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
 
+		wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
+		wxBoxSizer* v_sizer = new wxBoxSizer(wxHORIZONTAL);
+
 		wxBoxSizer* com_vert_2 = new wxBoxSizer(wxVERTICAL);
 		m_IsCanSerial = new wxCheckBox(this, wxID_ANY, wxT("Enable COM?"), wxDefaultPosition, wxDefaultSize, 0);
 		com_vert_2->Add(m_IsCanSerial, 0, wxEXPAND | wxALL, 5);
@@ -299,7 +316,15 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 
 		m_CanSerial = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_serials);
 		com_vert_2->Add(m_CanSerial);
-		static_box_sizer->Add(com_vert_2);
+
+		com_vert_2->Add(new wxStaticText(this, wxID_ANY, wxT("Device type:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+
+		wxArrayString array_can_devices;
+		array_can_devices.Add("STM32");
+		array_can_devices.Add("Lawicel");
+		m_CanDeviceType = new wxComboBox(this, wxID_ANY, "Select COM port", wxDefaultPosition, wxDefaultSize, array_can_devices);
+		m_CanDeviceType->SetSelection(0);
+		com_vert_2->Add(m_CanDeviceType);
 
 		wxBoxSizer* com_vert_1 = new wxBoxSizer(wxVERTICAL);
 
@@ -307,7 +332,33 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		com_vert_1->Add(m_CanDefaultTxList);
 		m_CanDefaultRxList = new wxTextCtrl(this, wxID_ANY, "RxList.txt", wxDefaultPosition, wxDefaultSize);
 		com_vert_1->Add(m_CanDefaultRxList);
-		static_box_sizer->Add(com_vert_1, 0, wxEXPAND | wxALL, 5);
+		m_CanDefaultFrameMapping = new wxTextCtrl(this, wxID_ANY, "FrameMapping.xml", wxDefaultPosition, wxDefaultSize);
+		com_vert_1->Add(m_CanDefaultFrameMapping);
+		m_CanDefaultEcuId = new wxTextCtrl(this, wxID_ANY, "8DC", wxDefaultPosition, wxDefaultSize);
+		com_vert_1->Add(m_CanDefaultEcuId);
+
+		v_sizer->Add(com_vert_2);
+		v_sizer->Add(com_vert_1);
+
+		h_sizer->Add(v_sizer);
+
+		wxBoxSizer* v_sizer_2 = new wxBoxSizer(wxVERTICAL);
+		m_CanAutoSend = new wxCheckBox(this, wxID_ANY, wxT("Auto send?"), wxDefaultPosition, wxDefaultSize, 0);
+		v_sizer_2->Add(m_CanAutoSend);
+		m_CanAutoRecord = new wxCheckBox(this, wxID_ANY, wxT("Auto record?"), wxDefaultPosition, wxDefaultSize, 0);
+		v_sizer_2->Add(m_CanAutoRecord);
+
+		v_sizer_2->Add(new wxStaticText(this, wxID_ANY, wxT("Default record level:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_CanDefaultRecordLevel = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
+		v_sizer_2->Add(m_CanDefaultRecordLevel);
+
+		v_sizer_2->Add(new wxStaticText(this, wxID_ANY, wxT("Default favourite level:"), wxDefaultPosition, wxDefaultSize, 0));
+		m_CanDefaultFavLevel = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
+		v_sizer_2->Add(m_CanDefaultFavLevel);
+
+
+		h_sizer->Add(v_sizer_2);
+		static_box_sizer->Add(h_sizer, 0, wxEXPAND | wxALL, 5);
 
 		bSizer1->Add(static_box_sizer);
 	}
@@ -358,9 +409,28 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		static_box_sizer->Add(m_AlwaysOnNumlock, 0, wxALL, 5);
 
 		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Default page:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
-
 		m_DefaultPage = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
 		static_box_sizer->Add(m_DefaultPage, 0, wxALL, 5);
+
+		m_UsedPages = new wxButton(this, wxID_ANY, "Used pages", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_UsedPages);
+		m_UsedPages->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+			{
+				std::string filters = Settings::Get()->ParseUsedPagesToString(Settings::Get()->used_pages);
+				boost::algorithm::replace_all(filters, ",", "\n");
+
+				wxTextEntryDialog d(this, "Enter below application title for Used pages", "Used pages", filters, wxOK | wxCANCEL | wxTE_MULTILINE);
+				int ret_code = d.ShowModal();
+				if(ret_code == wxID_OK)  /* OK */
+				{
+					std::string result = d.GetValue().ToStdString();
+					boost::algorithm::replace_all(result, "\n", ",");
+
+					Settings::Get()->used_pages = Settings::Get()->ParseUsedPagesFromString(result);
+				}
+			});
+
+
 		bSizer1->Add(static_box_sizer);
 	}
 
@@ -425,7 +495,25 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		static_box_sizer->Add(m_IsScreensSaverAfterLock);
 		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
 		m_AntiLockTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
-		static_box_sizer->Add(m_AntiLockTimeout);
+		static_box_sizer->Add(m_AntiLockTimeout);		
+		m_AntiLockExclusions = new wxButton(this, wxID_ANY, "Exclusions", wxDefaultPosition, wxDefaultSize);
+		static_box_sizer->Add(m_AntiLockExclusions);
+		m_AntiLockExclusions->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+			{
+				std::string filters = AntiLock::Get()->SaveExclusions();
+				boost::algorithm::replace_all(filters, "|", "\n");
+
+				wxTextEntryDialog d(this, "Enter below application title for AntiLock exclusion", "Enter exclusions", filters, wxOK | wxCANCEL | wxTE_MULTILINE);
+				int ret_code = d.ShowModal();
+				if(ret_code == wxID_OK)  /* OK */
+				{
+					std::string result = d.GetValue().ToStdString();
+					boost::algorithm::replace_all(result, "\n", "|");
+
+					AntiLock::Get()->LoadExclusions(result);
+				}
+			});
+
 		bSizer1->Add(static_box_sizer);
 	}
 
@@ -439,6 +527,44 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Hotkey:"), wxDefaultPosition, wxDefaultSize, 0));
 		m_TerminalHotkey = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
 		static_box_sizer->Add(m_TerminalHotkey);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Type:"), wxDefaultPosition, wxDefaultSize, 0));
+		wxArrayString array_terminals;
+		array_terminals.Add("Windows Terminal");
+		array_terminals.Add("cmd.exe");
+		array_terminals.Add("PowerShell");
+		array_terminals.Add("Bash Terminal");
+		m_TerminalType = new wxComboBox(this, wxID_ANY, "Windows Terminal", wxDefaultPosition, wxDefaultSize, array_terminals);
+		m_TerminalType->SetSelection(0);
+		static_box_sizer->Add(m_TerminalType);
+
+		bSizer1->Add(static_box_sizer);
+	}
+
+	{
+		wxStaticBoxSizer* const static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Idle Power Saver");
+		static_box_sizer->GetStaticBox()->SetFont(static_box_sizer->GetStaticBox()->GetFont().Bold());
+		static_box_sizer->GetStaticBox()->SetForegroundColour(*wxRED);
+
+		m_IsIdlePowerSaver = new wxCheckBox(this, wxID_ANY, wxT("Enable?"), wxDefaultPosition, wxDefaultSize, 0);
+		static_box_sizer->Add(m_IsIdlePowerSaver);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Timeout [s]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_IdlePowerSaverTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 9999, 0);
+		static_box_sizer->Add(m_IdlePowerSaverTimeout);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Reduced Power [%]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_IdlePowerSaverReducedPowerPercent = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0);
+		static_box_sizer->Add(m_IdlePowerSaverReducedPowerPercent);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Min Load Threshold [%]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_IdlePowerSaverMinLoadThreshold = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0);
+		static_box_sizer->Add(m_IdlePowerSaverMinLoadThreshold);
+
+		static_box_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Max Load Threshold [%]:"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALL, 5);
+		m_IdlePowerSaverMaxLoadThreshold = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0);
+		static_box_sizer->Add(m_IdlePowerSaverMaxLoadThreshold);
+
 		bSizer1->Add(static_box_sizer);
 	}
 
@@ -472,14 +598,27 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			CanSerialPort::Get()->SetEnabled(m_IsCanSerial->IsChecked());
 			if(m_CanSerial->GetSelection() > 0)
 				CanSerialPort::Get()->SetComPort(atoi(&com_str_can.c_str().AsChar()[2]));
+			
+			CanSerialPort::Get()->SetDeviceType(static_cast<CanDeviceType>(m_CanDeviceType->GetSelection()));
 			can_handler->default_tx_list = m_CanDefaultTxList->GetValue().ToStdString();
 			can_handler->default_rx_list = m_CanDefaultRxList->GetValue().ToStdString();
+			can_handler->default_mapping = m_CanDefaultFrameMapping->GetValue().ToStdString();
+			
+			can_handler->ToggleAutoSend(m_CanAutoSend->GetValue());
+			can_handler->ToggleAutoRecord(m_CanAutoRecord->GetValue());
+			can_handler->SetRecordingLogLevel(m_CanDefaultRecordLevel->GetValue());
+			can_handler->SetFavouriteLevel(m_CanDefaultFavLevel->GetValue());
+			can_handler->SetDefaultEcuId(std::stoi(m_CanDefaultEcuId->GetValue().ToStdString(), 0, 16));
 
-			SerialForwarder::Get()->is_enabled = m_SerialForwarderIsEnabled->GetValue();
-			SerialForwarder::Get()->bind_ip = m_SerialForwarderBindIp->GetValue().ToStdString();
-			SerialForwarder::Get()->tcp_port = m_SerialForwarderPort->GetValue();
+			SerialTcpBackend::Get()->is_enabled = m_SerialForwarderIsEnabled->GetValue();
+			SerialTcpBackend::Get()->bind_ip = m_SerialForwarderBindIp->GetValue().ToStdString();
+			SerialTcpBackend::Get()->tcp_port = m_SerialForwarderPort->GetValue();
 			Server::Get()->is_enabled = m_IsTcp->IsChecked();
 			Server::Get()->tcp_port = static_cast<uint16_t>(m_TcpPortSpin->GetValue());
+			Sensors::Get()->SetGraphGenerationInterval(static_cast<uint16_t>(m_GraphGenInterval->GetValue()));
+			Sensors::Get()->SetGraphResolution(static_cast<uint16_t>(m_GraphResolution->GetValue()));
+			Sensors::Get()->SetIntegrationTime(static_cast<uint16_t>(m_GraphIntegrationTime->GetValue()));
+
 			PathSeparator::Get()->replace_key = m_PathSepReplacerKey->GetValue();
 			Settings::Get()->minimize_on_exit = m_IsMinimizeOnExit->IsChecked();
 			Settings::Get()->minimize_on_startup = m_IsMinimizeOnStartup->GetValue();
@@ -499,6 +638,13 @@ ComTcpPanel::ComTcpPanel(wxWindow* parent)
 			AntiLock::Get()->timeout = static_cast<uint32_t>(m_AntiLockTimeout->GetValue());
 			TerminalHotkey::Get()->is_enabled = m_IsTerminalHotkey->GetValue();
 			TerminalHotkey::Get()->SetKey(m_TerminalHotkey->GetValue().ToStdString());
+			TerminalHotkey::Get()->type = static_cast<TerminalType>(m_TerminalType->GetSelection());
+
+			IdlePowerSaver::Get()->is_enabled = m_IsIdlePowerSaver->IsChecked();
+			IdlePowerSaver::Get()->timeout = m_IdlePowerSaverTimeout->GetValue();
+			IdlePowerSaver::Get()->reduced_power_percent = m_IdlePowerSaverReducedPowerPercent->GetValue();
+			IdlePowerSaver::Get()->min_load_threshold = m_IdlePowerSaverMinLoadThreshold->GetValue();
+			IdlePowerSaver::Get()->max_load_threshold = m_IdlePowerSaverMaxLoadThreshold->GetValue();
 
 			Settings::Get()->SaveFile(false);
 
@@ -575,17 +721,27 @@ void ComTcpPanel::UpdatePanel()
 	m_CanSerial->Clear();
 	m_CanSerial->Insert(array_serials, WXSIZEOF(array_serials));
 	m_CanSerial->SetSelection(sel_can);
+	m_CanDeviceType->SetSelection(static_cast<int>(CanSerialPort::Get()->GetDeviceType()));
+
 	m_IsCanSerial->SetValue(CanSerialPort::Get()->IsEnabled());
 	m_CanDefaultTxList->SetValue(can_handler->default_tx_list.generic_string());
 	m_CanDefaultRxList->SetValue(can_handler->default_rx_list.generic_string());
+	m_CanDefaultFrameMapping->SetValue(can_handler->default_mapping.generic_string());
+	m_CanDefaultEcuId->SetValue(wxString::Format("%X", can_handler->GetDefaultEcuId()));
+
 	m_IsTcpForwarder->SetValue(SerialPort::Get()->IsForwardToTcp());
 	m_TcpForwarderIp->SetValue(SerialPort::Get()->GetRemoteTcpIp());
 	m_TcpForwarderPort->SetValue(SerialPort::Get()->GetRemoteTcpPort());
-	m_SerialForwarderIsEnabled->SetValue(SerialForwarder::Get()->is_enabled);
-	m_SerialForwarderBindIp->SetValue(SerialForwarder::Get()->bind_ip);
-	m_SerialForwarderPort->SetValue(SerialForwarder::Get()->tcp_port);
+	m_SerialForwarderIsEnabled->SetValue(SerialTcpBackend::Get()->is_enabled);
+	m_SerialForwarderBindIp->SetValue(SerialTcpBackend::Get()->bind_ip);
+	m_SerialForwarderPort->SetValue(SerialTcpBackend::Get()->tcp_port);
 	m_IsTcp->SetValue(Server::Get()->is_enabled);
 	m_TcpPortSpin->SetValue(Server::Get()->tcp_port);
+
+	m_GraphGenInterval->SetValue(Sensors::Get()->GetGraphGenerationInterval());
+	m_GraphResolution->SetValue(Sensors::Get()->GetGraphResolution());
+	m_GraphIntegrationTime->SetValue(Sensors::Get()->GetIntegrationTime());
+
 	m_PathSepReplacerKey->SetValue(PathSeparator::Get()->replace_key);
 	m_IsMinimizeOnExit->SetValue(Settings::Get()->minimize_on_exit);
 	m_IsMinimizeOnStartup->SetValue(Settings::Get()->minimize_on_startup);
@@ -605,6 +761,13 @@ void ComTcpPanel::UpdatePanel()
 	m_AntiLockTimeout->SetValue(AntiLock::Get()->timeout);
 	m_IsTerminalHotkey->SetValue(TerminalHotkey::Get()->is_enabled);
 	m_TerminalHotkey->SetValue(TerminalHotkey::Get()->GetKey());
+	m_TerminalType->SetSelection(static_cast<int>(TerminalHotkey::Get()->type));
+
+	m_IsIdlePowerSaver->SetValue(IdlePowerSaver::Get()->is_enabled);
+	m_IdlePowerSaverTimeout->SetValue(IdlePowerSaver::Get()->timeout);
+	m_IdlePowerSaverReducedPowerPercent->SetValue(IdlePowerSaver::Get()->reduced_power_percent);
+	m_IdlePowerSaverMinLoadThreshold->SetValue(IdlePowerSaver::Get()->min_load_threshold);
+	m_IdlePowerSaverMaxLoadThreshold->SetValue(IdlePowerSaver::Get()->max_load_threshold);
 }
 
 void KeybrdPanel::UpdateMainTree()

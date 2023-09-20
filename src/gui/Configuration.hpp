@@ -91,6 +91,10 @@ public:
 
 	wxCheckBox* m_IsTcp = nullptr;
 	wxSpinCtrl* m_TcpPortSpin = nullptr;
+	wxSpinCtrl* m_GraphGenInterval = nullptr;
+	wxSpinCtrl* m_GraphResolution = nullptr;
+	wxSpinCtrl* m_GraphIntegrationTime = nullptr;
+
 	wxCheckBox* m_IsPerAppMacro = nullptr;
 	wxCheckBox* m_IsAdvancedMacro = nullptr;
 	wxCheckBox* m_IsTcpForwarder = nullptr;
@@ -100,8 +104,15 @@ public:
 	wxComboBox* m_serial = nullptr;
 	wxCheckBox* m_IsCanSerial = nullptr;
 	wxComboBox* m_CanSerial = nullptr;
+	wxComboBox* m_CanDeviceType = nullptr;
+	wxCheckBox* m_CanAutoSend = nullptr;
+	wxCheckBox* m_CanAutoRecord = nullptr;
+	wxSpinCtrl* m_CanDefaultRecordLevel = nullptr;
+	wxSpinCtrl* m_CanDefaultFavLevel = nullptr;
 	wxTextCtrl* m_CanDefaultTxList = nullptr;
 	wxTextCtrl* m_CanDefaultRxList = nullptr;
+	wxTextCtrl* m_CanDefaultFrameMapping = nullptr;
+	wxTextCtrl* m_CanDefaultEcuId = nullptr;
 	wxCheckBox*	m_SerialForwarderIsEnabled = nullptr;
 	wxTextCtrl*	m_SerialForwarderBindIp = nullptr;
 	wxSpinCtrl*	m_SerialForwarderPort = nullptr;
@@ -111,6 +122,7 @@ public:
 	wxCheckBox* m_RememberWindowSize = nullptr;
 	wxCheckBox* m_AlwaysOnNumlock = nullptr;
 	wxSpinCtrl* m_DefaultPage = nullptr;
+	wxButton* m_UsedPages = nullptr;
 	wxTextCtrl* m_ScreenshotKey = nullptr;
 	wxTextCtrl* m_ScreenshotDateFmt = nullptr;
 	wxTextCtrl* m_ScreenshotPath = nullptr;
@@ -122,8 +134,16 @@ public:
 	wxCheckBox* m_IsAntiLock = nullptr;
 	wxCheckBox* m_IsScreensSaverAfterLock = nullptr;
 	wxSpinCtrl* m_AntiLockTimeout = nullptr;
+	wxButton* m_AntiLockExclusions = nullptr;
 	wxCheckBox* m_IsTerminalHotkey = nullptr;
 	wxTextCtrl* m_TerminalHotkey = nullptr;
+	wxComboBox* m_TerminalType = nullptr;
+
+	wxCheckBox* m_IsIdlePowerSaver = nullptr;
+	wxSpinCtrl* m_IdlePowerSaverTimeout = nullptr;
+	wxSpinCtrl* m_IdlePowerSaverReducedPowerPercent = nullptr;
+	wxSpinCtrl* m_IdlePowerSaverMinLoadThreshold = nullptr;
+	wxSpinCtrl* m_IdlePowerSaverMaxLoadThreshold = nullptr;
 
 private:
 	wxButton* m_Ok = nullptr;
