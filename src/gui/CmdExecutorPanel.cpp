@@ -1,4 +1,5 @@
 #include "pch.hpp"
+#include <wx/bmpcbox.h>
 
 wxBEGIN_EVENT_TABLE(CmdExecutorPanelBase, wxPanel)
 EVT_SIZE(CmdExecutorPanelBase::OnSize)
@@ -7,6 +8,7 @@ wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(CmdExecutorPanelPage, wxPanel)
 EVT_SIZE(CmdExecutorPanelPage::OnSize)
+//EVT_PAINT(CmdExecutorPanelPage::OnPaint)
 wxEND_EVENT_TABLE()
 
 constexpr size_t MAX_CMD_LEN_FOR_BUTTON = 16;
@@ -15,7 +17,6 @@ CmdExecutorEditDialog::CmdExecutorEditDialog(wxWindow* parent)
     : wxDialog(parent, wxID_ANY, "Command editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
-
 
     wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Command properties");
     {
@@ -161,7 +162,6 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             int ret = d.ShowModal();
             if(ret == wxID_OK)
             {
-
                 m_notebook->Freeze();
                 m_notebook->SetPageText(page_id, d.GetValue());
                 m_notebook->Thaw();
@@ -175,12 +175,11 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
             std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
             CommandPageIcons& page_icons = cmd->GetPageIcons();
 
-            wxTextEntryDialog d(this, "Type new page icon's name here", "Change icon");
-            d.SetValue(page_icons[page_id]);
-            int ret = d.ShowModal();
-            if(ret == wxID_OK)
+            IconSelectionDialog d(this);
+            d.SelectIconByName(page_icons[page_id]);
+            if(d.ShowModal() == wxID_OK)
             {
-                wxString icon_name = d.GetValue();
+                wxString icon_name = d.GetSelectedIcon();
                 m_notebook->Freeze();
                 m_notebook->SetPageBitmap(page_id, wxArtProvider::GetBitmap(icon_name, wxART_OTHER, FromDIP(wxSize(16, 16))));
                 m_notebook->Thaw();
@@ -228,7 +227,6 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
     }
     return;
 }
-
 
 void CmdExecutorPanelBase::OnPreReload(uint8_t page)
 {
@@ -283,6 +281,11 @@ void CmdExecutorPanelPage::OnSize(wxSizeEvent& evt)
     evt.Skip(true);
 }
 
+void CmdExecutorPanelPage::OnPaint(wxPaintEvent& evt)
+{
+    evt.Skip(true);
+}
+
 void CmdExecutorPanelPage::ToggleAllButtonClickability(bool toggle)
 {
     for(auto& i : m_ButtonMap)
@@ -303,6 +306,7 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
 {
     wxMenu menu;
     menu.Append(ID_CmdExecutorAdd, "&Add", "Add command to selected column")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorAddSeparator, "&Add separator", "Add separator")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorAddCol, "&Add col")->SetBitmap(wxArtProvider::GetBitmap(wxART_REMOVABLE, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorDeleteCol, "&Delete col")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorSave, "&Save")->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
@@ -340,8 +344,35 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
         case ID_CmdExecutorAdd:
         {           
             std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
-            cmd->AddCommand(m_Id, col, Command("New cmd", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, "", 1.0f));
-            m_BaseGrid->Layout();
+            cmd->AddCommand(m_Id, col, 
+                Command(std::format("New cmd {}", utils::random_mt(1, 1000)), "& ping 127.0.0.1 -n 3 > nul", "", utils::random_mt(0x0, 0xFFFFFF), 0xFFFFFF, false, "", 1.0f));
+
+            OnPostReloadUpdate();
+            break;
+        }
+        case ID_CmdExecutorAddSeparator:
+        {           
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+
+            wxTextEntryDialog d(this, "Specify separator width", "Add separator");
+            //d.SetValidator(wxIntegerValidator<uint8_t>());
+            d.SetValue("10");
+            int ret = d.ShowModal();
+            if(ret == wxID_OK)
+            {
+                try
+                {
+                    uint8_t separator_width = static_cast<uint8_t>(std::stoi(d.GetValue().ToStdString()));
+
+                    cmd->AddSeparator(m_Id, col, Separator(separator_width));
+                }
+                catch(const std::exception& e)
+                {
+                    LOG(LogLevel::Error, "stoi exception: {}", e.what());
+                }
+            }
+
+            OnPostReloadUpdate();
             break;
         }
         case ID_CmdExecutorAddCol:
@@ -355,7 +386,7 @@ void CmdExecutorPanelPage::OnPanelRightClick(wxMouseEvent& event)
         case ID_CmdExecutorDeleteCol:
         {           
             std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
-            cmd->DeleteCol(CmdExecutorPanelBase::m_CurrentPage, col);
+            cmd->DeleteCol(CmdExecutorPanelBase::m_CurrentPage, col - 1);
 
             cmd->SaveToTempAndReload();
             break;
@@ -423,6 +454,8 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
     wxMenu menu;
     menu.Append(ID_CmdExecutorEdit, "&Edit")->SetBitmap(wxArtProvider::GetBitmap(wxART_CDROM, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorDuplicate, "&Duplicate")->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorMoveUp, "&Move Up")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_CmdExecutorMoveDown, "&Move Down")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, FromDIP(wxSize(14, 14))));
     menu.Append(ID_CmdExecutorDelete, "&Delete")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
     int ret = GetPopupMenuSelectionFromUser(menu);
     
@@ -479,6 +512,39 @@ void CmdExecutorPanelPage::OnRightClick(wxMouseEvent& event)
 
             cmd->AddCommand(m_Id, col + 1, Command(*c));
             m_BaseGrid->Layout();
+            break;
+        }
+        case ID_CmdExecutorMoveUp:
+        {
+            std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+
+            uint8_t col = 0xFF;
+            auto it = m_ButtonMap.begin();
+            while(it != m_ButtonMap.end())
+            {
+                bool ret = std::visit([btn, &it, this](auto& it_button)
+                    {
+                        using T = std::decay_t<decltype(it_button)>;
+                        if constexpr(std::is_same_v<T, wxButton*>)
+                        {
+                            if(it_button == btn)
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }, it->second);
+
+                if(ret)
+                {
+                    col = it->first;
+                    break;
+                }
+                else
+                    ++it;
+            }
+
+            cmd->AddCommand(m_Id, col + 1, Command(*c));
             break;
         }
         case ID_CmdExecutorDelete:
@@ -560,9 +626,9 @@ void CmdExecutorPanelPage::OnPreload(uint8_t cols)
     m_BaseGrid->Layout();
     for(uint8_t i = 0; i != cols; i++)
     {
-        wxBoxSizer* box_sizer = new wxBoxSizer(wxVERTICAL);
-        box_sizer->SetMinSize(wxSize(100, 100));
-        m_BaseGrid->Add(box_sizer);
+        wxStaticBoxSizer* box_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format("Col: %d", i));
+        box_sizer->SetMinSize(wxSize(200, 200));
+        m_BaseGrid->Add(box_sizer, wxSizerFlags(5).Expand());
         m_VertialBoxes.push_back(box_sizer);
     }
     m_BaseGrid->Layout();
@@ -598,7 +664,7 @@ void CmdExecutorPanelPage::AddSeparatorElement(uint8_t col, Separator s)
 {
     wxStaticLine* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(210, s.width), wxLI_HORIZONTAL);
     m_ButtonMap.emplace(col - 1, line);
-    m_VertialBoxes[col - 1]->Add(line);
+    m_VertialBoxes[col - 1]->Add(line, wxSizerFlags(0).Expand());
 
     line->Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnRightClick, this);
 }
@@ -667,4 +733,51 @@ void CmdExecutorPanelPage::Execute(Command* c)
     ToggleAllButtonClickability(false);
     c->Execute();
     ToggleAllButtonClickability(true);
+}
+
+IconSelectionDialog::IconSelectionDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Select an icon")
+{
+    // Create the wxBitmapComboBox.
+
+    wxArrayString empty_str;
+    icon_combo_box = new wxBitmapComboBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, empty_str, 0);
+
+    // Add all available wxART_* icons to the wxBitmapComboBox.
+    for(const auto& art_name : art_names)
+    {
+        wxBitmap icon = wxArtProvider::GetBitmap(art_name, wxART_OTHER, FromDIP(wxSize(24, 24)));
+        if(icon.IsOk()) {
+            icon_combo_box->Append(art_name, icon);
+        }
+    }
+
+    // Set the default icon.
+    icon_combo_box->SetSelection(0);
+
+    // Layout the wxBitmapComboBox.
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(icon_combo_box, wxSizerFlags().Expand());
+    main_sizer->Add(CreateStdDialogButtonSizer(wxCANCEL | wxOK), wxSizerFlags().Right().Border()); /* wxOK */
+    SetSizer(main_sizer);
+}
+
+void IconSelectionDialog::SelectIconByName(const wxString& name)
+{
+    int cnt = 0;
+    for(const auto& art_name : art_names)
+    {
+        if(art_name == name)
+        {
+            wxBitmap icon = wxArtProvider::GetBitmap(art_name, wxART_OTHER, FromDIP(wxSize(24, 24)));
+            if(icon.IsOk()) {
+                icon_combo_box->SetSelection(cnt);
+            }
+        }
+        cnt++;
+    }
+}
+
+wxString IconSelectionDialog::GetSelectedIcon() 
+{
+    return icon_combo_box->GetStringSelection();
 }
