@@ -12,6 +12,11 @@
 
 static constexpr const char* COMMAND_FILE_PATH = "Cmds.xml";
 
+class ICmdExecutorItem
+{
+
+};
+
 class Command : public BasicGuiTextCustomization
 {
 public:
@@ -82,7 +87,7 @@ class XmlCommandLoader : public ICommandLoader
 {
 public:
     XmlCommandLoader(ICmdHelper* mediator);
-    virtual ~XmlCommandLoader();
+    virtual ~XmlCommandLoader() = default;
 
     bool Load(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) override;
     bool Save(const std::filesystem::path& path, CommandStorage& e, CommandPageNames& names, CommandPageIcons& icons) const override;
@@ -97,7 +102,7 @@ class CmdExecutor : public ICmdExecutor
 {
 public:
     CmdExecutor() = default;
-    virtual ~CmdExecutor();
+    virtual ~CmdExecutor() = default;
 
     void Init() override;
     void SetMediator(ICmdHelper* mediator) override;
@@ -115,6 +120,8 @@ public:
     CommandStorage& GetCommands() override;
     CommandPageNames& GetPageNames() override;
     CommandPageIcons& GetPageIcons() override;
+
+    void ExecuteByName(const std::string& page_name, const std::string& cmd_name);
 
     static void WriteDefaultCommandsFile();
 private:

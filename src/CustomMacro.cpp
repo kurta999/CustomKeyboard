@@ -431,16 +431,32 @@ std::string CommandExecute::GenerateText(bool is_ini_format)
     return ret;
 }
 
+void CommandXml::Execute()
+{
+    std::vector<std::string> params;
+    boost::split(params, cmd, boost::is_any_of("+"));
+
+    std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+    if(params.size() == 2)
+        cmd->ExecuteByName(params[0], params[1]);
+}
+
+std::string CommandXml::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" CMD_XML[{}]", cmd) : cmd;
+    return ret;
+}
+
 void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
     constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[",
-        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[" };
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[", "CMD_XML["};
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]),
         std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
         std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]),
-        std::char_traits<char>::length(start_str_arr[10]) };
+        std::char_traits<char>::length(start_str_arr[10]), std::char_traits<char>::length(start_str_arr[11]) };
 
     constexpr const char* seq_separator = "+";
 
@@ -589,6 +605,13 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 pos = first_end;
                 std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD], first_end, start_str_arr_lens[MacroTypes::CMD]);
                 c->key_vec[key_code].push_back(std::make_unique<CommandExecute>(std::move(sequence)));
+                break;
+            }
+            case MacroTypes::CMD_XML:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD_XML], first_end, start_str_arr_lens[MacroTypes::CMD_XML]);
+                c->key_vec[key_code].push_back(std::make_unique<CommandXml>(std::move(sequence)));
                 break;
             }
             default:

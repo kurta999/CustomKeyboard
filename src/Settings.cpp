@@ -207,6 +207,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "# MOUSE_CLICK[key] = Click (press and release) with mouse\n";
     out << "# BASH[key] = Execute specified command(s) with command line and keeps terminal shown\n";
     out << "# CMD[key] = Execute specified command(s) with command line without terminal\n";
+    out << "# CMD_XML[PageName+CommandName] = Execute predefined command from Cmds.xml\n";
     out << "\n";
     out << "[Macro_Config]\n";
     out << "# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n";

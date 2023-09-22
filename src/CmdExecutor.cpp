@@ -26,6 +26,40 @@ void Command::Execute()
 #endif
 }
 
+void CmdExecutor::ExecuteByName(const std::string& page_name, const std::string& cmd_name)
+{
+    auto page_it = std::find_if(m_CommandPageNames.begin(), m_CommandPageNames.end(), [&page_name](const auto& item) { return item == page_name; });
+    if(page_it != m_CommandPageNames.end())
+    {
+        int id = m_CommandPageNames.begin() - page_it;
+
+        for(auto& col : m_Commands[id])
+        {
+            for(auto& x : col)
+            {
+                std::visit([this, &cmd_name](auto& c)
+                    {
+                        using T = std::decay_t<decltype(c)>;
+                        if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
+                        {
+                            if(c->GetName() == cmd_name)
+                            {
+                                c->Execute();
+                            }
+                        }
+                        else if constexpr(std::is_same_v<T, Separator>)
+                        {
+
+                        }
+                        else
+                            static_assert(always_false_v<T>, "XmlCommandLoader::Save Bad visitor!");
+                    }, x);
+
+            }
+        }
+    }
+}
+
 void Command::HandleHarcdodedCommand()
 {
     if(m_name == "Set date")
@@ -78,19 +112,9 @@ std::string Command::HandleParameters()
     return m_cmd;
 }
 
-CmdExecutor::~CmdExecutor()
-{
-
-}
-
 XmlCommandLoader::XmlCommandLoader(ICmdHelper* mediator)
 {
     m_Mediator = mediator;
-}
-
-XmlCommandLoader::~XmlCommandLoader()
-{
-
 }
 
 bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& storage, CommandPageNames& names, CommandPageIcons& icons)
@@ -123,6 +147,9 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
             std::string page_name = pages_child->get<std::string>("<xmlattr>.name");
             names.push_back(std::move(page_name));
             std::string page_icon = pages_child->get<std::string>("<xmlattr>.icon");
+
+            if(page_icon.empty())
+                page_icon = "wxART_HARDDISK"; // Do not let page icon empty, set it to default
             icons.push_back(std::move(page_icon));
 
             m_Cols = pages_child->get_child("Columns").get_value<uint8_t>();

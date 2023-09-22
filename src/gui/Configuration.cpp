@@ -95,7 +95,8 @@ MacroEditBoxDialog::MacroEditBoxDialog(wxWindow* parent)
 	wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Macro settings");
 
 	const wxString choices[] = { wxT("Sequence"), wxT("Text"), wxT("Delay"), wxT("Mouse move"), 
-		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click"), wxT("Bash terminal"), wxT("Execute command") };
+		wxT("Mouse interpolate"), wxT("Mouse press"), wxT("Mouse release"), wxT("Mouse click"), 
+		wxT("Bash terminal"), wxT("Execute command"), wxT("Execute XML command") };
 	m_radioBox1 = new wxRadioBox(this, wxID_ANY, wxT("Action type"), wxDefaultPosition, wxDefaultSize, WXSIZEOF(choices), choices, 1, wxRA_SPECIFY_COLS);
 	sizerMsgs->Add(m_radioBox1, wxSizerFlags().Left());
 	sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Macro text:"));
@@ -1083,6 +1084,8 @@ void KeybrdPanel::ShowEditDialog(wxTreeListItem item)
 			sel = 8;		
 		else if(type_str == "CMD")
 			sel = 9;
+		else if(type_str == "CMD_XML")
+			sel = 10;
 		edit_dlg->ShowDialog(item_str, sel);
 	}
 }
@@ -1212,6 +1215,18 @@ void KeybrdPanel::ManipulateMacro(std::vector<std::unique_ptr<IKey>>& x, uint16_
 			try
 			{
 				AddOrModifyMacro<CommandExecute>(x, id, add, std::move(edit_str));
+			}
+			catch(const std::exception& e)
+			{
+				wxMessageDialog(this, std::format("Invalid input!\n{}", e.what()), "Error", wxOK).ShowModal();
+			}
+			break;
+		}
+		case 10:
+		{
+			try
+			{
+				AddOrModifyMacro<CommandXml>(x, id, add, std::move(edit_str));
 			}
 			catch(const std::exception& e)
 			{

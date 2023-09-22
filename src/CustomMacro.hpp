@@ -48,7 +48,7 @@ typedef struct
 
 enum MacroTypes : uint8_t
 {
-    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, BASH, CMD, MAX
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, BASH, CMD, CMD_XML, MAX
 };
 
 class IKey
@@ -302,6 +302,30 @@ public:
 private:
     std::string cmd;
     static inline const char* name = "CMD";
+};
+
+class CommandXml final : public IKey
+{
+public:
+    CommandXml(std::string cmd_) : cmd(cmd_) {}
+    CommandXml(const CommandXml& from) { cmd = from.cmd; }
+    /*BashCommand(const std::string&& str) : cmd(str)
+    {}*/
+    virtual ~CommandXml() = default;
+    CommandXml* Clone() override { return new CommandXml(*this); }
+    void Execute() override;
+
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name; }
+
+    std::string GetCmd()
+    {
+        return cmd;
+    }
+
+private:
+    std::string cmd;
+    static inline const char* name = "CMD_XML";
 };
 
 /* each given macro per-app get's a macro container */
