@@ -62,10 +62,15 @@ set(src_SOURCES_pch
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ModbusMasterSerialPort.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/MapConverter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialPort.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialForwarder.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SerialTcpBackend.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StringToCEscaper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Utils.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/BitEditorDialog.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/CanLogPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/CanPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/CanScriptPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/CanSenderPanel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CanPanel/CanUdsRawDialog.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/Configuration.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ConfigurationBackup.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/gui/CmdExecutorPanel.cpp
