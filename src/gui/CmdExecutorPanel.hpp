@@ -15,10 +15,12 @@ class CmdExecutorEditDialog : public wxDialog
 public:
     CmdExecutorEditDialog(wxWindow* parent);
 
-    void ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, uint32_t color, uint32_t bg_color, bool is_bold, const wxString& font_face, float scale);
+    void ShowDialog(const wxString& cmd_name, const wxString& cmd_to_execute, bool hide_console, 
+        uint32_t color, uint32_t bg_color, bool is_bold, const wxString& font_face, float scale, wxSize size, bool is_sizer_base, bool add_to_prev_sizer);
 
     const wxString GetCmdName() { return m_commandName->GetValue(); }
     const wxString GetCmd() { return m_cmdToExecute->GetValue(); }
+    bool IsHidden() { return m_isHidden->GetValue(); }
 
     const wxColor GetTextColor() { return m_color->GetColour(); }
     const wxColor GetBgColor() { return m_backgroundColor->GetColour(); }
@@ -26,6 +28,20 @@ public:
     bool IsBold() { return m_isBold->GetValue(); }
     wxString GetFontFace() { return m_fontFace->GetSelectedFont().GetFaceName(); }
     float GetScale() { return static_cast<float>(m_scale->GetValue()); }
+    wxSize GetMinSize() 
+    { 
+        wxString size_text = m_minSize->GetValue();
+        wxSize minimum_size = wxDefaultSize;
+
+        if(sscanf(size_text.ToStdString().c_str(), "%d,%d", &minimum_size.x, &minimum_size.y) != 2)
+        {
+
+        }
+        return minimum_size;
+    }
+
+    bool IsUsingSizer() { return m_isSizerBase->GetValue(); }
+    bool IsAddToPrevSizer() { return m_isAddToPrevSizer->GetValue(); }
 
     bool IsApplyClicked() { return m_IsApplyClicked; }
 protected:
@@ -34,12 +50,15 @@ protected:
 private:
     wxTextCtrl* m_commandName = nullptr;
     wxTextCtrl* m_cmdToExecute = nullptr;
+    wxCheckBox* m_isHidden = nullptr;
     wxColourPickerCtrl* m_color = nullptr;
     wxColourPickerCtrl* m_backgroundColor = nullptr;
     wxCheckBox* m_isBold = nullptr;
     wxFontPickerCtrl* m_fontFace = nullptr;
     wxSpinCtrlDouble* m_scale = nullptr;
-
+    wxTextCtrl* m_minSize = nullptr;
+    wxCheckBox* m_isSizerBase = nullptr;
+    wxCheckBox* m_isAddToPrevSizer = nullptr;
     wxStaticText* m_labelResult = nullptr;
     bool m_IsApplyClicked = false;
     wxTimer* m_timer = nullptr;
@@ -76,6 +95,8 @@ private:
 	wxDECLARE_EVENT_TABLE();
 };
 
+class CmdExecutorParamDialog;
+
 class CmdExecutorPanelPage : public wxPanel
 {
 public:
@@ -107,9 +128,15 @@ private:
     void Execute(Command* c);
 
     CmdExecutorEditDialog* edit_dlg = nullptr;
+    CmdExecutorParamDialog* param_dlg = nullptr;
+
     wxGridSizer* m_BaseGrid = nullptr;
     std::vector<wxStaticBoxSizer*> m_VertialBoxes;
     std::multimap<uint8_t, std::variant<wxButton*, wxStaticLine*>> m_ButtonMap;
+
+    bool base_sizer = false;
+    wxBoxSizer* gv_sizer = nullptr;
+
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -182,4 +209,56 @@ public:
 
 private:
     wxBitmapComboBox* icon_combo_box;
+};
+
+class CmdExecutorParamDialog : public wxDialog
+{
+public:
+    CmdExecutorParamDialog(wxWindow* parent);
+
+    // [label] = value
+    void ShowDialog(std::vector<std::string>& params);
+    std::vector<std::string> GetOutput();
+
+    enum class BitSelection
+    {
+        Decimal,
+        Hex,
+        Binary,
+    };
+
+    enum class ClickType
+    {
+        None,
+        Ok,
+        Close,
+        Apply,
+    };
+
+    ClickType GetClickType() { return m_ClickType; }
+
+protected:
+    void OnApply(wxCommandEvent& event);
+    void OnOk(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
+    //void OnRadioButtonClicked(wxCommandEvent& event);
+private:
+    int m_Id = 0;
+    uint8_t m_DataFormat = 0;
+    wxRadioButton* m_IsDecimal = {};
+    wxRadioButton* m_IsHex = {};
+    wxRadioButton* m_IsBinary = {};
+    wxStaticText* m_InputLabel[MAX_BITEDITOR_FIELDS] = {};
+    wxTextCtrl* m_Input[MAX_BITEDITOR_FIELDS] = {};
+    wxRadioButton* m_InputBit[MAX_BITEDITOR_FIELDS] = {};
+    wxSizer* sizerTop = {};
+    wxSizer* sizerMsgs = {};
+
+    ClickType m_ClickType = ClickType::None;
+
+    BitSelection bit_sel = BitSelection::Decimal;
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(CmdExecutorParamDialog);
 };

@@ -8,7 +8,7 @@ void Command::Execute()
 #ifdef _WIN32
     STARTUPINFOA si = { sizeof(STARTUPINFOA) };
     si.dwFlags = STARTF_USESHOWWINDOW;  // Requires STARTF_USESHOWWINDOW in dwFlags.
-    si.wShowWindow = SW_SHOW;  // Prevents cmd window from flashing.
+    si.wShowWindow = IsConsoleHidden() ? SW_HIDE : SW_SHOW;  // Prevents cmd window from flashing.
 
     PROCESS_INFORMATION pi = { 0 };
     BOOL fSuccess = CreateProcessA(NULL, (LPSTR)std::format("C:\\windows\\system32\\cmd.exe /c {}", cmd_to_execute).c_str(), NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
@@ -78,38 +78,98 @@ std::string Command::HandleParameters()
     size_t param_count = 0;
     size_t pos = 1;
 
-    size_t first_end = m_cmd.find("})]", pos + 1);
-    if(first_end != std::string::npos)
+    std::string new_cmd{ m_cmd };
+    while(pos < m_cmd.length() - 1)
     {
-        while(pos < m_cmd.length() - 1)
+        size_t first_end = new_cmd.find("})]", pos + 3);
+        size_t first_pos = new_cmd.substr(0, first_end).find("[({PARAM:", pos - 1);
+
+        if(first_pos != std::string::npos && first_end != std::string::npos)
         {
-            size_t first_pos = m_cmd.substr(0, first_end).find("[({PARAM:", pos - 1);
+            std::string ret = utils::extract_string(new_cmd, first_pos, first_end, param_len);
+            DBG("ret: %s", ret.c_str());
 
-            if(first_pos != std::string::npos && first_end != std::string::npos)
-            {
-                if(param_count > 0)
-                {
-                    LOG(LogLevel::Warning, "Only 1 parameter is supported!");
-                    break;
-                }
+            size_t to_erase = (first_end + 3) - first_pos;
+            size_t replace_len = m_params.size() <= param_count ? ret.length() : m_params[param_count].length();
 
-                if(param_count == 0)
-                {
-                    std::string ret = utils::extract_string(m_cmd, first_pos, first_end, param_len);
-                    DBG("ret: %s", ret.c_str());
+            new_cmd.erase(first_pos, to_erase);
+            new_cmd.insert(first_pos, m_params.size() <= param_count ? ret : m_params[param_count]);
 
-                    std::string new_cmd{ m_cmd };
-                    new_cmd.erase(first_pos, (first_end + 3) - first_pos);
-                    new_cmd.insert(first_pos, m_param.empty() ? ret : m_param);
-                    return new_cmd;
-                }
-
-                pos = first_end;
-                ++param_count;
-            }
+            pos = first_pos + replace_len;
+            ++param_count;
+        }
+        else
+        {
+            break;
         }
     }
-    return m_cmd;
+    return new_cmd;
+}
+
+void Command::LoadParametersFromString()
+{
+    constexpr size_t param_len = std::char_traits<char>::length("[({PARAM:");
+    size_t param_count = 0;
+    size_t pos = 1;
+
+    std::string new_cmd{ m_cmd };
+    while(pos < m_cmd.length() - 1)
+    {
+        size_t first_end = new_cmd.find("})]", pos + 3);
+        size_t first_pos = new_cmd.substr(0, first_end).find("[({PARAM:", pos - 1);
+
+        if(first_pos != std::string::npos && first_end != std::string::npos)
+        {
+            std::string ret = utils::extract_string(new_cmd, first_pos, first_end, param_len);
+            m_params.push_back(ret);
+
+            pos = first_end;
+            ++param_count;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+void Command::SaveParametersToString()
+{
+    constexpr size_t param_len = std::char_traits<char>::length("[({PARAM:");
+    size_t param_count = 0;
+    size_t pos = 1;
+
+    std::string new_cmd{ m_cmd };
+    while(pos < m_cmd.length() - 1)
+    {
+        size_t first_end = new_cmd.find("})]", pos + 3);
+        size_t first_pos = new_cmd.substr(0, first_end).find("[({PARAM:", pos - 1);
+
+        if(first_pos != std::string::npos && first_end != std::string::npos)
+        {
+            std::string ret = new_cmd.substr(first_pos + param_len, (first_end - (first_pos + param_len)));
+            DBG("ret: %s", ret.c_str());
+
+            size_t to_erase = ret.length();
+            size_t replace_len = to_erase;
+
+            if(m_params.size() <= param_count)
+            {
+                break;
+            }
+
+            new_cmd.erase(first_pos + param_len, to_erase);
+            new_cmd.insert(first_pos + param_len, m_params[param_count]);
+
+            pos = first_pos + param_len + replace_len;
+            ++param_count;
+        }
+        else
+        {
+            break;
+        }
+    }
+    m_cmd = new_cmd;
 }
 
 XmlCommandLoader::XmlCommandLoader(ICmdHelper* mediator)
@@ -173,12 +233,16 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                     {
                         std::string cmd;
                         boost::optional<std::string> name;
-                        boost::optional<std::string> param;
+                        boost::optional<std::string> icon;
+                        boost::optional<std::string> is_hidden;
                         boost::optional<std::string> color;
                         boost::optional<std::string> bg_color;
                         boost::optional<std::string> is_bold;
                         boost::optional<std::string> font_face;
                         boost::optional<std::string> scale;
+                        boost::optional<std::string> use_sizer;
+                        boost::optional<std::string> add_to_prev_sizer;
+                        boost::optional<std::string> min_size;
 
                         auto is_name_present = v.second.get_child_optional("Execute");
                         if(is_name_present.has_value())
@@ -186,24 +250,32 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             cmd = v.second.get_child("Execute").get_value<std::string>();
 
                             utils::xml::ReadChildIfexists<std::string>(v, "Name", name);
-                            utils::xml::ReadChildIfexists<std::string>(v, "Param", param);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Icon", icon);
+                            utils::xml::ReadChildIfexists<std::string>(v, "Hidden", is_hidden);
                             utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
                             utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
                             utils::xml::ReadChildIfexists<std::string>(v, "Bold", is_bold);
                             utils::xml::ReadChildIfexists<std::string>(v, "FontFace", font_face);
                             utils::xml::ReadChildIfexists<std::string>(v, "Scale", scale);
+                            utils::xml::ReadChildIfexists<std::string>(v, "UseSizer", use_sizer);
+                            utils::xml::ReadChildIfexists<std::string>(v, "AddToPrevSizer", add_to_prev_sizer);
+                            utils::xml::ReadChildIfexists<std::string>(v, "MinSize", min_size);
                         }
                         else
                         {
                             cmd = v.second.get_value<std::string>();
 
                             name = v.second.get_optional<std::string>("<xmlattr>.name");
-                            param = v.second.get_optional<std::string>("<xmlattr>.param");
+                            icon = v.second.get_optional<std::string>("<xmlattr>.icon");
+                            is_hidden = v.second.get_optional<std::string>("<xmlattr>.hidden");
                             color = v.second.get_optional<std::string>("<xmlattr>.color");
                             bg_color = v.second.get_optional<std::string>("<xmlattr>.bg_color");
                             is_bold = v.second.get_optional<std::string>("<xmlattr>.bold");
                             font_face = v.second.get_optional<std::string>("<xmlattr>.font_face");
                             scale = v.second.get_optional<std::string>("<xmlattr>.scale");
+                            use_sizer = v.second.get_optional<std::string>("<xmlattr>.use_sizer");
+                            add_to_prev_sizer = v.second.get_optional<std::string>("<xmlattr>.add_to_prev_sizer");
+                            min_size = v.second.get_optional<std::string>("<xmlattr>.min_size");
                         }
 
                         if(cmd.empty())
@@ -213,15 +285,26 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                             LOG(LogLevel::Warning, "Empty cmd for command: {}", *name);
                         }
 
+                        wxSize minimum_size = wxDefaultSize;
+                        if(min_size.has_value())
+                        {
+                            if(sscanf(min_size->c_str(), "%d,%d", &minimum_size.x, &minimum_size.y) != 2)
+                                LOG(LogLevel::Error, "Invalid format for MinSize");
+                        }
+
                         std::shared_ptr<Command> command = std::make_shared<Command>(
                             name.has_value() ? *name : "",
                             cmd,
-                            param.has_value() ? *param : "",
+                            icon.has_value() ? *icon : "",
+                            is_hidden.has_value() ? utils::stob(*is_hidden) : false,
                             color.has_value() ? utils::ColorStringToInt(*color) : 0,
                             bg_color.has_value() ? utils::ColorStringToInt(*bg_color) : 0xFFFFFF,
                             is_bold.has_value() ? utils::stob(*is_bold) : false,
                             font_face.has_value() ? *font_face : "",
-                            scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0);
+                            scale.has_value() ? boost::lexical_cast<float>(*scale) : 1.0,
+                            minimum_size,
+                            use_sizer.has_value() ? utils::stob(*use_sizer) : false,
+                            add_to_prev_sizer.has_value() ? utils::stob(*add_to_prev_sizer) : false);
 
                         if(command)
                         {
@@ -288,18 +371,27 @@ bool XmlCommandLoader::Save(const std::filesystem::path& path, CommandStorage& s
                         using T = std::decay_t<decltype(c)>;
                         if constexpr(std::is_same_v<T, std::shared_ptr<Command>>)
                         {
+                            c->SaveParametersToString();
                             auto& cmd_node = col_node.add_child("Cmd", boost::property_tree::ptree{});
                             if(c->GetName() != c->GetCmd() && !c->GetName().empty())
                                 cmd_node.add("Name", c->GetName());
 
                             cmd_node.add("Execute", c->GetCmd());
-                            if(!c->GetParam().empty())
-                                cmd_node.add("Param", c->GetParam());
-                            cmd_node.add("Color", utils::ColorIntToString(c->GetColor()));
+                            if(!c->GetIcon().empty())
+                                cmd_node.add("Icon", c->GetIcon());
+                            if(c->IsConsoleHidden())
+                                cmd_node.add("Hidden", true);
                             cmd_node.add("BackgroundColor", utils::ColorIntToString(c->GetBackgroundColor()));
                             cmd_node.add("Bold", c->IsBold());
                             cmd_node.add("FontFace", c->GetFontFace());
                             cmd_node.add("Scale", c->GetScale());
+
+                            if(c->IsUsingSizer())
+                                cmd_node.add("UseSizer", true);
+                            if(c->IsAddToPrevSizer())
+                                cmd_node.add("AddToPrevSizer", true);
+                            if(c->GetMinSize() != wxDefaultSize)
+                                cmd_node.add("MinSize", std::format("{},{}", c->GetMinSize().x, c->GetMinSize().y));
                         }
                         else if constexpr(std::is_same_v<T, Separator>)
                         {
@@ -346,6 +438,11 @@ void CmdExecutor::AddCommand(uint8_t page, uint8_t col, Command cmd)
     }
 }
 
+void CmdExecutor::RotateCommand(uint8_t page, uint8_t col, Command& cmd, uint8_t direction)
+{
+//    if(m_Commands[page - 1][col - 1].back() == cmd)
+}
+
 void CmdExecutor::AddSeparator(uint8_t page, uint8_t col, Separator sep)
 {
     m_Commands[page - 1][col - 1].push_back(sep); /* TODO: refactor it with AddItem */
@@ -379,7 +476,7 @@ void CmdExecutor::AddPage(uint8_t page, uint8_t dest_index)
     std::vector<std::vector<CommandTypes>> temp_cmds_per_page;
 
     std::vector<CommandTypes> cmd_types;
-    cmd_types.push_back(std::make_shared<Command>("New cmd, empty", "& ping 127.0.0.1 -n 3 > nul", "", 0x33FF33, 0xFFFFFF, false, "", 2.0f));
+    cmd_types.push_back(std::make_shared<Command>("New cmd, empty", "& ping 127.0.0.1 -n 3 > nul", "", false, 0x33FF33, 0xFFFFFF, false, "", 2.0f));
     temp_cmds_per_page.push_back(std::move(cmd_types));
 
     m_Commands.insert(m_Commands.begin() + dest_index, temp_cmds_per_page);
