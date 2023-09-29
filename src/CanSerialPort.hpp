@@ -74,24 +74,6 @@ private:
     // !\brief On data sent
     void OnDataSent(CallbackAsyncSerial& serial_port);
 
-    // !\brief Is serial port data receiving enabled?
-    bool is_enabled = true;
-
-    // !\brief COM port number
-    uint16_t com_port = 5;
-
-    // !\brief Worker thread
-    std::unique_ptr<std::jthread> m_worker;
-
-    // !\brief Is notification pending?
-    std::atomic<bool> is_notification_pending = false;
-
-    // !\brief Conditional variable for main thread exiting
-    std::condition_variable_any m_cv;
-
-    // !\brief Mutex for main thread
-    std::mutex m_mutex;
-
     // !\brief Mutex for received data processing
     std::mutex m_RxMutex;
 

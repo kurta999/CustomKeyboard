@@ -36,26 +36,14 @@ public:
     void SimulateDataReception(const char* data, unsigned int len);
 
 private:
-    // !\brief Stops worker thread
-    void DestroyWorkerThread();
-
     // !\brief Called when data was received via serial port (called by boost::asio::read_some)
     // !\param serial_port [in] Pointer to received data
     // !\param len [in] Received data length
     void OnDataReceived(const char* data, unsigned int len);
 
-    // !\brief Worker thread
-    void WorkerThread();
-
     // !\brief Is VM or WSL in focus?
     // !\return VM or WSL in focus?
     bool IsUsingVmOrWsl();
-
-    // !\brief Is serial port data receiving enabled?
-    bool is_enabled = true;
-
-    // !\brief COM port number
-    uint16_t com_port = 5;
 
     // !\brief Forward received data from COM to a remote TCP server?
     bool forward_serial_to_tcp = false;
@@ -65,16 +53,4 @@ private:
 
     // !\brief Remote TCP Server port
     uint16_t remote_tcp_port = 0;
-
-    // !\brief Worker thread
-    std::unique_ptr<std::thread> m_worker = nullptr;
-
-    // !\brief Exit working thread?
-    std::atomic<bool> to_exit = false;
-
-    // !\brief Conditional variable for main thread exiting
-    std::condition_variable m_cv;
-
-    // !\brief Mutex
-    std::mutex m_mutex;
 };

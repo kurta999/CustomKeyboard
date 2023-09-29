@@ -1,5 +1,8 @@
 #include "pch.hpp"
 
+constexpr auto SERIAL_PORT_TIMEOUT = 1000ms;
+constexpr auto SERIAL_PORT_EXCEPTION_TIMEOUT = 1000ms;
+
 SerialPort::~SerialPort()
 {
 
@@ -7,8 +10,15 @@ SerialPort::~SerialPort()
 
 void SerialPort::Init()
 {
-    auto recv_f = std::bind(&SerialPort::OnDataReceived, this, std::placeholders::_1, std::placeholders::_2);
-    InitInternal("SerialPort", recv_f, nullptr);
+    if(is_enabled)
+    {
+        auto recv_f = std::bind(&SerialPort::OnDataReceived, this, std::placeholders::_1, std::placeholders::_2);
+        InitInternal("SerialPort", SERIAL_PORT_TIMEOUT, SERIAL_PORT_EXCEPTION_TIMEOUT, recv_f, nullptr);
+    }
+    else
+    {
+        DeInitInternal();
+    }
 }
 
 void SerialPort::SetForwardToTcp(bool enable)

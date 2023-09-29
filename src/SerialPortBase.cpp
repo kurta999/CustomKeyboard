@@ -1,16 +1,18 @@
 #include "pch.hpp"
 
-constexpr auto CAN_SERIAL_PORT_TIMEOUT = 10000ms;
 constexpr auto SERIAL_EXCEPTION_DELAY = 1000ms;
 
 SerialPortBase::~SerialPortBase()
 {
-    DestroyWorkerThread();
+    DeInitInternal();
 }
 
-void SerialPortBase::InitInternal(const std::string& serial_name, SerialRecvFunction recv_function, SerialSendFunction send_function)
+void SerialPortBase::InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+    SerialRecvFunction recv_function, SerialSendFunction send_function)
 {
     m_SerialName = serial_name;
+    m_MainTimeout = main_timeout;
+    m_ExceptionTimeout = exception_timeout;
     m_RecvFunction = recv_function;
     m_SendFunction = send_function;
 
@@ -19,6 +21,11 @@ void SerialPortBase::InitInternal(const std::string& serial_name, SerialRecvFunc
         m_worker = std::make_unique<std::jthread>(std::bind_front(&SerialPortBase::WorkerThread, this));
         utils::SetThreadName(*m_worker, m_SerialName.c_str());
     }
+}
+
+void SerialPortBase::DeInitInternal()
+{
+    DestroyWorkerThread();
 }
 
 void SerialPortBase::SetEnabled(bool enable)
@@ -64,15 +71,15 @@ void SerialPortBase::WorkerThread(std::stop_token token)
         try
         {
 #ifdef _WIN32
-            CallbackAsyncSerial serial("\\\\.\\COM" + std::to_string(com_port), 921600);
+            m_serial = std::make_unique<CallbackAsyncSerial>("\\\\.\\COM" + std::to_string(com_port), 921600);
 #else
-            CallbackAsyncSerial serial("/dev/ttyUSB" + std::to_string(com_port), 921600);
+            m_serial = std::make_unique<CallbackAsyncSerial>("/dev/ttyUSB" + std::to_string(com_port), 921600);
 #endif
-            serial.setCallback(m_RecvFunction);
+            m_serial->setCallback(m_RecvFunction);
 
             while(!token.stop_requested())
             {
-                if(serial.errorStatus() || serial.isOpen() == false)
+                if(m_serial->errorStatus() || m_serial->isOpen() == false)
                 {
                     LOG(LogLevel::Error, "Serial port can unexpectedly closed");
                     break;
@@ -81,38 +88,34 @@ void SerialPortBase::WorkerThread(std::stop_token token)
                 {
                     std::unique_lock lock(m_mutex);
                     auto now = std::chrono::system_clock::now();
-                    bool ret = m_cv.wait_until(lock, token, now + CAN_SERIAL_PORT_TIMEOUT, [this]() { return is_notification_pending != 0; });
+                    bool ret = m_cv.wait_until(lock, token, now + m_MainTimeout, [this]() { return is_notification_pending != 0; });
+                    /*
                     if(!ret)
                     {
                         LOG(LogLevel::Error, "{} - CV timeout", m_SerialName);
                     }
+                    */
                 }
 
                 if(m_SendFunction)
-                    m_SendFunction(serial);
+                    m_SendFunction(*m_serial);
                 is_notification_pending = false;
             }
             try
             {
-                serial.close();
+                m_serial->close();
             }
-            catch(...)
+            catch(const std::exception& e)
             {
-
+                LOG(LogLevel::Error, "Exception {} serial close {}", m_SerialName, e.what());
             }
         }
         catch(const std::exception& e)
         {
-            err_msg = e.what();
-        }
-
-        if(!err_msg.empty())
-        {
-            LOG(LogLevel::Error, "Exception {} serial {}", m_SerialName, err_msg);
-            err_msg.clear();
+            LOG(LogLevel::Error, "Exception {} serial {}", m_SerialName, e.what());
 
             std::unique_lock lock(m_mutex);
-            m_cv.wait_for(lock, token, SERIAL_EXCEPTION_DELAY, []() { return 1 == 0; });
+            m_cv.wait_for(lock, token, m_ExceptionTimeout, []() { return 1 == 0; });
         }
     }
 

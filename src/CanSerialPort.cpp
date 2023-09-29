@@ -4,24 +4,26 @@ constexpr size_t TX_QUEUE_MAX_SIZE = 100;
 constexpr size_t RX_CIRCBUFF_SIZE = 1024;  /* Bytes */
 constexpr size_t CAN_SERIAL_TX_BUFFER_SIZE = 64;
 constexpr auto CAN_SERIAL_PORT_TIMEOUT = 5000ms;
+constexpr auto CAN_SERIAL_PORT_EXCEPTION_TIMEOUT = 1000ms;
 constexpr auto SEND_DELAY_BETWEEN_FRAMES = 100us;
 
 CanSerialPort::CanSerialPort() : m_CircBuff(RX_CIRCBUFF_SIZE)
 {
-    auto recv_f = std::bind(&CanSerialPort::OnDataReceived, this, std::placeholders::_1, std::placeholders::_2);
-    auto send_f = std::bind(&CanSerialPort::OnDataSent, this, std::placeholders::_1);
-    InitInternal("CanSerialPort", recv_f, send_f);
+
 }
 
 CanSerialPort::~CanSerialPort()
 {
-    DestroyWorkerThread();
+
 }
 
 void CanSerialPort::Init()
 {
     if(is_enabled)
     {
+        auto recv_f = std::bind(&CanSerialPort::OnDataReceived, this, std::placeholders::_1, std::placeholders::_2);
+        auto send_f = std::bind(&CanSerialPort::OnDataSent, this, std::placeholders::_1);
+        InitInternal("CanSerialPort", CAN_SERIAL_PORT_TIMEOUT, CAN_SERIAL_PORT_EXCEPTION_TIMEOUT, recv_f, send_f);
         if(m_DeviceType == CanDeviceType::STM32)
             m_Device = std::make_unique<CanDeviceStm32>(m_CircBuff);
         else
@@ -29,7 +31,7 @@ void CanSerialPort::Init()
     }
     else
     {
-        DestroyWorkerThread();
+        DeInitInternal();
     }
 }
 
