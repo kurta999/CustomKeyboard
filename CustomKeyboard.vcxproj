@@ -484,9 +484,12 @@
     <ClInclude Include="src\interface\IDatabase.hpp" />
     <ClInclude Include="src\interface\IDidLoader.hpp" />
     <ClInclude Include="src\interface\ILogHelper.hpp" />
+    <ClInclude Include="src\interface\IModbusEntry.hpp" />
+    <ClInclude Include="src\interface\ISerialPort.hpp" />
     <ClInclude Include="src\interface\ITcpMessageExecutor.hpp" />
     <ClInclude Include="src\Logger.hpp" />
     <ClInclude Include="src\MacroRecorder.hpp" />
+    <ClInclude Include="src\ModbusHandler.hpp" />
     <ClInclude Include="src\ModbusMasterSerialPort.hpp" />
     <ClInclude Include="src\MapConverter.hpp" />
     <ClInclude Include="src\PathSeparator.hpp" />
@@ -494,6 +497,7 @@
     <ClInclude Include="src\PrintScreenSaver.hpp" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\Sensors.hpp" />
+    <ClInclude Include="src\SerialPortBase.hpp" />
     <ClInclude Include="src\SerialTcpBackend.hpp" />
     <ClInclude Include="src\SerialPort.hpp" />
     <ClInclude Include="src\Server.hpp" />
@@ -687,6 +691,7 @@
     <ClCompile Include="src\IdlePowerSaver.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\MacroRecorder.cpp" />
+    <ClCompile Include="src\ModbusHandler.cpp" />
     <ClCompile Include="src\ModbusMasterSerialPort.cpp" />
     <ClCompile Include="src\MapConverter.cpp" />
     <ClCompile Include="src\PathSeparator.cpp" />
@@ -702,6 +707,7 @@
     </ClCompile>
     <ClCompile Include="src\PrintScreenSaver.cpp" />
     <ClCompile Include="src\Sensors.cpp" />
+    <ClCompile Include="src\SerialPortBase.cpp" />
     <ClCompile Include="src\SerialTcpBackend.cpp" />
     <ClCompile Include="src\SerialPort.cpp" />
     <ClCompile Include="src\Server.cpp" />
@@ -753,6 +759,9 @@
     </Xml>
     <Xml Include="DidList.xml" />
     <Xml Include="FrameMapping.xml" />
+    <Xml Include="Modbus.xml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </Xml>
     <Xml Include="RxList.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">true</ExcludedFromBuild>
     </Xml>

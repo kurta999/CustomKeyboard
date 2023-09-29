@@ -93,8 +93,12 @@ void Settings::LoadFile()
         can_handler->default_tx_list = std::move(pt.get_child("CANSender").find("DefaultTxList")->second.data());
         can_handler->default_rx_list = pt.get_child("CANSender").find("DefaultRxList")->second.data();
         can_handler->default_mapping = pt.get_child("CANSender").find("DefaultMapping")->second.data();
+
+        std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
         ModbusMasterSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("ModbusMaster").find("Enable")->second.data()));
         ModbusMasterSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("COM")->second.data()));
+        modbus_handler->SetPollingRate(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("PollingRate")->second.data()));
+        modbus_handler->SetDefaultConfigName(pt.get_child("ModbusMaster").find("DefaultModbusConfig")->second.data());
 
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
@@ -193,6 +197,7 @@ void Settings::LoadFile()
 void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
     std::ofstream out(SETTINGS_FILE_PATH, std::ofstream::binary);
     out << "# Possible macro keywords: \n";
     out << "# BIND_NAME[binding name] = Set the name if macro. Should be used as first\n";
@@ -296,6 +301,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "[ModbusMaster]\n";
     out << "Enable = " << ModbusMasterSerialPort::Get()->IsEnabled() << "\n";
     out << "COM = " << ModbusMasterSerialPort::Get()->GetComPort() << " # Com port for Modbus Master UART where data is received/sent from/to Modbus\n";
+    out << "PollingRate = " << modbus_handler->GetPollingRate() << "\n";
+    out << "DefaultModbusConfig = " << modbus_handler->GetDefaultConfigName() << "\n";
     out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";

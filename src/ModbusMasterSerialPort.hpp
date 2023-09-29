@@ -2,79 +2,52 @@
 #include <atomic>
 #include <condition_variable>
 #include <string>
-/*
-#pragma pack(push, 1)
-class CanData
-{
-public:
-    CanData(uint32_t frame_id_, uint8_t data_len, uint8_t* data_)
-        : frame_id(frame_id_), data_len(data_len)
-    {
-        memset(data, 0, sizeof(data));
-        if(data_len > sizeof(data))
-            data_len = sizeof(data);
 
-        if(data_)
-            memcpy(data, data_, data_len);
-    }
-    uint32_t frame_id;
-    uint8_t data_len;
-    uint8_t data[8];
-};
-#pragma pack(pop)
-*/
-class ModbusMasterSerialPort : public CSingleton < ModbusMasterSerialPort >
+class ModbusMasterSerialPort : public SerialPortBase, public CSingleton < ModbusMasterSerialPort >
 {
     friend class CSingleton < ModbusMasterSerialPort >;
 
 public:
-    ModbusMasterSerialPort() = default;
+    ModbusMasterSerialPort();
     ~ModbusMasterSerialPort();
 
     void Init();
     void OnUartDataReceived(const char* data, unsigned int len);
-    void UartReceiveThread(std::stop_token stop_token, std::condition_variable_any& cv, std::mutex& m);
+    void OnDataSent(CallbackAsyncSerial& serial_port);
 
-    void SetEnabled(bool enable);
-    bool IsEnabled();
-    void SetComPort(uint16_t port);
-    uint16_t GetComPort();
+    std::vector<uint8_t> ReadCoilStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::vector<uint8_t> ForceSingleCoil(uint8_t slave_id, uint16_t write_offset, bool status);
+    std::vector<uint8_t> ReadInputStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::vector<uint16_t> ReadHoldingRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::vector<uint8_t> WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer);
+    std::vector<uint16_t> ReadInputRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
 
-    void AddToTxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
-    void AddToRxQueue(uint32_t frame_id, uint8_t data_len, uint8_t* data);
 private:
-
-    // !\brief Is serial port data receiving enabled?
-    bool is_enabled = true;
-
-    // !\brief COM port number
-    uint16_t com_port = 5;
-
-    // !\brief Forward received data from COM to a remote TCP server?
-    bool forward_serial_to_tcp = false;
-
-    // !\brief Remote TCP Server IP
-    std::string remote_tcp_ip;
-
-    // !\brief Remote TCP Server port
-    uint16_t remote_tcp_port = 0;
-
-    // !\brief Worker thread
-    std::unique_ptr<std::jthread> m_worker = nullptr;
-
-    // !\brief Conditional variable for main thread exiting
-    std::condition_variable_any m_cv;
-
-    // !\brief Mutex
-    std::mutex m_mutex;
-
     std::chrono::steady_clock::time_point last_tx_time;
 
-    bool waiting_for_response;
+    // !\brief Mutex for entry handler
+    std::mutex m_RecvMutex;
 
+    std::condition_variable_any m_RecvCv;
+
+    std::vector<uint8_t> m_RecvData;
+
+    std::vector<uint8_t> m_SentData;
+
+    bool m_LastDataCrcOk = true;
     // !\brief CAN Tx Queue
     //std::deque<std::shared_ptr<CanData>> m_TxQueue;
 
     // !\brief CAN Rx Queue
     //std::deque<std::shared_ptr<CanData>> m_RxQueue;
+
+    enum ResponseStatus : uint8_t
+    {
+        Ok,
+        Timeout,
+        CrcError
+    };
+
+    ResponseStatus NotifyAndWaitForResponse();
+    ResponseStatus WaitForResponse();
 };

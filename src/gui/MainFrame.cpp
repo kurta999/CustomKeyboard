@@ -548,7 +548,7 @@ MyFrame::MyFrame(const wxString& title)
 	if(used_pages.did)
 		ctrl->AddPage(did_panel, "DID", false, wxArtProvider::GetBitmap(wxART_FIND, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.modbus_master)
-		ctrl->AddPage(modbus_master_panel, "MM", false, wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+		ctrl->AddPage(modbus_master_panel, "ModbusMaster", false, wxArtProvider::GetBitmap(wxART_PRINT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.log)
 		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();

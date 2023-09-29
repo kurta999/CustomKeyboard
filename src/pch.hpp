@@ -76,6 +76,7 @@ namespace std
 #include "CanDeviceStm32.hpp"
 #include "CanDeviceLawicel.hpp"
 #include "ModbusMasterSerialPort.hpp"
+#include "ModbusHandler.hpp"
 #include "MapConverter.hpp"
 #include "CryptoPrice.hpp"
 #include "CanEntryHandler.hpp"

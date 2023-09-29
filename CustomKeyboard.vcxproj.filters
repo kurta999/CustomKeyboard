@@ -345,6 +345,18 @@
     <ClInclude Include="src\interface\ICmdExecutor.hpp">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
+    <ClInclude Include="src\interface\ISerialPort.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SerialPortBase.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModbusHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\IModbusEntry.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -560,6 +572,12 @@
     <ClCompile Include="src\BsecHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\SerialPortBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModbusHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">
@@ -593,5 +611,6 @@
     <Xml Include="Cmds.xml" />
     <Xml Include="FrameMapping.xml" />
     <Xml Include="DidList.xml" />
+    <Xml Include="Modbus.xml" />
   </ItemGroup>
 </Project>

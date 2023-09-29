@@ -8,6 +8,7 @@
 #include "CanEntryHandler.hpp"
 #include "CmdExecutor.hpp"
 #include "DidHandler.hpp"
+#include "ModbusHandler.hpp"
 
 class MyApp : public wxApp
 {
@@ -24,7 +25,9 @@ public:
     XmlCanMappingLoader mapping_xml;
     XmlDidLoader did_xml_loader;
     XmlDidCacheLoader did_xml_chace_loader;
+    XmlModbusEnteryLoader modbus_entry_loader;
     std::unique_ptr<CanEntryHandler> can_entry;
     std::unique_ptr<CmdExecutor> cmd_executor;
     std::unique_ptr<DidHandler> did_handler;
+    std::unique_ptr<ModbusEntryHandler> modbus_handler;
 };
