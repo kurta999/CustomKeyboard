@@ -11,10 +11,11 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
 
 ### 2. For General development:
-1. **Command excutor** - Bind specific commands (cmds) to GUI buttons with parameters support, which is then excuted on GUI button click - see more info below
-2. **StructParser** - Generate offsets of C structures and it's members
-3. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
-4. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
+1. **Modbus Master** - Simple Modbus Master for polling Modbus Slave devices with GUI support. Coils, Input, Holding and Input registers supported. Supported register size is uint16_t, support for bigger types might be added in the future.
+2. **Command excutor** - Bind specific commands (cmds) to GUI buttons with parameters support, which is then excuted on GUI button click - see more info below
+3. **StructParser** - Generate offsets of C structures and it's members
+4. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
+5. **File explorer opener** - Open file explorer by sending a specific TCP packet to this application
 
 ### 3. For Personal use:
 1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
@@ -204,6 +205,10 @@ Sleep 500
 **UDS DID Handler (Both writing & reading)**
 
 ![Alt text](/github_screens/did_readerwriter.png?raw=true "UDS DID Handler")
+
+**Modbus Master**
+
+![Alt text](/github_screens/modbus_master.png?raw=true "Modbus Master")
 
 **Structure parser**
 
