@@ -12,7 +12,9 @@ class ISerialPort
 public:
     virtual ~ISerialPort() = default;
 
-    virtual void InitInternal(const std::string& serial_name, SerialRecvFunction recv_function, SerialSendFunction send_function) = 0;
+    virtual void InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+        SerialRecvFunction recv_function, SerialSendFunction send_function) = 0;
+    virtual void DeInitInternal() = 0;
     virtual void SetEnabled(bool enable) = 0;
     virtual bool IsEnabled() const = 0;
     virtual void SetComPort(uint16_t port) = 0;

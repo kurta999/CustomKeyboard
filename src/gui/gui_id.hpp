@@ -48,6 +48,7 @@ enum
 	ID_CanSenderEditLogLevel,
 	ID_CanSenderEditFavourites,
 	ID_CmdExecutorEdit,
+	ID_CmdExecutorChangeCommandIcon,
 	ID_CmdExecutorDuplicate,
 	ID_CmdExecutorMoveUp,
 	ID_CmdExecutorMoveDown,

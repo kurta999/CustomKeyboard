@@ -24,6 +24,7 @@ public:
     virtual void Init() = 0;
     virtual void SetMediator(ICmdHelper* mediator) = 0;
     virtual void AddCommand(uint8_t page, uint8_t col, Command cmd) = 0;
+    virtual void RotateCommand(uint8_t page, uint8_t col, Command& cmd, uint8_t direction) = 0;
     virtual void AddSeparator(uint8_t page, uint8_t col, Separator sep) = 0;
     virtual void AddCol(uint8_t page, uint8_t dest_index) = 0;
     virtual void DeleteCol(uint8_t page, uint8_t dest_index) = 0;
