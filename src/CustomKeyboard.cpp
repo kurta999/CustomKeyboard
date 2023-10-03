@@ -17,7 +17,6 @@ bool MyApp::OnInit()
     Settings::Get()->Init();
     SerialPort::Get()->Init();
     CanSerialPort::Get()->Init();
-    ModbusMasterSerialPort::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
     StructParser::Get()->Init();
@@ -51,6 +50,7 @@ int MyApp::OnExit()
     did_handler.reset(nullptr);  /* First this has to be destructed, because it uses CanEntryHandler */
     can_entry.reset(nullptr);
     cmd_executor.reset(nullptr);
+    modbus_handler.reset(nullptr);
 
     IdlePowerSaver::CSingleton::Destroy();  /* Restore CPU power to 100%, this has to be destructed before Logger */
     Settings::CSingleton::Destroy();
@@ -65,7 +65,6 @@ int MyApp::OnExit()
     DatabaseLogic::CSingleton::Destroy();
     SerialTcpBackend::CSingleton::Destroy();
     SerialPort::CSingleton::Destroy();
-    ModbusMasterSerialPort::CSingleton::Destroy();
     CorsairHid::CSingleton::Destroy();
     Logger::CSingleton::Destroy();
     return true;

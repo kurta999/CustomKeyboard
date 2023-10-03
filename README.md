@@ -35,17 +35,18 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 
 # In depth details of implemented features
 ### 1. For Automotive development:
-1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://gitlab.com/kurta999/CanUsbTransceiver
+1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://gitlab.com/kurta999/CanUsbTransceiver The default baudrate is 500kbit/s, it's changeability isn't implemented - it might be in the future.
 
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 
 3. **UDS DID Reader & Writer** - Supported DID types: uint8_t, uint16_t, uint32_t, uint64_t, string, bytearray. Strings and bytearrays are padded when their lenght is smaller than the predefined length, otherwise truncated.
 
 ### 2. For General development:
+1. **Modbus Master** - Registers have to be configured in Modbus.xml. Registers can be edited on the fly over GUI, also the communication log can be viewed and saved to a .csv file
 
-1. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml or in the "CMD Executor" panel. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias. 16 variable parameters can be added to one command, you can change that before execution by clicking with MIDDLE mouse to the command button instead of the LEFT. Command button customization (like bold font, color, font face name), duplication - everything can be done over GUI.
+2. **Command excutor** - Binding commands to GUI buttons possible in Cmds.xml or in the "CMD Executor" panel. That command will be executed on Windows with CreateProcess if you click on it's button, see the image below. This is very usful feature if you work often with command line, you don't have to copy paste every comand or type it's alias. 16 variable parameters can be added to one command, you can change that before execution by clicking with MIDDLE mouse to the command button instead of the LEFT. Command button customization (like bold font, color, font face name), duplication - everything can be done over GUI.
 
-2. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
+3. **StructParser** - Paste the structure to input dialog and click on prarse. The application automatically calculates offsets for it's members. It's useful if you work with communication and had to calculate the offset of members in bytes manually. Supports embedded structures, struct alignment (fixed alignment supported, pragma pack implementation isn't finished yet), preprocessor definitions & unions. 
 
 4. **File explorer opener** - This function can be useful if you work with VirtualBox or WSL and using samba for accessing specific parts on guest OS filesystem. First you have to map the network drive in Windows, default drive character is Z: (can be changed in settings.ini - "SharedDriveLetter"), also don't forget to enable TCP_Backend in settings.ini. Here is an example command for opening the file explorer on Windows: "echo expw$(pwd) | netcat <ip address of host os> <TCP_Backend port from settings.ini>". For the best experience, I recommend creating an alias for this command.
 
@@ -79,6 +80,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 - [bitfield](https://github.com/openxc/bitfield-c "bitfield's Homepage")
 - [isotp](https://github.com/lishen2/isotp-c "iso-tp's Homepage")
 - [BSEC](https://www.bosch-sensortec.com/software-tools/software/bsec/ "Bosch's BSEC Homepage")
+- [opencv](https://opencv.org/ "OpenCV's Homepage")
 
 Required external depencencies:
 - [Boost 1.83.0](https://www.boost.org/ "Boost's Homepage")

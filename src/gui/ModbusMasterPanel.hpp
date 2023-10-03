@@ -9,17 +9,28 @@ enum ModbusGridCol : int
 	Modbus_Max
 };
 
-class CoilStatusPanel/* : public wxPanel*/
+enum ModbusLogGridCol : int
+{
+	ModbusLog_Time,
+	ModbusLog_Direction,
+	ModbusLog_FCode,
+	ModbusLog_DataSize,
+	ModbusLog_Data,
+	ModbusLog_Max
+};
+
+
+class ModbusItemPanel
 {
 public:
-    CoilStatusPanel(wxWindow* parent, const wxString& header_name, ModbusCoils& coils, bool is_read_only);
+    ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only);
 
     void UpdatePanel();
     void UpdateChangesOnly(std::vector<uint8_t>& changed_rows);
 
     wxGrid* m_grid = nullptr;
 	wxStaticBoxSizer* static_box = nullptr;
-	ModbusCoils& m_coils;
+	ModbusItemType& m_items;
 
 private:
 	bool m_isReadOnly;
@@ -30,25 +41,63 @@ private:
     //wxDECLARE_EVENT_TABLE();
 };
 
-class ModbusRegisterPanel/* : public wxPanel*/
+class ModbusDataPanel : public wxPanel
 {
 public:
-	ModbusRegisterPanel(wxWindow* parent, const wxString& header_name, ModbusHoldingRegisters& holding, bool is_read_only);
+	ModbusDataPanel(wxWindow* parent);
 
-    void UpdatePanel();
-    void UpdateChangesOnly(std::vector<uint8_t>& changed_rows);
+	wxBoxSizer* m_hSizer = nullptr;
 
-    wxGrid* m_grid = nullptr;
-	wxStaticBoxSizer* static_box = nullptr;
-	ModbusHoldingRegisters& m_holding;
+	ModbusItemPanel* m_coil = nullptr;
+	ModbusItemPanel* m_input = nullptr;
+	ModbusItemPanel* m_holding = nullptr;
+	ModbusItemPanel* m_inputReg = nullptr;
 
 private:
-	bool m_isReadOnly;
+	void OnCellValueChanged(wxGridEvent& ev);
+	void OnCellRightClick(wxGridEvent& ev);
+	void OnGridLabelRightClick(wxGridEvent& ev);
 
+	void OnSize(wxSizeEvent& event);
 
-	//void OnSize(wxSizeEvent& evt);
+	wxButton* m_SaveButton = nullptr;
+	wxButton* m_StartButton = nullptr;
+	wxButton* m_StopButton = nullptr;
+	wxSpinCtrl* m_PollingRate = nullptr;
 
-    //wxDECLARE_EVENT_TABLE();
+	wxDECLARE_EVENT_TABLE();
+};
+
+class ModbusLogPanel : public wxPanel, public IModbusHelper
+{
+public:
+	ModbusLogPanel(wxWindow* parent);
+	~ModbusLogPanel() = default;
+
+	void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, const std::vector<uint8_t>& data) override;
+	void ClearRecordingsFromGrid();
+	void On10MsTimer();
+
+	wxListBox* m_DataLog = nullptr;
+	wxStaticBoxSizer* static_box = nullptr;
+	wxGrid* m_grid = nullptr;
+
+private:
+	void OnSize(wxSizeEvent& event);
+
+	wxButton* m_RecordingStart = nullptr;
+	wxButton* m_RecordingPause = nullptr;
+	wxButton* m_RecordingStop = nullptr;
+	wxButton* m_RecordingClear = nullptr;
+	wxButton* m_AutoScrollBtn = nullptr;
+	wxButton* m_RecordingSave = nullptr;
+
+	bool m_AutoScroll = false;
+	size_t cnt = 0;
+	bool is_something_inserted = false;
+	std::size_t inserted_until = 0;
+
+	wxDECLARE_EVENT_TABLE();
 };
 
 class ModbusMasterPanel : public wxPanel
@@ -56,23 +105,16 @@ class ModbusMasterPanel : public wxPanel
 public:
 	ModbusMasterPanel(wxWindow* parent);
 	void UpdateSubpanels();
+	void On10MsTimer();
 
-	wxBoxSizer* m_hSizer = nullptr;
-	wxListBox* m_DataLog = nullptr;
-
-	CoilStatusPanel* m_coil = nullptr;
-	CoilStatusPanel* m_input = nullptr;
-	ModbusRegisterPanel* m_holding = nullptr;
-	ModbusRegisterPanel* m_inputReg = nullptr;
 	wxAuiNotebook* m_notebook = nullptr;
+	ModbusDataPanel* data_panel;
+	ModbusLogPanel* log_panel;
 
 private:
 	void OnSize(wxSizeEvent& evt);
-	void OnCellValueChanged(wxGridEvent& ev);
 
 	void Changeing(wxAuiNotebookEvent& event);
 
-	wxButton* m_SaveButton = nullptr;
-	wxSpinCtrl* m_PollingRate = nullptr;
 	wxDECLARE_EVENT_TABLE();
 };

@@ -53,6 +53,7 @@ enum PopupMsgIds : uint8_t
 	RxListLoadError,
 	FrameMappingLoadError,
 	CanLogSaved,
+	ModbusLogSaved,
 	CommandsSaved,
 	DidCacheSaved,
 	DidUpdated,

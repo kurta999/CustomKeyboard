@@ -1,7 +1,7 @@
 #include "pch.hpp"
 
-bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& slave_id, ModbusCoils& coils, ModbusInputStatus& input_status, 
-    ModbusHoldingRegisters& holding, ModbusHoldingRegisters& input, NumModbusEntries& num_entries)
+bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& slave_id, ModbusItemType& coils, ModbusItemType& input_status,
+    ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries)
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -44,21 +44,31 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     std::string name = m.second.get_child("Name").get_value<std::string>();
                     bool last_val = m.second.get_child("LastVal").get_value<bool>();
 
-                    coils.push_back({ name, last_val });
+                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_BOOL, last_val, 0, 0, false, 0.0f);
+                    coils.push_back(std::move(item));
                 }
                 else if(m.first == "InputStatus")
                 {
                     std::string name = m.second.get_child("Name").get_value<std::string>();
                     bool last_val = m.second.get_child("LastVal").get_value<bool>();
 
-                    input_status.push_back({ name, last_val });
+                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_BOOL, last_val, 0, 0, false, 0.0f);
+                    input_status.push_back(std::move(item));
+                }
+                else if(m.first == "InputStatuses")
+                {
+                    std::string name = m.second.get_child("Name").get_value<std::string>();
+                    uint64_t last_val = m.second.get_child("LastVal").get_value<uint64_t>();
+
+                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_UI16, last_val, 0, 0, false, 0.0f);
+                    input.push_back(std::move(item));
                 }
                 else if(m.first == "Holding")
                 {
                     std::string name = m.second.get_child("Name").get_value<std::string>();
                     uint64_t last_val = m.second.get_child("LastVal").get_value<uint64_t>();
 
-                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, last_val, 0, 0, false, 0.0f);
+                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_UI16, last_val, 0, 0, false, 0.0f);
                     holding.push_back(std::move(item));
                 }
             }
@@ -77,8 +87,8 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
     return ret;
 }
 
-bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& slave_id, ModbusCoils& coils, ModbusInputStatus& input_status, 
-    ModbusHoldingRegisters& holding, ModbusHoldingRegisters& input, NumModbusEntries& num_entries) const
+bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& slave_id, ModbusItemType& coils, ModbusItemType& input_status,
+    ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries) const
 {
     bool ret = true;
     boost::property_tree::ptree pt;
@@ -92,15 +102,29 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
     for(auto& m : coils)
     {
         auto& coil_node = coils_node.add_child("Coil", boost::property_tree::ptree{});
-        coil_node.add("Name", m.first);
-        coil_node.add("LastVal", m.second);
+        coil_node.add("Name", m->m_Name);
+        coil_node.add("LastVal", m->m_Value);
     }
     auto& inputstatuses_node = root_node.add_child("InputStatuses", boost::property_tree::ptree{});
     for(auto& m : input_status)
     {
         auto& input_node = inputstatuses_node.add_child("InputStatus", boost::property_tree::ptree{});
-        input_node.add("Name", m.first);
-        input_node.add("LastVal", m.second);
+        input_node.add("Name", m->m_Name);
+        input_node.add("LastVal", m->m_Value);
+    }
+    auto& holdingregisters_node = root_node.add_child("HoldingRegisters", boost::property_tree::ptree{});
+    for(auto& m : holding)
+    {
+        auto& holding_node = holdingregisters_node.add_child("Holding", boost::property_tree::ptree{});
+        holding_node.add("Name", m->m_Name);
+        holding_node.add("LastVal", m->m_Value);
+    }
+    auto& inputregisters_node = root_node.add_child("InputRegisters", boost::property_tree::ptree{});
+    for(auto& m : input)
+    {
+        auto& input_node = inputregisters_node.add_child("Input", boost::property_tree::ptree{});
+        input_node.add("Name", m->m_Name);
+        input_node.add("LastVal", m->m_Value);
     }
 
     try
@@ -118,19 +142,26 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
 
 ModbusEntryHandler::ModbusEntryHandler(XmlModbusEnteryLoader& loader) : m_ModbusEntryLoader(loader)
 {
-    if(ModbusMasterSerialPort::Get()->IsEnabled())
-        m_workerModbus = std::make_unique<std::jthread>(std::bind_front(&ModbusEntryHandler::ModbusWorker, this));
+    start_time = std::chrono::steady_clock::now();
+    m_Serial = std::make_unique<ModbusMasterSerialPort>();
+    m_workerModbus = std::make_unique<std::jthread>(std::bind_front(&ModbusEntryHandler::ModbusWorker, this));
+    utils::SetThreadName(*m_workerModbus, "ModbusWorker");
 }
 
 ModbusEntryHandler::~ModbusEntryHandler()
 {
+    m_isMainThreadPaused = false;
+    cv.notify_all();
     if(m_workerModbus)
-        m_workerModbus->request_stop();
+        m_workerModbus.reset();
+    m_Serial.reset();
 }
 
 void ModbusEntryHandler::Init()
 {
     m_ModbusEntryLoader.Load(m_DefaultConfigName, m_slaveId, m_coils, m_inputStatus, m_Holding, m_Input, m_numEntries);
+
+    is_recoding = auto_recording;  /* Toggle auto recording */
 }
 
 void ModbusEntryHandler::Save()
@@ -138,7 +169,99 @@ void ModbusEntryHandler::Save()
     m_ModbusEntryLoader.Save("Modbus2.xml", m_slaveId, m_coils, m_inputStatus, m_Holding, m_Input, m_numEntries);
 }
 
-void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusCoils& coils, size_t num_coils, CoilStatusPanel* panel)
+void ModbusEntryHandler::SetModbusHelper(IModbusHelper* helper)
+{
+    m_helper = helper;
+    m_Serial->SetHelper(helper);
+}
+
+void ModbusEntryHandler::SetEnabled(bool enable)
+{
+    m_Serial->SetEnabled(enable);
+    is_enabled = enable;
+    if(enable)
+        m_Serial->Init();
+}
+
+bool ModbusEntryHandler::IsEnabled() const
+{
+    return is_enabled;
+}
+
+void ModbusEntryHandler::SetPollingStatus(bool is_active)
+{
+    std::lock_guard lock(m);
+    m_isMainThreadPaused = !is_active;
+    if(is_active)
+        cv.notify_one();
+}
+
+void ModbusEntryHandler::ToggleAutoSend(bool toggle)
+{
+    auto_send = toggle;
+    SetPollingStatus(toggle);
+}
+
+void ModbusEntryHandler::ToggleRecording(bool toggle, bool is_pause)
+{
+    std::scoped_lock lock{ m };
+    is_recoding = toggle;
+
+    if(!is_pause && !toggle)
+    {
+        tx_frame_cnt = rx_frame_cnt = 0;
+        m_LogEntries.clear();
+    }
+}
+
+void ModbusEntryHandler::ClearRecording()
+{
+    std::scoped_lock lock{ m };
+    tx_frame_cnt = rx_frame_cnt = 0;
+    m_LogEntries.clear();
+}
+
+bool ModbusEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
+{
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    std::scoped_lock lock{ m };
+    bool ret = false;
+    if(!m_LogEntries.empty())
+    {
+        std::ofstream out(path, std::ofstream::binary);
+        if(out.is_open())
+        {
+            out << "Time,Direction,FunctionCode,DataSize,Data\n";
+            for(auto& i : m_LogEntries)
+            {
+                std::string hex;
+                utils::ConvertHexBufferToString(i->data, hex);
+                uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(i->last_execution - start_time).count();
+                out << std::format("{:.3f},{},{},{},{}\n", static_cast<double>(elapsed) / 1000.0, i->direction == 0 ? "TX" : "RX",
+                    static_cast<uint32_t>(i->fcode), i->data.size(), hex);
+            }
+            out.flush();
+            ret = true;
+        }
+        else
+        {
+            LOG(LogLevel::Error, "Failed to open file for saving Modbus recording: {}", path.generic_string());
+        }
+    }
+
+    if(ret)
+    {
+        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+        int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        std::unique_lock lock(frame->mtx);
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::ModbusLogSaved), dif, path.generic_string() });
+    }
+    return ret;
+}
+
+void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel)
 {
     std::vector<uint8_t> changed_rows;
     int cnt = 0;
@@ -150,24 +273,25 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusCoil
             bool bit_val = reg[cnt] & (1 << x);
             size_t coil_pos_in_vec = (cnt * 8) + x;
 
-            if(coil_pos_in_vec >= num_coils)
+            if(coil_pos_in_vec >= num_items)
             {
                 to_exit = true;
                 break;
             }
 
-            if(coil_pos_in_vec < coils.size())
+            if(coil_pos_in_vec < items.size())
             {
-                if(coils[coil_pos_in_vec].second != bit_val)
+                if(items[coil_pos_in_vec]->m_Value != bit_val)
                 {
-                    coils[coil_pos_in_vec].second = bit_val;
+                    items[coil_pos_in_vec]->m_Value = bit_val;
                     changed_rows.push_back(coil_pos_in_vec);
                 }
             }
             else
             {
-                coils.push_back({ "Unknown", bit_val });
-                changed_rows.push_back(coils.size() - 1);
+                std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_BOOL, bit_val, 0, 0, false, 0.0f);
+                items.push_back(std::move(item));
+                changed_rows.push_back(items.size() - 1);
             }
         }
 
@@ -180,33 +304,31 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusCoil
         panel->UpdateChangesOnly(changed_rows);
 }
 
-void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, ModbusHoldingRegisters& holding, size_t num_coils, ModbusRegisterPanel* panel)
+void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel)
 {
     std::vector<uint8_t> changed_rows;
     int coil_pos_in_vec = 0;
-    bool to_exit = false;
     for(auto& i : reg)
     {
-        if(coil_pos_in_vec >= num_coils)
+        if(coil_pos_in_vec >= num_items)
         {
-            to_exit = true;
             break;
         }
 
-        if(coil_pos_in_vec < holding.size())
+        if(coil_pos_in_vec < items.size())
         {
-            if(holding[coil_pos_in_vec]->m_Value != i)
+            if(items[coil_pos_in_vec]->m_Value != i)
             {
-                holding[coil_pos_in_vec]->m_Value = i;
+                items[coil_pos_in_vec]->m_Value = i;
                 changed_rows.push_back(coil_pos_in_vec);
             }
         }
         else
         {
-            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", i, 0, 0, false, 0.0f);
-            holding.push_back(std::move(item));
+            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_UI16, i, 0, 0, false, 0.0f);
+            items.push_back(std::move(item));
 
-            changed_rows.push_back(holding.size() - 1);
+            changed_rows.push_back(items.size() - 1);
         }
         coil_pos_in_vec++;
     }
@@ -215,58 +337,96 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
         panel->UpdateChangesOnly(changed_rows);
 }
 
+void ModbusEntryHandler::WaitIfPaused()
+{
+    std::unique_lock lk(m);
+    cv.wait(lk, [this] { return !m_isMainThreadPaused; });
+}
+
+void ModbusEntryHandler::HandlePolling()
+{
+    ModbusItemPanel* panel_coil = nullptr;
+    ModbusItemPanel* panel_input = nullptr;
+    ModbusItemPanel* panel_holding = nullptr;
+    ModbusItemPanel* panel_inputReg = nullptr;
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if(frame && frame->is_initialized && frame->modbus_master_panel)
+    {
+        panel_coil = frame->modbus_master_panel->data_panel->m_coil;
+        panel_input = frame->modbus_master_panel->data_panel->m_input;
+        panel_holding = frame->modbus_master_panel->data_panel->m_holding;
+        panel_inputReg = frame->modbus_master_panel->data_panel->m_inputReg;
+    }
+
+    {
+        std::vector<uint8_t> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
+        if(!reg.empty())
+            HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
+        else
+            err_frame_cnt++;
+    }
+
+    {
+        std::vector<uint8_t> reg = m_Serial->ReadInputStatus(m_slaveId, 0, m_numEntries.inputStatus);
+        if(!reg.empty())
+            HandleBoolReading(reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
+        else
+            err_frame_cnt++;
+    }
+
+    {
+        std::vector<uint16_t> reg = m_Serial->ReadHoldingRegister(m_slaveId, 0, m_numEntries.holdingRegisters);
+        if(!reg.empty())
+            HandleRegisterReading(reg, m_Holding, m_numEntries.holdingRegisters, panel_holding);
+        else
+            err_frame_cnt++;
+    }
+
+    {
+        std::vector<uint16_t> reg = m_Serial->ReadInputRegister(m_slaveId, 0, m_numEntries.inputRegisters);
+        if(!reg.empty())
+            HandleRegisterReading(reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
+        else
+            err_frame_cnt++;
+    }
+
+    tx_frame_cnt += 4;
+    rx_frame_cnt += 4;
+}
+
+void ModbusEntryHandler::HandleWrites()
+{
+    for(auto& c : m_pendingCoilWrites)
+    {
+        m_Serial->ForceSingleCoil(m_slaveId, c.first, c.second);
+        tx_frame_cnt++;
+        rx_frame_cnt++;
+    }
+    for(auto& c : m_pendingHoldingWrites)
+    {
+        std::vector<uint16_t> vec;
+        vec.push_back(c.second & 0xFFFF);
+        m_Serial->WriteHoldingRegister(m_slaveId, c.first, 1, vec);
+        tx_frame_cnt++;
+        rx_frame_cnt++;
+    }
+    m_pendingCoilWrites.clear();
+    m_pendingHoldingWrites.clear();
+}
+
 void ModbusEntryHandler::ModbusWorker(std::stop_token token)
 {
+    m_Serial->SetStopToken(token);
     std::this_thread::sleep_for(200ms);
     while(!token.stop_requested())
     {
-        CoilStatusPanel* panel_coil = nullptr;
-        CoilStatusPanel* panel_input = nullptr;
-        ModbusRegisterPanel* panel_holding = nullptr;
-        ModbusRegisterPanel* panel_inputReg = nullptr;
-        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
-        if(frame && frame->is_initialized && frame->modbus_master_panel)
-        {
-            panel_coil = frame->modbus_master_panel->m_coil;
-            panel_input = frame->modbus_master_panel->m_input;
-            panel_holding = frame->modbus_master_panel->m_holding;
-            panel_inputReg = frame->modbus_master_panel->m_inputReg;
-        }
+        WaitIfPaused();
 
-
+        if(!token.stop_requested())
         {
-            std::vector<uint8_t> reg = ModbusMasterSerialPort::Get()->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
-            HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
+            HandlePolling();
+            HandleWrites();
+            std::this_thread::sleep_for(std::chrono::milliseconds(m_pollingRate));
         }
-
-        {
-            std::vector<uint8_t> reg = ModbusMasterSerialPort::Get()->ReadInputStatus(m_slaveId, 0, m_numEntries.inputStatus);
-            HandleBoolReading(reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
-        }
-
-        {
-            std::vector<uint16_t> reg = ModbusMasterSerialPort::Get()->ReadHoldingRegister(m_slaveId, 0, m_numEntries.holdingRegisters);
-            HandleRegisterReading(reg, m_Holding, m_numEntries.holdingRegisters, panel_holding);
-        }
-
-        {
-            std::vector<uint16_t> reg = ModbusMasterSerialPort::Get()->ReadInputRegister(m_slaveId, 0, m_numEntries.inputRegisters);
-            HandleRegisterReading(reg, m_Input, m_numEntries.inputRegisters, panel_holding);
-        }
-
-        for(auto& c : m_pendingCoilWrites)
-        {
-            ModbusMasterSerialPort::Get()->ForceSingleCoil(m_slaveId, c.first, c.second);
-        }
-        for(auto& c : m_pendingHoldingWrites)
-        {
-            std::vector<uint16_t> vec;
-            vec.push_back(c.second & 0xFFFF);
-            ModbusMasterSerialPort::Get()->WriteHoldingRegister(m_slaveId, c.first, 1, vec);
-        }
-        m_pendingCoilWrites.clear();
-        m_pendingHoldingWrites.clear();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(m_pollingRate));
     }
 }

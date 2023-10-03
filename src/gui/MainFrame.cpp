@@ -69,6 +69,7 @@ SOFTWARE." + "\n\nUsed 3rd party libraries:\n"
 "boost: " + BOOST_LIB_VERSION + "\n" +
 "lodepng: " + LODEPNG_VERSION_STRING + "\n" +
 "HIDAPI: " + HID_API_VERSION_STR + "\n" +
+"opencv: " + CV_VERSION + "\n" +
 "Build info:\n" +
 "Compiler: " + BOOST_COMPILER + "\n"
 "Built on: " + __TIMESTAMP__, "OK");
@@ -169,6 +170,10 @@ void MyFrame::OnSize(wxSizeEvent& event)
 			if(can_panel->script)
 				can_panel->script->SetSize(a);
 			can_panel->m_notebook->Layout();
+		}
+		if(modbus_master_panel)
+		{
+			modbus_master_panel->SetSize(a);
 		}
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
@@ -290,6 +295,9 @@ void MyFrame::On10msTimer(wxTimerEvent& event)
 	HandleAlwaysOnNumlock();
 	if(can_panel)
 		can_panel->On10MsTimer();
+	if(modbus_master_panel)
+		modbus_master_panel->On10MsTimer();
+
 	Logger::Get()->Tick();
 }
 
@@ -738,6 +746,25 @@ void MyFrame::HandleNotifications()
 					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
 					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
 					ShowNotificaiton("CAN Log saved", wxString::Format("Can log saved in %.3fms\nPath: %s",
+						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
+						{
+#ifdef _WIN32
+							char work_dir[1024];
+							GetCurrentDirectoryA(sizeof(work_dir) - 1, work_dir);
+							std::string abs_file = work_dir + std::string("\\") + filename;
+
+							boost::algorithm::replace_all(abs_file, "/", "\\");  /* Fix for path separator */
+							std::string cmdline = std::string("/select,\"" + abs_file + "\"");
+							ShellExecuteA(NULL, "open", "explorer.exe", cmdline.c_str(), NULL, SW_NORMAL);
+#endif
+						});
+					break;
+				}				
+				case ModbusLogSaved:
+				{
+					int64_t time_elapsed = std::any_cast<decltype(time_elapsed)>(ret[1]);
+					std::string filename = std::any_cast<decltype(filename)>(ret[2]);
+					ShowNotificaiton("Modbus Log saved", wxString::Format("Modbus log saved in %.3fms\nPath: %s",
 						(double)time_elapsed / 1000000.0, filename), 3, wxICON_INFORMATION, [this, filename](wxCommandEvent& event)
 						{
 #ifdef _WIN32

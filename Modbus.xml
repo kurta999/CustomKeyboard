@@ -91,5 +91,19 @@
       <LastVal>0</LastVal>
     </Holding>
   </HoldingRegisters>
+  <InputRegisters>
+    <Input>
+      <Name>First</Name>
+      <LastVal>0</LastVal>
+    </Input>
+    <Input>
+      <Name>First</Name>
+      <LastVal>0</LastVal>
+    </Input>
+    <Input>
+      <Name>First</Name>
+      <LastVal>0</LastVal>
+    </Input>
+  </InputRegisters>
 </Modbus>
 	
