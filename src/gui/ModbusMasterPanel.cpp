@@ -66,21 +66,50 @@ void ModbusItemPanel::UpdatePanel()
         m_grid->DeleteRows(0, m_grid->GetNumberRows());
 
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-
-    for(auto& i : m_items)
+    for(auto& e : m_items)
     {
         m_grid->AppendRows(1);
         int num_row = m_grid->GetNumberRows() - 1;
         m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
 
-        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), i->m_Name);
-        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%lld", i->m_Value));
+        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), e->m_Name);
+        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%lld", e->m_Value));
 
-        for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+        if(e->m_color)
         {
-            m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
-
+            for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+                m_grid->SetCellTextColour(num_row, i, RGB_TO_WXCOLOR(*e->m_color));
         }
+
+        if(e->m_bg_color)  /* Set custom color if it's given */
+        {
+            for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+                m_grid->SetCellBackgroundColour(num_row, i, RGB_TO_WXCOLOR(*e->m_bg_color));
+        }
+        else  /* Otherway use two colors alternately for all of the lines */
+        {
+            for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+                m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
+        }
+
+        if(e->m_is_bold || e->m_scale != 1.0 || !e->m_font_face.empty())
+        {
+            wxFont font;
+            font.SetWeight(e->m_is_bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
+            font.Scale(1.0f);  /* Scale has to be set to default first */
+
+            for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+                m_grid->SetCellFont(num_row, i, font);
+
+            font.Scale(e->m_scale);
+
+            if(!e->m_font_face.empty())
+                font.SetFaceName(e->m_font_face);
+
+            for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
+                m_grid->SetCellFont(num_row, i, font);
+        }
+
         if(m_isReadOnly)
             m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, true);
     }

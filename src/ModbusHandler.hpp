@@ -16,14 +16,11 @@ public:
 class ModbusLogEntry
 {
 public:
-    ModbusLogEntry(uint8_t dir, uint8_t fc, uint8_t* data_, size_t data_len, std::chrono::steady_clock::time_point& timepoint)
+    ModbusLogEntry(uint8_t dir, uint8_t fc, uint8_t* data_, size_t data_len, std::chrono::steady_clock::time_point& timepoint) : 
+        direction(dir), fcode(fc), last_execution(timepoint)
     {
         if(data_ && data_len)
             data.insert(data.end(), data_, data_ + data_len);
-
-        direction = dir;
-        fcode = fc;
-        last_execution = timepoint;
     }
 
     std::vector<uint8_t> data;
@@ -64,13 +61,6 @@ public:
     void ClearRecording();
     bool SaveRecordingToFile(std::filesystem::path& path);
 
-    uint8_t m_slaveId;
-    ModbusItemType m_coils;
-    ModbusItemType m_inputStatus;
-    ModbusItemType m_Holding;
-    ModbusItemType m_Input;
-    NumModbusEntries m_numEntries;
-
     void SetPollingRate(uint16_t rate_ms) { m_pollingRate = rate_ms; }
     uint16_t GetPollingRate() const { return m_pollingRate; }
 
@@ -85,6 +75,13 @@ public:
     size_t GetTxFrameCount() { return tx_frame_cnt; }
     size_t GetRxFrameCount() { return rx_frame_cnt; }
     size_t GetErrFrameCount() { return err_frame_cnt; }
+
+    uint8_t m_slaveId;
+    ModbusItemType m_coils;
+    ModbusItemType m_inputStatus;
+    ModbusItemType m_Holding;
+    ModbusItemType m_Input;
+    NumModbusEntries m_numEntries;
 
     std::vector<std::unique_ptr<ModbusLogEntry>> m_LogEntries;
 
@@ -129,8 +126,7 @@ private:
     // !\brief Worker thread
     std::unique_ptr<std::jthread> m_workerModbus;
 
-    std::condition_variable cv;
-
+    std::condition_variable_any cv;
     
     bool m_isMainThreadPaused = false;
 

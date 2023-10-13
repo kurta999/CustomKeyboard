@@ -36,40 +36,71 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 continue;
             }
 
+            enum ModbusItemTypes { COIL, INPUT_STATUS, INPUT_REGISTER, HOLDING_REGISTER, UNKNOWN};
+            ModbusItemTypes register_type = ModbusItemTypes::UNKNOWN;
+            ModbusBitfieldType register_value_type = ModbusBitfieldType::MBT_BOOL;
+            ModbusItemType* item = nullptr;
             int pos = 0;
             for(const boost::property_tree::ptree::value_type& m : v.second) /* loop over each nested child */
             {
                 if(m.first == "Coil")
                 {
-                    std::string name = m.second.get_child("Name").get_value<std::string>();
-                    bool last_val = m.second.get_child("LastVal").get_value<bool>();
-
-                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_BOOL, last_val, 0, 0, false, 0.0f);
-                    coils.push_back(std::move(item));
+                    register_type = COIL;
+                    item = &coils;
                 }
                 else if(m.first == "InputStatus")
                 {
-                    std::string name = m.second.get_child("Name").get_value<std::string>();
-                    bool last_val = m.second.get_child("LastVal").get_value<bool>();
-
-                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_BOOL, last_val, 0, 0, false, 0.0f);
-                    input_status.push_back(std::move(item));
+                    register_type = INPUT_STATUS;
+                    item = &input_status;
                 }
-                else if(m.first == "InputStatuses")
+                else if(m.first == "Input")
                 {
-                    std::string name = m.second.get_child("Name").get_value<std::string>();
-                    uint64_t last_val = m.second.get_child("LastVal").get_value<uint64_t>();
-
-                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_UI16, last_val, 0, 0, false, 0.0f);
-                    input.push_back(std::move(item));
+                    register_type = INPUT_REGISTER;
+                    item = &input;
+                    register_value_type = ModbusBitfieldType::MBT_UI16;
                 }
                 else if(m.first == "Holding")
                 {
-                    std::string name = m.second.get_child("Name").get_value<std::string>();
-                    uint64_t last_val = m.second.get_child("LastVal").get_value<uint64_t>();
+                    register_type = HOLDING_REGISTER;
+                    item = &holding;
+                    register_value_type = ModbusBitfieldType::MBT_UI16;
+                }
 
-                    std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>(name, MBT_UI16, last_val, 0, 0, false, 0.0f);
-                    holding.push_back(std::move(item));
+                if(register_type != UNKNOWN)
+                {
+                    std::string name = m.second.get_child("Name").get_value<std::string>();
+                    bool last_val = m.second.get_child("LastVal").get_value<bool>();
+
+                    boost::optional<std::string> color;
+                    boost::optional<std::string> bg_color;
+                    boost::optional<bool> is_bold;
+                    boost::optional<float> is_scale;
+                    boost::optional<std::string> is_font_face;
+                    utils::xml::ReadChildIfexists<std::string>(m, "Color", color);
+                    utils::xml::ReadChildIfexists<std::string>(m, "BackgroundColor", bg_color);
+                    utils::xml::ReadChildIfexists<float>(m, "Scale", is_scale);
+                    utils::xml::ReadChildIfexists<std::string>(m, "FontFace", is_font_face);
+
+                    std::optional<uint32_t> color_;
+                    std::optional<uint32_t> bg_color_;
+                    std::optional<bool> is_bold_;
+                    std::optional<float> is_scale_;
+                    std::optional<std::string> is_font_face_;
+
+                    if(color.has_value())
+                        color_ = utils::ColorStringToInt(*color);
+                    if(bg_color.has_value())
+                        bg_color_ = utils::ColorStringToInt(*bg_color);
+                    if(is_bold.has_value() && *is_bold)
+                        is_bold_ = true;
+                    if(is_scale.has_value())
+                        is_scale_ = *is_scale;
+                    if(is_font_face.has_value())
+                        is_font_face_ = *is_font_face;
+
+                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, register_value_type, last_val, color_, bg_color_, is_bold_, is_scale_, is_font_face_);
+                    item->push_back(std::move(ptr));
+
                 }
             }
         }
@@ -98,33 +129,36 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
     root_node.add("NumInputStatus", num_entries.inputStatus);
     root_node.add("NumHoldingRegisters", num_entries.holdingRegisters);
     root_node.add("NumInputRegisters", num_entries.inputRegisters);
+    root_node.add("SlaveAddress", slave_id);
     auto& coils_node = root_node.add_child("Coils", boost::property_tree::ptree{});
-    for(auto& m : coils)
+
+    ModbusItemType* items[] = { &coils, &input_status, &holding, &input };
+    std::string child_names[] = { "Coils", "InputStatus", "Holding", "Input" };
+    std::string subchild_names[] = { "Coils", "InputStatuses", "HoldingRegisters", "InputRegisters" };
+
+    int id = 0;
+    for(auto& i : items)
     {
-        auto& coil_node = coils_node.add_child("Coil", boost::property_tree::ptree{});
-        coil_node.add("Name", m->m_Name);
-        coil_node.add("LastVal", m->m_Value);
-    }
-    auto& inputstatuses_node = root_node.add_child("InputStatuses", boost::property_tree::ptree{});
-    for(auto& m : input_status)
-    {
-        auto& input_node = inputstatuses_node.add_child("InputStatus", boost::property_tree::ptree{});
-        input_node.add("Name", m->m_Name);
-        input_node.add("LastVal", m->m_Value);
-    }
-    auto& holdingregisters_node = root_node.add_child("HoldingRegisters", boost::property_tree::ptree{});
-    for(auto& m : holding)
-    {
-        auto& holding_node = holdingregisters_node.add_child("Holding", boost::property_tree::ptree{});
-        holding_node.add("Name", m->m_Name);
-        holding_node.add("LastVal", m->m_Value);
-    }
-    auto& inputregisters_node = root_node.add_child("InputRegisters", boost::property_tree::ptree{});
-    for(auto& m : input)
-    {
-        auto& input_node = inputregisters_node.add_child("Input", boost::property_tree::ptree{});
-        input_node.add("Name", m->m_Name);
-        input_node.add("LastVal", m->m_Value);
+        auto& register_node = root_node.add_child(child_names[id], boost::property_tree::ptree{});
+        for(auto& m : coils)
+        {
+            auto& sub_node = register_node.add_child(subchild_names[id], boost::property_tree::ptree{});
+            sub_node.add("Name", m->m_Name);
+            sub_node.add("LastVal", m->m_Value);
+
+            if(m->m_color)
+                sub_node.add("Color", utils::ColorIntToString(*m->m_color));
+            if(m->m_bg_color)
+                sub_node.add("BackgroundColor", utils::ColorIntToString(*m->m_bg_color));
+            if(m->m_is_bold)
+                sub_node.add("Bold", "1");
+            if(m->m_scale != 1.0f)
+                sub_node.add("Scale", std::format("{:.1f}", m->m_scale));
+            if(!m->m_font_face.empty())
+                sub_node.add("FontFace", m->m_font_face);
+
+        }
+        id++;
     }
 
     try
@@ -359,6 +393,7 @@ void ModbusEntryHandler::HandlePolling()
     }
 
     {
+        LOG(LogLevel::Verbose, "ReadCoilStatus");
         std::vector<uint8_t> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
         if(!reg.empty())
             HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
@@ -398,17 +433,31 @@ void ModbusEntryHandler::HandleWrites()
 {
     for(auto& c : m_pendingCoilWrites)
     {
-        m_Serial->ForceSingleCoil(m_slaveId, c.first, c.second);
-        tx_frame_cnt++;
-        rx_frame_cnt++;
+        std::vector<uint8_t> reg = m_Serial->ForceSingleCoil(m_slaveId, c.first, c.second);
+        if(!reg.empty())
+        {
+            tx_frame_cnt++;
+            rx_frame_cnt++;
+        }
+        else
+        {
+            err_frame_cnt++;
+        }
     }
     for(auto& c : m_pendingHoldingWrites)
     {
         std::vector<uint16_t> vec;
         vec.push_back(c.second & 0xFFFF);
-        m_Serial->WriteHoldingRegister(m_slaveId, c.first, 1, vec);
-        tx_frame_cnt++;
-        rx_frame_cnt++;
+        std::vector<uint8_t> reg = m_Serial->WriteHoldingRegister(m_slaveId, c.first, 1, vec);
+        if(!reg.empty())
+        {
+            tx_frame_cnt++;
+            rx_frame_cnt++;
+        }
+        else
+        {
+            err_frame_cnt++;
+        }
     }
     m_pendingCoilWrites.clear();
     m_pendingHoldingWrites.clear();
@@ -422,11 +471,13 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
     {
         WaitIfPaused();
 
-        if(!token.stop_requested())
+        HandlePolling();
+        //HandleWrites();
+            
         {
-            HandlePolling();
-            HandleWrites();
-            std::this_thread::sleep_for(std::chrono::milliseconds(m_pollingRate));
+            std::unique_lock lock(m);
+            auto now = std::chrono::system_clock::now();
+            cv.wait_until(lock, token, now + std::chrono::milliseconds(m_pollingRate), []() { return 0 == 1; });
         }
     }
 }

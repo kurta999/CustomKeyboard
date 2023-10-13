@@ -25,16 +25,45 @@ public:
     void SetHelper(IModbusHelper* helper) { m_Helper = helper; }
 
 private:
+
+    enum ModbusFunctionCodes : uint8_t
+    {
+        FC_ReadCoilStatus = 1,
+        FC_ReadInputStatus = 2,
+        FC_ReadHoldingRegister = 3,
+        FC_ReadInputRegister = 4,
+        FC_ForceSingleCoil = 5,
+        FC_WriteSingleRegister = 6,
+        FC_WriteMultipleRegister = 16,
+    };
+
     enum ResponseStatus : uint8_t
     {
         Ok,
         Timeout,
+        ModbusError,
         CrcError
     };
 
+    enum ModbusErrors
+    {
+        IllegalFunction = 129,  // 1 
+        IllegalDataAddr,        // 2
+        IllegalDataVal,         // 3
+        SlaveFailure,
+        Ack,
+        SlaveBusy,
+        Nack,
+        MemParityError,
+        GatewayUnavailable = 143,
+        GatewayTargetFailed
+    };
+
+    std::map<uint8_t, size_t> modbusErrorCount;
+
     void AddCrcToFrame(std::vector<uint8_t>& vec);
     ResponseStatus NotifyAndWaitForResponse(const std::vector<uint8_t>& vec);
-    ResponseStatus WaitForResponse();
+    bool WaitForResponse();
 
     std::chrono::steady_clock::time_point last_tx_time;
 

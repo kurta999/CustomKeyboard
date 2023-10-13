@@ -25,18 +25,38 @@ enum ModbusBitfieldType : uint8_t
     MBT_BOOL, MBT_UI8, MBT_I8, MBT_UI16, MBT_I16, MBT_UI32, MBT_I32, MBT_UI64, MBT_I64, MBT_FLOAT, MBT_DOUBLE, MBT_INVALID
 };
 
-class ModbusItem : public BasicGuiTextCustomization
+class ModbusItem 
 {
 public:
-    ModbusItem(const std::string& name, ModbusBitfieldType type, uint64_t value, uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
-        m_Name(name), m_Type(type), m_Value(value), BasicGuiTextCustomization(color, bg_color, is_bold, scale)
+    ModbusItem(const std::string& name, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_, std::optional<uint32_t> bg_color_, std::optional<bool> is_bold_,
+        std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
+        m_Name(name), m_Type(type), m_Value(value), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
-
+        if(scale.has_value())
+            m_scale = *scale;
+        if(font_face.has_value())
+            m_font_face = *font_face;
     }
 
     std::string m_Name;
     ModbusBitfieldType m_Type;
     uint64_t m_Value;
+
+    // !\brief Text color
+    std::optional<uint32_t> m_color;
+
+    // !\brief Text background color
+    std::optional<uint32_t> m_bg_color;
+
+    // !\brief Is text bold?
+    bool m_is_bold{ false };
+
+    // !\brief Text scale
+    float m_scale{ 1.0f };
+
+    // !\brief Font face
+    std::string m_font_face;
+
 };
 
 

@@ -9,6 +9,7 @@
 		<Coil>
 			<Name>First</Name>
 			<LastVal>0</LastVal>
+      <Color>red</Color>
 		</Coil>
 		<Coil>
 			<Name>First</Name>
