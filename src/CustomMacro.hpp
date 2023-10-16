@@ -48,7 +48,7 @@ typedef struct
 
 enum MacroTypes : uint8_t
 {
-    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, BASH, CMD, CMD_XML, MAX
+    BIND_NAME, KEY_SEQ, KEY_TYPE, DELAY, MOUSE_MOVE, MOUSE_INTERPOLATE, MOUSE_PRESS, MOUSE_RELEASE, MOUSE_CLICK, BASH, CMD, CMD_XML, CMD_FG, CMD_IMG, MAX
 };
 
 class IKey
@@ -285,7 +285,7 @@ class CommandExecute final : public IKey
 public:
     CommandExecute(std::string cmd_) : cmd(cmd_) {}
     CommandExecute(const CommandExecute& from) { cmd = from.cmd; }
-    /*BashCommand(const std::string&& str) : cmd(str)
+    /*CommandExecute(const std::string&& str) : cmd(str)
     {}*/
     virtual ~CommandExecute() = default;
     CommandExecute* Clone() override { return new CommandExecute(*this); }
@@ -309,7 +309,7 @@ class CommandXml final : public IKey
 public:
     CommandXml(std::string cmd_) : cmd(cmd_) {}
     CommandXml(const CommandXml& from) { cmd = from.cmd; }
-    /*BashCommand(const std::string&& str) : cmd(str)
+    /*CommandXml(const std::string&& str) : cmd(str)
     {}*/
     virtual ~CommandXml() = default;
     CommandXml* Clone() override { return new CommandXml(*this); }
@@ -326,6 +326,63 @@ public:
 private:
     std::string cmd;
     static inline const char* name = "CMD_XML";
+};
+
+class KeyBringAppToForeground final : public IKey
+{
+public:
+    KeyBringAppToForeground(std::string app_, std::string title_) : app(app_), title(title_) {}
+    KeyBringAppToForeground(const KeyBringAppToForeground& from) { title = from.title; app = from.app; }
+    KeyBringAppToForeground(const std::string&& str);
+    virtual ~KeyBringAppToForeground() = default;
+    KeyBringAppToForeground* Clone() override { return new KeyBringAppToForeground(*this); }
+    void Execute() override;
+
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name; }
+
+    std::string GetApp()
+    {
+        return app;
+    }
+    std::string GetTitle()
+    {
+        return title;
+    }
+
+private:
+    std::string app;
+    std::string title;
+    static inline const char* name = "CMD_FG";
+};
+
+class KeyFindImageOnScreen final : public IKey
+{
+public:
+    //KeyFindImageOnScreen(std::string app_, std::string title_) : app(app_), title(title_) {}
+    //KeyFindImageOnScreen(const KeyFindImageOnScreen& from) { title = from.title; app = from.app; }
+    KeyFindImageOnScreen(const std::string&& str);
+    virtual ~KeyFindImageOnScreen() = default;
+    KeyFindImageOnScreen* Clone() override { return new KeyFindImageOnScreen(*this); }
+    void Execute() override;
+
+    std::string GenerateText(bool is_ini_format) override;
+    const char* GetName() override { return name; }
+
+    std::filesystem::path GetImagePath()
+    {
+        return image_path;
+    }
+
+    POINT GetOffset()
+    {
+        return offset;
+    }
+
+private:
+    std::filesystem::path image_path;
+    POINT offset;
+    static inline const char* name = "CMD_FG";
 };
 
 /* each given macro per-app get's a macro container */

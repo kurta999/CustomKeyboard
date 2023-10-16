@@ -436,9 +436,13 @@ void CommandXml::Execute()
     std::vector<std::string> params;
     boost::split(params, cmd, boost::is_any_of("+"));
 
-    std::unique_ptr<CmdExecutor>& cmd = wxGetApp().cmd_executor;
+    std::unique_ptr<CmdExecutor>& cmd_executor = wxGetApp().cmd_executor;
     if(params.size() == 2)
-        cmd->ExecuteByName(params[0], params[1]);
+        cmd_executor->ExecuteByName(params[0], params[1]);
+    else
+    {
+        LOG(LogLevel::Warning, "Invalid input: {}", cmd);
+    }
 }
 
 std::string CommandXml::GenerateText(bool is_ini_format)
@@ -447,18 +451,107 @@ std::string CommandXml::GenerateText(bool is_ini_format)
     return ret;
 }
 
+KeyBringAppToForeground::KeyBringAppToForeground(const std::string&& str)
+{
+    std::vector<std::string> params;
+    boost::split(params, str, boost::is_any_of(","));
+    if(params.size() == 2)
+    {
+        app = std::move(params[0]);
+        title = std::move(params[1]);
+    }
+    else
+    {
+        LOG(LogLevel::Warning, "Invalid input: {}", str);
+    }
+}
+
+void KeyBringAppToForeground::Execute()
+{
+    ImageRecognition::BringWindowToForegroundByName(app, title);
+}
+
+std::string KeyBringAppToForeground::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" CMD_FG[{},{}]", app, title) : std::format("{},{}", app, title);
+    return ret;
+}
+
+KeyFindImageOnScreen::KeyFindImageOnScreen(const std::string&& str)
+{
+    std::vector<std::string> params;
+    boost::split(params, str, boost::is_any_of(","));
+    if(params.size() == 3)
+    {
+        image_path = std::move(params[0]);
+        offset.x = std::stoi(params[1]);
+        offset.y = std::stoi(params[2]);
+    }
+    else
+    {
+        LOG(LogLevel::Warning, "Invalid input: {}", str);
+    }
+}
+
+void KeyFindImageOnScreen::Execute()
+{
+    int x = 0, y = 0;
+    bool ret = ImageRecognition::FindImageOnScreen(image_path.generic_string(), x, y);
+    if(ret)
+    {
+        POINT pos;
+        pos.x = x;
+        pos.y = y;
+        ImageRecognition::MoveCursorAndClick(pos);
+    }
+    else
+    {
+        LOG(LogLevel::Verbose, "Image isn't found on screen");
+    }
+}
+
+std::string KeyFindImageOnScreen::GenerateText(bool is_ini_format)
+{
+    std::string ret = is_ini_format ? std::format(" CMD_IMG[{},{},{}]", image_path.generic_string(), offset.x, offset.y) : 
+        std::format("{},{},{}", image_path.generic_string(), offset.x, offset.y);
+    return ret;
+}
+
 void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
 {
     constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[",
-        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[", "CMD_XML["};
+        "MOUSE_PRESS[", "MOUSE_RELEASE", "MOUSE_CLICK[", "BASH[", "CMD[", "CMD_XML[", "CMD_FG[", "CMD_IMG["};
     constexpr const size_t start_str_arr_lens[MAX_ITEMS] = { std::char_traits<char>::length(start_str_arr[0]),
         std::char_traits<char>::length(start_str_arr[1]), std::char_traits<char>::length(start_str_arr[2]), std::char_traits<char>::length(start_str_arr[3]),
         std::char_traits<char>::length(start_str_arr[4]), std::char_traits<char>::length(start_str_arr[5]), std::char_traits<char>::length(start_str_arr[6]),
         std::char_traits<char>::length(start_str_arr[7]), std::char_traits<char>::length(start_str_arr[8]), std::char_traits<char>::length(start_str_arr[9]),
-        std::char_traits<char>::length(start_str_arr[10]), std::char_traits<char>::length(start_str_arr[11]) };
+        std::char_traits<char>::length(start_str_arr[10]), std::char_traits<char>::length(start_str_arr[11]), std::char_traits<char>::length(start_str_arr[12]),
+        std::char_traits<char>::length(start_str_arr[13]) };
 
     constexpr const char* seq_separator = "+";
+
+    if(PrintScreenSaver::Get()->screenshot_key == key_code)
+    {
+        LOG(LogLevel::Warning, "Key \"{}\" is already assigned to PrintScreenSaver!");
+        return;
+    }
+    if(PathSeparator::Get()->replace_key == key_code)
+    {
+        LOG(LogLevel::Warning, "Key \"{}\" is already assigned to PathSeparator!");
+        return;
+    }
+    if(SymlinkCreator::Get()->mark_key == key_code || SymlinkCreator::Get()->place_symlink_key == key_code ||
+        SymlinkCreator::Get()->place_hardlink_key == key_code)
+    {
+        LOG(LogLevel::Warning, "Key \"{}\" is already assigned to SymlinkCreator!");
+        return;
+    }
+    if(bring_to_foreground_key == key_code)
+    {
+        LOG(LogLevel::Warning, "Key \"{}\" is already assigned to BringToForeground!");
+        return;
+    }
 
     size_t pos = 1;
     while(pos < str.length() - 1)
@@ -614,6 +707,20 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
                 c->key_vec[key_code].push_back(std::make_unique<CommandXml>(std::move(sequence)));
                 break;
             }
+            case MacroTypes::CMD_FG:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD_FG], first_end, start_str_arr_lens[MacroTypes::CMD_FG]);
+                c->key_vec[key_code].push_back(std::make_unique<KeyBringAppToForeground>(std::move(sequence)));
+                break;
+            }
+            case MacroTypes::CMD_IMG:
+            {
+                pos = first_end;
+                std::string sequence = utils::extract_string(str, first_pos[MacroTypes::CMD_IMG], first_end, start_str_arr_lens[MacroTypes::CMD_IMG]);
+                c->key_vec[key_code].push_back(std::make_unique<KeyFindImageOnScreen>(std::move(sequence)));
+                break;
+            }
             default:
             {
                 LOG(LogLevel::Error, "Invalid sequence/text format in line: {}", str.c_str());
@@ -749,7 +856,7 @@ void CustomMacro::ExecuteKeypresses()
     }
     if(PathSeparator::Get()->replace_key == pressed_keys)
     {
-        PathSeparator::Get()->ReplaceClipboard();
+        PathSeparator::Get()->ReplaceClipboard(PathSeparator::ReplaceType::PATH_SEPARATOR);
         return;
     }
     if(SymlinkCreator::Get()->HandleKeypress(pressed_keys))

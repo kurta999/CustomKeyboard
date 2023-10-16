@@ -88,6 +88,7 @@ namespace std
 #include "CmdExecutor.hpp"
 #include "ExceptionHandler.hpp"
 #include "BsecHandler.hpp"
+#include "ImageRecognition.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
@@ -159,6 +160,7 @@ namespace std
 #include <exdisp.h>
 #include <shlwapi.h>
 #include <powrprof.h>
+#include <tlhelp32.h>
 #include "Wtsapi32.h"
 #endif
 
@@ -194,6 +196,8 @@ namespace std
 #include <lodepng/lodepng.h>
 
 #include "utils/AsyncSerial.hpp"
+
+#include <opencv2/opencv.hpp>
 
 extern "C"
 {
