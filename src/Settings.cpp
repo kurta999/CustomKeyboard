@@ -215,6 +215,8 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "# BASH[key] = Execute specified command(s) with command line and keeps terminal shown\n";
     out << "# CMD[key] = Execute specified command(s) with command line without terminal\n";
     out << "# CMD_XML[PageName+CommandName] = Execute predefined command from Cmds.xml\n";
+    out << "# CMD_FG[app_name.exe,Window title name] = Bring specified app with given title to the foreground\n";
+    out << "# CMD_IMG[path_to_image,offset x,offset y] = Scan for given image on screen and clicks on it if found\n";
     out << "\n";
     out << "[Macro_Config]\n";
     out << "# Use per-application macros. AppName is searched in active window title, so window name must contain AppName\n";

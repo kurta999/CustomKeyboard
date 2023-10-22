@@ -11,7 +11,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
 
 ### 2. For General development:
-1. **Modbus Master** - Simple Modbus Master for polling Modbus Slave devices with GUI support. Coils, Input, Holding and Input registers supported. Supported register size is uint16_t, support for bigger types might be added in the future.
+1. **Modbus Master** - Simple Modbus Master for polling Modbus Slave devices with GUI support. Coils, Input, Holding and Input registers supported. Supported register size is uint16_t, support for bigger types might be added in the future. This is still in beta, every corner case haven't been tested.
 2. **Command excutor** - Bind specific commands (cmds) to GUI buttons with parameters support, which is then excuted on GUI button click - see more info below
 3. **StructParser** - Generate offsets of C structures and it's members
 4. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
@@ -68,7 +68,7 @@ This feature also works for Corsair G keys without using iCUE, read the "Backend
 **MOUSE_CLICK[key]** = Click (press and release) with mouse  
 **BASH[key]** = Execute specified command(s) with command line and keeps terminal shown  
 **CMD[key]** = Execute specified command(s) with command line without terminal  
-**CMD_XML[PageName+CommandName]** = Execute predefined command from Cmds.xml
+**CMD_XML[PageName+CommandName]** = Execute predefined command from Cmds.xml  
 **CMD_FG[app_name.exe,Window title name]** = Bring specified app with given title to the foreground  
 **CMD_IMG[path_to_image,offset x,offset y]** = Scan for given image on screen and clicks on it if found  
 \
@@ -197,7 +197,7 @@ Sleep <delay in milliseconds> - Script will sleep for given milliseconds
 ```c
 // Waiting until DID reading (service 22) appears on bus for DID 2000 
 SetFrameFieldRaw XXX_to_DTOOL 0x03222000AAAAAAA
-CheckFrameBlock DTOOL_TO_XXX 120000    
+WaitForFrame DTOOL_TO_XXX 120000    
 
 // Set vehicle has cluth to 1 in VEHICLE_INFO frame 
 SetFrameField VehicleHasClutch 0x1

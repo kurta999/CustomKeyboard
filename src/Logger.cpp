@@ -120,10 +120,8 @@ LogLevel Logger::StringToLogLevel(const std::string& level)
 	LogLevel ret = LogLevel::Verbose;
 	if(boost::algorithm::icontains(level, "Debug"))
 		ret = LogLevel::Debug;
-/*
-	else if(level == "Verbose")
+	else if(boost::algorithm::icontains(level, "Verbose"))
 		ret = LogLevel::Verbose;
-*/
 	else if(boost::algorithm::icontains(level, "Normal"))
 		ret = LogLevel::Normal;
 	else if(boost::algorithm::icontains(level, "Notification"))
@@ -144,10 +142,8 @@ std::string Logger::LogLevelToString(LogLevel level)
 	std::string ret = "Verbose";
 	if(level == LogLevel::Debug)
 		ret = "Debug";
-/*
 	else if(level == LogLevel::Verbose)
-		ret = LogLevel::Verbose;
-*/
+		ret = "Verbose";
 	else if(level == LogLevel::Normal)
 		ret = "Normal";
 	else if(level == LogLevel::Notification)
