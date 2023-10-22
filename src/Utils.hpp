@@ -28,6 +28,9 @@
 #define WXCOLOR_TO_RGB(color) \
     boost::endian::endian_reverse(color << 8)
 
+template <typename T, typename... Ts>
+concept is_any = std::disjunction_v<std::is_same<T, Ts>...>;
+
 namespace utils
 {
     template<class> inline constexpr bool always_false_v = false;

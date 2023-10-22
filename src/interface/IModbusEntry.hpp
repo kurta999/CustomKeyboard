@@ -28,14 +28,16 @@ enum ModbusBitfieldType : uint8_t
 class ModbusItem 
 {
 public:
-    ModbusItem(const std::string& name, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_, std::optional<uint32_t> bg_color_, std::optional<bool> is_bold_,
-        std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
+    ModbusItem(const std::string& name, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {},
+        std::optional<bool> is_bold_ = false, std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
         m_Name(name), m_Type(type), m_Value(value), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
         if(scale.has_value())
             m_scale = *scale;
         if(font_face.has_value())
             m_font_face = *font_face;
+        if(is_bold_.has_value())
+            m_is_bold = *is_bold_;
     }
 
     std::string m_Name;

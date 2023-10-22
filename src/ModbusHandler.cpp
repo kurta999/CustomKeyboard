@@ -323,7 +323,7 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItem
             }
             else
             {
-                std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_BOOL, bit_val, 0, 0, false, 0.0f);
+                std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_BOOL, bit_val);
                 items.push_back(std::move(item));
                 changed_rows.push_back(items.size() - 1);
             }
@@ -359,7 +359,7 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
         }
         else
         {
-            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_UI16, i, 0, 0, false, 0.0f);
+            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_UI16, i);
             items.push_back(std::move(item));
 
             changed_rows.push_back(items.size() - 1);
@@ -393,7 +393,6 @@ void ModbusEntryHandler::HandlePolling()
     }
 
     {
-        LOG(LogLevel::Verbose, "ReadCoilStatus");
         std::vector<uint8_t> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
         if(!reg.empty())
             HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
