@@ -52,7 +52,29 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 
 ### 3. For Personal use:
 
-1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://gitlab.com/kurta999/UsbHost
+1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://gitlab.com/kurta999/UsbHost\  
+This feature also works for Corsair G keys without using iCUE, read the "Backend for Corsair's G Keys" section\
+\
+<span style="color:red">Supported macro types:</span>\
+**BIND_NAME[binding name]** = Set the name if macro. Should be used as first  
+**KEY_TYPE[text]** = Press & release given keys in sequence to type a text  
+**KEY_SEQ[CTRL+C]** = Press all given keys after each other and release it when each was pressed - ideal for key shortcats  
+**DELAY[time in ms]** = Waits for given milliseconds  
+**DELAY[min ms - max ms]** = Waits randomly between min ms and max ms  
+**MOUSE_MOVE[x,y]** = Move mouse to given coordinates  
+**MOUSE_INTERPOLATE[x,y]** = Move mouse with interpolation to given coordinates  
+**MOUSE_PRESS[key]** = Press given mouse key  
+**MOUSE_RELEASE[key]** = Release given mouse key  
+**MOUSE_CLICK[key]** = Click (press and release) with mouse  
+**BASH[key]** = Execute specified command(s) with command line and keeps terminal shown  
+**CMD[key]** = Execute specified command(s) with command line without terminal  
+**CMD_XML[PageName+CommandName]** = Execute predefined command from Cmds.xml
+**CMD_FG[app_name.exe,Window title name]** = Bring specified app with given title to the foreground  
+**CMD_IMG[path_to_image,offset x,offset y]** = Scan for given image on screen and clicks on it if found  
+\
+<span style="color:red">Examples:</span>\
+G1 = BIND_NAME[uint8_t] KEY_TYPE[uint8_t]\
+G4 = BIND_NAME[reddit CPP button] CMD_FG[chrome.exe,C++] CMD_IMG[test_image.png,3,3]
 
 2. **Sensors** - Backend means simple TCP server where sensor connencts and sends measurements. Average of easurements within specified integration period is inserted to SQLite database and a graph generated with last 30 measurements, last day & last week average data by default, this can be changed in settings.ini. Database is updated in every 10 minutes, but you can update manually by clicking on "Generate graphs" in front panel. Graphs can be seen at "you_local_ip:2005/graphs" by default. If your computer running and your sensor is connected, you can see the graphs in real time - even from your phone. 
 
