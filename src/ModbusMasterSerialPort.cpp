@@ -290,7 +290,7 @@ void ModbusMasterSerialPort::OnUartDataReceived(const char* data, unsigned int l
         if(modbus_handler && modbus_handler->is_recoding)
         {
             std::scoped_lock lock{ modbus_handler->m };
-            modbus_handler->m_LogEntries.push_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_RX, static_cast<uint8_t>(data[1]), (uint8_t*)data, static_cast<size_t>(len), t1));
+            modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_RX, static_cast<uint8_t>(data[1]), (uint8_t*)data, static_cast<size_t>(len), t1));
         }
     }
     m_RecvCv.notify_all();
@@ -310,7 +310,7 @@ void ModbusMasterSerialPort::OnDataSent(CallbackAsyncSerial& serial_port)
             if(modbus_handler && modbus_handler->is_recoding)
             {
                 std::scoped_lock lock{ modbus_handler->m };
-                modbus_handler->m_LogEntries.push_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_TX, static_cast<uint8_t>(m_SentData[1]), m_SentData.data(), data_size, t1));
+                modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_TX, static_cast<uint8_t>(m_SentData[1]), m_SentData.data(), data_size, t1));
             }
         }
 

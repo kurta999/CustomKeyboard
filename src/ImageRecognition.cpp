@@ -6,6 +6,7 @@ HMONITOR primaryMonitor;
 
 bool FindImageOnScreen(const std::string& image_name, int& x, int& y)
 {
+#ifdef USE_BSEC
     cv::Mat templateImage = cv::imread(image_name, cv::IMREAD_COLOR);
     if(templateImage.empty()) {
         return false;
@@ -69,11 +70,13 @@ bool FindImageOnScreen(const std::string& image_name, int& x, int& y)
         y = maxLoc.y;
         return true;
     }
+#endif
     return false;
 }
 
 void MoveCursorAndClick(POINT pos)
 {
+#ifdef USE_BSEC
     SetCursorPos(pos.x, pos.y);
 
     INPUT input = { 0 };
@@ -82,10 +85,12 @@ void MoveCursorAndClick(POINT pos)
     SendInput(1, &input, sizeof(input));
     input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
     SendInput(1, &input, sizeof(input));
+#endif
 }
 
 void GetAllWindowsFromProcessID(DWORD dwProcessID, std::vector <HWND>& vhWnds)
 {
+#ifdef USE_BSEC
     // find all hWnds (vhWnds) associated with a process id (dwProcessID)
     HWND hCurWnd = NULL;
     do
@@ -99,6 +104,7 @@ void GetAllWindowsFromProcessID(DWORD dwProcessID, std::vector <HWND>& vhWnds)
             //wprintf(L"Found hWnd %d\n", hCurWnd);
         }
     } while(hCurWnd != NULL);
+#endif
 }
 
 DWORD FindProcessId(const std::wstring& processName)

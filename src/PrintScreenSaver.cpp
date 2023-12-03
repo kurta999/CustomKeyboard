@@ -17,8 +17,11 @@ void PrintScreenSaver::SaveScreenshot()
     screenshot_future = std::async(&PrintScreenSaver::DoSave, this);
 }
 
-void PrintScreenSaver::FormatTimestamp(char* buf, uint8_t len)
+void PrintScreenSaver::FormatTimestamp(char* buf, size_t len)
 {
+    if(len < 5)
+        return;
+
     time_t rawtime;
     struct tm* timeinfo;
     time(&rawtime);

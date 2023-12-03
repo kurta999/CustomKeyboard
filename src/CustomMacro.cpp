@@ -197,7 +197,7 @@ void MouseInterpolate::Execute()
     POINT curr_pos;
     GetCursorPos(&curr_pos);
 
-    int steps = utils::random_mt(4000, 8000);
+    int steps = utils::random_mt(1000, 3000);
     for(int i = 0; i <= steps; i++)
     {
         int pos_x = std::round(std::lerp(static_cast<float>(curr_pos.x), static_cast<float>(to_screen.x), static_cast<float>(i) / static_cast<float>(steps)));
@@ -484,8 +484,15 @@ KeyFindImageOnScreen::KeyFindImageOnScreen(const std::string&& str)
     if(params.size() == 3)
     {
         image_path = std::move(params[0]);
-        offset.x = std::stoi(params[1]);
-        offset.y = std::stoi(params[2]);
+        try
+        {
+            offset.x = std::stoi(params[1]);
+            offset.y = std::stoi(params[2]);
+        }
+        catch(const std::exception& e)
+        {
+            LOG(LogLevel::Warning, "Invalid input, exception: {} - {}", str, e.what());
+        }
     }
     else
     {

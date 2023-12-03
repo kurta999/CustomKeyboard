@@ -381,7 +381,7 @@ public:
 
 private:
     std::filesystem::path image_path;
-    POINT offset;
+    POINT offset = {};
     static inline const char* name = "CMD_FG";
 };
 

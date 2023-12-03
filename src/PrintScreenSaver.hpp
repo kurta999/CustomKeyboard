@@ -30,7 +30,7 @@ public:
 
 private:
     // \brief Format screenshot filename timestamp
-    void FormatTimestamp(char* buf, uint8_t len);
+    void FormatTimestamp(char* buf, size_t len);
 
     // \brief Screenshot saving logic
     void DoSave();

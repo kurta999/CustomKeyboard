@@ -315,7 +315,7 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItem
 
             if(coil_pos_in_vec < items.size())
             {
-                if(items[coil_pos_in_vec]->m_Value != bit_val)
+                if(items[coil_pos_in_vec]->m_Value != (uint64_t)bit_val)
                 {
                     items[coil_pos_in_vec]->m_Value = bit_val;
                     changed_rows.push_back(coil_pos_in_vec);
