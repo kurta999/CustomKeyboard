@@ -38,6 +38,9 @@ public:
     // !\brief Is TCP backend server for sensors enabled?
     bool is_enabled = true;
 
+    // !\brief Is server setup correctly and run without errors?
+    bool is_ok = false;
+
     // !\brief TCP Server port
     uint16_t tcp_port = 2005;
 

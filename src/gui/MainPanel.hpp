@@ -10,6 +10,7 @@ public:
 	MainPanel(wxFrame* parent);
 	 
 	void UpdateKeybindings();
+	void UpdateStatuses();
 	void UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell);
 
 	wxButton* m_RefreshButton = nullptr;
@@ -47,5 +48,10 @@ private:
 	wxStaticText* m_CorsairDeviceName = nullptr;
 	wxStaticLine* m_CorsairSeparatorLine_1 = nullptr;
 	wxStaticLine* m_CorsairSeparatorLine_2 = nullptr;
+
+	wxStaticText* m_TcpBackendStatus = nullptr;
+	wxStaticText* m_KeyboardStatus = nullptr;
+	wxStaticText* m_CanStatus = nullptr;
+	wxStaticText* m_ModbusStatus = nullptr;
 	wxDECLARE_EVENT_TABLE();
 };

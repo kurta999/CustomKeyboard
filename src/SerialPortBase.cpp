@@ -48,6 +48,11 @@ uint16_t SerialPortBase::GetComPort() const
     return com_port;
 }
 
+bool SerialPortBase::IsOk() const
+{
+    return m_is_ok;
+}
+
 void SerialPortBase::NotifiyMainThread()
 {
     is_notification_pending = true;
@@ -82,9 +87,11 @@ void SerialPortBase::WorkerThread(std::stop_token token)
                 if(m_serial->errorStatus() || m_serial->isOpen() == false)
                 {
                     LOG(LogLevel::Error, "Serial port can unexpectedly closed");
+                    m_is_ok = false;
                     break;
                 }
 
+                m_is_ok = true;
                 {
                     std::unique_lock lock(m_mutex);
                     auto now = std::chrono::system_clock::now();
@@ -103,6 +110,7 @@ void SerialPortBase::WorkerThread(std::stop_token token)
             }
             try
             {
+                m_is_ok = false;
                 m_serial->close();
             }
             catch(const std::exception& e)
@@ -113,6 +121,7 @@ void SerialPortBase::WorkerThread(std::stop_token token)
         catch(const std::exception& e)
         {
             LOG(LogLevel::Error, "Exception {} serial {}", m_SerialName, e.what());
+            m_is_ok = false;
 
             std::unique_lock lock(m_mutex);
             m_cv.wait_for(lock, token, m_ExceptionTimeout, []() { return 1 == 0; });

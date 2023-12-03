@@ -259,10 +259,32 @@ MainPanel::MainPanel(wxFrame* parent)
 	ADD_GKEY("G17", "G17",	g17, g_key_box_sizer_3);
 	ADD_GKEY("G18", "G18",	g18, g_key_box_sizer_3);
 	third_vertical->Add(g_key_box_sizer_3);
-	
+
 	split_sizer->Add(third_vertical, wxSizerFlags(0));
 
+	// Statuses
+	split_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(3, 800), wxLI_VERTICAL), wxSizerFlags(0));
+	wxBoxSizer* v_status_sizer = new wxBoxSizer(wxVERTICAL);
+
+	m_TcpBackendStatus = new wxStaticText(this, wxID_ANY, "TCP Backend: ", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_TcpBackendStatus->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	v_status_sizer->Add(m_TcpBackendStatus);
+
+	m_KeyboardStatus = new wxStaticText(this, wxID_ANY, "Keyboard: ", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_KeyboardStatus->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	v_status_sizer->Add(m_KeyboardStatus);
+
+	m_CanStatus = new wxStaticText(this, wxID_ANY, "CAN: ", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_CanStatus->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	v_status_sizer->Add(m_CanStatus);
+
+	m_ModbusStatus = new wxStaticText(this, wxID_ANY, "Modbus: ", wxDefaultPosition, wxSize(-1, -1), 0);
+	m_ModbusStatus->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	v_status_sizer->Add(m_ModbusStatus);
+
+	split_sizer->Add(v_status_sizer);
 	UpdateKeybindings();
+	UpdateStatuses();
 
 	this->SetSizer(split_sizer);
 }
@@ -363,6 +385,86 @@ void MainPanel::UpdateKeybindings()
 
 	m_CorsairDeviceName->SetLabelText(wxString::Format("%s - %s", CorsairHid::Get()->GetDeviceName(), CorsairHid::Get()->IsOk() ? "OK" : "ERROR"));
 	m_CorsairDeviceName->SetForegroundColour(CorsairHid::Get()->IsOk() ? *wxBLUE : *wxRED);
+}
+
+void MainPanel::UpdateStatuses()
+{
+	if(Server::Get()->is_enabled)
+	{
+		if(Server::Get()->is_ok)
+		{
+			m_TcpBackendStatus->SetLabelText("TCP: OK");
+			m_TcpBackendStatus->SetForegroundColour(*wxGREEN);
+		}
+		else
+		{
+			m_TcpBackendStatus->SetLabelText("TCP: ERR");
+			m_TcpBackendStatus->SetForegroundColour(*wxRED);
+		}
+	}
+	else
+	{
+		m_TcpBackendStatus->SetLabelText("TCP: OFF");
+		m_TcpBackendStatus->SetForegroundColour(*wxBLUE);
+	}
+
+	if(SerialPort::Get()->IsEnabled())
+	{
+		if(SerialPort::Get()->IsOk())
+		{
+			m_KeyboardStatus->SetLabelText("Keyboard: OK");
+			m_KeyboardStatus->SetForegroundColour(*wxGREEN);
+		}
+		else
+		{
+			m_KeyboardStatus->SetLabelText("Keyboard: ERR");
+			m_KeyboardStatus->SetForegroundColour(*wxRED);
+		}
+	}
+	else
+	{
+		m_KeyboardStatus->SetLabelText("Keyboard: OFF");
+		m_KeyboardStatus->SetForegroundColour(*wxBLUE);
+	}
+
+	if(CanSerialPort::Get()->IsEnabled())
+	{
+		if(CanSerialPort::Get()->IsOk())
+		{
+			m_CanStatus->SetLabelText("CAN: OK");
+			m_CanStatus->SetForegroundColour(*wxGREEN);
+		}
+		else
+		{
+			m_CanStatus->SetLabelText("CAN: ERR");
+			m_CanStatus->SetForegroundColour(*wxRED);
+		}
+	}
+	else
+	{
+		m_CanStatus->SetLabelText("CAN: OFF");
+		m_CanStatus->SetForegroundColour(*wxBLUE);
+	}
+
+	std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+	if(modbus_handler->GetSerial().IsEnabled())
+	{
+		if(CanSerialPort::Get()->IsOk())
+		{
+			m_ModbusStatus->SetLabelText("Modbus: OK");
+			m_ModbusStatus->SetForegroundColour(*wxGREEN);
+		}
+		else
+		{
+			m_ModbusStatus->SetLabelText("Modbus: ERR");
+			m_ModbusStatus->SetForegroundColour(*wxRED);
+		}
+	}
+	else
+	{
+		m_ModbusStatus->SetLabelText("Modbus: OFF");
+		m_ModbusStatus->SetForegroundColour(*wxBLUE);
+	}
 }
 
 void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell)

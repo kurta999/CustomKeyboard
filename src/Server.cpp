@@ -85,6 +85,7 @@ bool Server::CreateAcceptor(unsigned short port)
         return false;
     }
     StartAccept();
+    is_ok = true;
     return true;
 }
 

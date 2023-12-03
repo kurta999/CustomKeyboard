@@ -20,8 +20,10 @@ public:
     bool IsEnabled() const override;
     void SetComPort(uint16_t port) override;
     uint16_t GetComPort() const override;
+    bool IsOk() const override;
     void NotifiyMainThread();
     void DestroyWorkerThread();
+   
 
 protected:
     std::unique_ptr<CallbackAsyncSerial> m_serial;
@@ -55,4 +57,7 @@ protected:
 
     // !\brief Conditional variable for main thread exiting
     std::condition_variable_any m_cv;
+
+    // !\brief Is serial status OK or ERROR?
+    bool m_is_ok = false;
 };
