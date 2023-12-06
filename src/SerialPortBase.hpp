@@ -14,7 +14,7 @@ public:
     ~SerialPortBase();
 
     void InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-        SerialRecvFunction recv_function, SerialSendFunction send_function) override;
+        SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600) override;
     void DeInitInternal() override;
     void SetEnabled(bool enable) override;
     bool IsEnabled() const override;
@@ -45,6 +45,9 @@ protected:
 
     // !\brief COM port number
     uint16_t com_port = 5;
+
+    // !\brief COM port baudrate
+    uint32_t m_Baudrate = 921600;
 
     // !\brief Worker thread
     std::unique_ptr<std::jthread> m_worker;

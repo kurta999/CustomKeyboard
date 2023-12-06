@@ -1,0 +1,32 @@
+<DataSenderXml>
+	<Data>
+		<Data>11 22 33 44 55 66 77 BB</Data>
+    <ExpectedResponse>AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC</ExpectedResponse>
+    <Type>hex</Type>
+		<Comment>First CAN msg</Comment>
+		<Crc>First CAN msg</Crc>
+    <Step>10</Step>
+    <Period>300</Period>
+    <ResponseTimeout>300</ResponseTimeout>
+	</Data>		
+  <Data>
+		<Data>AA BB CC</Data>
+    <ExpectedResponse>AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC</ExpectedResponse>
+    <Type>string</Type>
+		<Comment>First CAN msg</Comment>
+		<Crc>First CAN msg</Crc>
+    <Step>10</Step>
+    <Period>300</Period>
+    <ResponseTimeout>300</ResponseTimeout>
+	</Data>	
+  <Data>
+		<Data>DD EE FF 12 34</Data>
+    <ExpectedResponse>10 20 30</ExpectedResponse>
+    <Type>string</Type>
+		<Comment>First CAN msg</Comment>
+		<Crc>First CAN msg</Crc>
+    <Step>10</Step>
+    <Period>300</Period>
+    <ResponseTimeout>300</ResponseTimeout>
+	</Data>	
+</DataSenderXml>

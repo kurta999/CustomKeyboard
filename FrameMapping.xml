@@ -1,24 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
 <CanFrameMapping>
 	<Frame>
 		<ID>2C7</ID>
-		<Mapping offset = "0" len = "3" type = "uint8_t" bg_color="FF4466" bold="1" scale="2.1" desc="Test\nString">Data From MCU</Mapping>
-		<Mapping offset = "3" len = "3" type = "uint8_t" min="0" max="3" color="#33FF33">Data From MCU2</Mapping>
-		<Mapping offset = "6" len = "3" type = "uint8_t" color="red">Data From MCU3</Mapping>
+		<Name>First</Name>
+		<Size>2</Size>
+		<Direction>T</Direction>
+		<Mapping offset="0" len="3" type="uint8_t" min="0" max="255" bg_color="0xFF4466" bold="true" scale="2.0999999" desc="Test\nString">Data From MCU</Mapping>
+		<Mapping offset="3" len="3" type="uint8_t" min="0" max="3" color="#33FF33">Data From MCU2</Mapping>
+		<Mapping offset="6" len="3" type="uint8_t" min="0" max="255">Data From MCU3</Mapping>
 	</Frame>
 	<Frame>
 		<ID>411</ID>
-		<Mapping offset = "0" len = "8" type = "uint8_t">First</Mapping>
-		<Mapping offset = "8" len = "8" type = "uint8_t">Second</Mapping>
-		<Mapping offset = "16" len = "4" type = "uint8_t">nibble start</Mapping>
-		<Mapping offset = "20" len = "8" type = "uint8_t">nibble end</Mapping>
-		<Mapping offset = "28" len = "4" type = "uint8_t">finish nibble</Mapping>
-		<Mapping offset = "32" len = "8" type = "uint8_t">fifth byte</Mapping>
-		<Mapping offset = "40" len = "1" type = "bool">bool</Mapping>
-		<Mapping offset = "41" len = "7" type = "uint8_t">6th byte</Mapping>
-		<Mapping offset = "48" len = "16" type = "uint16_t" desc="Test\nString\nSecond">7&8th byte</Mapping>
+		<Name>Second</Name>
+		<Size>8</Size>
+		<Direction>T</Direction>
+		<Mapping offset="0" len="8" type="uint8_t" min="0" max="255">First</Mapping>
+		<Mapping offset="8" len="8" type="uint8_t" min="0" max="255">Second</Mapping>
+		<Mapping offset="16" len="4" type="uint8_t" min="0" max="255">nibble start</Mapping>
+		<Mapping offset="20" len="8" type="uint8_t" min="0" max="255">nibble end</Mapping>
+		<Mapping offset="28" len="4" type="uint8_t" min="0" max="255">finish nibble</Mapping>
+		<Mapping offset="32" len="8" type="uint8_t" min="0" max="255">fifth byte</Mapping>
+		<Mapping offset="40" len="1" type="bool" min="0" max="1">bool</Mapping>
+		<Mapping offset="41" len="7" type="uint8_t" min="0" max="255">6th byte</Mapping>
+		<Mapping offset="48" len="16" type="uint16_t" min="0" max="65535" desc="Test\nString\nSecond">7&amp;8th byte</Mapping>
 	</Frame>
 	<Frame>
 		<ID>444</ID>
-		<Mapping offset = "16" len = "4" type = "uint8_t">Vehicle state</Mapping>
+		<Name>BCM_A113</Name>
+		<Size>8</Size>
+		<Direction>T</Direction>
+		<Mapping offset="16" len="4" type="uint8_t" min="0" max="255">VehicleStates</Mapping>
 	</Frame>
 </CanFrameMapping>

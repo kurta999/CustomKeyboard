@@ -1,6 +1,6 @@
 #include "pch.hpp"
 
-void PathSeparator::ReplaceClipboard()
+void PathSeparator::ReplaceClipboard(ReplaceType type)
 {
 	if(wxTheClipboard->Open())
 	{
@@ -9,7 +9,20 @@ void PathSeparator::ReplaceClipboard()
 			wxTextDataObject data;
 			wxTheClipboard->GetData(data);
 			std::string input(data.GetText());
-			ReplaceString(input);
+
+			switch(type)
+			{
+				case ReplaceType::PATH_SEPARATOR:
+				{
+					ReplaceString(input);
+					break;
+				}				
+				case ReplaceType::WSL:
+				{
+					ReplaceStringFromWindowsToWsl(input);
+					break;
+				}
+			}
 
 			wxTheClipboard->SetData(new wxTextDataObject(input));
 			MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -29,4 +42,20 @@ void PathSeparator::ReplaceString(std::string& str)
 		boost::algorithm::replace_all(str, "\\", "/");
 	else
 		boost::algorithm::replace_all(str, "/", "\\");
+}
+
+void PathSeparator::ReplaceStringFromWindowsToWsl(std::string& str)
+{
+	size_t pos = str.find("/mnt/");
+	if(pos != std::string::npos)
+	{
+		boost::algorithm::replace_all(str, "/", "\\");
+		str.erase(0, 5); // erase mnt
+		str[0] = std::toupper(str[0]);
+		str.insert(1, ":");
+	}
+	else
+	{
+		boost::algorithm::replace_all(str, "\\", "/");
+	}
 }

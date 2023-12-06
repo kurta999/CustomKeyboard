@@ -140,6 +140,8 @@ Creating symlinks on Windows when debugging under VS for x64/Debug, Release, Rel
 mklink "TxList.xml" ..\..\TxList.xml
 mklink "RxList.xml" ..\..\RxList.xml
 mklink "FrameMapping.xml" ..\..\FrameMapping.xml
+mklink "Modbus.xml" ..\..\Modbus.xml
+mklink "DataSender.xml" ..\..\DataSender.xml
 mklink "settings.ini" ..\..\settings.ini
 
 **Linux**

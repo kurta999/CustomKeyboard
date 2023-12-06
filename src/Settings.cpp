@@ -102,6 +102,14 @@ void Settings::LoadFile()
         modbus_handler->ToggleAutoSend(utils::stob(pt.get_child("ModbusMaster").find("AutoSend")->second.data()));
         modbus_handler->ToggleAutoRecord(utils::stob(pt.get_child("ModbusMaster").find("AutoRecord")->second.data()));
 
+        std::unique_ptr<DataEntryHandler>& data_handler = wxGetApp().data_entry;
+        DataSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("DataSender").find("Enable")->second.data()));
+        DataSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("DataSender").find("COM")->second.data()));
+        data_handler->ToggleAutoSend(utils::stob(pt.get_child("DataSender").find("AutoSend")->second.data()));
+        data_handler->ToggleAutoRecord(utils::stob(pt.get_child("DataSender").find("AutoRecord")->second.data()));
+        //data_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
+        //data_handler->SetFavouriteLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultFavouriteLevel")->second.data()));
+
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());
         Logger::Get()->SetLogLevelAsString(pt.get_child("App").find("DefaultLogLevel")->second.data());
@@ -446,6 +454,8 @@ UsedPages Settings::ParseUsedPagesFromString(const std::string& in)
         pages.did = 1;
     if(boost::icontains(in, "ModbusMaster"))
         pages.modbus_master = 1;
+    if(boost::icontains(in, "DataSender"))
+        pages.data_sender = 1;
     if(boost::icontains(in, "Log"))
         pages.log = 1;
     return pages;
@@ -478,6 +488,8 @@ std::string Settings::ParseUsedPagesToString(UsedPages& in)
         pages += "Did, ";
     if(in.modbus_master)
         pages += "ModbusMaster, ";
+    if(in.data_sender)
+        pages += "DataSender, ";
     if(in.log)
         pages += "Log, ";
     if(pages.size() > 2)

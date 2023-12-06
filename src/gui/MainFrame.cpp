@@ -172,9 +172,9 @@ void MyFrame::OnSize(wxSizeEvent& event)
 			can_panel->m_notebook->Layout();
 		}
 		if(modbus_master_panel)
-		{
 			modbus_master_panel->SetSize(a);
-		}
+		if(data_sender_panel)
+			data_sender_panel->SetSize(a);
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
 		if(did_panel)
@@ -517,6 +517,8 @@ MyFrame::MyFrame(const wxString& title)
 		did_panel = new DidPanel(this);
 	if(used_pages.modbus_master)
 		modbus_master_panel = new ModbusMasterPanel(this);
+	if(used_pages.data_sender)
+		data_sender_panel = new DataSenderPanel(this);
 	if(used_pages.log)
 		log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
@@ -557,6 +559,8 @@ MyFrame::MyFrame(const wxString& title)
 		ctrl->AddPage(did_panel, "DID", false, wxArtProvider::GetBitmap(wxART_FIND, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.modbus_master)
 		ctrl->AddPage(modbus_master_panel, "ModbusMaster", false, wxArtProvider::GetBitmap(wxART_PRINT, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	if(used_pages.data_sender)
+		ctrl->AddPage(data_sender_panel, "DataSender", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.log)
 		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();

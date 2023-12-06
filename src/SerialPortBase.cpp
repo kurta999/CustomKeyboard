@@ -8,13 +8,14 @@ SerialPortBase::~SerialPortBase()
 }
 
 void SerialPortBase::InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-    SerialRecvFunction recv_function, SerialSendFunction send_function)
+    SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate)
 {
     m_SerialName = serial_name;
     m_MainTimeout = main_timeout;
     m_ExceptionTimeout = exception_timeout;
     m_RecvFunction = recv_function;
     m_SendFunction = send_function;
+    m_Baudrate = baudrate;
 
     if(!m_worker)
     {
@@ -76,9 +77,9 @@ void SerialPortBase::WorkerThread(std::stop_token token)
         try
         {
 #ifdef _WIN32
-            m_serial = std::make_unique<CallbackAsyncSerial>("\\\\.\\COM" + std::to_string(com_port), 921600);
+            m_serial = std::make_unique<CallbackAsyncSerial>("\\\\.\\COM" + std::to_string(com_port), m_Baudrate);
 #else
-            m_serial = std::make_unique<CallbackAsyncSerial>("/dev/ttyUSB" + std::to_string(com_port), 921600);
+            m_serial = std::make_unique<CallbackAsyncSerial>("/dev/ttyUSB" + std::to_string(com_port), m_Baudrate);
 #endif
             m_serial->setCallback(m_RecvFunction);
 

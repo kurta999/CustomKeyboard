@@ -118,7 +118,7 @@ public:
     /**
      * Read buffer maximum size
      */
-    static const int readBufferSize=512;
+    static const int readBufferSize=2048;
 private:
 
     /**

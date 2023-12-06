@@ -70,6 +70,7 @@ class Logger : public CSingleton < Logger >
 public:
     Logger();
     ~Logger() = default;
+
     void SetLogHelper(ILogHelper* helper);
 
     // !\brief Set default log level
