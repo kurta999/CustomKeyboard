@@ -13,12 +13,12 @@ bool MyApp::OnInit()
     cmd_executor = std::make_unique<CmdExecutor>();
     did_handler = std::make_unique<DidHandler>(did_xml_loader, did_xml_chace_loader, can_entry.get());
     modbus_handler = std::make_unique<ModbusEntryHandler>(modbus_entry_loader);
-    data_entry = std::make_unique<DataEntryHandler>(data_entry_loader);
+    //data_entry = std::make_unique<DataEntryHandler>(data_entry_loader);
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();
     CanSerialPort::Get()->Init();
-    DataSerialPort::Get()->Init();
+    //DataSerialPort::Get()->Init();
     Server::Get()->Init();
     Sensors::Get()->Init();
     StructParser::Get()->Init();
@@ -33,7 +33,7 @@ bool MyApp::OnInit()
     cmd_executor->Init();
     did_handler->Init();
     modbus_handler->Init();
-    data_entry->Init();
+    //data_entry->Init();
 
     if(!wxTaskBarIcon::IsAvailable())
         LOG(LogLevel::Warning, "There appears to be no system tray support in your current environment. This app may not behave as expected.");
@@ -49,13 +49,13 @@ int MyApp::OnExit()
     is_init_finished = false;
     
     CanSerialPort::CSingleton::Destroy();
-    DataSerialPort::CSingleton::Destroy();
+    //DataSerialPort::CSingleton::Destroy();
 
     did_handler.reset(nullptr);  /* First this has to be destructed, because it uses CanEntryHandler */
     can_entry.reset(nullptr);
     cmd_executor.reset(nullptr);
     modbus_handler.reset(nullptr);
-    data_entry.reset(nullptr);
+    //data_entry.reset(nullptr);
 
     IdlePowerSaver::CSingleton::Destroy();  /* Restore CPU power to 100%, this has to be destructed before Logger */
     Settings::CSingleton::Destroy();

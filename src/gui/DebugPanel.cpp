@@ -27,7 +27,7 @@ DebugPanel::DebugPanel(wxFrame* parent)
 	m_PathSeparatorReplace->SetToolTip("Replace path separators in clipboard");
 	m_PathSeparatorReplace->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-			PathSeparator::Get()->ReplaceClipboard();
+			//PathSeparator::Get()->ReplaceClipboard();
         });
 	bSizer1->Add(m_PathSeparatorReplace);	
 	

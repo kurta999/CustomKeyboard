@@ -48,7 +48,7 @@ namespace std
 #include "gui/MapConverterPanel.hpp"
 #include "gui/ModbusMasterPanel.hpp"
 #include "gui/CmdExecutorPanel.hpp"
-#include "gui/DataSenderPanel.hpp"
+//#include "gui/DataSenderPanel.hpp"
 #include "gui/DidPanel.hpp"
 
 #include "Logger.hpp"
@@ -90,8 +90,8 @@ namespace std
 #include "ExceptionHandler.hpp"
 #include "BsecHandler.hpp"
 #include "ImageRecognition.hpp"
-#include "DataSender.hpp"
-#include "DataSerialPort.hpp"
+//#include "DataSender.hpp"
+//#include "DataSerialPort.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

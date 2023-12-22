@@ -1,43 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
 <CanUsbRxXml>
 	<Frame>
+		<ID>4EE</ID>
+		<LogLevel>0</LogLevel>
+		<Comment>Test 1</Comment>
+	</Frame>
+	<Frame>
 		<ID>2C7</ID>
-		<Comment>First</Comment>
 		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>392</ID>
-		<Comment>Second</Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>547</ID>
-		<Comment>Fifth</Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>687</ID>
-		<Comment>Third</Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>CFD</ID>
-		<Comment>Fourth </Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>9BC</ID>
-		<Comment>ISO-TP</Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>510</ID>
-		<Comment>ISO-TP</Comment>
-		<LogLevel>0</LogLevel>
-	</Frame>
-	<Frame>
-		<ID>ABC</ID>
-		<Comment>ISO-TP</Comment>
-		<LogLevel>0</LogLevel>
+		<Comment>Test 2</Comment>
 	</Frame>
 </CanUsbRxXml>

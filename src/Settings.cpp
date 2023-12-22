@@ -101,12 +101,12 @@ void Settings::LoadFile()
         modbus_handler->SetDefaultConfigName(pt.get_child("ModbusMaster").find("DefaultModbusConfig")->second.data());
         modbus_handler->ToggleAutoSend(utils::stob(pt.get_child("ModbusMaster").find("AutoSend")->second.data()));
         modbus_handler->ToggleAutoRecord(utils::stob(pt.get_child("ModbusMaster").find("AutoRecord")->second.data()));
-
+        /*
         std::unique_ptr<DataEntryHandler>& data_handler = wxGetApp().data_entry;
         DataSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("DataSender").find("Enable")->second.data()));
         DataSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("DataSender").find("COM")->second.data()));
         data_handler->ToggleAutoSend(utils::stob(pt.get_child("DataSender").find("AutoSend")->second.data()));
-        data_handler->ToggleAutoRecord(utils::stob(pt.get_child("DataSender").find("AutoRecord")->second.data()));
+        data_handler->ToggleAutoRecord(utils::stob(pt.get_child("DataSender").find("AutoRecord")->second.data()));*/
         //data_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
         //data_handler->SetFavouriteLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultFavouriteLevel")->second.data()));
 
