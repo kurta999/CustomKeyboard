@@ -35,6 +35,10 @@ void TcpMessageExecutor::SetCurrentSession(SharedSession session, size_t len)
 TcpMessageReturn TcpMessageExecutor::HandleAirQualityData(std::any param)
 {
 	bool ret = Sensors::Get()->ProcessIncommingData(m_recv_data, m_len, m_session->sessionAddress.c_str());
+	if(Server::Get()->forward_port != 0 && ret)
+	{
+		utils::SendTcpBlocking(Server::Get()->forward_ip_address, Server::Get()->forward_port, m_recv_data, m_len, 100);
+	}
 	return std::make_tuple(true, true, "");
 }
 

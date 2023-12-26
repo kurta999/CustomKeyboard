@@ -50,6 +50,34 @@ void Server::BroadcastMessage(const std::string& msg)
     }
 }
 
+void Server::SetForwardIpAddress(const std::string& ip)
+{
+    if(ip != "null")
+    {
+        size_t pos = ip.find(':');
+        if(pos != std::string::npos)
+        {
+			forward_ip_address = ip.substr(0, pos);
+            try
+            {
+				forward_port = std::stoi(ip.substr(pos + 1));
+			}
+            catch(const std::exception& e)
+            {
+                LOG(LogLevel::Error, "stoi exception: {}", e.what());
+            }
+		}
+    }
+}
+
+const std::string Server::GetForwardIpAddress()
+{
+    if(forward_ip_address == "null")
+		return forward_ip_address;
+
+    return forward_ip_address + ":" + std::to_string(forward_port);
+}
+
 bool Server::CreateAcceptor(unsigned short port)
 {
     boost::system::error_code error;

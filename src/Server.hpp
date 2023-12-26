@@ -35,6 +35,12 @@ public:
     // !\param msg [in] TCP Server port
     void BroadcastMessage(const std::string& msg);
     
+    // !\brief Set Forward TCP Server port
+    void SetForwardIpAddress(const std::string& ip);
+
+    // !\brief Get Forward TCP Server port
+    const std::string GetForwardIpAddress();
+
     // !\brief Is TCP backend server for sensors enabled?
     bool is_enabled = true;
 
@@ -43,6 +49,10 @@ public:
 
     // !\brief TCP Server port
     uint16_t tcp_port = 2005;
+
+    std::string forward_ip_address = "null";
+
+    uint32_t forward_port = 0;
 
     // !\brief IP addresses used by connected sensor(s)
     std::set<uint32_t> used_ip_addresses;
