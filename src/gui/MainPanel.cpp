@@ -347,7 +347,7 @@ void MainPanel::UpdateKeybindings()
 	{
 		if(key_map["G18"]->IsShown())
 		{
-			for(uint8_t i = 0; i <= 18; i++)
+			for(uint8_t i = 1; i <= 18; i++)
 			{
 				key_map["G" + std::to_string(i)]->Hide();
 			}
