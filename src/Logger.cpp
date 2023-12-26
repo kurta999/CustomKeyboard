@@ -39,8 +39,14 @@ void Logger::SetLogFilters(const std::string& filter_list)
 	m_LogFilters.clear();
 	std::vector<std::string> filters;
 	boost::split(filters, filter_list, [](char input) { return input == '|'; }, boost::algorithm::token_compress_on);
-	for(auto& i : filters)
-		m_LogFilters.push_back(i);
+	if(!filters.empty())
+	{
+		for(auto& i : filters)
+		{
+			if(i.empty()) continue;
+			m_LogFilters.push_back(i);
+		}
+	}
 }
 
 std::string Logger::GetLogFilters()
