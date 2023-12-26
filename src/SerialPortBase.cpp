@@ -49,6 +49,16 @@ uint16_t SerialPortBase::GetComPort() const
     return com_port;
 }
 
+void SerialPortBase::SetBaudrate(uint32_t baudrate)
+{
+    m_Baudrate = baudrate;
+}
+
+uint32_t SerialPortBase::GetBaudrate() const
+{
+    return m_Baudrate;
+}
+
 bool SerialPortBase::IsOk() const
 {
     return m_is_ok;

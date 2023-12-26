@@ -19,5 +19,7 @@ public:
     virtual bool IsEnabled() const = 0;
     virtual void SetComPort(uint16_t port) = 0;
     virtual uint16_t GetComPort() const = 0;
+    virtual void SetBaudrate(uint32_t baudrate) = 0;
+    virtual uint32_t GetBaudrate() const = 0;
     virtual bool IsOk() const = 0;
 };

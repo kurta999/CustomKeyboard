@@ -102,14 +102,13 @@ void Settings::LoadFile()
         modbus_handler->SetDefaultConfigName(pt.get_child("ModbusMaster").find("DefaultModbusConfig")->second.data());
         modbus_handler->ToggleAutoSend(utils::stob(pt.get_child("ModbusMaster").find("AutoSend")->second.data()));
         modbus_handler->ToggleAutoRecord(utils::stob(pt.get_child("ModbusMaster").find("AutoRecord")->second.data()));
-        /*
-        std::unique_ptr<DataEntryHandler>& data_handler = wxGetApp().data_entry;
+        
+        std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
         DataSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("DataSender").find("Enable")->second.data()));
         DataSerialPort::Get()->SetComPort(utils::stoi<uint16_t>(pt.get_child("DataSender").find("COM")->second.data()));
-        data_handler->ToggleAutoSend(utils::stob(pt.get_child("DataSender").find("AutoSend")->second.data()));
-        data_handler->ToggleAutoRecord(utils::stob(pt.get_child("DataSender").find("AutoRecord")->second.data()));*/
-        //data_handler->SetRecordingLogLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultRecordingLogLevel")->second.data()));
-        //data_handler->SetFavouriteLevel(utils::stoi<uint8_t>(pt.get_child("CANSender").find("DefaultFavouriteLevel")->second.data()));
+        data_sender->ToggleAutoSend(utils::stob(pt.get_child("DataSender").find("AutoSend")->second.data()));
+        data_sender->ToggleAutoRecord(utils::stob(pt.get_child("DataSender").find("AutoRecord")->second.data()));
+        DataSerialPort::Get()->SetBaudrate(utils::stoi<uint32_t>(pt.get_child("DataSender").find("Baudrate")->second.data()));
 
         minimize_on_exit = utils::stob(pt.get_child("App").find("MinimizeOnExit")->second.data());
         minimize_on_startup = utils::stob(pt.get_child("App").find("MinimizeOnStartup")->second.data());

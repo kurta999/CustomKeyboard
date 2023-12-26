@@ -448,6 +448,8 @@
     <ClInclude Include="src\CustomMacro.hpp" />
     <ClInclude Include="src\DatabaseImpl.hpp" />
     <ClInclude Include="src\DatabaseLogic.hpp" />
+    <ClInclude Include="src\DataSender.hpp" />
+    <ClInclude Include="src\DataSerialPort.hpp" />
     <ClInclude Include="src\DidHandler.hpp" />
     <ClInclude Include="src\DirectoryBackup.hpp" />
     <ClInclude Include="src\ExceptionHandler.hpp" />
@@ -463,6 +465,7 @@
     <ClInclude Include="src\gui\CmdExecutorPanel.hpp" />
     <ClInclude Include="src\gui\Configuration.hpp" />
     <ClInclude Include="src\gui\ConfigurationBackup.hpp" />
+    <ClInclude Include="src\gui\DataSenderPanel.hpp" />
     <ClInclude Include="src\gui\DebugPanel.hpp" />
     <ClInclude Include="src\gui\DidPanel.hpp" />
     <ClInclude Include="src\gui\Editor.hpp" />
@@ -669,6 +672,8 @@
     <ClCompile Include="src\CustomMacro.cpp" />
     <ClCompile Include="src\DatabaseImpl.cpp" />
     <ClCompile Include="src\DatabaseLogic.cpp" />
+    <ClCompile Include="src\DataSender.cpp" />
+    <ClCompile Include="src\DataSerialPort.cpp" />
     <ClCompile Include="src\DidHandler.cpp" />
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\ExceptionHandler.cpp" />
@@ -682,6 +687,7 @@
     <ClCompile Include="src\gui\CmdExecutorPanel.cpp" />
     <ClCompile Include="src\gui\Configuration.cpp" />
     <ClCompile Include="src\gui\ConfigurationBackup.cpp" />
+    <ClCompile Include="src\gui\DataSenderPanel.cpp" />
     <ClCompile Include="src\gui\DebugPanel.cpp" />
     <ClCompile Include="src\gui\DidPanel.cpp" />
     <ClCompile Include="src\gui\Editor.cpp" />
@@ -736,6 +742,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\XmlDataEntryLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc" />

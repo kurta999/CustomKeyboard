@@ -9,7 +9,7 @@
 #include "FilePanel.hpp"
 #include "CanPanel/CanPanel.hpp"
 #include "ModbusMasterPanel.hpp"
-//#include "DataSenderPanel.hpp"
+#include "DataSenderPanel.hpp"
 #include "CmdExecutorPanel.hpp"
 #include "MapConverterPanel.hpp"
 #include "DidPanel.hpp"
@@ -92,7 +92,7 @@ public:
 	CmdExecutorPanelBase* cmd_panel = nullptr;
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
-	//DataSenderPanel* data_sender_panel = nullptr;
+	DataSenderPanel* data_sender_panel = nullptr;
 	MapConverterPanel* map_converter_panel = nullptr;
 	DidPanel* did_panel = nullptr;
 	LogPanel* log_panel = nullptr;

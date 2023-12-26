@@ -20,6 +20,8 @@ public:
     bool IsEnabled() const override;
     void SetComPort(uint16_t port) override;
     uint16_t GetComPort() const override;
+    virtual void SetBaudrate(uint32_t baudrate) override;
+    virtual uint32_t GetBaudrate() const override;
     bool IsOk() const override;
     void NotifiyMainThread();
     void DestroyWorkerThread();
