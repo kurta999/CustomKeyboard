@@ -206,7 +206,11 @@ void Settings::LoadFile()
 
 void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini writer but it doesn't support comments... sticking to plain file functions */
 {
+    if(write_default_macros)
+        used_pages.pages = 0xFFFF;
+
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
+    std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
     std::ofstream out(SETTINGS_FILE_PATH, std::ofstream::binary);
     out << "# Possible macro keywords: \n";
@@ -318,6 +322,13 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "DefaultModbusConfig = " << modbus_handler->GetDefaultConfigName() << "\n";
     out << "AutoSend = " << modbus_handler->IsAutoSend() << "\n";
     out << "AutoRecord = " << modbus_handler->IsAutoRecord() << "\n";
+    out << "\n";
+    out << "[DataSender]\n";
+    out << "Enable = " << DataSerialPort::Get()->IsEnabled() << "\n";
+    out << "COM = " << DataSerialPort::Get()->GetComPort() << " # Com port for Modbus Master UART where data is received/sent from/to Modbus\n";
+    out << "AutoSend = " << data_sender->IsAutoSend() << "\n";
+    out << "AutoRecord = " << data_sender->IsAutoRecord() << "\n";
+    out << "Baudrate = " << DataSerialPort::Get()->GetBaudrate() << "\n";
     out << "\n";
     out << "[App]\n";
     out << "MinimizeOnExit = " << minimize_on_exit << "\n";
