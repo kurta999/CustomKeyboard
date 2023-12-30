@@ -1,0 +1,43 @@
+<map edf:definitions="editor_main">
+    <object id="object (barrel4) (1)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2496.8" posY="-1672.7" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (2)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2495.1001" posY="-1672.7" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="Test name" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2495.2" posY="-1674.5" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (4)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2497.3" posY="-1674.5" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (5)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2497.8" posY="-1676.4" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (6)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2495.7" posY="-1676.4" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (7)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2496.1001" posY="-1678.2" posZ="12.7" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (8)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2498.6001" posY="-1678.5" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (9)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2499.3999" posY="-1680.8" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel4) (10)" breakable="true" interior="0" alpha="255" model="1225" doublesided="false" scale="1" dimension="0" posX="2497" posY="-1680.7" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel1) (1)" breakable="true" interior="0" alpha="255" model="1218" doublesided="false" scale="1" dimension="0" posX="2493.3" posY="-1672.8" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel1) (2)" breakable="true" interior="0" alpha="255" model="1218" doublesided="false" scale="1" dimension="0" posX="2493.5" posY="-1674.3" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel1) (3)" breakable="true" interior="0" alpha="255" model="1218" doublesided="false" scale="1" dimension="0" posX="2493.8" posY="-1675.9" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel1) (4)" breakable="true" interior="0" alpha="255" model="1218" doublesided="false" scale="1" dimension="0" posX="2493.8999" posY="-1677.6" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (barrel1) (5)" breakable="true" interior="0" alpha="255" model="1218" doublesided="false" scale="1" dimension="0" posX="2494.8999" posY="-1680.4" posZ="12.8" rotX="0" rotY="0" rotZ="0"></object>
+    <removeWorldObject id="removeWorldObject (DYN_F_WOOD_3) (1)" radius="3.9235072" interior="0" model="1418" lodModel="0" posX="2512.2603" posY="-1683.3933" posZ="13.23491" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+    <removeWorldObject id="removeWorldObject (DYN_F_WOOD_3) (2)" radius="3.9235072" interior="0" model="1418" lodModel="0" posX="2517.1848" posY="-1684.8617" posZ="13.54322" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+    <removeWorldObject id="removeWorldObject (DYN_F_R_WOOD_1b) (1)" radius="4.4629288" interior="0" model="1410" lodModel="0" posX="2498.24" posY="-1688.2301" posZ="13.29551" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+    <removeWorldObject id="removeWorldObject (DYN_F_R_WOOD_1b) (2)" radius="4.4629288" interior="0" model="1410" lodModel="0" posX="2493.1587" posY="-1687.9418" posZ="13.38806" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+    <removeWorldObject id="removeWorldObject (DYN_F_R_WOOD_1b) (3)" radius="4.4629288" interior="0" model="1410" lodModel="0" posX="2487.8357" posY="-1687.9991" posZ="13.15044" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+    <vehicle id="vehicle (Remington) (1)" paintjob="2" interior="0" alpha="255" model="534" plate="BUZI" dimension="0" posX="2485.2" posY="-1679.5" posZ="13.2" rotX="0" rotY="0" rotZ="0" upgrades="1087,1010,1126,1185,1178,1080,1122" color="15,133,3,254,236,233,0,0,0,0,0,0"></vehicle>
+    <vehicle id="vehicle (Sultan) (1)" paintjob="3" interior="0" alpha="210" model="560" plate="5NRR Q73" dimension="0" posX="2480.8999" posY="-1679.1" posZ="13.1" rotX="0" rotY="0" rotZ="0" upgrades="1033,1138,1028,1079,1010,1087,1030,1169,1141" color="1,4,136,151,149,146,0,0,0,0,0,0"></vehicle>
+    <pickup id="pickup (health) (1)" type="health" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2476.6001" posY="-1684.3" posZ="13.4" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (M4) (1)" type="31" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2474.3999" posY="-1683.4" posZ="13.4" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (Deagle) (1)" type="24" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2471.8999" posY="-1681.9" posZ="13.4" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (health) (4)" type="health" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2482.8" posY="-1679.5" posZ="13.3" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (armor) (1)" type="armor" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2470.2" posY="-1679.9" posZ="13.5" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (Grenade) (1)" type="16" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2468.7" posY="-1678.4" posZ="13.5" rotX="0" rotY="0" rotZ="0"></pickup>
+    <pickup id="pickup (Minigun) (1)" type="38" interior="0" amount="100" respawn="30000" dimension="0" alpha="255" posX="2467.8" posY="-1677.2" posZ="13.5" rotX="0" rotY="0" rotZ="0"></pickup>
+    <ped id="I would fuck her ass" dimension="0" model="169" interior="0" rotZ="0.003" frozen="false" alpha="255" posX="2478.8" posY="-1685.9" posZ="13.5" rotX="0" rotY="0"></ped>
+    <ped id="ped (2)" dimension="0" model="219" interior="0" rotZ="30" frozen="false" alpha="255" posX="2480.7" posY="-1686.1" posZ="13.5" rotX="0" rotY="0"></ped>
+    <ped id="Staff member guy" dimension="0" model="217" interior="0" rotZ="180" frozen="false" alpha="255" posX="2477" posY="-1686.1" posZ="13.5" rotX="0" rotY="0"></ped>
+    <ped id="Drug bitch" dimension="0" model="145" interior="0" rotZ="180" frozen="false" alpha="255" posX="2485" posY="-1688.9" posZ="15.7" rotX="0" rotY="0"></ped>
+    <marker id="SAMP CP 1" type="cylinder" color="#0000ffff" size="1" interior="0" dimension="0" alpha="255" posX="2481.8999" posY="-1661.1" posZ="13.3" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="marker (cylinder) (1)" type="cylinder" color="#FE1200FF" size="1" interior="0" dimension="0" alpha="255" posX="2482.3" posY="-1655.5" posZ="13.3" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="SAMP RaceCP" type="checkpoint" color="#019736FF" size="1" interior="0" dimension="0" alpha="255" posX="2477.2" posY="-1661.5" posZ="12.26449" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="marker (ring) (1)" type="ring" color="#F9048EFF" size="1" interior="0" dimension="0" alpha="255" posX="2483.5" posY="-1658.2" posZ="17.3" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="marker (ring) (2)" type="ring" color="#DFF806FF" size="1" interior="0" dimension="0" alpha="255" posX="2480" posY="-1658.4" posZ="15.1" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="Corona isn&apos;t supported in samp " type="corona" color="#B3FE00FF" size="1" interior="0" dimension="0" alpha="255" posX="2492.2" posY="-1660.4" posZ="13.3" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="This corona has the maximum possible name lengt, do you see it? a" type="cylinder" color="#807D7DFF" size="1" interior="0" dimension="0" alpha="255" posX="2488.8" posY="-1656.9" posZ="13.4" rotX="0" rotY="0" rotZ="0"></marker>
+    <marker id="marker (arrow) (1)" type="arrow" color="#FD2900FF" size="1" interior="0" dimension="0" alpha="255" posX="2488" posY="-1665.9" posZ="14.8" rotX="0" rotY="0" rotZ="0"></marker>
+</map>
