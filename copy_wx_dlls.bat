@@ -3,8 +3,8 @@
 set mypath=%cd%
 set PROJECT_NAME=CustomKeyboard
 set EXPORT_APP_DIR=C:\Users\%USERNAME%\Desktop
-set WX_PATH="C:\wxWidgets-3.2.0"
-set WX_VERSION=320
+set WX_PATH="C:\wxWidgets-3.2.4"
+set WX_VERSION=324
 
 set list="wxbase%WX_VERSION%ud_vc_x64_custom" "wxmsw%WX_VERSION%ud_core_vc_x64_custom" "wxmsw%WX_VERSION%ud_stc_vc_x64_custom" "wxmsw%WX_VERSION%ud_propgrid_vc_x64_custom" "wxmsw%WX_VERSION%ud_aui_vc_x64_custom"
 (for %%a in (%list%) do ( 

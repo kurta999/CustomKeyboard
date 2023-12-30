@@ -171,7 +171,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_lib;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_lib;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -181,11 +181,11 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_dll;C:\wxWidgets-3.2.2\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_dll;C:\wxWidgets-3.2.4\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_stc.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_lib;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Message>Get commitid &amp; tag from latest git commit</Message>
@@ -201,7 +201,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -212,11 +212,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_dll;C:\wxWidgets-3.2.2\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_dll;C:\wxWidgets-3.2.4\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_lib;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -232,7 +232,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -243,11 +243,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_dll;C:\wxWidgets-3.2.2\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_dll;C:\wxWidgets-3.2.4\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_lib;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -263,7 +263,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_lib\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_lib\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -274,11 +274,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;hidapi.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_lib;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_lib;</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -292,7 +292,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -303,11 +303,11 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll;C:\wxWidgets-3.2.4\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_stc.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Secur32.lib;hidapi.lib;PowrProf.lib;BSECLibrary64.lib;opencv_world481d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswud;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswud;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -323,7 +323,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -336,10 +336,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc15\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll;C:\wxWidgets-3.2.4\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc15\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -357,7 +357,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_dll;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -370,10 +370,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;BSECLibrary64.lib;opencv_world481.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll;C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll;C:\wxWidgets-3.2.4\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
@@ -391,7 +391,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;__WXMSW__;USE_HIDAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_lib\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\Program Files\boost\boost_1_84_0;.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -403,11 +403,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_stc.lib;wxmsw32u_aui.lib;wxmsw32u_propgrid.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;wxscintilla.lib;comctl32.lib;Rpcrt4.lib;ShlwApi.lib;PowrProf.lib;hidapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_lib;C:\Program Files\boost\boost_1_84_0\stage\lib;C:\hidapi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutputPath)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.2\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.2\include;C:\wxWidgets-3.2.2\include\msvc;C:\wxWidgets-3.2.2\lib\vc_x64_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;C:\wxWidgets-3.2.4\include;C:\wxWidgets-3.2.4\include\msvc;C:\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PreBuildEvent>
       <Command>commitid.bat  commitid.h  ./src</Command>
