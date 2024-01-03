@@ -4,6 +4,7 @@ static constexpr const char* SETTINGS_FILE_PATH = "./settings.ini";
 
 void Settings::LoadFile()
 {
+    //std::locale::global(std::locale("Hungarian_Hungary.1250"));
     if(!std::filesystem::exists(SETTINGS_FILE_PATH))
     {
         SaveFile(true);
@@ -129,7 +130,9 @@ void Settings::LoadFile()
         always_on_numlock = utils::stob(pt.get_child("App").find("AlwaysOnNumLock")->second.data());
         shared_drive_letter = pt.get_child("App").find("SharedDriveLetter")->second.data()[0];
         crypto_price_update = utils::stoi<uint16_t>(pt.get_child("App").find("CryptoPriceUpdate")->second.data());
-        CorsairHid::Get()->SetDebouncingInterval(utils::stoi<uint16_t>(pt.get_child("App").find("CorsairDebouncingInterval")->second.data()));
+
+        CorsairHid::Get()->SetEnabled(utils::stob(pt.get_child("CorsairHid").find("Enable")->second.data()));
+        CorsairHid::Get()->SetDebouncingInterval(utils::stoi<uint16_t>(pt.get_child("CorsairHid").find("DebouncingInterval")->second.data()));
 
         PrintScreenSaver::Get()->screenshot_key = std::move(pt.get_child("Screenshot").find("ScreenshotKey")->second.data());
         PrintScreenSaver::Get()->timestamp_format = std::move(pt.get_child("Screenshot").find("ScreenshotDateFormat")->second.data());
@@ -347,7 +350,10 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "AlwaysOnNumLock = " << always_on_numlock << "\n";
     out << "SharedDriveLetter = " << shared_drive_letter << "\n";
     out << "CryptoPriceUpdate = " << crypto_price_update << " # Unit: Seconds, 0 = disabled\n";
-    out << "CorsairDebouncingInterval = " << CorsairHid::Get()->GetDebouncingInterval() << "\n";
+    out << "\n";
+    out << "[CorsairHid]\n";
+    out << "Enable = " << CorsairHid::Get()->IsEnabled() << "\n";
+    out << "DebouncingInterval = " << CorsairHid::Get()->GetDebouncingInterval() << "\n";
     out << "\n";
     out << "[Screenshot]\n";
     out << "ScreenshotKey = " << PrintScreenSaver::Get()->screenshot_key << "\n";

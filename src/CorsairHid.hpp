@@ -30,8 +30,16 @@ public:
     // !\brief Initialize HID polling for Corsair G-Keys
     bool Init();
 
+    // !\brief Set enabled state
+    // !\param enable Enabled state
+    void SetEnabled(bool enable);
+
+    // !\brief Get enabled state
+    // !\return Enabled state
+    bool IsEnabled() const;
+
     // !\brief Set debouncing interval
-    // !\param interval Debouncing interval [ms
+    // !\param interval Debouncing interval [ms]
     void SetDebouncingInterval(const uint16_t interval);
 
     // !\brief Get debouncing interval [ms]
@@ -75,6 +83,9 @@ private:
 
     // !\brief Timepoint when the key was pressed
     std::chrono::steady_clock::time_point last_keypress;
+
+    // !\brief Is enabled?
+    uint16_t m_IsEnabled = false;
 
     // !\brief Debouncing interval [ms]
     uint16_t m_DebouncingInterval = 350;

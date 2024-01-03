@@ -58,7 +58,7 @@ public:
     UsedPages used_pages = {};
 
     // !\brief Default start page for application
-    uint8_t default_page = 1;
+    uint8_t default_page = 0;
 
     // !\brief Remember application window size when resized
     bool remember_window_size = false;

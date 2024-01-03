@@ -12,15 +12,32 @@ CorsairHid::~CorsairHid()
 bool CorsairHid::Init()
 {
 #ifdef USE_HIDAPI
-    LOG(LogLevel::Notification, "CorsairHid::Init");
-    if(hid_inited)
-        DestroyWorkingThread();
+    if(m_IsEnabled)
+    {
+        LOG(LogLevel::Notification, "CorsairHid::Init");
+        if(hid_inited)
+            DestroyWorkingThread();
 
-    m_worker = std::make_unique<std::jthread>(std::bind_front(&CorsairHid::ThreadFunc, this));
-    if(m_worker)
-        utils::SetThreadName(*m_worker, "CorsairHid");
+        m_worker = std::make_unique<std::jthread>(std::bind_front(&CorsairHid::ThreadFunc, this));
+        if(m_worker)
+            utils::SetThreadName(*m_worker, "CorsairHid");
+    }
+    else
+    {
+    	LOG(LogLevel::Notification, "CorsairHid::Init - disabled");
+    }
 #endif
     return true;
+}
+
+void CorsairHid::SetEnabled(bool enable)
+{
+    m_IsEnabled = enable;
+}
+
+bool CorsairHid::IsEnabled() const
+{
+    return m_IsEnabled;
 }
 
 void CorsairHid::SetDebouncingInterval(const uint16_t interval)
