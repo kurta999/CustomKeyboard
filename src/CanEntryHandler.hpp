@@ -452,13 +452,13 @@ public:
     std::vector<std::unique_ptr<CanLogEntry>> m_LogEntries;
 
     // !\brief Path to default TX list
-    std::filesystem::path default_tx_list;
+    std::filesystem::path default_tx_list = "TxList.xml";
     
     // !\brief Path to default RX list
-    std::filesystem::path default_rx_list;    
+    std::filesystem::path default_rx_list = "RxList.xml";
     
     // !\brief Path to default CAN mapping
-    std::filesystem::path default_mapping;
+    std::filesystem::path default_mapping = "FrameMapping.xml";
 
     // !\brief Mutex for entry handler
     std::mutex m;
