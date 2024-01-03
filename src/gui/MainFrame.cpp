@@ -173,8 +173,17 @@ void MyFrame::OnSize(wxSizeEvent& event)
 		}
 		if(modbus_master_panel)
 			modbus_master_panel->SetSize(a);
-		/*if (data_sender_panel)
-			data_sender_panel->SetSize(a);*/
+		if(data_sender_panel)
+		{
+			data_sender_panel->SetSize(a);
+			if(data_sender_panel->m_notebook)
+				data_sender_panel->m_notebook->SetSize(a);
+			if(data_sender_panel->data_panel)
+				data_sender_panel->data_panel->SetSize(a);
+			if(data_sender_panel->button_panel)
+				data_sender_panel->button_panel->SetSize(a);
+			data_sender_panel->m_notebook->Layout();
+		}
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
 		if(did_panel)
@@ -293,6 +302,7 @@ void MyFrame::OnSaveEverything(wxCommandEvent& event)
 void MyFrame::On10msTimer(wxTimerEvent& event)
 {
 	HandleAlwaysOnNumlock();
+	HandleDataSender();
 	if(can_panel)
 		can_panel->On10MsTimer();
 	if(modbus_master_panel)
@@ -378,6 +388,12 @@ void MyFrame::HandleAlwaysOnNumlock()
 		SendInput(1, &input, sizeof(input));
 	}
 #endif
+}
+
+void MyFrame::HandleDataSender()
+{
+	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
+	data_sender->On100msTimer();
 }
 
 void MyFrame::HandleCryptoPriceUpdate()

@@ -140,7 +140,10 @@ private:
 	void HandleBackupProgressDialog();
 
 	// !\brief Handles numlock to be always on
-	void HandleAlwaysOnNumlock();	
+	void HandleAlwaysOnNumlock();		
+	
+	// !\brief Handles data sender message queue
+	void HandleDataSender();	
 	
 	// !\brief Handles crypto price update
 	void HandleCryptoPriceUpdate();

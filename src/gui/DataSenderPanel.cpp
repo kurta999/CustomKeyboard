@@ -1,14 +1,20 @@
 #include "pch.hpp"
 
 wxBEGIN_EVENT_TABLE(DataSenderPanel, wxPanel)
+EVT_SIZE(DataSenderPanel::OnSize)
 wxEND_EVENT_TABLE()
 
-DataSenderPanel::DataSenderPanel(wxFrame* parent)
+wxBEGIN_EVENT_TABLE(DataSenderDataPanel, wxPanel)
+EVT_SIZE(DataSenderDataPanel::OnSize)
+wxEND_EVENT_TABLE()
+
+wxBEGIN_EVENT_TABLE(DataSenderButtonPanel, wxPanel)
+EVT_SIZE(DataSenderButtonPanel::OnSize)
+wxEND_EVENT_TABLE()
+
+DataSenderDataPanel::DataSenderDataPanel(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY)
 {
-	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
-	data_sender->SetLogHelper(this);
-
 	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* v_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -79,42 +85,130 @@ DataSenderPanel::DataSenderPanel(wxFrame* parent)
 		});
 	bSizer1->Add(m_Log, wxSizerFlags(1).Left().Expand());
 
-	this->SetSizerAndFit(bSizer1);
-	this->Layout();
+	SetSizerAndFit(bSizer1);
+
+}
+
+void DataSenderDataPanel::UpdateStatusIndicator()
+{
+	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
+	m_ErrorCount->SetLabelText(wxString::Format("TX: %lld, RX: %lld, Error: %lld", data_sender->GetTxMsgCount(), data_sender->GetRxMsgCount(), data_sender->GetErrorCount()));
+}
+
+void DataSenderDataPanel::OnSize(wxSizeEvent& evt)
+{
+	evt.Skip(true);
+}
+
+DataSenderButtonPanel::DataSenderButtonPanel(wxWindow* parent)
+	: wxPanel(parent, wxID_ANY)
+{
+	OnDataLoaded();
+
+}
+
+void DataSenderButtonPanel::OnDataLoaded()
+{
+	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
+	wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
+	for(auto& entry : data_sender->entries)
+	{
+		entry->m_Text = new wxStaticText(this, wxID_ANY, entry->m_TextName, wxDefaultPosition, wxDefaultSize, 0);
+		entry->m_Text->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+		entry->m_Text->SetForegroundColour(wxColor(240, 120, 0));
+		entry->m_Text->SetToolTip(entry->m_comment);
+		bSizer1->Add(entry->m_Text);
+	}
+	SetSizerAndFit(bSizer1);
+}
+
+void DataSenderButtonPanel::OnSize(wxSizeEvent& evt)
+{
+	evt.Skip(true);
+}
+
+DataSenderPanel::DataSenderPanel(wxFrame* parent)
+	: wxPanel(parent, wxID_ANY)
+{
+	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
+	data_sender->SetLogHelper(this);
+
+	wxSize client_size = GetClientSize();
+
+	m_mgr.SetManagedWindow(this);
+
+	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+	data_panel = new DataSenderDataPanel(this);
+	button_panel = new DataSenderButtonPanel(this);
+	m_notebook->Freeze();
+	m_notebook->AddPage(data_panel, "Data", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	m_notebook->AddPage(button_panel, "Button", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
+	//m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(DataSenderPanel::Changeing), NULL, this);
+
+	/* size: 1640x1080 */
+	m_notebook->Split(0, wxLEFT);
+
+	m_notebook->Thaw();
+	m_notebook->SetAutoLayout(true);
+	m_notebook->Layout();
+	m_notebook->SetSize(m_notebook->GetSize());
+	m_notebook->SetSelection(0);
+}
+
+void DataSenderPanel::OnDataLoaded()
+{
+	if(button_panel)
+		button_panel->OnDataLoaded();
+}
+
+void DataSenderPanel::On10MsTimer()
+{
+	
 }
 
 void DataSenderPanel::ClearEntries()
 {
-	m_Log->Clear();
+	if(data_panel)
+		data_panel->m_Log->Clear();
 }
 
-void DataSenderPanel::AppendLog(const std::string& line)
+void DataSenderPanel::AppendLog(DataEntry* entry, const std::string& line)
 {
 	static size_t cnt = 0;
-	if(m_Log)
+	if(data_panel && data_panel->m_Log)
 	{
-		m_Log->Append(wxString(line));
+		data_panel->m_Log->Append(wxString(line));
 		cnt++;
-		if(1 && m_AutoScroll)
-			m_Log->ScrollLines(m_Log->GetCount());
+		if(1 && data_panel->m_AutoScroll)
+			data_panel->m_Log->ScrollLines(data_panel->m_Log->GetCount());
 
 		if (!(cnt % 10))
 		{
-			UpdateStatusIndicator();
+			data_panel->UpdateStatusIndicator();
+		}
+
+		if(entry && entry->m_Text)
+		{
+			size_t pos = entry->m_LastResponse.find(entry->m_StartWith);
+			std::string tmp = "invalid";
+			if(pos != std::string::npos)
+			{
+				tmp = entry->m_LastResponse.substr(pos + entry->m_StartWith.length());
+			}
+			entry->m_Text->SetLabelText(wxString::Format("%s: %s", entry->m_TextName, tmp));
 		}
 	}
 }
 
 void DataSenderPanel::OnError(uint32_t err_cnt, const std::string& line)
 {
-	if(m_Log)
+	if(data_panel && data_panel->m_Log)
 	{
-		UpdateStatusIndicator();
+		data_panel->UpdateStatusIndicator();
 	}
 }
 
-void DataSenderPanel::UpdateStatusIndicator()
+void DataSenderPanel::OnSize(wxSizeEvent& evt)
 {
-	std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
-	m_ErrorCount->SetLabelText(wxString::Format("TX: %lld, RX: %lld, Error: %lld", data_sender->GetTxMsgCount(), data_sender->GetRxMsgCount(), data_sender->GetErrorCount()));
+	evt.Skip(true);
 }

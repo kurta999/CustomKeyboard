@@ -19,17 +19,17 @@ public:
     virtual ~IDataLogHelper() = default;
 
     virtual void ClearEntries() = 0;
-    virtual void AppendLog(const std::string& line) = 0;
+    virtual void AppendLog(DataEntry* entry, const std::string& line) = 0;
     virtual void OnError(uint32_t err_cnt, const std::string& line) = 0;
 };
 
-enum class dataEntryType
+enum class DataEntryType
 {
     Hex,
     String
 };
 
-enum class dataEntrySendType
+enum class DataEntrySendType
 {
     Auto,
     Trigger
@@ -57,12 +57,27 @@ public:
     std::chrono::steady_clock::time_point lastExecution;
 };
 
-class DataEntry : public DataEntryBase
+class DataEntryGui : public BasicGuiTextCustomization
+{
+public:
+    DataEntryGui() = default;
+
+    // !\brief Associated button
+    wxStaticText* m_Text = nullptr;
+
+    std::string m_TextName;
+
+    std::string m_StartWith;
+
+    std::string m_LastResponse;
+};
+
+class DataEntry : public DataEntryBase, public DataEntryGui
 {
 public:
     DataEntry() = default;
 
-    DataEntry(uint8_t* data_, size_t data_len, uint8_t* response_data_, size_t response_data_len, dataEntryType type, dataEntrySendType send_type,
+    DataEntry(uint8_t* data_, size_t data_len, uint8_t* response_data_, size_t response_data_len, DataEntryType type, DataEntrySendType send_type,
         size_t step, uint32_t period, uint32_t response_timeout, std::string& comment) :
         DataEntryBase(data_, data_len, response_data_, response_data_len), m_sendType(send_type),
         m_maxSendCount(step), m_type(type), m_period(period), m_responseTimeout(response_timeout), m_comment(comment)
@@ -89,10 +104,10 @@ public:
     int m_addCrc{};
 
     // !\brief Type of data
-    dataEntryType m_type;
+    DataEntryType m_type;
 
     // !\brief Type of sending
-    dataEntrySendType m_sendType{ dataEntrySendType::Auto };
+    DataEntrySendType m_sendType{ DataEntrySendType::Auto };
 
     // !\brief Has frame to be sent periodically?
     bool m_send{ false };

@@ -742,7 +742,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\XmlDataEntryLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc" />

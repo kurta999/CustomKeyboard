@@ -605,9 +605,6 @@
     <ClCompile Include="src\DataSerialPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\XmlDataEntryLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">

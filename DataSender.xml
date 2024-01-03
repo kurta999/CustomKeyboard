@@ -1,32 +1,39 @@
 <DataSenderXml>
 	<Data>
-		<Data>11 22 33 44 55 66 77 BB</Data>
-    <ExpectedResponse>AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC</ExpectedResponse>
-    <Type>hex</Type>
-		<Comment>First CAN msg</Comment>
+		<Data>FREQ_GET</Data>
+		<ExpectedResponse></ExpectedResponse>
+		<Type>string</Type>
+		<SendType>auto</SendType>
+		<Comment>Frequency</Comment>
 		<Crc>First CAN msg</Crc>
-    <Step>10</Step>
-    <Period>300</Period>
-    <ResponseTimeout>300</ResponseTimeout>
+		<Step>10</Step>
+		<Period>250</Period>
+		<ResponseTimeout>300</ResponseTimeout>
+		<TextName>Freq:</TextName>
+		<StartWith>FREQ</StartWith>
 	</Data>		
-  <Data>
+	<Data>
 		<Data>AA BB CC</Data>
-    <ExpectedResponse>AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC</ExpectedResponse>
-    <Type>string</Type>
+		<ExpectedResponse>AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CCAA BB CC AA BB CC AA BB CC AA BB CC AA BB CC AA BB CC</ExpectedResponse>
+		<Type>string</Type>
+		<SendType>auto</SendType>
 		<Comment>First CAN msg</Comment>
 		<Crc>First CAN msg</Crc>
-    <Step>10</Step>
-    <Period>300</Period>
-    <ResponseTimeout>300</ResponseTimeout>
+		<Step>1</Step>
+		<Period>300</Period>
+		<ResponseTimeout>300</ResponseTimeout>
+		<TextName>Random data2</TextName>
 	</Data>	
-  <Data>
+	<Data>
 		<Data>DD EE FF 12 34</Data>
-    <ExpectedResponse>10 20 30</ExpectedResponse>
-    <Type>string</Type>
+		<ExpectedResponse>10 20 30</ExpectedResponse>
+		<Type>string</Type>
+		<SendType>auto</SendType>
 		<Comment>First CAN msg</Comment>
 		<Crc>First CAN msg</Crc>
-    <Step>10</Step>
-    <Period>300</Period>
-    <ResponseTimeout>300</ResponseTimeout>
+		<Step>1</Step>
+		<Period>300</Period>
+		<ResponseTimeout>300</ResponseTimeout>
+		<TextName>Random data3</TextName>
 	</Data>	
 </DataSenderXml>

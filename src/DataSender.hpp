@@ -18,11 +18,14 @@ public:
     // !\brief Set log helper
     void SetLogHelper(IDataLogHelper* helper);
 
-    // !\brief Load files (TX & RX List, Frame mapping)
+    // !\brief Load data sender XML file
     void LoadFiles();
 
+    // !\brief Save data sender XML file
+    void SaveFiles();
+
     // !\brief Send data
-    void SendData(uint8_t* data, size_t data_size, dataEntryType type);
+    void SendData(uint8_t* data, size_t data_size, DataEntryType type);
 
     // !\brief Send string
     void SendString(const char* str);
@@ -73,11 +76,16 @@ public:
     // !\return Is load was successfull?
     bool LoadDataList(std::filesystem::path& path);
 
+    // !\brief Load TX list from a file
+    // !\param path [in] File path to load
+    // !\return Is load was successfull?
+    bool SaveDataList(std::filesystem::path& path);
+
     // !\brief Mutex for entry handler
     std::mutex m;
 
     // !\brief Message received over uart
-    std::queue<std::string> m_RecvMsg;
+    std::queue<std::pair<DataEntry*, std::string>> m_RecvMsg;
 
     uint64_t GetTxMsgCount() { return tx_msg_cnt; }
 
@@ -89,11 +97,14 @@ public:
 
     std::string m_lastSentData;
 
+    // !\brief Vector of CAN TX entries
+    std::vector<std::unique_ptr<DataEntry>> entries;
+
 private:
     void HandleAutoSendFrames(std::unique_ptr<DataEntry>& entry, uint32_t& vecIndex, std::stop_token& token, std::unique_lock<std::mutex>& lock);
     void HandleTriggerSendFrames(std::unique_ptr<DataEntry>& entry, uint32_t& vecIndex, std::stop_token& token, std::unique_lock<std::mutex>& lock);
 
-    void AddToLog(const std::string& msg);
+    void AddToLog(DataEntry* entry, const std::string& msg);
     void IncreaseTxCounter();
 
     // !\brief Sending every can frame automatically at startup which period is not null? 
@@ -118,15 +129,16 @@ private:
     uint64_t rx_msg_cnt = 0;
 
     // !\brief RX Frame count
-    dataEntryType m_lastSentDataType = dataEntryType::Hex;
+    DataEntryType m_lastSentDataType = DataEntryType::Hex;
+
+    DataEntry* m_lastSentEntry = nullptr;
 
     // !\brief Is response received?
     std::atomic<bool> m_isResponseReceived{false};
 
-    std::string m_response;
+    std::atomic<uint8_t> m_isResponseProcessed{ 0xFF };
 
-    // !\brief Vector of CAN TX entries
-    std::vector<std::unique_ptr<DataEntry>> entries;
+    std::string m_response;
 
     // !\brief Path to default TX list
     std::filesystem::path defaultDataList;
