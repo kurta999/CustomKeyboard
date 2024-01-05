@@ -88,35 +88,71 @@ void AntiLock::SimulateUserActivity()
     if(is_suspended)
         return;
 
+    std::string log_string = "AntiLock executed: ";
     POINT pos;
     GetCursorPos(&pos);
-    m_StepForward ^= m_StepForward;
+    m_StepForward = !m_StepForward;
     if(m_StepForward)
     {
-        pos.x += 5;
-        pos.y += 5;
+        m_LastStep.x = utils::random_mt(5, 300);
+        m_LastStep.y = utils::random_mt(5, 300);
+
+        pos.x += m_LastStep.x;
+        pos.y += m_LastStep.y;
     }
     else
     {
-        pos.x -= 6;
-        pos.y -= 6;
+        pos.x -= (m_LastStep.x - utils::random_mt(1, 50));
+        pos.y -= (m_LastStep.y - utils::random_mt(1, 50));
     }
+
     SetCursorPos(pos.x, pos.y);
     ShowCursor(TRUE);
 
-    INPUT input = { 0 };
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = VK_SCROLL;
-    input.ki.dwFlags = 0; // 0 = press
-    SendInput(1, &input, sizeof(INPUT));
-    input.ki.dwFlags = KEYEVENTF_KEYUP;
-    SendInput(1, &input, sizeof(INPUT));
+    if(utils::random_mt(1, 3) == 2)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wVk = VK_SCROLL;
+        input.ki.dwFlags = 0; // 0 = press
+        SendInput(1, &input, sizeof(INPUT));
+        input.ki.dwFlags = KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(INPUT));
+
+        log_string += "VK_SCROLL, ";
+    }
+
+    if(utils::random_mt(1, 5) == 2)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_KEYBOARD;
+        input.ki.wVk = VK_NUMLOCK;
+        input.ki.dwFlags = 0; // 0 = press
+        SendInput(1, &input, sizeof(INPUT));
+        input.ki.dwFlags = KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(INPUT));
+
+        log_string += "VK_NUMLOCK, ";
+    }
+
+    if(utils::random_mt(1, 5) == 2)
+    {
+        INPUT input = { 0 };
+        input.type = INPUT_MOUSE;
+        input.ki.wVk = MOUSEEVENTF_WHEEL;
+        input.ki.dwFlags = 0; // 0 = press
+        SendInput(1, &input, sizeof(INPUT));
+        //input.ki.dwFlags = KEYEVENTF_KEYUP;
+        //SendInput(1, &input, sizeof(INPUT));
+
+        log_string += "MOUSEEVENTF_WHEEL";
+    }
 #else
 
 #endif
     if(is_screensaver)
         StartScreenSaver();
-    LOG(LogLevel::Normal, "AntiLock executed");
+    LOG(LogLevel::Normal, "{}", log_string);
 }
 
 void AntiLock::StartScreenSaver() const
@@ -176,12 +212,21 @@ void AntiLock::Process()
                             if(IsSessionActive())
                             {
                                 //LOG(LogLevel::Normal, "IsSessionActive");
-                                SimulateUserActivity();
+                                if(GetTickCount() - m_LastExecution > timeout * 1000)
+                                {
+									//LOG(LogLevel::Normal, "GetTickCount() - m_LastExecution > 1000");
+									m_LastExecution = GetTickCount();
+									SimulateUserActivity();
+								}
                             }
                         }
                     }
                 }
 			}
+            else
+            {
+                m_LastExecution = 0;
+            }
 		}
 #endif
 	}

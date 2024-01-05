@@ -55,6 +55,12 @@ private:
     // !\brief Mouse step
     bool m_StepForward = false;
 
+    // !\brief Last mouse step
+    POINT m_LastStep = { 0, 0 };
+
     // !\brief Ticks passed since last activity
     uint32_t m_LastActivityTime = 0;
+
+    // !\brief Last execution time
+    uint32_t m_LastExecution = 0;
 };
