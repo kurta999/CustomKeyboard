@@ -36,6 +36,8 @@
 #include <boost/bind/bind.hpp>
 #include <boost/shared_array.hpp>
 
+//#include "../Logger.hpp"
+
 using namespace std;
 using namespace boost;
 
@@ -48,10 +50,15 @@ using namespace boost;
 class AsyncSerialImpl: private boost::noncopyable
 {
 public:
-    AsyncSerialImpl(): io(), port(io), backgroundThread(), open(false),
+    AsyncSerialImpl(): io(), socket(io), port(io), backgroundThread(), open(false),
             error(false) {}
 
+    bool is_tcp;
+    std::string tcp_ip;
+    uint16_t tcp_port;
+
     boost::asio::io_service io; ///< Io service object
+    boost::asio::ip::tcp::socket socket;
     boost::asio::serial_port port; ///< Serial port object
     std::thread backgroundThread; ///< Thread that runs read/write operations
     bool open; ///< True if port open
@@ -74,6 +81,12 @@ AsyncSerial::AsyncSerial(): pimpl(new AsyncSerialImpl)
 
 }
 
+AsyncSerial::AsyncSerial(const std::string& ip, uint16_t port)
+        : pimpl(new AsyncSerialImpl)
+{
+    open(ip, port);
+}
+
 AsyncSerial::AsyncSerial(const std::string& devname, unsigned int baud_rate,
         asio::serial_port_base::parity opt_parity,
         asio::serial_port_base::character_size opt_csize,
@@ -90,6 +103,7 @@ void AsyncSerial::open(const std::string& devname, unsigned int baud_rate,
         asio::serial_port_base::flow_control opt_flow,
         asio::serial_port_base::stop_bits opt_stop)
 {
+    pimpl->is_tcp = false;
     if(isOpen()) close();
 
     setErrorStatus(true);//If an exception is thrown, error_ remains true
@@ -107,6 +121,47 @@ void AsyncSerial::open(const std::string& devname, unsigned int baud_rate,
     pimpl->backgroundThread.swap(t);
     setErrorStatus(false);//If we get here, no error
     pimpl->open=true; //Port is now open
+}
+
+void AsyncSerial::open(const std::string& ip, uint16_t port)
+{
+    pimpl->is_tcp = true;
+    if(isOpen()) close();
+
+    setErrorStatus(true);//If an exception is thrown, error_ remains true
+    pimpl->tcp_ip = ip;
+    pimpl->tcp_port = port;
+    
+    boost::system::error_code ec;
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip, ec), port);
+    pimpl->socket.set_option(boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>{ 200 }, ec);
+    //if (ec)
+        //LOG(LogLevel::Error, "set_option error: {}", ec.message());
+
+    bool is_connected = false;
+    pimpl->socket.async_connect(endpoint, [&is_connected](const boost::system::error_code& ec)
+        {
+            if (!ec)
+                is_connected = true;
+        });
+    pimpl->io.run_for(std::chrono::duration<int, std::milli>(500));
+
+    if (is_connected)
+    {
+        pimpl->io.stop();
+        pimpl->io.reset();
+        pimpl->io.post(boost::bind(&AsyncSerial::doRead, this));
+
+        thread t(boost::bind(&asio::io_service::run, &pimpl->io));
+        pimpl->backgroundThread.swap(t);
+        setErrorStatus(false);//If we get here, no error
+        pimpl->open = true; //Port is now open
+    }
+    else
+    {
+        setErrorStatus(true);
+        pimpl->open = false;
+    }
 }
 
 bool AsyncSerial::isOpen() const
@@ -142,6 +197,9 @@ void AsyncSerial::write(const char *data, size_t size)
         pimpl->writeQueue.insert(pimpl->writeQueue.end(),data,data+size);
     }
     pimpl->io.post(boost::bind(&AsyncSerial::doWrite, this));
+    
+   
+   // boost::asio::write(pimpl->socket, asio::buffer(data, size));
 }
 
 void AsyncSerial::write(const std::vector<char>& data)
@@ -178,11 +236,22 @@ AsyncSerial::~AsyncSerial()
 
 void AsyncSerial::doRead()
 {
-    pimpl->port.async_read_some(asio::buffer(pimpl->readBuffer,readBufferSize),
+    if (!pimpl->is_tcp)
+    {
+        pimpl->port.async_read_some(asio::buffer(pimpl->readBuffer, readBufferSize),
             boost::bind(&AsyncSerial::readEnd,
-            this,
-            asio::placeholders::error,
-            asio::placeholders::bytes_transferred));
+                this,
+                asio::placeholders::error,
+                asio::placeholders::bytes_transferred));
+    }
+    else
+    {
+        pimpl->socket.async_read_some(asio::buffer(pimpl->readBuffer, readBufferSize),
+            boost::bind(&AsyncSerial::readEnd,
+                this,
+                asio::placeholders::error,
+                asio::placeholders::bytes_transferred));
+    }
 }
 
 void AsyncSerial::readEnd(const boost::system::error_code& error,
@@ -224,9 +293,20 @@ void AsyncSerial::doWrite()
         copy(pimpl->writeQueue.begin(),pimpl->writeQueue.end(),
                 pimpl->writeBuffer.get());
         pimpl->writeQueue.clear();
-        async_write(pimpl->port,asio::buffer(pimpl->writeBuffer.get(),
+
+        if (!pimpl->is_tcp)
+        {
+            async_write(pimpl->port, asio::buffer(pimpl->writeBuffer.get(),
                 pimpl->writeBufferSize),
                 boost::bind(&AsyncSerial::writeEnd, this, asio::placeholders::error));
+        }
+        else
+        {
+            async_write(pimpl->socket, asio::buffer(pimpl->writeBuffer.get(),
+                pimpl->writeBufferSize),
+                boost::bind(&AsyncSerial::writeEnd, this, asio::placeholders::error));
+
+        }
     }
 }
 
@@ -247,9 +327,19 @@ void AsyncSerial::writeEnd(const boost::system::error_code& error)
         copy(pimpl->writeQueue.begin(),pimpl->writeQueue.end(),
                 pimpl->writeBuffer.get());
         pimpl->writeQueue.clear();
-        async_write(pimpl->port,asio::buffer(pimpl->writeBuffer.get(),
+
+        if (!pimpl->is_tcp)
+        {
+            async_write(pimpl->port, asio::buffer(pimpl->writeBuffer.get(),
                 pimpl->writeBufferSize),
                 boost::bind(&AsyncSerial::writeEnd, this, asio::placeholders::error));
+        }
+        else
+        {
+            async_write(pimpl->socket, asio::buffer(pimpl->writeBuffer.get(),
+                pimpl->writeBufferSize),
+                boost::bind(&AsyncSerial::writeEnd, this, asio::placeholders::error));
+        }
     } else {
         setErrorStatus(true);
         doClose();
@@ -259,9 +349,16 @@ void AsyncSerial::writeEnd(const boost::system::error_code& error)
 void AsyncSerial::doClose()
 {
     boost::system::error_code ec;
-    pimpl->port.cancel(ec);
+    if (!pimpl->is_tcp)
+        pimpl->port.cancel(ec);
+    else
+        pimpl->socket.cancel(ec);
+
     if(ec) setErrorStatus(true);
-    pimpl->port.close(ec);
+    if (!pimpl->is_tcp)
+        pimpl->port.close(ec);
+    else
+        pimpl->socket.close(ec);
     if(ec) setErrorStatus(true);
 }
 
@@ -544,6 +641,12 @@ CallbackAsyncSerial::CallbackAsyncSerial(const std::string& devname,
         asio::serial_port_base::flow_control opt_flow,
         asio::serial_port_base::stop_bits opt_stop)
         :AsyncSerial(devname,baud_rate,opt_parity,opt_csize,opt_flow,opt_stop)
+{
+
+}
+
+CallbackAsyncSerial::CallbackAsyncSerial(const std::string& ip, uint16_t port)
+    : AsyncSerial(ip, port)
 {
 
 }

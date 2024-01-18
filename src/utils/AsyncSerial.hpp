@@ -52,6 +52,8 @@ public:
             boost::asio::serial_port_base::stop_bits(
                 boost::asio::serial_port_base::stop_bits::one));
 
+    AsyncSerial(const std::string& ip, uint16_t port);
+
     /**
     * Opens a serial device.
     * \param devname serial device name, example "/dev/ttyS0" or "COM1"
@@ -75,6 +77,8 @@ public:
         boost::asio::serial_port_base::stop_bits opt_stop=
             boost::asio::serial_port_base::stop_bits(
                 boost::asio::serial_port_base::stop_bits::one));
+
+    void open(const std::string& ip, uint16_t port);
 
     /**
      * \return true if serial device is open
@@ -210,6 +214,8 @@ public:
         boost::asio::serial_port_base::stop_bits opt_stop=
             boost::asio::serial_port_base::stop_bits(
                 boost::asio::serial_port_base::stop_bits::one));
+
+    CallbackAsyncSerial(const std::string& ip, uint16_t port);
 
     /**
      * Set the read callback, the callback will be called from a thread

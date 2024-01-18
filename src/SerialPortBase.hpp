@@ -15,9 +15,23 @@ public:
 
     void InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
         SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600) override;
+    void InitInternal(const std::string& ip, uint16_t port, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+        SerialRecvFunction recv_function, SerialSendFunction send_function);
     void DeInitInternal() override;
     void SetEnabled(bool enable) override;
     bool IsEnabled() const override;
+
+    void SetTcp(bool is_tcp_) override;
+    bool IsTcp() const override;
+
+    void SetTcpIp(const std::string& ip) override;
+    const std::string& GetTcpIp() const override;
+    void SetTcpPort(uint16_t port) override;
+    uint16_t GetTcpPort() const override;
+
+    void Open() override;
+    void Close() override;
+
     void SetComPort(uint16_t port) override;
     uint16_t GetComPort() const override;
     virtual void SetBaudrate(uint32_t baudrate) override;
@@ -25,7 +39,6 @@ public:
     bool IsOk() const override;
     void NotifiyMainThread();
     void DestroyWorkerThread();
-   
 
 protected:
     std::unique_ptr<CallbackAsyncSerial> m_serial;
@@ -44,6 +57,12 @@ protected:
 
     // !\brief Is serial port data receiving enabled?
     bool is_enabled = true;
+
+    bool is_tcp = false;
+    
+    std::string m_TcpIp;
+
+    uint16_t m_TcpPort = 0;
 
     // !\brief COM port number
     uint16_t com_port = 5;

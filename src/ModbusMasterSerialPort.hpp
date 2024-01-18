@@ -24,6 +24,8 @@ public:
 
     void SetHelper(IModbusHelper* helper) { m_Helper = helper; }
 
+    uint16_t m_ResponseTimeout = 5000;
+
 private:
 
     enum ModbusFunctionCodes : uint8_t

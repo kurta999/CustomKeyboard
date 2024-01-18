@@ -581,7 +581,8 @@ namespace utils
 
 		if(is_connected)
 		{
-			socket.send(boost::asio::buffer(data, len), 0, ec);
+			if(data || len != 0)
+				socket.send(boost::asio::buffer(data, len), 0, ec);
 			if(ec)
 			{
 				LOG(LogLevel::Error, "Failed to forward serial over TCP: {}", ec.message());

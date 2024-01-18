@@ -98,8 +98,12 @@ void Settings::LoadFile()
 
         std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
         modbus_handler->SetEnabled(utils::stob(pt.get_child("ModbusMaster").find("Enable")->second.data()));
+        modbus_handler->GetSerial().SetTcp(pt.get_child("ModbusMaster").find("ConnectionType")->second.data() == "TCP");
+        modbus_handler->GetSerial().SetTcpIp(pt.get_child("ModbusMaster").find("TcpIp")->second.data());
+        modbus_handler->GetSerial().SetTcpPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("TcpPort")->second.data()));
         modbus_handler->GetSerial().SetComPort(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("COM")->second.data()));
         modbus_handler->SetPollingRate(utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("PollingRate")->second.data()));
+        modbus_handler->GetSerial().m_ResponseTimeout = utils::stoi<uint16_t>(pt.get_child("ModbusMaster").find("ResponseTimeout")->second.data());
         modbus_handler->SetDefaultConfigName(pt.get_child("ModbusMaster").find("DefaultModbusConfig")->second.data());
         modbus_handler->ToggleAutoSend(utils::stob(pt.get_child("ModbusMaster").find("AutoSend")->second.data()));
         modbus_handler->ToggleAutoRecord(utils::stob(pt.get_child("ModbusMaster").find("AutoRecord")->second.data()));

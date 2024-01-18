@@ -24,6 +24,23 @@ void SerialPortBase::InitInternal(const std::string& serial_name, std::chrono::m
     }
 }
 
+void SerialPortBase::InitInternal(const std::string& ip, uint16_t port, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+    SerialRecvFunction recv_function, SerialSendFunction send_function)
+{
+    m_TcpIp = ip;
+    m_TcpPort = port;
+    m_MainTimeout = main_timeout;
+    m_ExceptionTimeout = exception_timeout;
+    m_RecvFunction = recv_function;
+    m_SendFunction = send_function;
+
+    if(!m_worker)
+    {
+        m_worker = std::make_unique<std::jthread>(std::bind_front(&SerialPortBase::WorkerThread, this));
+        utils::SetThreadName(*m_worker, m_SerialName.c_str());
+    }
+}
+
 void SerialPortBase::DeInitInternal()
 {
     DestroyWorkerThread();
@@ -37,6 +54,53 @@ void SerialPortBase::SetEnabled(bool enable)
 bool SerialPortBase::IsEnabled() const
 {
     return is_enabled;
+}
+
+void SerialPortBase::SetTcp(bool is_tcp_)
+{
+    is_tcp = is_tcp_;
+}
+
+bool SerialPortBase::IsTcp() const
+{
+    return is_tcp;
+}
+
+void SerialPortBase::SetTcpIp(const std::string& ip)
+{
+    m_TcpIp = ip;
+}
+
+const std::string& SerialPortBase::GetTcpIp() const
+{
+    return m_TcpIp;
+}
+
+void SerialPortBase::SetTcpPort(uint16_t port)
+{
+    m_TcpPort = port;
+}
+
+uint16_t SerialPortBase::GetTcpPort() const
+{
+    return m_TcpPort;
+}
+
+void SerialPortBase::Open()
+{
+    if (!is_tcp)
+    {
+        m_serial->open("\\\\.\\COM" + std::to_string(com_port), m_Baudrate);
+    }
+    else
+    {
+        m_serial->open(m_TcpIp, m_TcpPort);
+    }
+}
+
+void SerialPortBase::Close()
+{
+    m_serial->close();
 }
 
 void SerialPortBase::SetComPort(uint16_t port)
@@ -86,11 +150,18 @@ void SerialPortBase::WorkerThread(std::stop_token token)
         std::string err_msg;
         try
         {
+            if (!is_tcp)
+            {
 #ifdef _WIN32
-            m_serial = std::make_unique<CallbackAsyncSerial>("\\\\.\\COM" + std::to_string(com_port), m_Baudrate);
+                m_serial = std::make_unique<CallbackAsyncSerial>("\\\\.\\COM" + std::to_string(com_port), m_Baudrate);
 #else
-            m_serial = std::make_unique<CallbackAsyncSerial>("/dev/ttyUSB" + std::to_string(com_port), m_Baudrate);
+                m_serial = std::make_unique<CallbackAsyncSerial>("/dev/ttyUSB" + std::to_string(com_port), m_Baudrate);
 #endif
+            }
+            else
+            {
+                m_serial = std::make_unique<CallbackAsyncSerial>(m_TcpIp, m_TcpPort);
+            }
             m_serial->setCallback(m_RecvFunction);
 
             while(!token.stop_requested())

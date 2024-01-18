@@ -18,6 +18,9 @@ public:
     size_t inputStatus;
     size_t inputRegisters;
     size_t holdingRegisters;
+
+    uint16_t inputOffset;
+    uint16_t holdingOffset;
 };
 
 enum ModbusBitfieldType : uint8_t
@@ -42,7 +45,11 @@ public:
 
     std::string m_Name;
     ModbusBitfieldType m_Type;
+    
+    size_t offset;
+
     uint64_t m_Value;
+    float m_fValue;
 
     // !\brief Text color
     std::optional<uint32_t> m_color;

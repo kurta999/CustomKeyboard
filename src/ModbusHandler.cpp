@@ -7,6 +7,9 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
     boost::property_tree::ptree pt;
     try
     {
+        size_t register_offset_holding = 0;
+        size_t register_offset_input = 0;
+
         read_xml("Modbus.xml", pt);
         for(const boost::property_tree::ptree::value_type& v : pt.get_child("Modbus")) /* loop over each Frame */
         {
@@ -29,6 +32,16 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
             {
                 num_entries.inputRegisters = v.second.get_value<size_t>(0);
                 continue;
+            }            
+            if(v.first == "InputOffset")
+            {
+                num_entries.inputOffset = v.second.get_value<uint16_t>(0);
+                continue;
+            }
+            if(v.first == "HoldingOffset")
+            {
+                num_entries.holdingOffset = v.second.get_value<uint16_t>(0);
+                continue;
             }
             if(v.first == "SlaveAddress")
             {
@@ -41,6 +54,7 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
             ModbusBitfieldType register_value_type = ModbusBitfieldType::MBT_BOOL;
             ModbusItemType* item = nullptr;
             int pos = 0;
+
             for(const boost::property_tree::ptree::value_type& m : v.second) /* loop over each nested child */
             {
                 if(m.first == "Coil")
@@ -70,6 +84,22 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 {
                     std::string name = m.second.get_child("Name").get_value<std::string>();
                     bool last_val = m.second.get_child("LastVal").get_value<bool>();
+                    boost::optional<std::string> data_type = m.second.get_optional<std::string>("DataType");
+                    if (data_type)
+                    {
+                        if (*data_type == "uint16_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_UI16;
+                        }
+                        if (*data_type == "uint32_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_UI32;
+                        }
+                        else if (*data_type == "float")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_FLOAT;
+                        }
+                    }
 
                     boost::optional<std::string> color;
                     boost::optional<std::string> bg_color;
@@ -99,8 +129,26 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                         is_font_face_ = *is_font_face;
 
                     std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, register_value_type, last_val, color_, bg_color_, is_bold_, is_scale_, is_font_face_);
+                    ptr->offset = register_offset_holding;
                     item->push_back(std::move(ptr));
-
+                    if (data_type)
+                    {
+                        if (*data_type == "uint16_t")
+                        {
+                            if (register_type == HOLDING_REGISTER)
+                                register_offset_holding += 1;
+                        }
+                        if (*data_type == "uint32_t")
+                        {
+                            if (register_type == HOLDING_REGISTER)
+                                register_offset_holding += 2;
+                        }
+                        else if (*data_type == "float")
+                        {
+                            if (register_type == HOLDING_REGISTER)
+                                register_offset_holding += 2;
+                        }
+                    }
                 }
             }
         }
@@ -336,13 +384,21 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItem
 
     if(panel)
         panel->UpdateChangesOnly(changed_rows);
+
+    rx_frame_cnt++;
 }
+
+typedef union
+{
+    float asFloat;
+    uint16_t asShorts[2];
+} FloatUnion;
 
 void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel)
 {
     std::vector<uint8_t> changed_rows;
     int coil_pos_in_vec = 0;
-    for(auto& i : reg)
+    for(auto i = reg.begin(); i != reg.end(); i++)
     {
         if(coil_pos_in_vec >= num_items)
         {
@@ -351,15 +407,51 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
 
         if(coil_pos_in_vec < items.size())
         {
-            if(items[coil_pos_in_vec]->m_Value != i)
+            if (items[coil_pos_in_vec]->m_Type == ModbusBitfieldType::MBT_UI16)
             {
-                items[coil_pos_in_vec]->m_Value = i;
+                if (items[coil_pos_in_vec]->m_Value != *i)
+                {
+                    items[coil_pos_in_vec]->m_Value = *i;
+                    changed_rows.push_back(coil_pos_in_vec);
+                }
+            }
+            else if (items[coil_pos_in_vec]->m_Type == ModbusBitfieldType::MBT_UI32)
+            {
+                auto it = i + 1;
+                if (it == reg.end())
+                {
+                    LOG(LogLevel::Warning, "End reached!");
+                    break;
+                }
+
+                items[coil_pos_in_vec]->m_Value = (*(i + 1) << 16 | *i) & 0xFFFFFFFF;
                 changed_rows.push_back(coil_pos_in_vec);
+                changed_rows.push_back(0xFF);
+
+                i++;
+            }
+            else if (items[coil_pos_in_vec]->m_Type == ModbusBitfieldType::MBT_FLOAT)
+            {
+                auto it = i + 1;
+                if (it == reg.end())
+                {
+                    LOG(LogLevel::Warning, "End reached!");
+                    break;
+                }
+
+                FloatUnion un;
+                un.asShorts[0] = *i;
+                un.asShorts[1] = *(i + 1);
+                items[coil_pos_in_vec]->m_fValue = un.asFloat;
+                changed_rows.push_back(coil_pos_in_vec);
+                changed_rows.push_back(0xFF);
+
+                i++;
             }
         }
         else
         {
-            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_UI16, i);
+            std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", MBT_UI16, *i);
             items.push_back(std::move(item));
 
             changed_rows.push_back(items.size() - 1);
@@ -369,6 +461,8 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
 
     if(panel)
         panel->UpdateChangesOnly(changed_rows);
+
+    rx_frame_cnt++;
 }
 
 void ModbusEntryHandler::WaitIfPaused()
@@ -392,40 +486,49 @@ void ModbusEntryHandler::HandlePolling()
         panel_inputReg = frame->modbus_master_panel->data_panel->m_inputReg;
     }
 
+    if (m_numEntries.coils > 0)
     {
         std::vector<uint8_t> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
         if(!reg.empty())
             HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
         else
             err_frame_cnt++;
+
+        tx_frame_cnt++;
     }
 
+    if(m_numEntries.inputStatus > 0)
     {
         std::vector<uint8_t> reg = m_Serial->ReadInputStatus(m_slaveId, 0, m_numEntries.inputStatus);
         if(!reg.empty())
             HandleBoolReading(reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
         else
             err_frame_cnt++;
+
+        tx_frame_cnt++;
     }
 
+    if (m_numEntries.holdingRegisters > 0)
     {
-        std::vector<uint16_t> reg = m_Serial->ReadHoldingRegister(m_slaveId, 0, m_numEntries.holdingRegisters);
+        std::vector<uint16_t> reg = m_Serial->ReadHoldingRegister(m_slaveId, m_numEntries.holdingOffset, m_numEntries.holdingRegisters);
         if(!reg.empty())
             HandleRegisterReading(reg, m_Holding, m_numEntries.holdingRegisters, panel_holding);
         else
             err_frame_cnt++;
+
+        tx_frame_cnt++;
     }
 
+    if (m_numEntries.inputRegisters > 0)
     {
-        std::vector<uint16_t> reg = m_Serial->ReadInputRegister(m_slaveId, 0, m_numEntries.inputRegisters);
+        std::vector<uint16_t> reg = m_Serial->ReadInputRegister(m_slaveId, m_numEntries.inputOffset, m_numEntries.inputRegisters);
         if(!reg.empty())
             HandleRegisterReading(reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
         else
             err_frame_cnt++;
-    }
 
-    tx_frame_cnt += 4;
-    rx_frame_cnt += 4;
+        tx_frame_cnt++;
+    }
 }
 
 void ModbusEntryHandler::HandleWrites()
@@ -446,8 +549,18 @@ void ModbusEntryHandler::HandleWrites()
     for(auto& c : m_pendingHoldingWrites)
     {
         std::vector<uint16_t> vec;
-        vec.push_back(c.second & 0xFFFF);
-        std::vector<uint8_t> reg = m_Serial->WriteHoldingRegister(m_slaveId, c.first, 1, vec);
+        if (m_Holding[c.first]->m_Type == ModbusBitfieldType::MBT_UI32)
+        {
+            vec.push_back(c.second & 0xFFFF);
+            vec.push_back(c.second >> 16 & 0xFFFF);
+        }
+        else
+        {
+            vec.push_back(c.second & 0xFFFF);
+        }
+
+        size_t reg_offset = m_Holding[c.first]->offset;
+        std::vector<uint8_t> reg = m_Serial->WriteHoldingRegister(m_slaveId, m_numEntries.holdingOffset + reg_offset, vec.size(), vec);
         if(!reg.empty())
         {
             tx_frame_cnt++;
@@ -470,13 +583,16 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
     {
         WaitIfPaused();
 
-        HandlePolling();
-        //HandleWrites();
-            
+        if (!token.stop_requested())
         {
-            std::unique_lock lock(m);
-            auto now = std::chrono::system_clock::now();
-            cv.wait_until(lock, token, now + std::chrono::milliseconds(m_pollingRate), []() { return 0 == 1; });
+            HandlePolling();
+            HandleWrites();
+
+            {
+                std::unique_lock lock(m);
+                auto now = std::chrono::system_clock::now();
+                cv.wait_until(lock, token, now + std::chrono::milliseconds(m_pollingRate), []() { return 0 == 1; });
+            }
         }
     }
 }

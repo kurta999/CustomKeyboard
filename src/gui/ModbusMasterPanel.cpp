@@ -112,6 +112,27 @@ void ModbusItemPanel::UpdatePanel()
 
         if(m_isReadOnly)
             m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, true);
+        /*
+        if (e->m_Type == ModbusBitfieldType::MBT_UI32)
+        {
+            m_grid->AppendRows(1);
+            int num_row = m_grid->GetNumberRows() - 1;
+            m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
+
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), "-");
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
+        }
+        else if (e->m_Type == ModbusBitfieldType::MBT_FLOAT)
+        {
+            m_grid->AppendRows(1);
+            int num_row = m_grid->GetNumberRows() - 1;
+            m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
+
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), "-");
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
+
+        }
+        */
     }
 }
 
@@ -119,22 +140,60 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
 
+    //if (changed_rows.size() > m_items.size())
+       // return;
+
+    int last_row = 0xFF;
+    int skipped_rows = 0;
     for(auto& i : changed_rows)
     {
-        int num_row = m_grid->GetNumberRows();
-        if(i >= num_row)
-            m_grid->AppendRows(1);
+        int num_row = m_grid->GetNumberRows() + skipped_rows;
+        if (i == 0xFF) continue;
+
+        if (i != 0xFF)
+        {
+            if (i + skipped_rows >= num_row - 1)
+            {
+                break;
+            }
+                //m_grid->AppendRows(1);
+            else
+                num_row = i + skipped_rows;
+        }
         else
-            num_row = i;
+        {
+            num_row = last_row + 1;
+            skipped_rows++;
+        }
 
         m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
+        if (i != 0xFF)  /* Update value */
+        {
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), m_items[i]->m_Name);
 
-        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), m_items[i]->m_Name);
-        m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%lld", m_items[i]->m_Value));
+            if (m_items[i]->m_Type == ModbusBitfieldType::MBT_FLOAT)
+            {
+                m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%.3f", m_items[i]->m_fValue));
+            }
+            else
+            {
+                m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%lld", m_items[i]->m_Value));
+            }
+
+            m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, m_isReadOnly);
+        }
+        else
+        {
+            m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Name, true);
+            m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, true);
+
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), "-");
+            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
+        }
+        last_row = num_row;
 
         for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
             m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
-        m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, m_isReadOnly);
     }
 }
 

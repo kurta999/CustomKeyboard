@@ -171,8 +171,12 @@ void MyFrame::OnSize(wxSizeEvent& event)
 				can_panel->script->SetSize(a);
 			can_panel->m_notebook->Layout();
 		}
-		if(modbus_master_panel)
+		if (modbus_master_panel)
+		{
 			modbus_master_panel->SetSize(a);
+			if (modbus_master_panel->m_notebook)
+				modbus_master_panel->m_notebook->SetSize(a);
+		}
 		if(data_sender_panel)
 		{
 			data_sender_panel->SetSize(a);

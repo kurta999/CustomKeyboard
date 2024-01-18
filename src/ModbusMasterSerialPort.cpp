@@ -37,7 +37,7 @@ ModbusMasterSerialPort::~ModbusMasterSerialPort()
 bool ModbusMasterSerialPort::WaitForResponse()
 {
     std::unique_lock lock{ m_RecvMutex };
-    bool ret = m_RecvCv.wait_for(lock, *m_stopToken, RESPONSE_TIMEOUT, [this]() { return m_RecvData.size() > 0; });
+    bool ret = m_RecvCv.wait_for(lock, *m_stopToken, std::chrono::milliseconds(m_ResponseTimeout), [this]() { return m_RecvData.size() > 0; });
     return ret;
 }
 
