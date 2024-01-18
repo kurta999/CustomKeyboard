@@ -177,7 +177,6 @@ void MyFrame::OnSize(wxSizeEvent& event)
 			if (modbus_master_panel->m_notebook)
 				modbus_master_panel->m_notebook->SetSize(a);
 		}
-<<<<<<< HEAD
 		if(data_sender_panel)
 		{
 			data_sender_panel->SetSize(a);
@@ -189,10 +188,6 @@ void MyFrame::OnSize(wxSizeEvent& event)
 				data_sender_panel->button_panel->SetSize(a);
 			data_sender_panel->m_notebook->Layout();
 		}
-=======
-		if (data_sender_panel)
-			data_sender_panel->SetSize(a);
->>>>>>> Improve modbus sender
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
 		if(did_panel)
