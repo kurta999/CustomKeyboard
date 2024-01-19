@@ -267,7 +267,7 @@ void ModbusMasterSerialPort::Init()
 
 void ModbusMasterSerialPort::OnUartDataReceived(const char* data, unsigned int len)
 {
-    LOG(LogLevel::Verbose, "OnUartDataReceived");
+    //LOG(LogLevel::Verbose, "OnUartDataReceived");
     //std::scoped_lock lock{ m_RecvMutex };
 
     m_RecvData.assign(data, data + (len - 2));

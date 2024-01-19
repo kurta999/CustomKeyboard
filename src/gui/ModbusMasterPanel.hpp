@@ -77,6 +77,7 @@ public:
 	void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, const std::vector<uint8_t>& data) override;
 	void ClearRecordingsFromGrid();
 	void On10MsTimer();
+	void OnKeyDown(wxKeyEvent& evt);
 
 	wxListBox* m_DataLog = nullptr;
 	wxStaticBoxSizer* static_box = nullptr;

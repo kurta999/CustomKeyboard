@@ -19,6 +19,8 @@ public:
     size_t inputRegisters;
     size_t holdingRegisters;
 
+    uint16_t coilsOffset;
+    uint16_t inputStatusOffset;
     uint16_t inputOffset;
     uint16_t holdingOffset;
 };

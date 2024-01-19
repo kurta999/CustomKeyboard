@@ -9,6 +9,7 @@ wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(ModbusLogPanel, wxPanel)
 EVT_SIZE(ModbusLogPanel::OnSize)
+EVT_CHAR_HOOK(ModbusLogPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(ModbusMasterPanel, wxPanel)
@@ -152,11 +153,8 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
 
         if (i != 0xFF)
         {
-            if (i + skipped_rows >= num_row - 1)
-            {
-                break;
-            }
-                //m_grid->AppendRows(1);
+            if (i + skipped_rows >= num_row - 1)  /* was break */
+                m_grid->AppendRows(1);
             else
                 num_row = i + skipped_rows;
         }
@@ -166,10 +164,10 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
             skipped_rows++;
         }
 
-        m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
+       // m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
         if (i != 0xFF)  /* Update value */
         {
-            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), m_items[i]->m_Name);
+            //m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), m_items[i]->m_Name);
 
             if (m_items[i]->m_Type == ModbusBitfieldType::MBT_FLOAT)
             {
@@ -191,7 +189,7 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
             m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
         }
         last_row = num_row;
-
+        
         for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
             m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
     }
@@ -548,6 +546,47 @@ void ModbusLogPanel::On10MsTimer()
 void ModbusLogPanel::OnSize(wxSizeEvent& event)
 {
     event.Skip(true);
+}
+
+void ModbusLogPanel::OnKeyDown(wxKeyEvent& evt)
+{
+    if (evt.ControlDown())
+    {
+        switch (evt.GetKeyCode())
+        {
+            case 'C':
+            {
+                wxWindow* focus = wxWindow::FindFocus();
+                if (focus == m_grid)
+                {
+                    wxArrayInt rows = m_grid->GetSelectedRows();
+                    if (rows.empty()) return;
+
+                    wxString str_to_copy;
+                    for (auto& row : rows)
+                    {
+                        for (uint8_t col = 0; col < ModbusLogGridCol::ModbusLog_Max; col++)
+                        {
+                            str_to_copy += m_grid->GetCellValue(row, col);
+                            str_to_copy += '\t';
+                        }
+                        str_to_copy += '\n';
+                    }
+                    if (str_to_copy.Last() == '\n')
+                        str_to_copy.RemoveLast();
+
+                    if (wxTheClipboard->Open())
+                    {
+                        wxTheClipboard->SetData(new wxTextDataObject(str_to_copy));
+                        wxTheClipboard->Close();
+                        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::SelectedLogsCopied) });
+                    }
+                }
+                break;
+            }
+        }
+    }
 }
 
 ModbusMasterPanel::ModbusMasterPanel(wxWindow* parent)

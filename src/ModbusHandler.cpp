@@ -33,6 +33,11 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 num_entries.inputRegisters = v.second.get_value<size_t>(0);
                 continue;
             }            
+            if(v.first == "InputStatusOffset")
+            {
+                num_entries.inputStatusOffset = v.second.get_value<uint16_t>(0);
+                continue;
+            }
             if(v.first == "InputOffset")
             {
                 num_entries.inputOffset = v.second.get_value<uint16_t>(0);
@@ -499,7 +504,7 @@ void ModbusEntryHandler::HandlePolling()
 
     if(m_numEntries.inputStatus > 0)
     {
-        std::vector<uint8_t> reg = m_Serial->ReadInputStatus(m_slaveId, 0, m_numEntries.inputStatus);
+        std::vector<uint8_t> reg = m_Serial->ReadInputStatus(m_slaveId, m_numEntries.inputStatusOffset, m_numEntries.inputStatus);
         if(!reg.empty())
             HandleBoolReading(reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
         else
