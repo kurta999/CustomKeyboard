@@ -270,6 +270,9 @@ std::vector<uint16_t> ModbusMasterSerialPort::ReadInputRegister(uint8_t slave_id
         {
             for(int i = 3; i != m_RecvData.size(); i += 2)
             {
+                if (i + 1 >= m_RecvData.size())
+                    break;
+
                 ret.push_back(m_RecvData[i + 1] & 0xFF | m_RecvData[i] << 8);
             }
         }

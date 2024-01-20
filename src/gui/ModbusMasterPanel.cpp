@@ -16,8 +16,12 @@ wxBEGIN_EVENT_TABLE(ModbusMasterPanel, wxPanel)
 EVT_SIZE(ModbusMasterPanel::OnSize)
 wxEND_EVENT_TABLE()
 
-ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only)
-    : m_items(items), m_isReadOnly(is_read_only)
+wxBEGIN_EVENT_TABLE(ModbusDataEditDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, ModbusDataEditDialog::OnApply)
+wxEND_EVENT_TABLE()
+
+ModbusItemPanel::ModbusItemPanel(wxWindow* parent, ModbusDataEditDialog* style_dialog, const wxString& header_name, ModbusItemType& items, bool is_read_only)
+    : m_items(items), m_StyleDialog(style_dialog), m_isReadOnly(is_read_only)
 {
 	static_box = new wxStaticBoxSizer(wxVERTICAL, parent, header_name);
     static_box->GetStaticBox()->SetFont(static_box->GetStaticBox()->GetFont().Bold());
@@ -171,9 +175,9 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
             m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
         }
         last_row = num_row;
-        
+        /*
         for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
-            m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);
+            m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);*/
     }
 }
 
@@ -181,14 +185,16 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
     wxPanel(parent, wxID_ANY)
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    m_StyleEditDialog = new ModbusDataEditDialog(this);
+
     if (modbus_handler->m_numEntries.coils)
-        m_coil = new ModbusItemPanel(this, "Coil Status", modbus_handler->m_coils, false);
+        m_coil = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Coil Status - %lld", modbus_handler->m_numEntries.coils), modbus_handler->m_coils, false);
     if (modbus_handler->m_numEntries.inputStatus)
-        m_input = new ModbusItemPanel(this, "Input Status", modbus_handler->m_inputStatus, true);
+        m_input = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Input Status - %lld", modbus_handler->m_numEntries.inputStatus), modbus_handler->m_inputStatus, true);
     if (modbus_handler->m_numEntries.holdingRegisters)
-        m_holding = new ModbusItemPanel(this, "Holding Registers", modbus_handler->m_Holding, false);
+        m_holding = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Holding Registers - %lld", modbus_handler->m_numEntries.holdingRegisters), modbus_handler->m_Holding, false);
     if (modbus_handler->m_numEntries.inputRegisters)
-        m_inputReg = new ModbusItemPanel(this, "Input Registers", modbus_handler->m_Input, true);
+        m_inputReg = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Input Registers - %lld", modbus_handler->m_numEntries.inputRegisters), modbus_handler->m_Input, true);
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     m_hSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -323,7 +329,33 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
 
 void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
 {
+    int row = ev.GetRow(), col = ev.GetCol();
+    if (ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    {
+        wxMenu menu;
+        menu.Append(ID_ModbusDataEdit, "&Edit")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+        int ret = GetPopupMenuSelectionFromUser(menu);
+        switch (ret)
+        {
+            case ID_ModbusDataEdit:
+            {
+                std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+                auto& item = modbus_handler->m_Holding[row];
+                m_StyleEditDialog->ShowDialog(item->m_color, item->m_bg_color, item->m_is_bold, item->m_font_face, item->m_scale);
+                if (m_StyleEditDialog->IsApplyClicked())
+                {
+                    item->m_color = m_StyleEditDialog->GetTextColor();
+                    item->m_bg_color = m_StyleEditDialog->GetBgColor();
+                    item->m_is_bold = m_StyleEditDialog->IsBold();
+                    item->m_scale = m_StyleEditDialog->GetScale();
+                    item->m_font_face = m_StyleEditDialog->GetFontFace();
 
+                    m_holding->UpdatePanel();
+                }
+                break;
+            }
+        }
+    }
 }
 
 void ModbusDataPanel::OnGridLabelRightClick(wxGridEvent& ev)
@@ -636,4 +668,107 @@ void ModbusMasterPanel::Changeing(wxAuiNotebookEvent& event)
 	{
 		//comtcp_panel->Update();
 	}
+}
+
+ModbusDataEditDialog::ModbusDataEditDialog(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, "Modbus Style editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    wxSizer* const sizerTop = new wxBoxSizer(wxVERTICAL);
+
+    wxSizer* const sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&CAN style properties");
+    {
+        m_useCustomColor = new wxCheckBox(this, wxID_ANY, "Use custom color?");
+        sizerMsgs->Add(m_useCustomColor);
+
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Color:"));
+        m_color = new wxColourPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_color);
+    }
+
+    {
+        m_useCustomBackgroundColor = new wxCheckBox(this, wxID_ANY, "Use custom background color?");
+        sizerMsgs->Add(m_useCustomBackgroundColor);
+
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Background color:"));
+        m_backgroundColor = new wxColourPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_backgroundColor);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Bold?"));
+        m_isBold = new wxCheckBox(this, wxID_ANY, "");
+        sizerMsgs->Add(m_isBold);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Font Type:"));
+        m_fontFace = new wxFontPickerCtrl(this, wxID_ANY);
+        sizerMsgs->Add(m_fontFace);
+    }
+
+    {
+        sizerMsgs->Add(new wxStaticText(this, wxID_ANY, "&Scale:"));
+        m_scale = new wxSpinCtrlDouble(this, wxID_ANY, "0.0", wxDefaultPosition, wxDefaultSize, 16384, 0.0, 10.0, 1.0, 0.2);
+        sizerMsgs->Add(m_scale);
+    }
+
+    sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
+
+    // finally buttons to show the resulting message box and close this dialog
+    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE), wxSizerFlags().Right().Border()); /* wxOK */
+
+    SetSizerAndFit(sizerTop);
+    CentreOnScreen();
+}
+
+void ModbusDataEditDialog::ShowDialog(std::optional<uint32_t> color, std::optional<uint32_t> bg_color, bool is_bold, const wxString& font_face, float scale)
+{
+    uint32_t color_rgb = color.has_value() ? *color : 0xFFFFFF;
+    uint32_t bg_color_rgb = bg_color.has_value() ? *bg_color : 0xFFFFFF;
+
+    m_useCustomColor->SetValue(color.has_value());
+    m_color->SetColour(RGB_TO_WXCOLOR(color_rgb));
+    m_backgroundColor->SetColour(RGB_TO_WXCOLOR(bg_color_rgb));
+    m_useCustomBackgroundColor->SetValue(bg_color.has_value());
+    m_isBold->SetValue(is_bold);
+
+    if (!font_face.empty())
+    {
+        wxFont f;
+        f.SetFaceName(font_face);
+        m_fontFace->SetSelectedFont(f);
+    }
+    m_scale->SetValue(static_cast<double>(scale));
+
+    m_IsApplyClicked = false;
+    ShowModal();
+    DBG("isapply: %d", IsApplyClicked());
+}
+
+std::optional<uint32_t> ModbusDataEditDialog::GetTextColor()
+{
+    std::optional<uint32_t> ret;
+    if (m_useCustomColor->IsChecked())
+    {
+        uint32_t color = m_color->GetColour().GetRGB();
+        ret = WXCOLOR_TO_RGB(color);
+    }
+    return ret;
+}
+
+std::optional<uint32_t> ModbusDataEditDialog::GetBgColor()
+{
+    std::optional<uint32_t> ret;
+    if (m_useCustomBackgroundColor->IsChecked())
+    {
+        uint32_t color = m_backgroundColor->GetColour().GetRGB();
+        ret = WXCOLOR_TO_RGB(color);
+    }
+    return ret;
+}
+
+void ModbusDataEditDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+{
+    Close();
+    m_IsApplyClicked = true;
 }

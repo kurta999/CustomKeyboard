@@ -445,10 +445,12 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
         }
         else
         {
+            /*
             std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", 0, MBT_UI16, *i);
             items.push_back(std::move(item));
 
             changed_rows.push_back(items.size() - 1);
+            */
         }
         coil_pos_in_vec++;
     }

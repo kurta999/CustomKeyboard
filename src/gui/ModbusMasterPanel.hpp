@@ -19,19 +19,56 @@ enum ModbusLogGridCol : int
 	ModbusLog_Max
 };
 
+class ModbusDataEditDialog : public wxDialog
+{
+public:
+	ModbusDataEditDialog(wxWindow* parent);
+
+	void ShowDialog(std::optional<uint32_t> color, std::optional<uint32_t> bg_color, bool is_bold, const wxString& font_face, float scale);
+
+	std::optional<uint32_t> GetTextColor();
+	std::optional<uint32_t> GetBgColor();
+
+	bool IsBold() { return m_isBold->GetValue(); }
+	wxString GetFontFace() { return m_fontFace->GetSelectedFont().GetFaceName(); }
+	float GetScale() { return static_cast<float>(m_scale->GetValue()); }
+
+	bool IsApplyClicked() { return m_IsApplyClicked; }
+protected:
+	void OnApply(wxCommandEvent& event);
+	//void OnTimer(wxTimerEvent& event);
+private:
+	wxCheckBox* m_useCustomColor = nullptr;
+	wxColourPickerCtrl* m_color = nullptr;
+	wxCheckBox* m_useCustomBackgroundColor = nullptr;
+	wxColourPickerCtrl* m_backgroundColor = nullptr;
+	wxCheckBox* m_isBold = nullptr;
+	wxFontPickerCtrl* m_fontFace = nullptr;
+	wxSpinCtrlDouble* m_scale = nullptr;
+
+	wxStaticText* m_labelResult = nullptr;
+	bool m_IsApplyClicked = false;
+	wxTimer* m_timer = nullptr;
+
+	wxDECLARE_EVENT_TABLE();
+	wxDECLARE_NO_COPY_CLASS(ModbusDataEditDialog);
+};
 
 class ModbusItemPanel
 {
 public:
-    ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only);
+    ModbusItemPanel(wxWindow* parent, ModbusDataEditDialog* style_dialog, const wxString& header_name, ModbusItemType& items, bool is_read_only);
 
     void UpdatePanel();
     void UpdateChangesOnly(std::vector<uint8_t>& changed_rows);
 
+	void OnCellRightClick(wxGridEvent& ev);
+	void OnGridLabelRightClick(wxGridEvent& ev);
+
     wxGrid* m_grid = nullptr;
 	wxStaticBoxSizer* static_box = nullptr;
 	ModbusItemType& m_items;
-
+	ModbusDataEditDialog* m_StyleDialog = nullptr;
 private:
 	bool m_isReadOnly;
 
@@ -47,6 +84,8 @@ public:
 	ModbusDataPanel(wxWindow* parent);
 
 	wxBoxSizer* m_hSizer = nullptr;
+
+	ModbusDataEditDialog* m_StyleEditDialog = nullptr;
 
 	ModbusItemPanel* m_coil = nullptr;
 	ModbusItemPanel* m_input = nullptr;
