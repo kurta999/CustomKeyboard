@@ -23,7 +23,7 @@ ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, 
     static_box->GetStaticBox()->SetFont(static_box->GetStaticBox()->GetFont().Bold());
     static_box->GetStaticBox()->SetForegroundColour(wxColor(235, 52, 204));
 
-    m_grid = new wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(200, 700), 0);
+    m_grid = new wxGrid(parent, wxID_ANY, wxDefaultPosition, wxSize(250, 700), 0);
 
     // Grid
     m_grid->CreateGrid(0, ModbusGridCol::Modbus_Max);
@@ -34,7 +34,9 @@ ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, 
 
     m_grid->SetColLabelValue(ModbusGridCol::Modbus_Name, "Name");
     m_grid->SetColLabelValue(ModbusGridCol::Modbus_Value, "Value");
-    
+
+    m_grid->SetColSize(ModbusGridCol::Modbus_Name, 130);
+
     // Columns
     m_grid->EnableDragColMove(true);
     m_grid->EnableDragColSize(true);
@@ -52,10 +54,9 @@ ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, 
 
     // Cell Defaults
     m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
-    m_grid->SetRowLabelSize(30);
+    m_grid->SetRowLabelSize(60);
 
     //m_grid->HideRowLabels();
-
     static_box->Add(m_grid);
 
     UpdatePanel();
@@ -71,8 +72,10 @@ void ModbusItemPanel::UpdatePanel()
     {
         m_grid->AppendRows(1);
         int num_row = m_grid->GetNumberRows() - 1;
-        m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
-
+        if(e->GetSize() == 1)
+            m_grid->SetRowLabelValue(num_row, wxString::Format("%lld", e->m_Offset));
+        else
+            m_grid->SetRowLabelValue(num_row, wxString::Format("%lld - %lld", e->m_Offset, e->m_Offset + (e->GetSize() - 1)));
         m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), e->m_Name);
         m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), wxString::Format("%lld", e->m_Value));
 
@@ -113,27 +116,6 @@ void ModbusItemPanel::UpdatePanel()
 
         if(m_isReadOnly)
             m_grid->SetReadOnly(num_row, ModbusGridCol::Modbus_Value, true);
-        /*
-        if (e->m_Type == ModbusBitfieldType::MBT_UI32)
-        {
-            m_grid->AppendRows(1);
-            int num_row = m_grid->GetNumberRows() - 1;
-            m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
-
-            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), "-");
-            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
-        }
-        else if (e->m_Type == ModbusBitfieldType::MBT_FLOAT)
-        {
-            m_grid->AppendRows(1);
-            int num_row = m_grid->GetNumberRows() - 1;
-            m_grid->SetRowLabelValue(num_row, wxString::Format("%d", num_row));
-
-            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Name), "-");
-            m_grid->SetCellValue(wxGridCellCoords(num_row, ModbusGridCol::Modbus_Value), "-");
-
-        }
-        */
     }
 }
 
@@ -153,7 +135,7 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
 
         if (i != 0xFF)
         {
-            if (i + skipped_rows >= num_row - 1)  /* was break */
+            if (i + skipped_rows >= num_row)  /* was break */
                 m_grid->AppendRows(1);
             else
                 num_row = i + skipped_rows;
@@ -195,23 +177,30 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
     }
 }
 
-
 ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
     wxPanel(parent, wxID_ANY)
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-    m_coil = new ModbusItemPanel(this, "Coil Status", modbus_handler->m_coils, false);
-    m_input = new ModbusItemPanel(this, "Input Status", modbus_handler->m_inputStatus, true);
-    m_holding = new ModbusItemPanel(this, "Holding Registers", modbus_handler->m_Holding, false);
-    m_inputReg = new ModbusItemPanel(this, "Input Registers", modbus_handler->m_Input, true);
+    if (modbus_handler->m_numEntries.coils)
+        m_coil = new ModbusItemPanel(this, "Coil Status", modbus_handler->m_coils, false);
+    if (modbus_handler->m_numEntries.inputStatus)
+        m_input = new ModbusItemPanel(this, "Input Status", modbus_handler->m_inputStatus, true);
+    if (modbus_handler->m_numEntries.holdingRegisters)
+        m_holding = new ModbusItemPanel(this, "Holding Registers", modbus_handler->m_Holding, false);
+    if (modbus_handler->m_numEntries.inputRegisters)
+        m_inputReg = new ModbusItemPanel(this, "Input Registers", modbus_handler->m_Input, true);
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
-
     m_hSizer = new wxBoxSizer(wxHORIZONTAL);
-    m_hSizer->Add(m_coil->static_box);
-    m_hSizer->Add(m_input->static_box);
-    m_hSizer->Add(m_holding->static_box);
-    m_hSizer->Add(m_inputReg->static_box);
+
+    if(modbus_handler->m_numEntries.coils)
+        m_hSizer->Add(m_coil->static_box);
+    if (modbus_handler->m_numEntries.inputStatus)
+        m_hSizer->Add(m_input->static_box);
+    if (modbus_handler->m_numEntries.holdingRegisters)
+        m_hSizer->Add(m_holding->static_box);
+    if (modbus_handler->m_numEntries.inputRegisters)
+        m_hSizer->Add(m_inputReg->static_box);
 
     v_sizer->Add(m_hSizer);
 
@@ -241,6 +230,7 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
         });
     h_sizer2->Add(m_SaveButton);
 
+    h_sizer2->AddSpacer(10);
     h_sizer2->Add(new wxStaticText(this, wxID_ANY, "Polling rate [ms]: "));
     h_sizer2->AddSpacer(5);
     m_PollingRate = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 50, 10000, modbus_handler->GetPollingRate());
@@ -252,6 +242,19 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
         });
 
     h_sizer2->Add(m_PollingRate);
+
+    h_sizer2->AddSpacer(10);
+    h_sizer2->Add(new wxStaticText(this, wxID_ANY, "Response timeout [ms]: "));
+    h_sizer2->AddSpacer(5);
+    m_ResponseTimeout = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 50, 10000, modbus_handler->GetSerial().m_ResponseTimeout);
+    m_ResponseTimeout->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, [this](wxSpinEvent& event)
+        {
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            int new_value = event.GetValue();
+            modbus_handler->GetSerial().m_ResponseTimeout = new_value;
+        });
+
+    h_sizer2->Add(m_ResponseTimeout);
 
     v_sizer->Add(h_sizer2);
 
@@ -404,7 +407,7 @@ ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
 #ifdef _WIN32
             const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 
-            if(std::filesystem::exists("Modbus"))
+            if(!std::filesystem::exists("Modbus"))
                 std::filesystem::create_directory("Modbus");
             std::string log_format = std::format("Modbus/ModbusLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
             std::filesystem::path p(log_format);

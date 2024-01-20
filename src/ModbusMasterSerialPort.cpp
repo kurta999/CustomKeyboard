@@ -6,6 +6,8 @@ constexpr auto SERIAL_PORT_TIMEOUT = 100ms;
 constexpr auto SERIAL_PORT_EXCEPTION_TIMEOUT = 1000ms;
 constexpr auto RESPONSE_TIMEOUT = 5000ms;
 
+constexpr size_t MAX_HOLDING_REG_ONCE = 120;
+
 template <typename In> inline void WriteToByteBuffer(std::vector<uint8_t>& vec, const In& data)
 {
     using T = std::decay_t<decltype(data)>;
@@ -89,15 +91,13 @@ std::vector<uint8_t> ModbusMasterSerialPort::ReadCoilStatus(uint8_t slave_id, ui
     AddCrcToFrame(vec);
     
     std::vector<uint8_t> ret;
-    LOG(LogLevel::Verbose, "NotifyAndWaitForResponse");
     auto response = NotifyAndWaitForResponse(vec);
-    LOG(LogLevel::Verbose, "response");
     if(response == ResponseStatus::Ok)
     {
         if(m_RecvData.size() > 3)
         {
             uint8_t num_bytes = m_RecvData[2];
-            copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
+            std::copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
         }
     }
     m_RecvData.clear();
@@ -128,7 +128,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::ForceSingleCoil(uint8_t slave_id, u
         if(m_RecvData.size() > 3)
         {
             uint8_t num_bytes = m_RecvData[2];
-            copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
+            std::copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
         }
         else
         {
@@ -157,7 +157,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::ReadInputStatus(uint8_t slave_id, u
         if(m_RecvData.size() > 3)
         {
             uint8_t num_bytes = m_RecvData[2];
-            copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
+            std::copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
         }
     }
     m_RecvData.clear();
@@ -186,6 +186,33 @@ std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegister(uint8_t slave_
     }
     m_RecvData.clear();
     return ret;
+}
+
+std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegisters(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+{
+    std::vector<uint16_t> result;
+    size_t remaining = read_count;
+    uint16_t offset = read_offset;
+    while (remaining > 0)
+    {
+        size_t step = std::min<uint16_t>(remaining, MAX_HOLDING_REG_ONCE);
+
+        std::vector<uint16_t> tmp = ReadHoldingRegister(slave_id, offset, step);
+        if (!tmp.empty())
+        {
+            offset += step;
+            remaining -= step;
+
+            result.insert(result.end(), tmp.begin(), tmp.end());
+        }
+        else
+        {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    return result;
 }
 
 std::vector<uint8_t> ModbusMasterSerialPort::WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer)
@@ -220,7 +247,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::WriteHoldingRegister(uint8_t slave_
         if(m_RecvData.size() > 3)
         {
             uint8_t num_bytes = m_RecvData[2];
-            copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
+            std::copy(m_RecvData.begin() + 3, m_RecvData.end(), back_inserter(ret));
         }
     }
     m_RecvData.clear();
@@ -257,7 +284,7 @@ void ModbusMasterSerialPort::Init()
     {
         auto recv_f = [this](const char* data, unsigned int len) -> void { OnUartDataReceived(data, len); };
         auto send_f = [this](CallbackAsyncSerial& serial_port) -> void { OnDataSent(serial_port); };
-        InitInternal("ModbusMasterSerialPort", SERIAL_PORT_TIMEOUT, SERIAL_PORT_EXCEPTION_TIMEOUT, recv_f, send_f);
+        InitInternal("ModbusMasterSerialPort", SERIAL_PORT_TIMEOUT, SERIAL_PORT_EXCEPTION_TIMEOUT, recv_f, send_f, 0, false);
     }
     else
     {

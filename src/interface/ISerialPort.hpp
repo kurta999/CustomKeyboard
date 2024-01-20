@@ -13,8 +13,8 @@ public:
     virtual ~ISerialPort() = default;
 
     virtual void InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-        SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600) = 0;
-    virtual void InitInternal(const std::string& ip, uint16_t port, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+        SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600, bool auto_open = false) = 0;
+    virtual void InitInternal(const std::string& ip, uint16_t port, bool auto_open, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
         SerialRecvFunction recv_function, SerialSendFunction send_function) = 0;
     virtual void DeInitInternal() = 0;
     virtual void SetEnabled(bool enable) = 0;
@@ -27,6 +27,7 @@ public:
     virtual void SetTcpPort(uint16_t port) = 0;
     virtual uint16_t GetTcpPort() const = 0;
 
+    virtual bool IsOpen() = 0;
     virtual void Open() = 0;
     virtual void Close() = 0;
 

@@ -64,6 +64,7 @@ private:
 	wxButton* m_StartButton = nullptr;
 	wxButton* m_StopButton = nullptr;
 	wxSpinCtrl* m_PollingRate = nullptr;
+	wxSpinCtrl* m_ResponseTimeout = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };

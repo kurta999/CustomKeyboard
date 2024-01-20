@@ -130,6 +130,8 @@ private:
     
     bool m_isMainThreadPaused = false;
 
+    bool m_isOpenInProgress = false;
+
     std::unique_ptr<ModbusMasterSerialPort> m_Serial;
 
     IModbusHelper* m_helper = nullptr;

@@ -8,9 +8,10 @@ SerialPortBase::~SerialPortBase()
 }
 
 void SerialPortBase::InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-    SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate)
+    SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate, bool auto_open)
 {
     m_SerialName = serial_name;
+    m_IsAutoOpen = auto_open;
     m_MainTimeout = main_timeout;
     m_ExceptionTimeout = exception_timeout;
     m_RecvFunction = recv_function;
@@ -24,11 +25,12 @@ void SerialPortBase::InitInternal(const std::string& serial_name, std::chrono::m
     }
 }
 
-void SerialPortBase::InitInternal(const std::string& ip, uint16_t port, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+void SerialPortBase::InitInternal(const std::string& ip, uint16_t port, bool auto_open, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
     SerialRecvFunction recv_function, SerialSendFunction send_function)
 {
     m_TcpIp = ip;
     m_TcpPort = port;
+    m_IsAutoOpen = auto_open;
     m_MainTimeout = main_timeout;
     m_ExceptionTimeout = exception_timeout;
     m_RecvFunction = recv_function;
@@ -84,6 +86,11 @@ void SerialPortBase::SetTcpPort(uint16_t port)
 uint16_t SerialPortBase::GetTcpPort() const
 {
     return m_TcpPort;
+}
+
+bool SerialPortBase::IsOpen()
+{
+    return m_serial->isOpen();
 }
 
 void SerialPortBase::Open()
@@ -170,7 +177,9 @@ void SerialPortBase::WorkerThread(std::stop_token token)
                 {
                     LOG(LogLevel::Error, "Serial port can unexpectedly closed");
                     m_is_ok = false;
-                    break;
+
+                    if(m_IsAutoOpen)
+                        break;
                 }
 
                 m_is_ok = true;
@@ -193,7 +202,8 @@ void SerialPortBase::WorkerThread(std::stop_token token)
             try
             {
                 m_is_ok = false;
-                m_serial->close();
+                if(m_IsAutoOpen)
+                    m_serial->close();
             }
             catch(const std::exception& e)
             {

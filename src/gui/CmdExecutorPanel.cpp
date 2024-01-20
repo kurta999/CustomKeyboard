@@ -259,7 +259,7 @@ void CmdExecutorPanelBase::OnAuiRightClick(wxAuiNotebookEvent& evt)
 
 void CmdExecutorPanelBase::OnPreReload(uint8_t page)
 {
-    DBG("OnPreReload pages: %d\n", page);
+    //DBG("OnPreReload pages: %d\n", page);
 
     m_notebook->DeleteAllPages();
     m_Pages.clear();
@@ -277,7 +277,7 @@ void CmdExecutorPanelBase::OnPreReload(uint8_t page)
 void CmdExecutorPanelBase::OnPreReloadColumns(uint8_t pages, uint8_t cols)
 {
     m_Pages[pages - 1]->OnPreload(cols);
-    DBG("OnPreReloadColumns pages: %d, cols: %d\n", pages, cols);
+    //DBG("OnPreReloadColumns pages: %d, cols: %d\n", pages, cols);
 }
 
 void CmdExecutorPanelBase::OnCommandLoaded(uint8_t page, uint8_t col, CommandTypes cmd)
@@ -302,7 +302,7 @@ CmdExecutorPanelPage::CmdExecutorPanelPage(wxWindow* parent, uint8_t id, uint8_t
     edit_dlg = new CmdExecutorEditDialog(this);
     param_dlg = new CmdExecutorParamDialog(this);
 
-    DBG("CmdExecutorPanelPage constructor %d, %d\n", id, cols);
+    //DBG("CmdExecutorPanelPage constructor %d, %d\n", id, cols);
     Bind(wxEVT_RIGHT_DOWN, &CmdExecutorPanelPage::OnPanelRightClick, this);
 }
 

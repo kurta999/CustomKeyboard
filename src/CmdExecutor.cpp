@@ -310,7 +310,7 @@ bool XmlCommandLoader::Load(const std::filesystem::path& path, CommandStorage& s
                         {
                             temp_cmds.push_back(command);
 
-                            DBG("loading command page: %d, col: %d\n", p, i);
+                            //DBG("loading command page: %d, col: %d\n", p, i);
                             if(m_Mediator)
                                 m_Mediator->OnCommandLoaded(p, i, command);
                         }

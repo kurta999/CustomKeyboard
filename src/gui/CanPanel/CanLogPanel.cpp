@@ -121,7 +121,7 @@ CanLogPanel::CanLogPanel(wxWindow* parent)
 #ifdef _WIN32
             const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 
-            if(std::filesystem::exists("Can"))
+            if(!std::filesystem::exists("Can"))
                 std::filesystem::create_directory("Can");
             std::string log_format = std::format("Can/CanLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
             std::filesystem::path p(log_format);

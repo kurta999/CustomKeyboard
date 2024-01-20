@@ -84,7 +84,8 @@ AsyncSerial::AsyncSerial(): pimpl(new AsyncSerialImpl)
 AsyncSerial::AsyncSerial(const std::string& ip, uint16_t port)
         : pimpl(new AsyncSerialImpl)
 {
-    open(ip, port);
+    //open(ip, port);
+    printf("open");
 }
 
 AsyncSerial::AsyncSerial(const std::string& devname, unsigned int baud_rate,
@@ -126,7 +127,7 @@ void AsyncSerial::open(const std::string& devname, unsigned int baud_rate,
 void AsyncSerial::open(const std::string& ip, uint16_t port)
 {
     pimpl->is_tcp = true;
-    if(isOpen()) close();
+    //if(isOpen()) close();
 
     setErrorStatus(true);//If an exception is thrown, error_ remains true
     pimpl->tcp_ip = ip;
@@ -135,8 +136,7 @@ void AsyncSerial::open(const std::string& ip, uint16_t port)
     boost::system::error_code ec;
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(ip, ec), port);
     pimpl->socket.set_option(boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>{ 200 }, ec);
-    //if (ec)
-        //LOG(LogLevel::Error, "set_option error: {}", ec.message());
+
 
     bool is_connected = false;
     pimpl->socket.async_connect(endpoint, [&is_connected](const boost::system::error_code& ec)
@@ -159,7 +159,8 @@ void AsyncSerial::open(const std::string& ip, uint16_t port)
     }
     else
     {
-        setErrorStatus(true);
+        pimpl->io.stop();
+        pimpl->io.reset();
         pimpl->open = false;
     }
 }

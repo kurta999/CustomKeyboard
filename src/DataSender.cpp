@@ -166,9 +166,14 @@ void DataSender::Init()
 {
     LoadFiles();
     SaveFiles();
-    m_worker = std::make_unique<std::jthread>(std::bind_front(&DataSender::WorkerThread, this));
-    if(m_worker)
-        utils::SetThreadName(*m_worker, "DataEntryHandler");
+
+    bool is_enabled = DataSerialPort::Get()->IsEnabled();
+    if (is_enabled)
+    {
+        m_worker = std::make_unique<std::jthread>(std::bind_front(&DataSender::WorkerThread, this));
+        if (m_worker)
+            utils::SetThreadName(*m_worker, "DataEntryHandler");
+    }
 }
 
 void DataSender::SetLogHelper(IDataLogHelper* helper)

@@ -14,9 +14,9 @@ public:
     ~SerialPortBase();
 
     void InitInternal(const std::string& serial_name, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-        SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600) override;
-    void InitInternal(const std::string& ip, uint16_t port, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
-        SerialRecvFunction recv_function, SerialSendFunction send_function);
+        SerialRecvFunction recv_function, SerialSendFunction send_function, uint32_t baudrate = 921600, bool auto_open = true) override;
+    void InitInternal(const std::string& ip, uint16_t port, bool auto_open, std::chrono::milliseconds main_timeout, std::chrono::milliseconds exception_timeout,
+        SerialRecvFunction recv_function, SerialSendFunction send_function) override;
     void DeInitInternal() override;
     void SetEnabled(bool enable) override;
     bool IsEnabled() const override;
@@ -29,6 +29,7 @@ public:
     void SetTcpPort(uint16_t port) override;
     uint16_t GetTcpPort() const override;
 
+    bool IsOpen() override;
     void Open() override;
     void Close() override;
 
@@ -59,6 +60,8 @@ protected:
     bool is_enabled = true;
 
     bool is_tcp = false;
+
+    bool m_IsAutoOpen = false;
     
     std::string m_TcpIp;
 

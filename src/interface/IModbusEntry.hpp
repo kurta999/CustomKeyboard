@@ -33,9 +33,9 @@ enum ModbusBitfieldType : uint8_t
 class ModbusItem 
 {
 public:
-    ModbusItem(const std::string& name, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {},
+    ModbusItem(const std::string& name, size_t offset, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {},
         std::optional<bool> is_bold_ = false, std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
-        m_Name(name), m_Type(type), m_Value(value), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
+        m_Name(name), m_Type(type), m_Offset(offset), m_Value(value), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
         if(scale.has_value())
             m_scale = *scale;
@@ -45,10 +45,18 @@ public:
             m_is_bold = *is_bold_;
     }
 
+    uint8_t GetSize()
+    {
+        uint8_t size = 1;
+        if (m_Type == ModbusBitfieldType::MBT_UI32 || m_Type == ModbusBitfieldType::MBT_FLOAT)
+            size = 2;
+        return size;
+    }
+
     std::string m_Name;
     ModbusBitfieldType m_Type;
     
-    size_t offset;
+    size_t m_Offset;
 
     uint64_t m_Value;
     float m_fValue;
