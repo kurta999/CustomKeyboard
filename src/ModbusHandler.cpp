@@ -99,18 +99,52 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     boost::optional<std::string> data_type = m.second.get_optional<std::string>("DataType");
                     if (data_type)
                     {
-                        if (*data_type == "uint16_t")
+                        if (*data_type == "bool")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_BOOL;
+                        }
+                        else if (*data_type == "int16_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_I16;
+                        }
+                        else if (*data_type == "uint16_t")
                         {
                             register_value_type = ModbusBitfieldType::MBT_UI16;
                         }
-                        if (*data_type == "uint32_t")
+                        else if (*data_type == "int32_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_I32;
+                        }
+                        else if (*data_type == "uint32_t")
                         {
                             register_value_type = ModbusBitfieldType::MBT_UI32;
+                        }
+                        else if (*data_type == "int64_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_I64;
+                        }
+                        else if (*data_type == "uint64_t")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_UI64;
                         }
                         else if (*data_type == "float")
                         {
                             register_value_type = ModbusBitfieldType::MBT_FLOAT;
                         }
+                        else if (*data_type == "double")
+                        {
+                            register_value_type = ModbusBitfieldType::MBT_DOUBLE;
+                        }
+                    }
+
+                    boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("Min");
+                    boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("Max");
+                    std::string description;
+                    boost::optional<std::string> description_child = m.second.get_optional<std::string>("Desc");
+                    if (description_child)
+                    {
+                        description = *description_child;
+                        boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
                     }
 
                     boost::optional<std::string> color;
@@ -121,6 +155,7 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     utils::xml::ReadChildIfexists<std::string>(m, "Color", color);
                     utils::xml::ReadChildIfexists<std::string>(m, "BackgroundColor", bg_color);
                     utils::xml::ReadChildIfexists<float>(m, "Scale", is_scale);
+                    utils::xml::ReadChildIfexists<bool>(m, "Bold", is_bold);
                     utils::xml::ReadChildIfexists<std::string>(m, "FontFace", is_font_face);
 
                     std::optional<uint32_t> color_;
@@ -140,7 +175,8 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     if(is_font_face.has_value())
                         is_font_face_ = *is_font_face;
 
-                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, *offset, register_value_type, last_val, color_, bg_color_, is_bold_, is_scale_, is_font_face_);
+                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, *offset, register_value_type, description, 0, 0, last_val,
+                        color_, bg_color_, is_bold_, is_scale_, is_font_face_);
                     *offset += ptr->GetSize();
                     item->push_back(std::move(ptr));
                 }
@@ -186,6 +222,55 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
         {
             auto& sub_node = register_node.add_child(subchild_names[id], boost::property_tree::ptree{});
             sub_node.add("Name", m->m_Name);
+            
+            std::string type = "uint16_t";
+            if (m->m_Type == ModbusBitfieldType::MBT_BOOL)
+            {
+                type = "bool";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_I16)
+            {
+                type = "int16_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_UI16)
+            {
+                type = "uint16_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_I32)
+            {
+                type = "int32_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_UI32)
+            {
+                type = "uint32_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_I64)
+            {
+                type = "int64_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_UI64)
+            {
+                type = "uint64_t";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_FLOAT)
+            {
+                type = "float";
+            }
+            else if (m->m_Type == ModbusBitfieldType::MBT_DOUBLE)
+            {
+                type = "double";
+            }
+            sub_node.add("DataType", type);
+
+            sub_node.add("Min", m->m_Min);
+            sub_node.add("Max", m->m_Max);
+            if (!m->m_Desc.empty())
+            {
+                std::string desc_str = m->m_Desc;
+                boost::algorithm::replace_all(desc_str, "\n", "\\n");  /* Fix for newlines */
+                sub_node.add("Desc", desc_str);
+            }
+
             sub_node.add("LastVal", m->m_Value);
 
             if(m->m_color)
@@ -365,9 +450,11 @@ void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItem
             }
             else
             {
+                /*
                 std::unique_ptr<ModbusItem> item = std::make_unique<ModbusItem>("Unknown", 0, MBT_BOOL, bit_val);
                 items.push_back(std::move(item));
                 changed_rows.push_back(items.size() - 1);
+                */
             }
         }
 

@@ -14,6 +14,7 @@ enum ModbusLogGridCol : int
 	ModbusLog_Time,
 	ModbusLog_Direction,
 	ModbusLog_FCode,
+	ModbusLog_ErrorType,
 	ModbusLog_DataSize,
 	ModbusLog_Data,
 	ModbusLog_Max
@@ -114,7 +115,7 @@ public:
 	ModbusLogPanel(wxWindow* parent);
 	~ModbusLogPanel() = default;
 
-	void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, const std::vector<uint8_t>& data) override;
+	void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data) override;
 	void ClearRecordingsFromGrid();
 	void On10MsTimer();
 	void OnKeyDown(wxKeyEvent& evt);
@@ -145,6 +146,8 @@ class ModbusMasterPanel : public wxPanel
 {
 public:
 	ModbusMasterPanel(wxWindow* parent);
+	~ModbusMasterPanel();
+
 	void UpdateSubpanels();
 	void On10MsTimer();
 
@@ -154,8 +157,9 @@ public:
 
 private:
 	void OnSize(wxSizeEvent& evt);
-
 	void Changeing(wxAuiNotebookEvent& event);
+
+	wxAuiManager m_mgr;
 
 	wxDECLARE_EVENT_TABLE();
 };

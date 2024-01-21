@@ -33,9 +33,11 @@ enum ModbusBitfieldType : uint8_t
 class ModbusItem 
 {
 public:
-    ModbusItem(const std::string& name, size_t offset, ModbusBitfieldType type, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {},
-        std::optional<bool> is_bold_ = false, std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
-        m_Name(name), m_Type(type), m_Offset(offset), m_Value(value), m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
+    ModbusItem(const std::string& name, size_t offset, ModbusBitfieldType type, const std::string& desc, int64_t min_val, int64_t max_val, uint64_t value, 
+        std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {}, std::optional<bool> is_bold_ = false, 
+        std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
+        m_Name(name), m_Offset(offset), m_Type(type), m_Desc(desc), m_Min(min_val), m_Max(max_val), m_Value(value), 
+        m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
         if(scale.has_value())
             m_scale = *scale;
@@ -59,7 +61,13 @@ public:
     size_t m_Offset;
 
     uint64_t m_Value;
-    float m_fValue;
+    float m_fValue = 0.0f;
+
+    std::string m_Desc;
+
+    int64_t m_Min;
+    
+    int64_t m_Max;
 
     // !\brief Text color
     std::optional<uint32_t> m_color;
@@ -97,5 +105,5 @@ class IModbusHelper
 public:
     virtual ~IModbusHelper() = default;
 
-    virtual void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, const std::vector<uint8_t>& data) = 0;
+    virtual void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data) = 0;
 };

@@ -13,11 +13,18 @@ public:
         ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries) const override;
 };
 
+typedef enum
+{
+    MB_ERR_OK,
+    MB_ERR_CRC,
+    MB_ERR_TIMEOUT,
+} ModbusErorrType;
+
 class ModbusLogEntry
 {
 public:
-    ModbusLogEntry(uint8_t dir, uint8_t fc, uint8_t* data_, size_t data_len, std::chrono::steady_clock::time_point& timepoint) : 
-        direction(dir), fcode(fc), last_execution(timepoint)
+    ModbusLogEntry(uint8_t dir, uint8_t fc, ModbusErorrType error, uint8_t* data_, size_t data_len, std::chrono::steady_clock::time_point& timepoint) :
+        direction(dir), fcode(fc), error_type(error), last_execution(timepoint)
     {
         if(data_ && data_len)
             data.insert(data.end(), data_, data_ + data_len);
@@ -26,6 +33,7 @@ public:
     std::vector<uint8_t> data;
     uint8_t direction;
     uint8_t fcode;
+    ModbusErorrType error_type;
     std::chrono::steady_clock::time_point last_execution;
 };
 

@@ -178,6 +178,7 @@ void ModbusItemPanel::UpdateChangesOnly(std::vector<uint8_t>& changed_rows)
         /*
         for(uint8_t i = 0; i != ModbusGridCol::Modbus_Max; i++)
             m_grid->SetCellBackgroundColour(num_row, i, (num_row & 1) ? 0xE6E6E6 : 0xFFFFFF);*/
+        m_grid->Update();
     }
 }
 
@@ -274,7 +275,7 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
 
     int row = ev.GetRow(), col = ev.GetCol();
-    if(ev.GetEventObject() == dynamic_cast<wxObject*>(m_coil->m_grid))
+    if(m_coil && ev.GetEventObject() == dynamic_cast<wxObject*>(m_coil->m_grid))
     {
         wxString new_value = m_coil->m_grid->GetCellValue(row, col);
         switch(col)
@@ -293,7 +294,7 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
             }
         }
     }
-    else if(ev.GetEventObject() == dynamic_cast<wxObject*>(m_input->m_grid))
+    else if(m_input && ev.GetEventObject() == dynamic_cast<wxObject*>(m_input->m_grid))
     {
         wxString new_value = m_input->m_grid->GetCellValue(row, col);
         switch(col)
@@ -305,7 +306,7 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
             }
         }
     }
-    else if(ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    else if(m_holding &&  ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
     {
         wxString new_value = m_holding->m_grid->GetCellValue(row, col);
         switch(col)
@@ -468,12 +469,14 @@ ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Time, "Time");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Direction, "Dir");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_FCode, "FC");
+    m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_ErrorType, "Err");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_DataSize, "Size");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Data, "Data");
 
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Time, 50);
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Direction, 50);
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_FCode, 50);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_ErrorType, 50);
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_DataSize, 50);
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Data, 500);
 
@@ -496,7 +499,7 @@ ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
     Show();
 }
 
-void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, const std::vector<uint8_t>& data)
+void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data)
 {
     int num_rows = m_grid->GetNumberRows();
     if(num_rows <= cnt)
@@ -511,6 +514,23 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Data), hex);
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Direction), direction == CAN_LOG_DIR_TX ? "TX" : "RX");
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_FCode), wxString::Format("%X", fcode));
+
+    wxString error_type = "OK";
+    switch (error)
+    {
+        case ModbusErorrType::MB_ERR_CRC:
+        {
+            error_type = "CRC";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_TIMEOUT:
+        {
+            error_type = "TO";
+            break;
+        }
+    }
+
+    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_ErrorType), error_type);
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_DataSize), wxString::Format("%lld", data.size()));
 
     if(m_AutoScroll)
@@ -569,7 +589,7 @@ void ModbusLogPanel::On10MsTimer()
         {
             for(; it != modbus_handler->m_LogEntries.end(); ++it)
             {
-                AppendLog((*it)->last_execution, (*it)->direction, (*it)->fcode, (*it)->data);
+                AppendLog((*it)->last_execution, (*it)->direction, (*it)->fcode, (*it)->error_type, (*it)->data);
                 inserted_until++;
             }
             //inserted_until = std::distance(can_handler->m_LogEntries.begin(), it);
@@ -629,6 +649,7 @@ ModbusMasterPanel::ModbusMasterPanel(wxWindow* parent)
 {
     wxSize client_size = GetClientSize();
 
+    m_mgr.SetManagedWindow(this);
 	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(Settings::Get()->window_size.x - 50, Settings::Get()->window_size.y - 50), wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_MIDDLE_CLICK_CLOSE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
 
     data_panel = new ModbusDataPanel(this);
@@ -640,6 +661,11 @@ ModbusMasterPanel::ModbusMasterPanel(wxWindow* parent)
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ModbusMasterPanel::Changeing), NULL, this);
     m_notebook->Split(0, wxLEFT);
     m_notebook->Thaw();
+}
+
+ModbusMasterPanel::~ModbusMasterPanel()
+{
+    m_mgr.UnInit();
 }
 
 void ModbusMasterPanel::UpdateSubpanels()

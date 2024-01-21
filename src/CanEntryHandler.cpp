@@ -61,6 +61,7 @@ bool XmlCanEntryLoader::Load(const std::filesystem::path& path, std::vector<std:
             boost::optional<std::string> is_font_face;
             utils::xml::ReadChildIfexists<std::string>(v, "Color", color);
             utils::xml::ReadChildIfexists<std::string>(v, "BackgroundColor", bg_color);
+            utils::xml::ReadChildIfexists<bool>(v, "Bold", is_bold);
             utils::xml::ReadChildIfexists<float>(v, "Scale", is_scale);
             utils::xml::ReadChildIfexists<std::string>(v, "FontFace", is_font_face);
 

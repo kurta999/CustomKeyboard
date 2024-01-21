@@ -81,6 +81,8 @@ private:
 
     std::vector<uint8_t> m_SentData;
 
+    std::vector<uint8_t> m_LastSentData;
+
     bool m_LastDataCrcOk = true;
 
     IModbusHelper* m_Helper = nullptr;
