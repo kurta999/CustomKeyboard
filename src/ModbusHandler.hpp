@@ -75,6 +75,13 @@ public:
     void SetDefaultConfigName(const std::string& default_config) { m_DefaultConfigName = default_config; }
     const std::string& GetDefaultConfigName() const { return m_DefaultConfigName; }
 
+    // !\brief Get favourite level
+    uint8_t GetFavouriteLevel() const { return m_DefaultFavouriteLevel; }
+
+    // !\brief Set favourite level
+    // !\param favourite_level [in] Favourite level
+    void SetFavouriteLevel(uint8_t favourite_level) { m_DefaultFavouriteLevel = favourite_level; }
+
     void EditCoil(size_t id, bool value) { m_pendingCoilWrites.push_back({ id, value }); }
     void EditHolding(size_t id, uint64_t value) { m_pendingHoldingWrites.push_back({ id, value }); }
 
@@ -128,6 +135,10 @@ private:
     size_t rx_frame_cnt = 0;
     size_t err_frame_cnt = 0;
 
+    // !\brief Favourite level
+    // !\details CAN entries (both TX & RX) which level is below this level, won't show on TX and RX list
+    uint8_t m_DefaultFavouriteLevel = 0;
+
     std::vector<std::pair<int, bool>> m_pendingCoilWrites;
     std::vector<std::pair<int, uint64_t>> m_pendingHoldingWrites;
 
@@ -139,6 +150,8 @@ private:
     bool m_isMainThreadPaused = false;
 
     bool m_isOpenInProgress = false;
+
+    bool m_isCloseInProgress = false;
 
     std::unique_ptr<ModbusMasterSerialPort> m_Serial;
 

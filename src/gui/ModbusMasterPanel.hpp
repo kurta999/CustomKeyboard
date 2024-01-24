@@ -60,6 +60,7 @@ class ModbusItemPanel
 public:
     ModbusItemPanel(wxWindow* parent, ModbusDataEditDialog* style_dialog, const wxString& header_name, ModbusItemType& items, bool is_read_only);
 
+	void AddItem(std::unique_ptr<ModbusItem>& e);
     void UpdatePanel();
     void UpdateChangesOnly(std::vector<uint8_t>& changed_rows);
 
@@ -70,6 +71,8 @@ public:
 	wxStaticBoxSizer* static_box = nullptr;
 	ModbusItemType& m_items;
 	ModbusDataEditDialog* m_StyleDialog = nullptr;
+	std::map<uint16_t, ModbusItem*> grid_to_entry;  /* Helper map for storing an additional ID to CanRxData */
+	std::string search_pattern;
 private:
 	bool m_isReadOnly;
 
@@ -96,7 +99,9 @@ public:
 private:
 	void OnCellValueChanged(wxGridEvent& ev);
 	void OnCellRightClick(wxGridEvent& ev);
+	void OnGridLabelLeftClick(wxGridEvent& ev);
 	void OnGridLabelRightClick(wxGridEvent& ev);
+	void OnKeyDown(wxKeyEvent& evt);
 
 	void OnSize(wxSizeEvent& event);
 
@@ -105,6 +110,10 @@ private:
 	wxButton* m_StopButton = nullptr;
 	wxSpinCtrl* m_PollingRate = nullptr;
 	wxSpinCtrl* m_ResponseTimeout = nullptr;
+	wxTextCtrl* m_TcpIp;
+	wxSpinCtrl* m_TcpPort;
+	wxSpinCtrl* m_ComPort;
+	wxCheckBox* m_UseTcp;
 
 	wxDECLARE_EVENT_TABLE();
 };

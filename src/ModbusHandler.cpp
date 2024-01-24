@@ -95,6 +95,11 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 if(register_type != UNKNOWN)
                 {
                     std::string name = m.second.get_child("Name").get_value<std::string>();
+                    boost::optional<uint8_t> fav_child_val = m.second.get_optional<uint8_t>("FavLevel");
+                    uint8_t fav_level = 0;
+                    if (fav_child_val)
+                        fav_level = *fav_child_val;
+
                     bool last_val = m.second.get_child("LastVal").get_value<bool>();
                     boost::optional<std::string> data_type = m.second.get_optional<std::string>("DataType");
                     if (data_type)
@@ -137,6 +142,24 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                         }
                     }
 
+                    ModbusValueFormat val_format = ModbusValueFormat::MVF_DEC;
+                    boost::optional<std::string> val_format_str = m.second.get_optional<std::string>("Format");
+                    if (val_format_str)
+                    {
+                        if (*val_format_str == "dec")
+                        {
+                            val_format = ModbusValueFormat::MVF_DEC;
+                        }
+                        else if (*val_format_str == "hex")
+                        {
+                            val_format = ModbusValueFormat::MVF_HEX;
+                        }
+                        else if (*val_format_str == "bin")
+                        {
+                            val_format = ModbusValueFormat::MVF_BIN;
+                        }
+                    }
+
                     boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("Min");
                     boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("Max");
                     std::string description;
@@ -175,7 +198,7 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     if(is_font_face.has_value())
                         is_font_face_ = *is_font_face;
 
-                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, *offset, register_value_type, description, 0, 0, last_val,
+                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, fav_level, *offset, register_value_type, val_format, description, 0, 0, last_val,
                         color_, bg_color_, is_bold_, is_scale_, is_font_face_);
                     *offset += ptr->GetSize();
                     item->push_back(std::move(ptr));
@@ -218,10 +241,11 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
     for(auto& i : items)
     {
         auto& register_node = root_node.add_child(child_names[id], boost::property_tree::ptree{});
-        for(auto& m : coils)
+        for(auto& m : *i)
         {
             auto& sub_node = register_node.add_child(subchild_names[id], boost::property_tree::ptree{});
             sub_node.add("Name", m->m_Name);
+            sub_node.add("FavLevel", m->m_FavLevel);
             
             std::string type = "uint16_t";
             if (m->m_Type == ModbusBitfieldType::MBT_BOOL)
@@ -261,6 +285,27 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
                 type = "double";
             }
             sub_node.add("DataType", type);
+
+            std::string value_type_str = "dec";
+            switch (m->m_Format)
+            {
+                case ModbusValueFormat::MVF_DEC:
+                {
+                    value_type_str = "dec";
+                    break;
+                }
+                case ModbusValueFormat::MVF_HEX:
+                {
+                    value_type_str = "hex";
+                    break;
+                }
+                case ModbusValueFormat::MVF_BIN:
+                {
+                    value_type_str = "bin";
+                    break;
+                }
+            }
+            sub_node.add("Format", value_type_str);
 
             sub_node.add("Min", m->m_Min);
             sub_node.add("Max", m->m_Max);
@@ -370,7 +415,7 @@ void ModbusEntryHandler::ToggleRecording(bool toggle, bool is_pause)
 
     if(!is_pause && !toggle)
     {
-        tx_frame_cnt = rx_frame_cnt = 0;
+        tx_frame_cnt = rx_frame_cnt = err_frame_cnt = 0;
         m_LogEntries.clear();
     }
 }
@@ -378,7 +423,7 @@ void ModbusEntryHandler::ToggleRecording(bool toggle, bool is_pause)
 void ModbusEntryHandler::ClearRecording()
 {
     std::scoped_lock lock{ m };
-    tx_frame_cnt = rx_frame_cnt = 0;
+    tx_frame_cnt = rx_frame_cnt = err_frame_cnt = 0;
     m_LogEntries.clear();
 }
 
@@ -664,13 +709,29 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
     std::this_thread::sleep_for(200ms);
     while(!token.stop_requested())
     {
+        if (m_isMainThreadPaused)
+        {
+            m_isOpenInProgress = false;
+            if (GetSerial().IsOpen() && !m_isCloseInProgress)
+            {
+                m_isCloseInProgress = true;
+                GetSerial().Close();
+                m_isCloseInProgress = false;
+            }
+        }
+
         WaitIfPaused();
         
         if (!GetSerial().IsOpen() && !m_isOpenInProgress)
         {
             m_isOpenInProgress = true;
             GetSerial().Open();
+            m_isOpenInProgress = false;
+
+            if (!GetSerial().IsOpen())
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
+
         
         if (!token.stop_requested() && GetSerial().IsOpen())
         {

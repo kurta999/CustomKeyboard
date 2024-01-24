@@ -66,4 +66,8 @@ enum
 	ID_CmdExecutorDuplicatePageBefore,
 	ID_CanLogLevelSpinCtrl,
 	ID_ModbusDataEdit,
+	ID_ModbusDataDec,
+	ID_ModbusDataHex,
+	ID_ModbusDataBin,
+	ID_ModbusEditFavourites
 };

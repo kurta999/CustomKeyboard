@@ -161,7 +161,7 @@ void AsyncSerial::open(const std::string& ip, uint16_t port)
     {
         pimpl->io.stop();
         pimpl->io.reset();
-        pimpl->open = false;
+        doClose();
     }
 }
 

@@ -30,13 +30,18 @@ enum ModbusBitfieldType : uint8_t
     MBT_BOOL, MBT_UI8, MBT_I8, MBT_UI16, MBT_I16, MBT_UI32, MBT_I32, MBT_UI64, MBT_I64, MBT_FLOAT, MBT_DOUBLE, MBT_INVALID
 };
 
+enum ModbusValueFormat : uint8_t
+{
+    MVF_DEC, MVF_HEX, MVF_BIN
+};
+
 class ModbusItem 
 {
 public:
-    ModbusItem(const std::string& name, size_t offset, ModbusBitfieldType type, const std::string& desc, int64_t min_val, int64_t max_val, uint64_t value, 
-        std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {}, std::optional<bool> is_bold_ = false, 
+    ModbusItem(const std::string& name, uint8_t fav_level, size_t offset, ModbusBitfieldType type, ModbusValueFormat value_format, const std::string& desc, 
+        int64_t min_val, int64_t max_val, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {}, std::optional<bool> is_bold_ = false, 
         std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
-        m_Name(name), m_Offset(offset), m_Type(type), m_Desc(desc), m_Min(min_val), m_Max(max_val), m_Value(value), 
+        m_Name(name), m_FavLevel(fav_level), m_Offset(offset), m_Type(type), m_Format(value_format), m_Desc(desc), m_Min(min_val), m_Max(max_val), m_Value(value),
         m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
         if(scale.has_value())
@@ -56,8 +61,11 @@ public:
     }
 
     std::string m_Name;
+    uint8_t m_FavLevel = 0;
+
     ModbusBitfieldType m_Type;
-    
+    ModbusValueFormat m_Format;
+
     size_t m_Offset;
 
     uint64_t m_Value;
