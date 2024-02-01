@@ -205,6 +205,15 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 }
             }
         }
+        
+        if (num_entries.coils == 0xFFFF)
+            num_entries.coils = register_offset_coils;
+        if (num_entries.inputStatus == 0xFFFF)
+            num_entries.inputStatus = register_offset_input_status;
+        if (num_entries.holdingRegisters == 0xFFFF)
+            num_entries.holdingRegisters = register_offset_holding;
+        if (num_entries.inputRegisters == 0xFFFF)
+            num_entries.inputRegisters = register_offset_input;
     }
     catch(const boost::property_tree::xml_parser_error& e)
     {
@@ -715,7 +724,14 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
             if (GetSerial().IsOpen() && !m_isCloseInProgress)
             {
                 m_isCloseInProgress = true;
-                GetSerial().Close();
+                try
+                {
+                    GetSerial().Close();
+                }
+                catch (boost::system::system_error& e)
+                {
+
+                }
                 m_isCloseInProgress = false;
             }
         }

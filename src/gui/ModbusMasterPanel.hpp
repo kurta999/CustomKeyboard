@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IModbusEntry.hpp"
+#include <wx/tipwin.h>
 
 enum ModbusGridCol : int
 {
@@ -114,6 +115,7 @@ private:
 	wxSpinCtrl* m_TcpPort;
 	wxSpinCtrl* m_ComPort;
 	wxCheckBox* m_UseTcp;
+	wxTipWindow* tip;
 
 	wxDECLARE_EVENT_TABLE();
 };

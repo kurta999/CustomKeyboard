@@ -1,5 +1,4 @@
 #include "pch.hpp"
-#include <wx/tipwin.h>
 
 wxBEGIN_EVENT_TABLE(ModbusDataPanel, wxPanel)
 EVT_GRID_CELL_CHANGED(ModbusDataPanel::OnCellValueChanged)
@@ -468,8 +467,6 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
     }
 }
 
-wxTipWindow* tip;
-
 void ModbusDataPanel::OnGridLabelLeftClick(wxGridEvent& ev)
 {
     int row = ev.GetRow(), col = ev.GetCol();
@@ -527,6 +524,7 @@ void ModbusDataPanel::OnGridLabelRightClick(wxGridEvent& ev)
             }
         }
     }
+    ev.Skip();
 }
 
 void ModbusDataPanel::OnKeyDown(wxKeyEvent& evt)
@@ -553,6 +551,7 @@ void ModbusDataPanel::OnKeyDown(wxKeyEvent& evt)
             }
         }
     }
+    evt.Skip();
 }
 
 void ModbusDataPanel::OnSize(wxSizeEvent& event)

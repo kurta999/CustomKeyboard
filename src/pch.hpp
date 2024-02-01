@@ -135,6 +135,7 @@ namespace std
 #include <wx/fontpicker.h>
 #include <wx/dirctrl.h>
 #include <wx/artprov.h>
+#include <wx/tipwin.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>

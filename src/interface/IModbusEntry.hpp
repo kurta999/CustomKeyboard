@@ -14,10 +14,10 @@ enum class ModbusByteOrder
 class NumModbusEntries
 {
 public:
-    size_t coils;
-    size_t inputStatus;
-    size_t inputRegisters;
-    size_t holdingRegisters;
+    size_t coils = 0xFFFF;
+    size_t inputStatus = 0xFFFF;
+    size_t inputRegisters = 0xFFFF;
+    size_t holdingRegisters = 0xFFFF;
 
     uint16_t coilsOffset;
     uint16_t inputStatusOffset;

@@ -11,7 +11,7 @@ Work in progress Qt port of this application is available here: https://gitlab.c
 3. **UDS DID Reader & Writer** - Read and Write UDS DIDs over GUI, DIDs have to be defined in DidList.xml - DIDs also can be cached locally
 
 ### 2. For General development:
-1. **Modbus Master** - Simple Modbus Master for polling Modbus Slave devices with GUI support. Coils, Input, Holding and Input registers supported. Supported register size is uint16_t, support for bigger types might be added in the future. This is still in beta, every corner case haven't been tested.
+1. **Modbus Master** - Simple Modbus Master for polling Modbus Slave devices with GUI support. Coils, Input, Holding and Input registers supported over Serial and TCP/IP interface. Supported register sizes are (u)int16_t, (u)int32_t, (u)int64_t, float, double.
 2. **Command excutor** - Bind specific commands (cmds) to GUI buttons with parameters support, which is then excuted on GUI button click - see more info below
 3. **StructParser** - Generate offsets of C structures and it's members
 4. **TerminalHotkey** - Hotkey for terminal, like in Linux. Can be launched from Windows Explorer with current path as starting directory and from Desktop
