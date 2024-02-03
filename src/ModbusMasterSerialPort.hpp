@@ -2,6 +2,13 @@
 #include <atomic>
 #include <condition_variable>
 #include <string>
+#include <expected>
+#include <semaphore>
+
+enum class ModbusError
+{
+    WrongId,
+};
 
 class ModbusMasterSerialPort : public SerialPortBase
 {
@@ -15,13 +22,13 @@ public:
     void OnUartDataReceived(const char* data, unsigned int len);
     void OnDataSent(CallbackAsyncSerial& serial_port);
 
-    std::vector<uint8_t> ReadCoilStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
-    std::vector<uint8_t> ForceSingleCoil(uint8_t slave_id, uint16_t write_offset, bool status);
-    std::vector<uint8_t> ReadInputStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
-    std::vector<uint16_t> ReadHoldingRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
-    std::vector<uint16_t> ReadHoldingRegisters(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
-    std::vector<uint8_t> WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer);
-    std::vector<uint16_t> ReadInputRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::expected<std::vector<uint8_t>, ModbusError> ReadCoilStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::expected<std::vector<uint8_t>, ModbusError> ForceSingleCoil(uint8_t slave_id, uint16_t write_offset, bool status);
+    std::expected<std::vector<uint8_t>, ModbusError> ReadInputStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::expected<std::vector<uint16_t>, ModbusError> ReadHoldingRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::expected<std::vector<uint16_t>, ModbusError> ReadHoldingRegisters(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
+    std::expected<std::vector<uint8_t>, ModbusError> WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer);
+    std::expected<std::vector<uint16_t>, ModbusError> ReadInputRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count);
 
     void SetHelper(IModbusHelper* helper) { m_Helper = helper; }
 

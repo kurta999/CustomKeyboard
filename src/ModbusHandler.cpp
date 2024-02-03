@@ -625,9 +625,9 @@ void ModbusEntryHandler::HandlePolling()
 
     if (m_numEntries.coils > 0)
     {
-        std::vector<uint8_t> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
-        if(!reg.empty())
-            HandleBoolReading(reg, m_coils, m_numEntries.coils, panel_coil);
+        std::expected<std::vector<uint8_t>, ModbusError> reg = m_Serial->ReadCoilStatus(m_slaveId, 0, m_numEntries.coils);
+        if (reg.has_value() && !reg->empty())
+            HandleBoolReading(*reg, m_coils, m_numEntries.coils, panel_coil);
         else
             err_frame_cnt++;
 
@@ -636,9 +636,9 @@ void ModbusEntryHandler::HandlePolling()
 
     if(m_numEntries.inputStatus > 0)
     {
-        std::vector<uint8_t> reg = m_Serial->ReadInputStatus(m_slaveId, m_numEntries.inputStatusOffset, m_numEntries.inputStatus);
-        if(!reg.empty())
-            HandleBoolReading(reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
+        std::expected<std::vector<uint8_t>, ModbusError> reg = m_Serial->ReadInputStatus(m_slaveId, m_numEntries.inputStatusOffset, m_numEntries.inputStatus);
+        if (reg.has_value() && !reg->empty())
+            HandleBoolReading(*reg, m_inputStatus, m_numEntries.inputStatus, panel_input);
         else
             err_frame_cnt++;
 
@@ -647,9 +647,9 @@ void ModbusEntryHandler::HandlePolling()
 
     if (m_numEntries.holdingRegisters > 0)
     {
-        std::vector<uint16_t> reg = m_Serial->ReadHoldingRegisters(m_slaveId, m_numEntries.holdingOffset, m_numEntries.holdingRegisters);
-        if(!reg.empty())
-            HandleRegisterReading(reg, m_Holding, m_numEntries.holdingRegisters, panel_holding);
+        std::expected<std::vector<uint16_t>, ModbusError> reg = m_Serial->ReadHoldingRegisters(m_slaveId, m_numEntries.holdingOffset, m_numEntries.holdingRegisters);
+        if (reg.has_value() && !reg->empty())
+            HandleRegisterReading(*reg, m_Holding, m_numEntries.holdingRegisters, panel_holding);
         else
             err_frame_cnt++;
 
@@ -658,9 +658,9 @@ void ModbusEntryHandler::HandlePolling()
 
     if (m_numEntries.inputRegisters > 0)
     {
-        std::vector<uint16_t> reg = m_Serial->ReadInputRegister(m_slaveId, m_numEntries.inputOffset, m_numEntries.inputRegisters);
-        if(!reg.empty())
-            HandleRegisterReading(reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
+        std::expected<std::vector<uint16_t>, ModbusError> reg = m_Serial->ReadInputRegister(m_slaveId, m_numEntries.inputOffset, m_numEntries.inputRegisters);
+        if(reg.has_value() && !reg->empty())
+            HandleRegisterReading(*reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
         else
             err_frame_cnt++;
 
@@ -672,8 +672,8 @@ void ModbusEntryHandler::HandleWrites()
 {
     for(auto& c : m_pendingCoilWrites)
     {
-        std::vector<uint8_t> reg = m_Serial->ForceSingleCoil(m_slaveId, c.first, c.second);
-        if(!reg.empty())
+        std::expected<std::vector<uint8_t>, ModbusError> reg = m_Serial->ForceSingleCoil(m_slaveId, c.first, c.second);
+        if(reg.has_value() && !reg->empty())
         {
             tx_frame_cnt++;
             rx_frame_cnt++;
@@ -697,8 +697,8 @@ void ModbusEntryHandler::HandleWrites()
         }
 
         size_t reg_offset = m_Holding[c.first]->m_Offset;
-        std::vector<uint8_t> reg = m_Serial->WriteHoldingRegister(m_slaveId, m_numEntries.holdingOffset + reg_offset, vec.size(), vec);
-        if(!reg.empty())
+        std::expected<std::vector<uint8_t>, ModbusError> reg = m_Serial->WriteHoldingRegister(m_slaveId, m_numEntries.holdingOffset + reg_offset, vec.size(), vec);
+        if(reg.has_value() && !reg->empty())
         {
             tx_frame_cnt++;
             rx_frame_cnt++;

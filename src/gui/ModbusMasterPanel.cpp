@@ -343,6 +343,11 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
 
     v_sizer->Add(h_sizer3);
 
+    wxBoxSizer* h_sizer4 = new wxBoxSizer(wxHORIZONTAL);
+    m_ConnectionStatus = new wxStaticText(this, wxID_ANY, "Status: N/A");
+    h_sizer4->Add(m_ConnectionStatus);
+    v_sizer->Add(h_sizer4);
+
     SetSizer(v_sizer);
     Show();
 
@@ -559,6 +564,21 @@ void ModbusDataPanel::OnSize(wxSizeEvent& event)
     event.Skip(true);
 }
 
+void ModbusDataPanel::On10MsTimer()
+{
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    if (modbus_handler->GetSerial().IsOpen())
+    {
+        m_ConnectionStatus->SetLabelText("Status: Connected");
+        m_ConnectionStatus->SetForegroundColour(*wxGREEN);
+    }
+    else
+    {
+        m_ConnectionStatus->SetLabelText("Status: Disconnected");
+        m_ConnectionStatus->SetForegroundColour(*wxBLACK);
+    }
+}
+
 ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
     wxPanel(parent, wxID_ANY)
 {
@@ -701,7 +721,6 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
 
     std::string hex;
     utils::ConvertHexBufferToString(data, hex);
-    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Data), hex);
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Direction), direction == CAN_LOG_DIR_TX ? "TX" : "RX");
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_FCode), wxString::Format("%X", fcode));
 
@@ -718,7 +737,58 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
             error_type = "TO";
             break;
         }
+        case ModbusErorrType::MB_ERR_ILLEGAL_FUNCTION:
+        {
+            error_type = "MB_ERR_ILLEGAL_FUNCTION";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_ILLEGAL_DATA_ADDRESS:
+        {
+            error_type = "MB_ERR_ILLEGAL_DATA_ADDRESS";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_ILLEGAL_DATA_VALUE:
+        {
+            error_type = "MB_ERR_ILLEGAL_DATA_VALUE";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_SLAVE_DEVICE_FAILURE:
+        {
+            error_type = "MB_ERR_SLAVE_DEVICE_FAILURE";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_ACK:
+        {
+            error_type = "MB_ERR_ACK";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_SLAVE_DEVICE_BUSY:
+        {
+            error_type = "MB_ERR_SLAVE_DEVICE_BUSY";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_NAK:
+        {
+            error_type = "MB_ERR_NAK";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_MEMORY_PARITY_ERROR:
+        {
+            error_type = "MB_ERR_MEMORY_PARITY_ERROR";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_GATEWAY_UNAVAILABLE:
+        {
+            error_type = "MB_ERR_GATEWAY_UNAVAILABLE";
+            break;
+        }
+        case ModbusErorrType::MB_ERR_GATEWAY_TARGET_FAILED:
+        {
+            error_type = "MB_ERR_GATEWAY_TARGET_FAILED";
+            break;
+        }
     }
+    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Data), hex + " " + error_type);
 
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_ErrorType), error_type);
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_DataSize), wxString::Format("%lld", data.size()));
@@ -729,7 +799,11 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
     for(uint8_t i = 0; i != ModbusLogGridCol::ModbusLog_Max; i++)
     {
         m_grid->SetReadOnly(cnt, i, true);
-        m_grid->SetCellBackgroundColour(cnt, i, (direction == CAN_LOG_DIR_RX) ? 0xE6E6E6 : 0xFFFFFF);
+
+        if(error == MB_ERR_OK)
+            m_grid->SetCellBackgroundColour(cnt, i, (direction == CAN_LOG_DIR_RX) ? 0xE6E6E6 : 0xFFFFFF);
+        else
+            m_grid->SetCellBackgroundColour(cnt, i, *wxRED);
     }
 
     cnt++;
@@ -868,6 +942,8 @@ void ModbusMasterPanel::On10MsTimer()
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
     std::scoped_lock lock{ modbus_handler->m };
 
+    if(data_panel)
+        data_panel->On10MsTimer();
     if(log_panel)
         log_panel->On10MsTimer();
 }

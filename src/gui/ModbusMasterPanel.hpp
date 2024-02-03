@@ -65,9 +65,6 @@ public:
     void UpdatePanel();
     void UpdateChangesOnly(std::vector<uint8_t>& changed_rows);
 
-	void OnCellRightClick(wxGridEvent& ev);
-	void OnGridLabelRightClick(wxGridEvent& ev);
-
     wxGrid* m_grid = nullptr;
 	wxStaticBoxSizer* static_box = nullptr;
 	ModbusItemType& m_items;
@@ -87,6 +84,7 @@ class ModbusDataPanel : public wxPanel
 {
 public:
 	ModbusDataPanel(wxWindow* parent);
+	void On10MsTimer();
 
 	wxBoxSizer* m_hSizer = nullptr;
 
@@ -111,11 +109,12 @@ private:
 	wxButton* m_StopButton = nullptr;
 	wxSpinCtrl* m_PollingRate = nullptr;
 	wxSpinCtrl* m_ResponseTimeout = nullptr;
-	wxTextCtrl* m_TcpIp;
-	wxSpinCtrl* m_TcpPort;
-	wxSpinCtrl* m_ComPort;
-	wxCheckBox* m_UseTcp;
-	wxTipWindow* tip;
+	wxTextCtrl* m_TcpIp = nullptr;
+	wxSpinCtrl* m_TcpPort = nullptr;
+	wxSpinCtrl* m_ComPort = nullptr;
+	wxCheckBox* m_UseTcp = nullptr;
+	wxStaticText* m_ConnectionStatus = nullptr;
+	wxTipWindow* tip = nullptr;
 
 	wxDECLARE_EVENT_TABLE();
 };
@@ -163,8 +162,8 @@ public:
 	void On10MsTimer();
 
 	wxAuiNotebook* m_notebook = nullptr;
-	ModbusDataPanel* data_panel;
-	ModbusLogPanel* log_panel;
+	ModbusDataPanel* data_panel = nullptr;
+	ModbusLogPanel* log_panel = nullptr;
 
 private:
 	void OnSize(wxSizeEvent& evt);

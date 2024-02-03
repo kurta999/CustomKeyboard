@@ -1,5 +1,4 @@
 #include "pch.hpp"
-#include <semaphore>
 
 constexpr uint32_t RX_QUEUE_MAX_SIZE = 1000;
 
@@ -56,6 +55,20 @@ ModbusMasterSerialPort::ResponseStatus ModbusMasterSerialPort::NotifyAndWaitForR
     ResponseStatus ret = ResponseStatus::Timeout;
     if(cv_ret)
     {
+        if (m_Helper)
+        {
+            std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            if (modbus_handler && modbus_handler->is_recoding)
+            {
+                std::scoped_lock lock{ modbus_handler->m };
+                ModbusErorrType error_type = m_LastDataCrcOk ? ModbusErorrType::MB_ERR_OK : ModbusErorrType::MB_ERR_CRC;
+                modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_RX, static_cast<uint8_t>(m_RecvData[1]), error_type, 
+                    (uint8_t*)m_RecvData.data(), static_cast<size_t>(m_RecvData.size()), t1));
+            }
+        }
+
         if(!m_LastDataCrcOk)
         {
             ret = ResponseStatus::CrcError;
@@ -64,11 +77,20 @@ ModbusMasterSerialPort::ResponseStatus ModbusMasterSerialPort::NotifyAndWaitForR
         {
             if(m_RecvData.size() == 3) /* Probably exception */
             {
-                uint16_t func_code = m_RecvData[2];
-                if((func_code >= 129 && func_code <= 134) || (func_code >= 143 && func_code <= 144))
+                uint16_t err_response = m_RecvData[1];
+                if((err_response >= 129 && err_response <= 134) || (err_response >= 143 && err_response <= 144))
                 {
-                    modbusErrorCount[func_code]++;
+                    modbusErrorCount[err_response]++;
                     ret = ResponseStatus::ModbusError;
+
+                    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+                    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+                    if (modbus_handler && modbus_handler->is_recoding)
+                    {
+                        uint8_t fc = m_SentData.size() > 2 ? static_cast<uint8_t>(m_SentData[1]) : 0xFF;
+                        modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_TX, fc,
+                            (ModbusErorrType)err_response, m_RecvData.data(), m_RecvData.size(), t1));
+                    }
                     return ret;
                 }
             }
@@ -97,7 +119,7 @@ void ModbusMasterSerialPort::AddCrcToFrame(std::vector<uint8_t>& vec)
     vec.push_back(crc >> 8 & 0xFF);
 }
 
-std::vector<uint8_t> ModbusMasterSerialPort::ReadCoilStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+std::expected<std::vector<uint8_t>, ModbusError> ModbusMasterSerialPort::ReadCoilStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
 {
     std::vector<uint8_t> vec = { slave_id, static_cast<uint8_t>(ModbusFunctionCodes::FC_ReadCoilStatus) };
     WriteToByteBuffer(vec, read_offset);
@@ -120,7 +142,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::ReadCoilStatus(uint8_t slave_id, ui
     return ret;
 }
 
-std::vector<uint8_t> ModbusMasterSerialPort::ForceSingleCoil(uint8_t slave_id, uint16_t write_offset, bool status)
+std::expected<std::vector<uint8_t>, ModbusError> ModbusMasterSerialPort::ForceSingleCoil(uint8_t slave_id, uint16_t write_offset, bool status)
 {
     std::vector<uint8_t> vec = { slave_id, static_cast<uint8_t>(ModbusFunctionCodes::FC_ForceSingleCoil) };
     WriteToByteBuffer(vec, write_offset);
@@ -161,7 +183,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::ForceSingleCoil(uint8_t slave_id, u
     return vec;
 }
 
-std::vector<uint8_t> ModbusMasterSerialPort::ReadInputStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+std::expected<std::vector<uint8_t>, ModbusError> ModbusMasterSerialPort::ReadInputStatus(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
 {
     std::vector<uint8_t> vec = { slave_id, static_cast<uint8_t>(ModbusFunctionCodes::FC_ReadInputStatus) };
     WriteToByteBuffer(vec, read_offset);
@@ -184,7 +206,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::ReadInputStatus(uint8_t slave_id, u
     return ret;
 }
 
-std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+std::expected<std::vector<uint16_t>, ModbusError> ModbusMasterSerialPort::ReadHoldingRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
 {
     std::vector<uint8_t> vec = { slave_id, static_cast<uint8_t>(ModbusFunctionCodes::FC_ReadHoldingRegister) };
     WriteToByteBuffer(vec, read_offset);
@@ -212,7 +234,7 @@ std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegister(uint8_t slave_
     return ret;
 }
 
-std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegisters(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+std::expected<std::vector<uint16_t>, ModbusError> ModbusMasterSerialPort::ReadHoldingRegisters(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
 {
     std::vector<uint16_t> result;
     size_t remaining = read_count;
@@ -221,13 +243,13 @@ std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegisters(uint8_t slave
     {
         size_t step = std::min<uint16_t>(remaining, MAX_HOLDING_REG_ONCE);
 
-        std::vector<uint16_t> tmp = ReadHoldingRegister(slave_id, offset, step);
-        if (!tmp.empty())
+        auto tmp = ReadHoldingRegister(slave_id, offset, step);
+        if (tmp.has_value() && !tmp->empty())
         {
             offset += step;
             remaining -= step;
 
-            result.insert(result.end(), tmp.begin(), tmp.end());
+            result.insert(result.end(), tmp->begin(), tmp->end());
         }
         else
         {
@@ -240,7 +262,7 @@ std::vector<uint16_t> ModbusMasterSerialPort::ReadHoldingRegisters(uint8_t slave
     return result;
 }
 
-std::vector<uint8_t> ModbusMasterSerialPort::WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer)
+std::expected<std::vector<uint8_t>, ModbusError> ModbusMasterSerialPort::WriteHoldingRegister(uint8_t slave_id, uint16_t write_offset, uint16_t write_count, std::vector<uint16_t> buffer)
 {
     std::vector<uint8_t> vec;
     if(write_count == 1)  /* Use write single register if only 1 register is written */
@@ -281,7 +303,7 @@ std::vector<uint8_t> ModbusMasterSerialPort::WriteHoldingRegister(uint8_t slave_
     return vec;
 }
 
-std::vector<uint16_t> ModbusMasterSerialPort::ReadInputRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
+std::expected<std::vector<uint16_t>, ModbusError> ModbusMasterSerialPort::ReadInputRegister(uint8_t slave_id, uint16_t read_offset, uint16_t read_count)
 {
     std::vector<uint8_t> vec = { slave_id, static_cast<uint8_t>(ModbusFunctionCodes::FC_ReadInputRegister) };
     WriteToByteBuffer(vec, read_offset);
@@ -346,19 +368,6 @@ void ModbusMasterSerialPort::OnUartDataReceived(const char* data, unsigned int l
         else
         {
             m_LastDataCrcOk = false;
-        }
-
-        if (m_Helper)
-        {
-            std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-
-            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-            if (modbus_handler && modbus_handler->is_recoding)
-            {
-                std::scoped_lock lock{ modbus_handler->m };
-                ModbusErorrType error_type = m_LastDataCrcOk ? ModbusErorrType::MB_ERR_OK : ModbusErorrType::MB_ERR_CRC;
-                modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_RX, static_cast<uint8_t>(data[1]), error_type, (uint8_t*)data, static_cast<size_t>(len), t1));
-            }
         }
         m_RecvCv.notify_all();
     }
