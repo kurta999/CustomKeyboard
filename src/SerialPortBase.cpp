@@ -173,9 +173,9 @@ void SerialPortBase::WorkerThread(std::stop_token token)
 
             while(!token.stop_requested())
             {
-                if(m_serial->errorStatus() || m_serial->isOpen() == false)
+                if(m_serial->errorStatus() && m_serial->isOpen() == false)
                 {
-                    LOG(LogLevel::Error, "Serial port can unexpectedly closed");
+                    LOG(LogLevel::Error, "Serial port \"{}\" unexpectedly closed", m_SerialName);
                     m_is_ok = false;
 
                     if(m_IsAutoOpen)

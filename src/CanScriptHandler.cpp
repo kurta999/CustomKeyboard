@@ -4,14 +4,10 @@ CanScriptHandler::CanScriptHandler(ICanResultPanel& result_panel) :
     m_Result(result_panel)
 {
     m_operands["SetFrameField"] = std::bind(&CanScriptHandler::SetFrameField, this, 3, std::placeholders::_2);
-    m_operands["SetDataFrame"] = std::bind(&CanScriptHandler::SetFrameField, this, 3, std::placeholders::_2);
     m_operands["SetFrameFieldRaw"] = std::bind(&CanScriptHandler::SetFrameFieldRaw, this, 3, std::placeholders::_2);
-    m_operands["SetDataFrameRaw"] = std::bind(&CanScriptHandler::SetFrameFieldRaw, this, 3, std::placeholders::_2);
     m_operands["SendFrame"] = std::bind(&CanScriptHandler::SendFrame, this, 2, std::placeholders::_2);
     m_operands["WaitForFrame"] = std::bind(&CanScriptHandler::WaitForFrame, this, 3, std::placeholders::_2);
-    m_operands["CheckFrameBlock"] = std::bind(&CanScriptHandler::WaitForFrame, this, 3, std::placeholders::_2);
     m_operands["Sleep"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
-    m_operands["Wait"] = std::bind(&CanScriptHandler::Sleep, this, 2, std::placeholders::_2);
 
     std::unique_ptr<CanEntryHandler>& can_handler = wxGetApp().can_entry;
     can_handler->RegisterObserver(this);
