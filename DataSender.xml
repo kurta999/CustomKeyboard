@@ -8,9 +8,9 @@
 		<Crc>First CAN msg</Crc>
 		<Step>10</Step>
 		<Period>250</Period>
-		<ResponseTimeout>300</ResponseTimeout>
-		<TextName>Freq:</TextName>
-		<StartWith>FREQ</StartWith>
+		<ResponseTimeout>3000</ResponseTimeout>
+		<TextName>Freq</TextName>
+		<StartWith>FREQ:</StartWith>
 	</Data>		
 	<Data>
 		<Data>AA BB CC</Data>

@@ -291,7 +291,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;Z:\libs\wxWidgets-3.2.4\include;Z:\libs\wxWidgets-3.2.4\include\msvc;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib;Z:\libs\boost\boost_1_83_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
