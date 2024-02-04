@@ -1,6 +1,6 @@
 This is a personal project for myself to improve my daily computer usage, particularly with programming and testing. I've implemented things what I really needed to be more productive and accomplish things faster. It's open source, because why not, maybe somebody will benefit from it one day.
 
-If you want to use/resuse some part(s) of the project, you have a question or an idea, feel free to open a Pull Request.
+If you want to use/resuse some part(s) of the project, you have a question or an idea, feel free to open a Pull Request. Bugs can happen, as this is just a side project beside my full time job. I do not have the time to always retest everything when I change something how it's done in a proper managed company.
 
 Unfinished, abandoned Qt port of this application is available here, has no meaning to port everything to Qt from my perspective: https://gitlab.com/kurta999/QustomKeyboard
 
