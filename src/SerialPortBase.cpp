@@ -135,6 +135,11 @@ bool SerialPortBase::IsOk() const
     return m_is_ok;
 }
 
+bool SerialPortBase::IsErrorPresent() const
+{
+    return m_serial->errorStatus();
+}
+
 void SerialPortBase::NotifiyMainThread()
 {
     is_notification_pending = true;

@@ -15,8 +15,8 @@ enum ModbusLogGridCol : int
 	ModbusLog_Time,
 	ModbusLog_Direction,
 	ModbusLog_FCode,
-	ModbusLog_ErrorType,
 	ModbusLog_DataSize,
+	ModbusLog_ErrorType,
 	ModbusLog_Data,
 	ModbusLog_Max
 };
@@ -59,7 +59,7 @@ private:
 class ModbusItemPanel
 {
 public:
-    ModbusItemPanel(wxWindow* parent, ModbusDataEditDialog* style_dialog, const wxString& header_name, ModbusItemType& items, bool is_read_only);
+    ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only);
 
 	void AddItem(std::unique_ptr<ModbusItem>& e);
     void UpdatePanel();
@@ -68,7 +68,6 @@ public:
     wxGrid* m_grid = nullptr;
 	wxStaticBoxSizer* static_box = nullptr;
 	ModbusItemType& m_items;
-	ModbusDataEditDialog* m_StyleDialog = nullptr;
 	std::map<uint16_t, ModbusItem*> grid_to_entry;  /* Helper map for storing an additional ID to CanRxData */
 	std::string search_pattern;
 private:

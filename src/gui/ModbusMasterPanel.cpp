@@ -22,8 +22,8 @@ wxBEGIN_EVENT_TABLE(ModbusDataEditDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, ModbusDataEditDialog::OnApply)
 wxEND_EVENT_TABLE()
 
-ModbusItemPanel::ModbusItemPanel(wxWindow* parent, ModbusDataEditDialog* style_dialog, const wxString& header_name, ModbusItemType& items, bool is_read_only)
-    : m_items(items), m_StyleDialog(style_dialog), m_isReadOnly(is_read_only)
+ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only)
+    : m_items(items), m_isReadOnly(is_read_only)
 {
 	static_box = new wxStaticBoxSizer(wxVERTICAL, parent, header_name);
     static_box->GetStaticBox()->SetFont(static_box->GetStaticBox()->GetFont().Bold());
@@ -228,13 +228,13 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
     m_StyleEditDialog = new ModbusDataEditDialog(this);
 
     if (modbus_handler->m_numEntries.coils)
-        m_coil = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Coil Status - %lld", modbus_handler->m_numEntries.coils), modbus_handler->m_coils, false);
+        m_coil = new ModbusItemPanel(this, wxString::Format("Coil Status - %lld", modbus_handler->m_numEntries.coils), modbus_handler->m_coils, false);
     if (modbus_handler->m_numEntries.inputStatus)
-        m_input = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Input Status - %lld", modbus_handler->m_numEntries.inputStatus), modbus_handler->m_inputStatus, true);
+        m_input = new ModbusItemPanel(this, wxString::Format("Input Status - %lld", modbus_handler->m_numEntries.inputStatus), modbus_handler->m_inputStatus, true);
     if (modbus_handler->m_numEntries.holdingRegisters)
-        m_holding = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Holding Registers - %lld", modbus_handler->m_numEntries.holdingRegisters), modbus_handler->m_Holding, false);
+        m_holding = new ModbusItemPanel(this, wxString::Format("Holding Registers - %lld", modbus_handler->m_numEntries.holdingRegisters), modbus_handler->m_Holding, false);
     if (modbus_handler->m_numEntries.inputRegisters)
-        m_inputReg = new ModbusItemPanel(this, m_StyleEditDialog, wxString::Format("Input Registers - %lld", modbus_handler->m_numEntries.inputRegisters), modbus_handler->m_Input, true);
+        m_inputReg = new ModbusItemPanel(this, wxString::Format("Input Registers - %lld", modbus_handler->m_numEntries.inputRegisters), modbus_handler->m_Input, true);
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     m_hSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -256,7 +256,7 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
         {
             std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
 
-            wxString tcp_ip = m_TcpIp->GetLabelText();
+            wxString tcp_ip = m_TcpIp->GetValue();
             uint16_t tcp_port = m_TcpPort->GetValue();
             uint16_t com_port = m_ComPort->GetValue();
             bool is_tcp = m_UseTcp->IsChecked();
@@ -356,8 +356,10 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
 void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-
     int row = ev.GetRow(), col = ev.GetCol();
+    if (row == -1 || col == -1)  /* Header */
+        return;
+
     if(m_coil && ev.GetEventObject() == dynamic_cast<wxObject*>(m_coil->m_grid))
     {
         wxString new_value = m_coil->m_grid->GetCellValue(row, col);
@@ -389,7 +391,7 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
             }
         }
     }
-    else if(m_holding &&  ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    else if(m_holding && ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
     {
         wxString new_value = m_holding->m_grid->GetCellValue(row, col);
         switch(col)
@@ -409,12 +411,51 @@ void ModbusDataPanel::OnCellValueChanged(wxGridEvent& ev)
 
         }
     }
+    else if(m_inputReg && ev.GetEventObject() == dynamic_cast<wxObject*>(m_inputReg->m_grid))
+    {
+        wxString new_value = m_inputReg->m_grid->GetCellValue(row, col);
+        switch(col)
+        {
+            case ModbusGridCol::Modbus_Name:
+            {
+                m_inputReg->m_items[row]->m_Name = new_value.ToStdString();
+                break;
+            }
+        }
+    }
 }
 
 void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
 {
     int row = ev.GetRow(), col = ev.GetCol();
-    if (ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    if (row == -1 || col == -1)  /* Header */
+        return;
+
+    ModbusItemPanel* item_panel = nullptr;
+    ModbusItemType* item_list = nullptr;
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    if (m_coil && ev.GetEventObject() == dynamic_cast<wxObject*>(m_coil->m_grid))
+    {
+        item_panel = m_coil;
+        item_list = &modbus_handler->m_coils;
+    }
+    else if (m_input && ev.GetEventObject() == dynamic_cast<wxObject*>(m_input->m_grid))
+    {
+        item_panel = m_input;
+        item_list = &modbus_handler->m_inputStatus;
+    }
+    else if (m_holding && ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    {
+        item_panel = m_holding;
+        item_list = &modbus_handler->m_Holding;
+    }
+    else if (m_inputReg && ev.GetEventObject() == dynamic_cast<wxObject*>(m_inputReg->m_grid))
+    {
+        item_panel = m_inputReg;
+        item_list = &modbus_handler->m_Input;
+    }
+
+    if (item_panel != nullptr && item_list != nullptr)
     {
         wxMenu menu;
         menu.Append(ID_ModbusDataEdit, "&Edit")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
@@ -427,7 +468,7 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
             case ID_ModbusDataEdit:
             {
                 std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-                auto& item = modbus_handler->m_Holding[row];
+                auto& item = item_list->at(row);
                 m_StyleEditDialog->ShowDialog(item->m_color, item->m_bg_color, item->m_is_bold, item->m_font_face, item->m_scale);
                 if (m_StyleEditDialog->IsApplyClicked())
                 {
@@ -437,35 +478,35 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
                     item->m_scale = m_StyleEditDialog->GetScale();
                     item->m_font_face = m_StyleEditDialog->GetFontFace();
 
-                    m_holding->UpdatePanel();
+                    item_panel->UpdatePanel();
                 }
                 break;
             }
             case ID_ModbusDataDec:
             {
                 std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-                auto& item = modbus_handler->m_Holding[row];
+                auto& item = item_list->at(row);
 
                 item->m_Format = ModbusValueFormat::MVF_DEC;
-                m_holding->UpdatePanel();
+                item_panel->UpdatePanel();
                 break;
             }
             case ID_ModbusDataHex:
             {
                 std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-                auto& item = modbus_handler->m_Holding[row];
+                auto& item = item_list->at(row);
 
                 item->m_Format = ModbusValueFormat::MVF_HEX;
-                m_holding->UpdatePanel();
+                item_panel->UpdatePanel();
                 break;
             }
             case ID_ModbusDataBin:
             {
                 std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-                auto& item = modbus_handler->m_Holding[row];
+                auto& item = item_list->at(row);
 
                 item->m_Format = ModbusValueFormat::MVF_BIN;
-                m_holding->UpdatePanel();
+                item_panel->UpdatePanel();
                 break;
             }
         }
@@ -475,20 +516,43 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
 void ModbusDataPanel::OnGridLabelLeftClick(wxGridEvent& ev)
 {
     int row = ev.GetRow(), col = ev.GetCol();
-    if (ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    if (row == -1 || col == -1)  /* Header */
+        return;
+
+    wxGrid* grid = nullptr;
+    ModbusItemType* item_list = nullptr;
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    if (m_coil && ev.GetEventObject() == dynamic_cast<wxObject*>(m_coil->m_grid))
+    {
+        grid = m_coil->m_grid;
+        item_list = &modbus_handler->m_coils;
+    }
+    else if (m_input && ev.GetEventObject() == dynamic_cast<wxObject*>(m_input->m_grid))
+    {
+        grid = m_input->m_grid;
+        item_list = &modbus_handler->m_inputStatus;
+    }
+    else if (m_holding && ev.GetEventObject() == dynamic_cast<wxObject*>(m_holding->m_grid))
+    {
+        grid = m_holding->m_grid;
+        item_list = &modbus_handler->m_Holding;
+    }
+    else if (m_inputReg && ev.GetEventObject() == dynamic_cast<wxObject*>(m_inputReg->m_grid))
+    {
+        grid = m_inputReg->m_grid;
+        item_list = &modbus_handler->m_Input;
+    }
+
+    if(grid != nullptr && item_list != nullptr)
     {
         wxPoint pos = wxGetMousePosition();
         wxWindow* w = wxFindWindowAtPoint(pos);
-        int id = w->GetId();
-
-        std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-        auto& item = modbus_handler->m_Holding[row];
+        auto& item = item_list->at(row);
 
         wxRect size(wxSize(100, 100));
-
         if (!item->m_Desc.empty())
         {
-            tip = new wxTipWindow(m_holding->m_grid, item->m_Desc, 100, &tip, &size);
+            tip = new wxTipWindow(grid, item->m_Desc, 100, &tip, &size);
             tip->Show();
         }
     }
@@ -574,8 +638,16 @@ void ModbusDataPanel::On10MsTimer()
     }
     else
     {
-        m_ConnectionStatus->SetLabelText("Status: Disconnected");
-        m_ConnectionStatus->SetForegroundColour(*wxBLACK);
+        if (modbus_handler->GetSerial().IsErrorPresent())
+        {
+            m_ConnectionStatus->SetLabelText("Status: Error");
+            m_ConnectionStatus->SetForegroundColour(*wxRED);
+        }
+        else
+        {
+            m_ConnectionStatus->SetLabelText("Status: Disconnected");
+            m_ConnectionStatus->SetForegroundColour(*wxBLACK);
+        }
     }
 }
 
@@ -679,16 +751,16 @@ ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Time, "Time");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Direction, "Dir");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_FCode, "FC");
-    m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_ErrorType, "Err");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_DataSize, "Size");
+    m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_ErrorType, "Err");
     m_grid->SetColLabelValue(ModbusLogGridCol::ModbusLog_Data, "Data");
 
     m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Time, 50);
-    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Direction, 50);
-    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_FCode, 50);
-    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_ErrorType, 50);
-    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_DataSize, 50);
-    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Data, 500);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Direction, 30);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_FCode, 20);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_DataSize, 30);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_ErrorType, 70);
+    m_grid->SetColSize(ModbusLogGridCol::ModbusLog_Data, 550);
 
     // Columns
     m_grid->EnableDragColMove(true);
@@ -724,7 +796,7 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_Direction), direction == CAN_LOG_DIR_TX ? "TX" : "RX");
     m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusLogGridCol::ModbusLog_FCode), wxString::Format("%X", fcode));
 
-    wxString error_type = "OK";
+    wxString error_type;
     switch (error)
     {
         case ModbusErorrType::MB_ERR_CRC:

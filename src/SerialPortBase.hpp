@@ -38,6 +38,7 @@ public:
     virtual void SetBaudrate(uint32_t baudrate) override;
     virtual uint32_t GetBaudrate() const override;
     bool IsOk() const override;
+    bool IsErrorPresent() const override;
     void NotifiyMainThread();
     void DestroyWorkerThread();
 
