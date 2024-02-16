@@ -378,7 +378,6 @@ void ModbusMasterSerialPort::OnDataSent(CallbackAsyncSerial& serial_port)
     if(!m_SentData.empty())
     {
         size_t data_size = m_SentData.size();
-
         if(m_Helper)
         {
             std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -387,6 +386,9 @@ void ModbusMasterSerialPort::OnDataSent(CallbackAsyncSerial& serial_port)
             if(modbus_handler && modbus_handler->is_recoding)
             {
                 std::scoped_lock lock{ modbus_handler->m };
+                if (modbus_handler->m_LogEntries.size() >= modbus_handler->max_recorded_entries)
+                    modbus_handler->m_LogEntries.clear();
+
                 modbus_handler->m_LogEntries.emplace_back(std::make_unique<ModbusLogEntry>(CAN_LOG_DIR_TX, static_cast<uint8_t>(m_SentData[1]), 
                     ModbusErorrType::MB_ERR_OK, m_SentData.data(), data_size, t1));
             }

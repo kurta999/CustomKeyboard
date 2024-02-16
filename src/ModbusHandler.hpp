@@ -92,6 +92,13 @@ public:
     // !\param favourite_level [in] Favourite level
     void SetFavouriteLevel(uint8_t favourite_level) { m_DefaultFavouriteLevel = favourite_level; }
 
+    // !\brief Set max recorded entries
+    // !\param max_entries [in] Max recorded entries
+    void SetMaxRecordedEntries(size_t max_entries) { max_recorded_entries = max_entries; }
+
+    // !\brief Get max recorded entries
+    size_t GetMaxRecordedEntries() { return max_recorded_entries; }
+
     void EditCoil(size_t id, bool value) { m_pendingCoilWrites.push_back({ id, value }); }
     void EditHolding(size_t id, uint64_t value) { m_pendingHoldingWrites.push_back({ id, value }); }
 
@@ -118,6 +125,8 @@ public:
 
     // !\brief Is recording on?
     bool is_recoding = false;
+
+    size_t max_recorded_entries = 30000;
 
     std::chrono::steady_clock::time_point GetStartTime() { return start_time; }
 

@@ -881,6 +881,11 @@ void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_
     cnt++;
 }
 
+void ModbusLogPanel::OnMaxEntriesReached()
+{
+    ClearRecordingsFromGrid();
+}
+
 void ModbusLogPanel::ClearRecordingsFromGrid()
 {
     int num_rows = m_grid->GetNumberRows();
@@ -909,6 +914,11 @@ void ModbusLogPanel::On10MsTimer()
 
     if(!modbus_handler->m_LogEntries.empty())
     {
+        if (m_grid->GetNumberRows() > modbus_handler->m_LogEntries.size())
+        {
+            ClearRecordingsFromGrid();
+        }
+
         if(!is_something_inserted)
             inserted_until = 0;
 

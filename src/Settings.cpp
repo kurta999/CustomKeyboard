@@ -107,6 +107,7 @@ void Settings::LoadFile()
         modbus_handler->SetDefaultConfigName(pt.get_child("ModbusMaster").find("DefaultModbusConfig")->second.data());
         modbus_handler->ToggleAutoSend(utils::stob(pt.get_child("ModbusMaster").find("AutoSend")->second.data()));
         modbus_handler->ToggleAutoRecord(utils::stob(pt.get_child("ModbusMaster").find("AutoRecord")->second.data()));
+        modbus_handler->SetMaxRecordedEntries(utils::stoi<size_t>(pt.get_child("ModbusMaster").find("MaxRecordedEntries")->second.data()));
         
         std::unique_ptr<DataSender>& data_sender = wxGetApp().data_sender;
         DataSerialPort::Get()->SetEnabled(utils::stob(pt.get_child("DataSender").find("Enable")->second.data()));
@@ -154,10 +155,13 @@ void Settings::LoadFile()
         SymlinkCreator::Get()->place_symlink_key = std::move(pt.get_child("SymlinkCreator").find("PlaceSymlinkKey")->second.data());
         SymlinkCreator::Get()->place_hardlink_key = std::move(pt.get_child("SymlinkCreator").find("PlaceHardlinkKey")->second.data());
 
-        AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
-        AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
-        AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
-        AntiLock::Get()->LoadExclusions(pt.get_child("AntiLock").find("Exclusions")->second.data());
+        if (pt.get_child_optional("AntiLock"))
+        {
+            AntiLock::Get()->is_enabled = utils::stob(pt.get_child("AntiLock").find("Enable")->second.data());
+            AntiLock::Get()->timeout = utils::stoi<uint32_t>(pt.get_child("AntiLock").find("Timeout")->second.data());
+            AntiLock::Get()->is_screensaver = utils::stob(pt.get_child("AntiLock").find("StartScreenSaver")->second.data());
+            AntiLock::Get()->LoadExclusions(pt.get_child("AntiLock").find("Exclusions")->second.data());
+        }
 
         TerminalHotkey::Get()->is_enabled = utils::stob(pt.get_child("TerminalHotkey").find("Enable")->second.data());
         const std::string& key = pt.get_child("TerminalHotkey").find("Key")->second.data();
@@ -329,6 +333,7 @@ void Settings::SaveFile(bool write_default_macros) /* tried boost::ptree ini wri
     out << "DefaultModbusConfig = " << modbus_handler->GetDefaultConfigName() << "\n";
     out << "AutoSend = " << modbus_handler->IsAutoSend() << "\n";
     out << "AutoRecord = " << modbus_handler->IsAutoRecord() << "\n";
+    out << "MaxRecordedEntries = " << modbus_handler->GetMaxRecordedEntries() << "\n";
     out << "\n";
     out << "[DataSender]\n";
     out << "Enable = " << DataSerialPort::Get()->IsEnabled() << "\n";

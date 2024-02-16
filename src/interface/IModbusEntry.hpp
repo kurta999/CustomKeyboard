@@ -114,4 +114,5 @@ public:
     virtual ~IModbusHelper() = default;
 
     virtual void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data) = 0;
+    virtual void OnMaxEntriesReached() = 0;
 };

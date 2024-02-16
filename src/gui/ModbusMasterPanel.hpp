@@ -125,6 +125,7 @@ public:
 	~ModbusLogPanel() = default;
 
 	void AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data) override;
+	void OnMaxEntriesReached() override;
 	void ClearRecordingsFromGrid();
 	void On10MsTimer();
 	void OnKeyDown(wxKeyEvent& evt);
