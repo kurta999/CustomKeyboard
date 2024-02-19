@@ -14,6 +14,7 @@ bool MyApp::OnInit()
     did_handler = std::make_unique<DidHandler>(did_xml_loader, did_xml_chace_loader, can_entry.get());
     modbus_handler = std::make_unique<ModbusEntryHandler>(modbus_entry_loader);
     data_sender = std::make_unique<DataSender>(data_entry_loader);
+    alarm_entry = std::make_unique<AlarmEntryHandler>(alarm_entry_loader);
 
     Settings::Get()->Init();
     SerialPort::Get()->Init();
@@ -34,6 +35,7 @@ bool MyApp::OnInit()
     did_handler->Init();
     modbus_handler->Init();
     data_sender->Init();
+    alarm_entry->Init();
 
     if(!wxTaskBarIcon::IsAvailable())
         LOG(LogLevel::Warning, "There appears to be no system tray support in your current environment. This app may not behave as expected.");

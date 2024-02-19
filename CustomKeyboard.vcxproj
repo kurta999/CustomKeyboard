@@ -433,6 +433,7 @@
     <ClInclude Include="libs\sqlite\sqlite3.h" />
     <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="src\Alarms.hpp" />
     <ClInclude Include="src\AntiLock.hpp" />
     <ClInclude Include="src\BsecHandler.hpp" />
     <ClInclude Include="src\CanEntryHandler.hpp" />
@@ -455,6 +456,7 @@
     <ClInclude Include="src\ExceptionHandler.hpp" />
     <ClInclude Include="src\framework.hpp" />
     <ClInclude Include="src\GuiEditor.hpp" />
+    <ClInclude Include="src\gui\AlarmPanel.hpp" />
     <ClInclude Include="src\gui\CanPanel\BitEditorDialog.hpp" />
     <ClInclude Include="src\gui\CanPanel\CanLogPanel.hpp" />
     <ClInclude Include="src\gui\CanPanel\CanPanel.hpp" />
@@ -482,6 +484,7 @@
     <ClInclude Include="src\gui\TrayIcon.hpp" />
     <ClInclude Include="src\IdlePowerSaver.hpp" />
     <ClInclude Include="src\ImageRecognition.hpp" />
+    <ClInclude Include="src\interface\IAlarmEntryLoader.hpp" />
     <ClInclude Include="src\interface\IBasicGuiCustomization.hpp" />
     <ClInclude Include="src\interface\ICanDevice.hpp" />
     <ClInclude Include="src\interface\ICanEntry.hpp" />
@@ -658,6 +661,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Alarms.cpp" />
     <ClCompile Include="src\AntiLock.cpp" />
     <ClCompile Include="src\BsecHandler.cpp" />
     <ClCompile Include="src\CanEntryHandler.cpp" />
@@ -678,6 +682,7 @@
     <ClCompile Include="src\DirectoryBackup.cpp" />
     <ClCompile Include="src\ExceptionHandler.cpp" />
     <ClCompile Include="src\GuiEditor.cpp" />
+    <ClCompile Include="src\gui\AlarmPanel.cpp" />
     <ClCompile Include="src\gui\CanPanel\BitEditorDialog.cpp" />
     <ClCompile Include="src\gui\CanPanel\CanLogPanel.cpp" />
     <ClCompile Include="src\gui\CanPanel\CanPanel.cpp" />
@@ -767,6 +772,9 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="Alarms.xml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">true</ExcludedFromBuild>
+    </Xml>
     <Xml Include="Cmds.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">true</ExcludedFromBuild>
     </Xml>

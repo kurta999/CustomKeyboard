@@ -50,6 +50,7 @@ namespace std
 #include "gui/CmdExecutorPanel.hpp"
 #include "gui/DataSenderPanel.hpp"
 #include "gui/DidPanel.hpp"
+#include "gui/AlarmPanel.hpp"
 
 #include "Logger.hpp"
 #include "CustomMacro.hpp"
@@ -92,6 +93,7 @@ namespace std
 #include "ImageRecognition.hpp"
 #include "DataSender.hpp"
 #include "DataSerialPort.hpp"
+#include "Alarms.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>

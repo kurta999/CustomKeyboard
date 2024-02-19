@@ -39,7 +39,7 @@ void Settings::LoadFile()
         for(auto& key : global_child)
         {
             std::string& str = key.second.data();
-            CustomMacro::Get()->ParseMacroKeys(0, key.first, str, p);
+            CustomMacro::Get()->ParseMacroKeys(0, key.first, str, p, MacroFlags::None);
         }
         p->app_name = "Global";
         CustomMacro::Get()->macros.push_back(std::move(p));
@@ -59,7 +59,7 @@ void Settings::LoadFile()
                     continue;
                 }
                 std::string& str = key.second.data();
-                CustomMacro::Get()->ParseMacroKeys(counter, key.first, str, p2);
+                CustomMacro::Get()->ParseMacroKeys(counter, key.first, str, p2, MacroFlags::None);
             }
             counter++;
             CustomMacro::Get()->macros.push_back(std::move(p2));

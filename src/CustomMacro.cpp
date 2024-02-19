@@ -524,7 +524,7 @@ std::string KeyFindImageOnScreen::GenerateText(bool is_ini_format)
     return ret;
 }
 
-void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c)
+void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c, MacroFlags flags)
 {
     constexpr std::underlying_type_t<MacroTypes> MAX_ITEMS = MacroTypes::MAX;
     constexpr const char* start_str_arr[MAX_ITEMS] = { "BIND_NAME[", "KEY_SEQ[", "KEY_TYPE[", "DELAY[", "MOUSE_MOVE[", "MOUSE_INTERPOLATE[",
@@ -735,6 +735,7 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
             }
         }
     }
+    c->flags[key_code] = flags;
 
     if(c->bind_name[key_code].empty())
     {
@@ -853,6 +854,8 @@ std::string CustomMacro::GetKeyStringFromScanCode(int scancode)
     return ret;
 }
 
+void ShowAlarmDialog();
+
 void CustomMacro::ExecuteKeypresses()
 {
     std::scoped_lock lock(executor_mtx);
@@ -883,6 +886,11 @@ void CustomMacro::ExecuteKeypresses()
         const auto it = macros[0]->key_vec.find(pressed_keys);
         if(it != macros[0]->key_vec.end())
         {
+            if (macros[0]->flags[pressed_keys] == MacroFlags::Alarm)
+            {
+                ShowAlarmDialog();
+            }
+
             for(const auto& i : it->second)
             {
                 i->Execute();

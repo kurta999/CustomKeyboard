@@ -385,6 +385,12 @@ private:
     static inline const char* name = "CMD_FG";
 };
 
+enum class MacroFlags
+{
+    None,
+    Alarm,
+};
+
 /* each given macro per-app get's a macro container */
 class MacroAppProfile
 {
@@ -400,6 +406,9 @@ public:
 
     // \brief Binding name - [Key code] = bind name text
     std::map<std::string, std::string> bind_name;
+
+    // \brief Macro flags - [Key code] = flags
+    std::map<std::string, MacroFlags> flags;
 
     // \brief Name of assigned application - like Visual Studio
     std::string app_name;
@@ -419,7 +428,8 @@ public:
     // !\param key_code [in] Reference to key code
     // !\param str [in] String to parse
     // !\param c [in] Reference to macro profile's unique pointer
-    void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c);
+    // !\param flags [in] Additonal macro flags for given key
+    void ParseMacroKeys(size_t id, const std::string& key_code, std::string& str, std::unique_ptr<MacroAppProfile>& c, MacroFlags flags);
     
     // !\brief Simulate keypress (blocking function!)
     // !\param key [in] Key sequence to simulate

@@ -372,6 +372,15 @@
     <ClInclude Include="src\gui\DataSenderPanel.hpp">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+    <ClInclude Include="src\Alarms.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interface\IAlarmEntryLoader.hpp">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\AlarmPanel.hpp">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libs\sqlite\shell.c">
@@ -605,6 +614,12 @@
     <ClCompile Include="src\DataSerialPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Alarms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\AlarmPanel.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CustomKeyboard.rc">
@@ -640,5 +655,6 @@
     <Xml Include="DidList.xml" />
     <Xml Include="Modbus.xml" />
     <Xml Include="DataSender.xml" />
+    <Xml Include="Alarms.xml" />
   </ItemGroup>
 </Project>

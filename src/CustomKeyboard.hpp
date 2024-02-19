@@ -10,6 +10,7 @@
 #include "DidHandler.hpp"
 #include "ModbusHandler.hpp"
 #include "DataSender.hpp"
+#include "Alarms.hpp"
 
 class MyApp : public wxApp
 {
@@ -28,9 +29,11 @@ public:
     XmlDidCacheLoader did_xml_chace_loader;
     XmlModbusEnteryLoader modbus_entry_loader;
     XmlDataEntryLoader data_entry_loader;
+    XmlAlarmEntryLoader alarm_entry_loader;
     std::unique_ptr<CanEntryHandler> can_entry;
     std::unique_ptr<CmdExecutor> cmd_executor;
     std::unique_ptr<DidHandler> did_handler;
     std::unique_ptr<ModbusEntryHandler> modbus_handler;
     std::unique_ptr<DataSender> data_sender;
+    std::unique_ptr<AlarmEntryHandler> alarm_entry;
 };
