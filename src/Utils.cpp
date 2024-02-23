@@ -459,6 +459,8 @@ namespace utils
 		std::string hex;
 		try
 		{
+			if(in.empty())
+				return;
 			boost::algorithm::hex(in.begin(), in.end(), std::back_inserter(out));
 			utils::separate<2, ' '>(out);
 		}

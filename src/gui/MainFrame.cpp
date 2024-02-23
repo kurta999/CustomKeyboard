@@ -45,7 +45,7 @@ void MyFrame::OnAbout(wxCommandEvent& event)
 	wxMessageBox(wxString("CustomKeyboard") + platform + " v" + COMMIT_TAG + " (" + COMMIT_ID + ")" + "\n\n"
 "MIT License\n\
 \n\
-Copyright (c) 2021 - 2023 kurta999\n\
+Copyright (c) 2021 - 2024 kurta999\n\
 \n\
 Permission is hereby granted, free of charge, to any person obtaining a copy\n\
 of this software and associated documentation files (the \"Software\"), to deal\n\
@@ -188,6 +188,8 @@ void MyFrame::OnSize(wxSizeEvent& event)
 				data_sender_panel->button_panel->SetSize(a);
 			data_sender_panel->m_notebook->Layout();
 		}
+		if(alarm_panel)
+			alarm_panel->SetSize(a);
 		if(cmd_panel)
 			cmd_panel->SetSize(a);
 		if(did_panel)
@@ -311,6 +313,8 @@ void MyFrame::On10msTimer(wxTimerEvent& event)
 		can_panel->On10MsTimer();
 	if(modbus_master_panel)
 		modbus_master_panel->On10MsTimer();
+	if(alarm_panel)
+		alarm_panel->On10MsTimer();
 
 	Logger::Get()->Tick();
 }
@@ -539,6 +543,8 @@ MyFrame::MyFrame(const wxString& title)
 		modbus_master_panel = new ModbusMasterPanel(this);
 	if (used_pages.data_sender)
 		data_sender_panel = new DataSenderPanel(this);
+	if (used_pages.alarm_panel)
+		alarm_panel = new AlarmPanel(this);
 	if(used_pages.log)
 		log_panel = new LogPanel(this);
 	Logger::Get()->AppendPreinitedEntries();
@@ -580,7 +586,9 @@ MyFrame::MyFrame(const wxString& title)
 	if(used_pages.modbus_master)
 		ctrl->AddPage(modbus_master_panel, "ModbusMaster", false, wxArtProvider::GetBitmap(wxART_PRINT, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if (used_pages.data_sender)
-		ctrl->AddPage(data_sender_panel, "DataSender", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
+		ctrl->AddPage(data_sender_panel, "DataSender", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));	
+	if (used_pages.alarm_panel)
+		ctrl->AddPage(alarm_panel, "AlarmPanel", false, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	if(used_pages.log)
 		ctrl->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_TIP, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	ctrl->Thaw();

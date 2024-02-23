@@ -482,7 +482,9 @@ UsedPages Settings::ParseUsedPagesFromString(const std::string& in)
     if(boost::icontains(in, "ModbusMaster"))
         pages.modbus_master = 1;
     if(boost::icontains(in, "DataSender"))
-        pages.data_sender = 1;
+        pages.data_sender = 1;    
+    if(boost::icontains(in, "AlarmPanel"))
+        pages.alarm_panel = 1;
     if(boost::icontains(in, "Log"))
         pages.log = 1;
     return pages;
@@ -516,7 +518,9 @@ std::string Settings::ParseUsedPagesToString(UsedPages& in)
     if(in.modbus_master)
         pages += "ModbusMaster, ";
     if(in.data_sender)
-        pages += "DataSender, ";
+        pages += "DataSender, ";    
+    if(in.alarm_panel)
+        pages += "AlarmPanel, ";
     if(in.log)
         pages += "Log, ";
     if(pages.size() > 2)

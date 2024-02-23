@@ -744,10 +744,10 @@ void CustomMacro::ParseMacroKeys(size_t id, const std::string& key_code, std::st
     }
 }
 
-void CustomMacro::SimulateKeypress(const std::string& key)
+void CustomMacro::SimulateKeypress(const std::string& key, bool directly_execute_alarm)
 {
     pressed_keys = key;
-    ExecuteKeypresses();
+    ExecuteKeypresses(directly_execute_alarm);
     pressed_keys.clear();
 }
 
@@ -854,9 +854,7 @@ std::string CustomMacro::GetKeyStringFromScanCode(int scancode)
     return ret;
 }
 
-void ShowAlarmDialog();
-
-void CustomMacro::ExecuteKeypresses()
+void CustomMacro::ExecuteKeypresses(bool directly_execute_alarm)
 {
     std::scoped_lock lock(executor_mtx);
     if(PrintScreenSaver::Get()->screenshot_key == pressed_keys)
@@ -878,7 +876,7 @@ void CustomMacro::ExecuteKeypresses()
         return;
     }
 
-    auto ExecuteGlobalMacro = [this]()
+    auto ExecuteGlobalMacro = [this, &directly_execute_alarm]()
     {
         if(macros.empty())
             return;
@@ -886,9 +884,11 @@ void CustomMacro::ExecuteKeypresses()
         const auto it = macros[0]->key_vec.find(pressed_keys);
         if(it != macros[0]->key_vec.end())
         {
-            if (macros[0]->flags[pressed_keys] == MacroFlags::Alarm)
+            if (macros[0]->flags[pressed_keys] == MacroFlags::Alarm && !directly_execute_alarm)
             {
-                ShowAlarmDialog();
+                std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+                alarm_entry->HandleKeypress(pressed_keys);
+                return;
             }
 
             for(const auto& i : it->second)

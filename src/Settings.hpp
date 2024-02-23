@@ -24,6 +24,7 @@ public:
             uint8_t did : 1;
             uint8_t modbus_master : 1;
             uint8_t data_sender : 1;
+            uint8_t alarm_panel : 1;
             uint8_t log : 1;
         };
     };

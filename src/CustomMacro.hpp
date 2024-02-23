@@ -433,7 +433,8 @@ public:
     
     // !\brief Simulate keypress (blocking function!)
     // !\param key [in] Key sequence to simulate
-    void SimulateKeypress(const std::string& key);
+    // !\param directly_execute_alarm [in] Execute alarm directly without showing alarm dialog?
+    void SimulateKeypress(const std::string& key, bool directly_execute_alarm = false);
 
     // !\brief Process received data
     void ProcessReceivedData(const char* data, unsigned int len);
@@ -488,7 +489,7 @@ private:
     friend class Settings;
 
     // !\brief Execute keypresses
-    void ExecuteKeypresses();
+    void ExecuteKeypresses(bool directly_execute_alarm = false);
 
     // !\brief Execute foreground keypress
     void ExecuteForegroundKeypress();

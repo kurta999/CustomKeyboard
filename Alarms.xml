@@ -1,8 +1,8 @@
 <AlarmsXml>
 	<Alarm>
-		<Name>First alarm</Name>
+	<Name>First alarm</Name>
     <Trigger>macro</Trigger>
-    <Key>G5</Key>
+    <Key>NUM_9</Key>
     <Execute>CMD_FG[chrome.exe,Google Chrome] DELAY[500] CMD_IMG[macro_images/gmail.png,10,10]</Execute>
     <ShowDialog>1</ShowDialog>
 	</Alarm>

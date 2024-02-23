@@ -27,6 +27,8 @@ public:
     std::string trigger_key;
     std::string execute;
     bool show_dialog;
+    bool is_armed{ false };
+    std::chrono::seconds duration{ 0 };
 };
 
 class XmlAlarmEntryLoader : public IAlarmEntryLoader
@@ -47,6 +49,8 @@ public:
     // !\brief Initialize entry handler
     void Init();
 
+    void WorkerThread(std::stop_token token);
+
     bool Load();
 
     bool LoadAlarms(std::filesystem::path& path);
@@ -62,6 +66,8 @@ public:
     std::vector<std::unique_ptr<AlarmEntry>> entries;
 
 private:
+    std::chrono::seconds ParseDurationStringToSeconds(const std::string& input);
+
     // !\brief Reference to Alarm entry loader
     IAlarmEntryLoader& m_AlarmEntryLoader;
 

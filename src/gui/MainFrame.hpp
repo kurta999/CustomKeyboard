@@ -13,6 +13,7 @@
 #include "CmdExecutorPanel.hpp"
 #include "MapConverterPanel.hpp"
 #include "DidPanel.hpp"
+#include "AlarmPanel.hpp"
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -93,6 +94,7 @@ public:
 	CanPanel* can_panel = nullptr;
 	ModbusMasterPanel* modbus_master_panel = nullptr;
 	DataSenderPanel* data_sender_panel = nullptr;
+	AlarmPanel* alarm_panel = nullptr;
 	MapConverterPanel* map_converter_panel = nullptr;
 	DidPanel* did_panel = nullptr;
 	LogPanel* log_panel = nullptr;

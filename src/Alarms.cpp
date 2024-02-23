@@ -94,12 +94,19 @@ bool XmlAlarmEntryLoader::Save(const std::filesystem::path& path, std::vector<st
 AlarmEntryHandler::AlarmEntryHandler(IAlarmEntryLoader& loader) :
     m_AlarmEntryLoader(loader)
 {
-
+    m_worker = std::make_unique<std::jthread>(std::bind_front(&AlarmEntryHandler::WorkerThread, this));
+    if(m_worker)
+        utils::SetThreadName(*m_worker, "AlarmEntryHandler");
 }
 
 AlarmEntryHandler::~AlarmEntryHandler()
 {
+    {
+        std::unique_lock lock{ m };
+        m_cv.notify_all();
+    }
 
+    m_worker.reset(nullptr);
 }
 
 void AlarmEntryHandler::Init()
@@ -138,9 +145,57 @@ bool AlarmEntryHandler::SaveAlarms(std::filesystem::path& path)
 
 void AlarmEntryHandler::HandleKeypress(const std::string& key)
 {
-    auto it = std::find_if(entries.begin(), entries.end(), [&key](std::unique_ptr<AlarmEntry>& e) { return e->trigger_key == key; });
-    if (it != entries.end())
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if(frame)
     {
+        frame->alarm_panel->ShowAlarmDialog();
+        frame->alarm_panel->WaitForAlarmSemaphore();
 
+        std::string duration_str = frame->alarm_panel->GetAlarmTime();
+
+        auto it = std::find_if(entries.begin(), entries.end(), [&key](std::unique_ptr<AlarmEntry>& e) { return e->trigger_key == key; });
+        if(it != entries.end())
+        {
+            (*it)->is_armed = true;
+            (*it)->duration = ParseDurationStringToSeconds(duration_str);
+        }
+    }
+}
+
+void AlarmEntryHandler::WorkerThread(std::stop_token token)
+{
+    while(!token.stop_requested())
+    {
+        for(auto& a : entries)
+        {
+            if(a->is_armed)
+            {
+                a->duration--;
+                if(a->duration.count() <= 0)
+                {
+                    if(a->trigger == AlarmTrigger::Macro)
+                    {
+                        CustomMacro::Get()->SimulateKeypress(a->trigger_key, true);
+                    }
+                    a->is_armed = false;
+                }
+            }
+        }
+        std::unique_lock lock{ m };
+        m_cv.wait_for(lock, token, 1000ms, []() {return 0 == 1;});
+    }
+}
+
+std::chrono::seconds AlarmEntryHandler::ParseDurationStringToSeconds(const std::string& input)
+{
+    int hours = 0;
+    int minutes = 0;
+    if(sscanf(input.c_str(), "%d%*c%d", &hours, &minutes) == 2)
+    {
+        return std::chrono::hours(hours) + std::chrono::minutes(minutes);
+    }
+    else
+    {
+        return std::chrono::minutes(std::stoi(input));
     }
 }
