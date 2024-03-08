@@ -864,6 +864,25 @@ void MyFrame::HandleNotifications()
 						});
 					break;
 				}
+				case AlarmSetup:
+				{
+					const std::string name = std::any_cast<decltype(name)>(ret[1]);
+					std::chrono::seconds duration = std::any_cast<decltype(duration)>(ret[2]);
+					ShowNotificaiton(wxString::Format("Alarm setup - %s", name), wxString::Format("Alarm has been setup for %lld seconds", duration.count()), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+
+						});
+					break;
+				}
+				case AlarmTriggered:
+				{
+					const std::string name = std::any_cast<decltype(name)>(ret[1]);
+					ShowNotificaiton(wxString::Format("Alarm executed - %s", name), wxString::Format("Alarm has been executed"), 3, wxICON_INFORMATION, [this](wxCommandEvent& event)
+						{
+
+						});
+					break;
+				}
 			}
 		}
 		catch(const std::exception& e)

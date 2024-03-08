@@ -60,6 +60,8 @@ enum PopupMsgIds : uint8_t
 	DidCacheSaved,
 	DidUpdated,
 	EverythingSaved,
+	AlarmSetup,
+	AlarmTriggered,
 	SelectedLogsCopied,
 };
 

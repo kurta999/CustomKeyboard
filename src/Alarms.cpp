@@ -158,6 +158,10 @@ void AlarmEntryHandler::HandleKeypress(const std::string& key)
         {
             (*it)->is_armed = true;
             (*it)->duration = ParseDurationStringToSeconds(duration_str);
+
+            MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+            std::unique_lock lock(frame->mtx);
+            frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::AlarmSetup), (*it)->name, (*it)->duration });
         }
     }
 }
@@ -176,6 +180,10 @@ void AlarmEntryHandler::WorkerThread(std::stop_token token)
                     if(a->trigger == AlarmTrigger::Macro)
                     {
                         CustomMacro::Get()->SimulateKeypress(a->trigger_key, true);
+
+                        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+                        std::unique_lock lock(frame->mtx);
+                        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::AlarmTriggered), a->name });
                     }
                     a->is_armed = false;
                 }
@@ -190,12 +198,19 @@ std::chrono::seconds AlarmEntryHandler::ParseDurationStringToSeconds(const std::
 {
     int hours = 0;
     int minutes = 0;
-    if(sscanf(input.c_str(), "%d%*c%d", &hours, &minutes) == 2)
+    int seconds = 0;
+    std::chrono::duration<int> ret = std::chrono::seconds(0);
+    if(sscanf(input.c_str(), "%dh%dm%ds", &hours, &minutes, &seconds) == 3)
     {
-        return std::chrono::hours(hours) + std::chrono::minutes(minutes);
-    }
-    else
+        ret = std::chrono::hours(hours) + std::chrono::minutes(minutes) + std::chrono::seconds(seconds);
+	}
+    else if(sscanf(input.c_str(), "%dm%ds", &minutes, &seconds) == 2)
     {
-        return std::chrono::minutes(std::stoi(input));
+        ret = std::chrono::minutes(minutes) + std::chrono::seconds(seconds);
     }
+    else if(sscanf(input.c_str(), "%ds", &seconds) == 1)
+    {
+        ret = std::chrono::seconds(seconds);
+    }
+    return ret;
 }
