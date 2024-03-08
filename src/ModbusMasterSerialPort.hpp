@@ -10,6 +10,9 @@ enum class ModbusError
     WrongId,
 };
 
+#define MODBUS_LOG_DIR_RX 0
+#define MODBUS_LOG_DIR_TX 1
+
 class ModbusMasterSerialPort : public SerialPortBase
 {
 public:
@@ -71,8 +74,10 @@ private:
 
     std::map<uint8_t, size_t> modbusErrorCount;
 
+    void SetupHeader(std::vector<uint8_t>& vec, uint8_t slave_id, uint16_t fcode, uint16_t len);
     void AddCrcToFrame(std::vector<uint8_t>& vec);
     ResponseStatus NotifyAndWaitForResponse(const std::vector<uint8_t>& vec);
+    void DoCleanup(std::vector<uint8_t>& recv_data);
     bool WaitForResponse();
 
     std::chrono::steady_clock::time_point last_tx_time;
@@ -91,6 +96,8 @@ private:
     std::vector<uint8_t> m_LastSentData;
 
     bool m_LastDataCrcOk = true;
+
+    uint16_t sequence_id = 0;
 
     IModbusHelper* m_Helper = nullptr;
 };

@@ -715,7 +715,7 @@ void ModbusEntryHandler::HandleWrites()
 void ModbusEntryHandler::ModbusWorker(std::stop_token token)
 {
     m_Serial->SetStopToken(token);
-    std::this_thread::sleep_for(200ms);
+    std::this_thread::sleep_for(400ms);
     while(!token.stop_requested())
     {
         if (m_isMainThreadPaused)
@@ -728,7 +728,7 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
                 {
                     GetSerial().Close();
                 }
-                catch (boost::system::system_error& e)
+                catch (boost::system::system_error&)
                 {
 
                 }

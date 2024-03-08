@@ -33,6 +33,7 @@ If the project is useful for you and you're able, please consider small amount o
 10. **wxWidget's GUI editor** - A very basic GUI editor with move & resize support *(1)
 11. **MTA -> SA-MP MapConverter** - Convert maps from MTA-SA Race and MTA:SA DM to SA-MP with every item which is supported by SA-MP; objects, actors, vehicles with components, checkpoints and pickups.
 12. **LinkCreator** - Easy symlink & hardlink creator within Windows' file explorer
+13. **Alarm Handler** - Define alarms in Alarms.xml and set them up by predefined key from second keyboard. A popup dialog appears, specify alarm delay and the specified alarm action will be executed when that period expires. 
 
 *(10) This is an outdated part of this project, it doesn't support sizers. It's not recommended to create GUI without sizers, only use it if you know what you are doing.
 
