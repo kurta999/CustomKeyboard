@@ -75,6 +75,7 @@ namespace utils
     std::string exec(const char* cmd);
 #endif
     void ConvertHexBufferToString(const std::vector<uint8_t>& in, std::string& out);
+    void ConvertHexBufferToString(const std::vector<uint16_t>& in, std::string& out);
     void ConvertHexBufferToString(const char* in, size_t len, std::string& out);
 
     template<typename T, std::size_t length>

@@ -14,6 +14,11 @@ EVT_SIZE(ModbusLogPanel::OnSize)
 EVT_CHAR_HOOK(ModbusLogPanel::OnKeyDown)
 wxEND_EVENT_TABLE()
 
+wxBEGIN_EVENT_TABLE(ModbusSpecialRegisterPanel, wxPanel)
+EVT_SIZE(ModbusSpecialRegisterPanel::OnSize)
+EVT_CHAR_HOOK(ModbusSpecialRegisterPanel::OnKeyDown)
+wxEND_EVENT_TABLE()
+
 wxBEGIN_EVENT_TABLE(ModbusMasterPanel, wxPanel)
 EVT_SIZE(ModbusMasterPanel::OnSize)
 wxEND_EVENT_TABLE()
@@ -781,6 +786,242 @@ ModbusLogPanel::ModbusLogPanel(wxWindow* parent) :
     Show();
 }
 
+ModbusSpecialRegisterPanel::ModbusSpecialRegisterPanel(wxWindow* parent) :
+    wxPanel(parent, wxID_ANY)
+{
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    //modbus_handler->SetModbusHelper(this);
+
+    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_RecordingStart = new wxButton(this, wxID_ANY, "Record", wxDefaultPosition, wxDefaultSize);
+    m_RecordingStart->SetToolTip("Start recording for received & sent Modbus frames");
+    m_RecordingStart->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            modbus_handler->ToggleRecording(true, false);
+        });
+    h_sizer->Add(m_RecordingStart);
+
+    m_RecordingPause = new wxButton(this, wxID_ANY, "Pause", wxDefaultPosition, wxDefaultSize);
+    m_RecordingPause->SetToolTip("Suspend recording for received & sent Modbus frames");
+    m_RecordingPause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            modbus_handler->ToggleRecording(false, true);
+        });
+    h_sizer->Add(m_RecordingPause);
+
+    m_RecordingStop = new wxButton(this, wxID_ANY, "Stop", wxDefaultPosition, wxDefaultSize);
+    m_RecordingStop->SetToolTip("Suspend recording for received & sent Modbus frames, clear everything");
+    m_RecordingStop->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            modbus_handler->ToggleRecording(false, false);
+            inserted_until = 0;
+        });
+    h_sizer->Add(m_RecordingStop);
+
+    m_RecordingClear = new wxButton(this, wxID_ANY, "Clear", wxDefaultPosition, wxDefaultSize);
+    m_RecordingClear->SetToolTip("Clear recording and reset frame counters");
+    m_RecordingClear->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            ClearRecordingsFromGrid();
+
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            modbus_handler->ClearRecording();
+        });
+    h_sizer->Add(m_RecordingClear);
+
+    m_AutoScrollBtn = new wxButton(this, wxID_ANY, wxT("Toggle auto-scroll"), wxDefaultPosition, wxDefaultSize, 0);
+    m_AutoScrollBtn->SetToolTip("Toggle auto-scroll");
+    m_AutoScrollBtn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event)
+        {
+            m_AutoScroll ^= 1;
+            if(m_AutoScroll)
+                m_AutoScrollBtn->SetBackgroundColour(wxNullColour);
+            else
+                m_AutoScrollBtn->SetBackgroundColour(*wxRED);
+        });
+    h_sizer->AddSpacer(35);
+    h_sizer->Add(m_AutoScrollBtn);
+
+    v_sizer->Add(h_sizer);
+
+    wxBoxSizer* h_sizer2 = new wxBoxSizer(wxHORIZONTAL);
+    m_RecordingSave = new wxButton(this, wxID_ANY, "Save log", wxDefaultPosition, wxDefaultSize);
+    m_RecordingSave->SetToolTip("Save special recording to file");
+    m_RecordingSave->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+#ifdef _WIN32
+            const auto now = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+
+            if(!std::filesystem::exists("Modbus"))
+                std::filesystem::create_directory("Modbus");
+            std::string log_format = std::format("Modbus/ModbusSpecialLog_{:%Y.%m.%d_%H_%M_%OS}.csv", now);
+            std::filesystem::path p(log_format);
+
+            std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+            modbus_handler->SaveSpecialRecordingToFile(p);
+#endif
+        });
+    h_sizer2->Add(m_RecordingSave);
+
+    v_sizer->Add(h_sizer2);
+
+    static_box = new wxStaticBoxSizer(wxHORIZONTAL, this, "&Log :: TX: 0, RX: 0, Err: 0 - Total: 0");
+    static_box->GetStaticBox()->SetFont(static_box->GetStaticBox()->GetFont().Bold());
+    static_box->GetStaticBox()->SetForegroundColour(*wxBLUE);
+
+    m_grid = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxSize(800, 600), 0);
+
+    // Grid
+    m_grid->CreateGrid(1, ModbusSpecialRegisterCol::ModbusSpec_Max);
+    m_grid->EnableEditing(true);
+    m_grid->EnableGridLines(true);
+    m_grid->EnableDragGridSize(false);
+    m_grid->SetMargins(0, 0);
+
+    m_grid->SetColLabelValue(ModbusSpecialRegisterCol::ModbusSpec_Time, "Time");
+    m_grid->SetColLabelValue(ModbusSpecialRegisterCol::ModbusSpec_DataHex, "Hex");
+    m_grid->SetColLabelValue(ModbusSpecialRegisterCol::ModbusSpec_Data, "Data");
+
+    m_grid->SetColSize(ModbusSpecialRegisterCol::ModbusSpec_Time, 50);
+    m_grid->SetColSize(ModbusSpecialRegisterCol::ModbusSpec_DataHex, 300);
+    m_grid->SetColSize(ModbusSpecialRegisterCol::ModbusSpec_Data, 300);
+
+    // Columns
+    m_grid->EnableDragColMove(true);
+    m_grid->EnableDragColSize(true);
+    m_grid->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+
+    m_grid->SetSelectionMode(wxGrid::wxGridSelectionModes::wxGridSelectRows);
+
+    // Rows
+    m_grid->EnableDragRowSize(true);
+    m_grid->SetRowLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+    m_grid->SetRowLabelSize(40);
+    m_grid->GetGridWindow()->SetDoubleBuffered(true);
+
+    static_box->Add(m_grid);
+    v_sizer->Add(static_box, wxSizerFlags(1).Top().Expand());
+
+    SetSizer(v_sizer);
+    Show();
+}
+
+void ModbusSpecialRegisterPanel::On10MsTimer()
+{
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    if(!modbus_handler->m_EventLogEntries.empty())
+    {
+        if(m_grid->GetNumberRows() > modbus_handler->m_EventLogEntries.size())
+        {
+            ClearRecordingsFromGrid();
+        }
+
+        if(!is_something_inserted)
+            inserted_until = 0;
+
+        auto it = modbus_handler->m_EventLogEntries.begin();
+        std::advance(it, inserted_until);
+        if(it == modbus_handler->m_EventLogEntries.end())
+        {
+            //DBG("shit happend");
+            return;
+        }
+
+        if(it != modbus_handler->m_EventLogEntries.end())
+        {
+            for(; it != modbus_handler->m_EventLogEntries.end(); ++it)
+            {
+                AppendLog((*it)->last_execution, (*it)->data);
+                inserted_until++;
+            }
+            //inserted_until = std::distance(can_handler->m_LogEntries.begin(), it);
+            is_something_inserted = true;
+        }
+    }
+
+}
+
+void ModbusSpecialRegisterPanel::OnKeyDown(wxKeyEvent& evt)
+{
+
+}
+
+void ModbusSpecialRegisterPanel::AppendLog(std::chrono::steady_clock::time_point t1, const std::vector<uint16_t>& data)
+{
+    int num_rows = m_grid->GetNumberRows();
+    if(num_rows <= cnt)
+        m_grid->AppendRows(1);
+
+    std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
+    uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - modbus_handler->GetStartTime()).count();
+    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusSpecialRegisterCol::ModbusSpec_Time), wxString::Format("%.3lf", static_cast<double>(elapsed) / 1000.0));
+
+    std::string hex;
+    utils::ConvertHexBufferToString(data, hex);
+    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusSpecialRegisterCol::ModbusSpec_DataHex), hex);
+
+    uint16_t error_id = data[8];
+    std::string data_str;
+    uint32_t time_time = data[1] | data[0] << 16;
+    uint32_t time_date = data[3] | data[2] << 16;
+
+    int hour = time_time / 10000;
+    int minute = (time_time / 100) % 100;
+    int second = time_time % 100;
+
+    int year = time_date % 100;
+    int month = (time_date / 100) % 100;
+    int day = time_date / 10000;
+
+    data_str += std::format("{:04}.{:02}.{:02} {:02}:{:02}:{:02} - ", 2000 + year, month, day, hour, minute, second);
+    switch(error_id)
+    {
+        case 100:
+        {
+            data_str += std::format("SpecialError1");
+            break;
+        }
+        default:
+        {
+            data_str += std::format("Error: {} - {}, {}, {}, {}", error_id, data[4], data[5], data[6], data[7]);
+            break;
+        }
+    }
+    m_grid->SetCellValue(wxGridCellCoords(cnt, ModbusSpecialRegisterCol::ModbusSpec_Data), data_str);
+
+    for(uint8_t i = 0; i != ModbusSpecialRegisterCol::ModbusSpec_Max; i++)
+    {
+        m_grid->SetCellBackgroundColour(cnt, i, (cnt % 2) == 0 ? 0xE6E6E6 : 0xFFFFFF);
+    }
+
+    m_grid->Update();
+
+    if(m_AutoScroll)
+        m_grid->ScrollLines(num_rows);
+
+    cnt++;
+}
+
+void ModbusSpecialRegisterPanel::ClearRecordingsFromGrid()
+{
+    int num_rows = m_grid->GetNumberRows();
+    if(num_rows)
+        m_grid->DeleteRows(0, num_rows);
+    cnt = 0;
+
+    is_something_inserted = false;
+    inserted_until = 0;
+}
+
+void ModbusSpecialRegisterPanel::OnSize(wxSizeEvent& event)
+{
+    event.Skip(true);
+}
+
 void ModbusLogPanel::AppendLog(std::chrono::steady_clock::time_point& t1, uint8_t direction, uint8_t fcode, uint8_t error, const std::vector<uint8_t>& data)
 {
     int num_rows = m_grid->GetNumberRows();
@@ -1000,12 +1241,16 @@ ModbusMasterPanel::ModbusMasterPanel(wxWindow* parent)
 
     data_panel = new ModbusDataPanel(this);
     log_panel = new ModbusLogPanel(this);
+    special_panel = new ModbusSpecialRegisterPanel(this);
 
     m_notebook->Freeze();
     m_notebook->AddPage(data_panel, "Data", false, wxArtProvider::GetBitmap(wxART_HELP_BOOK, wxART_OTHER, FromDIP(wxSize(16, 16))));
     m_notebook->AddPage(log_panel, "Log", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
+    m_notebook->AddPage(special_panel, "Special", false, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_OTHER, FromDIP(wxSize(16, 16))));
 	m_notebook->Connect(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler(ModbusMasterPanel::Changeing), NULL, this);
     m_notebook->Split(0, wxLEFT);
+    //m_notebook->Split(1, wxDOWN);
+    //m_notebook->Split(2, wxDOWN);
     m_notebook->Thaw();
 }
 
@@ -1028,6 +1273,8 @@ void ModbusMasterPanel::On10MsTimer()
         data_panel->On10MsTimer();
     if(log_panel)
         log_panel->On10MsTimer();
+    if(special_panel)
+        special_panel->On10MsTimer();
 }
 
 void ModbusMasterPanel::OnSize(wxSizeEvent& event)

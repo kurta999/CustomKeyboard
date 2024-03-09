@@ -1,5 +1,9 @@
 #include "pch.hpp"
 
+constexpr int NUM_EVENTLOG_ENTRIES = 8;
+constexpr int EVENTLOG_ENTRY_SIZE = 9;
+constexpr int EVENTLOG_BUFFER_SIZE = NUM_EVENTLOG_ENTRIES * EVENTLOG_ENTRY_SIZE;
+
 bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& slave_id, ModbusItemType& coils, ModbusItemType& input_status,
     ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries)
 {
@@ -476,6 +480,45 @@ bool ModbusEntryHandler::SaveRecordingToFile(std::filesystem::path& path)
     return ret;
 }
 
+bool ModbusEntryHandler::SaveSpecialRecordingToFile(std::filesystem::path& path)
+{
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    std::scoped_lock lock{ m };
+    bool ret = false;
+    if(!m_EventLogEntries.empty())
+    {
+        std::ofstream out(path, std::ofstream::binary);
+        if(out.is_open())
+        {
+            out << "Time,DataSize,Data\n";
+            for(auto& i : m_EventLogEntries)
+            {
+                std::string hex;
+                utils::ConvertHexBufferToString(i->data, hex);
+                uint64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(i->last_execution - start_time).count();
+                out << std::format("{:.3f},{}\n", static_cast<double>(elapsed) / 1000.0, hex);
+            }
+            out.flush();
+            ret = true;
+        }
+        else
+        {
+            LOG(LogLevel::Error, "Failed to open file for saving Modbus recording: {}", path.generic_string());
+        }
+    }
+
+    if(ret)
+    {
+        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+        int64_t dif = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        std::unique_lock lock(frame->mtx);
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::ModbusLogSaved), dif, path.generic_string() });
+    }
+    return ret;
+}
+
 void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel)
 {
     std::vector<uint8_t> changed_rows;
@@ -663,6 +706,26 @@ void ModbusEntryHandler::HandlePolling()
             HandleRegisterReading(*reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
         else
             err_frame_cnt++;
+
+        std::expected<std::vector<uint16_t>, ModbusError> special_reg = m_Serial->ReadInputRegister(m_slaveId, 31000 - 1, EVENTLOG_BUFFER_SIZE + 1);
+        if(special_reg && special_reg->size() == EVENTLOG_BUFFER_SIZE + 1)
+        {
+            if(!special_reg->empty())
+            {
+                size_t eventlog_cnt = special_reg->at(0);
+                special_reg->erase(special_reg->begin());
+                while(eventlog_cnt)
+                {
+                    std::vector<uint16_t> data = std::vector<uint16_t>(special_reg->begin(), special_reg->begin() + EVENTLOG_ENTRY_SIZE);
+                    special_reg->erase(special_reg->begin(), special_reg->begin() + EVENTLOG_ENTRY_SIZE);
+
+                    if(!data.empty())
+                        m_EventLogEntries.push_back(std::make_unique<EventLogEntry>(data, std::chrono::steady_clock::now()));
+                    eventlog_cnt--;
+                }
+                DBG("break");
+            }
+        }
 
         tx_frame_cnt++;
     }

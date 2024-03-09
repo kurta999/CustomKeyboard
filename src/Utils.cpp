@@ -470,6 +470,20 @@ namespace utils
 		}
 	}
 
+	void ConvertHexBufferToString(const std::vector<uint16_t>& in, std::string& out)
+	{
+		std::string hex;
+		try
+		{
+			boost::algorithm::hex(in.begin(), in.end(), std::back_inserter(out));
+			utils::separate<4, ' '>(out);
+		}
+		catch(...)
+		{
+			LOG(LogLevel::Error, "Exception with boost::algorithm::hex");
+		}
+	}
+
 	void ConvertHexBufferToString(const char* in, size_t len, std::string& out)
 	{
 		std::string hex;

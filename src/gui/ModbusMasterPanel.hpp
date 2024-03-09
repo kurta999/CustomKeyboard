@@ -21,6 +21,14 @@ enum ModbusLogGridCol : int
 	ModbusLog_Max
 };
 
+enum ModbusSpecialRegisterCol : int
+{
+	ModbusSpec_Time,
+	ModbusSpec_DataHex,
+	ModbusSpec_Data,
+	ModbusSpec_Max
+};
+
 class ModbusDataEditDialog : public wxDialog
 {
 public:
@@ -152,6 +160,39 @@ private:
 	wxDECLARE_EVENT_TABLE();
 };
 
+class ModbusSpecialRegisterPanel : public wxPanel
+{
+public:
+	ModbusSpecialRegisterPanel(wxWindow* parent);
+	~ModbusSpecialRegisterPanel() = default;
+
+	void On10MsTimer();
+	void OnKeyDown(wxKeyEvent& evt);
+	void AppendLog(std::chrono::steady_clock::time_point t1, const std::vector<uint16_t>& data);
+	void ClearRecordingsFromGrid();
+
+	wxListBox* m_DataLog = nullptr;
+	wxStaticBoxSizer* static_box = nullptr;
+	wxGrid* m_grid = nullptr;
+
+private:
+	void OnSize(wxSizeEvent& event);
+
+	wxButton* m_RecordingStart = nullptr;
+	wxButton* m_RecordingPause = nullptr;
+	wxButton* m_RecordingStop = nullptr;
+	wxButton* m_RecordingClear = nullptr;
+	wxButton* m_AutoScrollBtn = nullptr;
+	wxButton* m_RecordingSave = nullptr;
+
+	bool m_AutoScroll = true;
+	size_t cnt = 0;
+	bool is_something_inserted = false;
+	std::size_t inserted_until = 0;
+
+	wxDECLARE_EVENT_TABLE();
+};
+
 class ModbusMasterPanel : public wxPanel
 {
 public:
@@ -164,6 +205,7 @@ public:
 	wxAuiNotebook* m_notebook = nullptr;
 	ModbusDataPanel* data_panel = nullptr;
 	ModbusLogPanel* log_panel = nullptr;
+	ModbusSpecialRegisterPanel* special_panel = nullptr;
 
 private:
 	void OnSize(wxSizeEvent& evt);

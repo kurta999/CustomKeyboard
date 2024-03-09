@@ -47,6 +47,19 @@ public:
     std::chrono::steady_clock::time_point last_execution;
 };
 
+class EventLogEntry
+{
+public:
+    EventLogEntry(std::vector<uint16_t>& data_, std::chrono::steady_clock::time_point timepoint) :
+        last_execution(timepoint)
+    {
+        data = std::move(data_);
+    }
+
+    std::vector<uint16_t> data;
+    std::chrono::steady_clock::time_point last_execution;
+};
+
 class ModbusMasterSerialPort;
 class ModbusEntryHandler
 {
@@ -102,6 +115,10 @@ public:
     // !\brief Save recorded data to file
     // !\param path [in] File path to save
     bool SaveRecordingToFile(std::filesystem::path& path);
+
+    // !\brief Save special recorded data to file
+    // !\param path [in] File path to save
+    bool SaveSpecialRecordingToFile(std::filesystem::path& path);
 
     // !\brief Set modbus polling rate
     // !\param rate_ms [in] Polling rate [ms]
@@ -180,6 +197,9 @@ public:
 
     // !\brief Log entries for sent and received data
     std::vector<std::unique_ptr<ModbusLogEntry>> m_LogEntries;
+
+    // !\brief Log entries for eventlog received over modbus
+    std::vector<std::unique_ptr<EventLogEntry>> m_EventLogEntries;
 
     // !\brief Sending every can frame automatically at startup which period is not null? 
     bool auto_send = false;
