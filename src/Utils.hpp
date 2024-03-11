@@ -17,6 +17,8 @@
 #include "Logger.hpp"
 #endif
 
+constexpr uint32_t DEFAULT_TXTCTRL_BACKGROUND = 0x00F0F0F0;
+
 #define SAFE_RELEASE(name) \
 	if(name) \
 		name->Release();

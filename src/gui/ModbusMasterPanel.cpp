@@ -27,6 +27,13 @@ wxBEGIN_EVENT_TABLE(ModbusDataEditDialog, wxDialog)
 EVT_BUTTON(wxID_APPLY, ModbusDataEditDialog::OnApply)
 wxEND_EVENT_TABLE()
 
+wxBEGIN_EVENT_TABLE(ModbusBitEditorDialog, wxDialog)
+EVT_BUTTON(wxID_APPLY, ModbusBitEditorDialog::OnApply)
+EVT_BUTTON(wxID_OK, ModbusBitEditorDialog::OnOk)
+EVT_BUTTON(wxID_CLOSE, ModbusBitEditorDialog::OnCancel)
+EVT_CLOSE(ModbusBitEditorDialog::OnClose)
+wxEND_EVENT_TABLE()
+
 ModbusItemPanel::ModbusItemPanel(wxWindow* parent, const wxString& header_name, ModbusItemType& items, bool is_read_only)
     : m_items(items), m_isReadOnly(is_read_only)
 {
@@ -231,6 +238,7 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
     m_StyleEditDialog = new ModbusDataEditDialog(this);
+    m_BitfieldEditor = new ModbusBitEditorDialog(this);
 
     if (modbus_handler->m_numEntries.coils)
         m_coil = new ModbusItemPanel(this, wxString::Format("Coil Status - %lld", modbus_handler->m_numEntries.coils), modbus_handler->m_coils, false);
@@ -238,8 +246,8 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
         m_input = new ModbusItemPanel(this, wxString::Format("Input Status - %lld", modbus_handler->m_numEntries.inputStatus), modbus_handler->m_inputStatus, true);
     if (modbus_handler->m_numEntries.holdingRegisters)
         m_holding = new ModbusItemPanel(this, wxString::Format("Holding Registers - %lld", modbus_handler->m_numEntries.holdingRegisters), modbus_handler->m_Holding, false);
-    if (modbus_handler->m_numEntries.inputRegisters)
-        m_inputReg = new ModbusItemPanel(this, wxString::Format("Input Registers - %lld", modbus_handler->m_numEntries.inputRegisters), modbus_handler->m_Input, true);
+    if (modbus_handler->m_numEntries.Input)
+        m_inputReg = new ModbusItemPanel(this, wxString::Format("Input Registers - %lld", modbus_handler->m_numEntries.Input), modbus_handler->m_Input, true);
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     m_hSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -250,7 +258,7 @@ ModbusDataPanel::ModbusDataPanel(wxWindow* parent) :
         m_hSizer->Add(m_input->static_box);
     if (modbus_handler->m_numEntries.holdingRegisters)
         m_hSizer->Add(m_holding->static_box);
-    if (modbus_handler->m_numEntries.inputRegisters)
+    if (modbus_handler->m_numEntries.Input)
         m_hSizer->Add(m_inputReg->static_box);
 
     v_sizer->Add(m_hSizer);
@@ -463,6 +471,8 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
     if (item_panel != nullptr && item_list != nullptr)
     {
         wxMenu menu;
+        if(item_panel == m_inputReg || item_panel == m_holding)
+            menu.Append(ID_ModbusShowBits, "&Show Bits")->SetBitmap(wxArtProvider::GetBitmap(wxART_QUESTION, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_ModbusDataEdit, "&Edit")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_ModbusDataDec, "&Dec")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_OTHER, FromDIP(wxSize(14, 14))));
         menu.Append(ID_ModbusDataHex, "&Hex")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_OTHER, FromDIP(wxSize(14, 14))));
@@ -470,6 +480,43 @@ void ModbusDataPanel::OnCellRightClick(wxGridEvent& ev)
         int ret = GetPopupMenuSelectionFromUser(menu);
         switch (ret)
         {
+            case ID_ModbusShowBits:
+            {
+                bool to_exit = false;
+                while (!to_exit)
+                {
+                    bool is_holding = item_panel == m_holding;
+                    ModbusBitfieldInfo info = modbus_handler->GetMapForHolding(row, is_holding);
+                    if (info.size() == 0)
+                    {
+                        wxMessageDialog(this, "There are no mapping found for selected CAN Frame", "Error", wxOK).ShowModal();
+                        return;
+                    }
+
+                    m_BitfieldEditor->ShowDialog(info);
+                    if (!is_holding)
+                        break;
+
+                    if ((m_BitfieldEditor->GetClickType() == ModbusBitEditorDialog::ClickType::Apply || m_BitfieldEditor->GetClickType() == ModbusBitEditorDialog::ClickType::Ok))
+                    {
+                        std::vector<std::string> ret = m_BitfieldEditor->GetOutput();
+                        modbus_handler->ApplyEditingOnHolding(row, ret);
+                        /*
+                        std::string hex;
+                        utils::ConvertHexBufferToString(can_grid_tx->grid_to_entry[row]->data, hex);
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_Data), wxString(hex));
+                        can_grid_tx->m_grid->SetCellValue(wxGridCellCoords(row, CanSenderGridCol::Sender_DataSize),
+                            wxString::Format("%lld", can_grid_tx->grid_to_entry[row]->data.size()));*/
+                    }
+
+                    if (m_BitfieldEditor->GetClickType() != ModbusBitEditorDialog::ClickType::Apply)
+                    {
+                        to_exit = true;
+                        break;
+                    }
+                }
+                break;
+            }
             case ID_ModbusDataEdit:
             {
                 std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
@@ -1392,4 +1439,224 @@ void ModbusDataEditDialog::OnApply(wxCommandEvent& WXUNUSED(event))
 {
     Close();
     m_IsApplyClicked = true;
+}
+
+ModbusBitEditorDialog::ModbusBitEditorDialog(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, "Bit editor", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    sizerTop = new wxBoxSizer(wxVERTICAL);
+    sizerMsgs = new wxStaticBoxSizer(wxVERTICAL, this, "&Bit editor");
+
+    wxBoxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_IsDecimal = new wxRadioButton(this, wxID_ANY, "Decimal");
+    m_IsDecimal->Bind(wxEVT_RADIOBUTTON, &ModbusBitEditorDialog::OnRadioButtonClicked, this);
+    h_sizer->Add(m_IsDecimal);
+    m_IsHex = new wxRadioButton(this, wxID_ANY, "Hex");
+    m_IsHex->Bind(wxEVT_RADIOBUTTON, &ModbusBitEditorDialog::OnRadioButtonClicked, this);
+    h_sizer->Add(m_IsHex);
+    m_IsBinary = new wxRadioButton(this, wxID_ANY, "Binary");
+    m_IsBinary->Bind(wxEVT_RADIOBUTTON, &ModbusBitEditorDialog::OnRadioButtonClicked, this);
+    h_sizer->Add(m_IsBinary);
+
+    sizerMsgs->Add(h_sizer);
+    sizerMsgs->AddSpacer(20);
+
+    for (int i = 0; i != MAX_BITEDITOR_FIELDS; i++)
+    {
+        m_InputLabel[i] = new wxStaticText(this, wxID_ANY, "_");
+        sizerMsgs->Add(m_InputLabel[i], 1, wxLEFT | wxEXPAND, 0);
+        m_Input[i] = new wxTextCtrl(this, wxID_ANY, "_", wxDefaultPosition, wxSize(250, 25), 0);
+        sizerMsgs->Add(m_Input[i], 1, wxLEFT | wxEXPAND, 0);
+    }
+
+    sizerTop->Add(sizerMsgs, wxSizerFlags(1).Expand().Border());
+
+    // finally buttons to show the resulting message box and close this dialog
+    sizerTop->Add(CreateStdDialogButtonSizer(wxAPPLY | wxCLOSE | wxOK), wxSizerFlags().Right().Border()); /* wxOK */
+
+    sizerTop->SetMinSize(wxSize(200, 200));
+    SetAutoLayout(true);
+    SetSizer(sizerTop);
+    sizerTop->Fit(this);
+    //sizerTop->SetSizeHints(this);
+    CentreOnScreen();
+}
+
+void ModbusBitEditorDialog::ShowDialog(ModbusBitfieldInfo& values)
+{
+    if (values.size() > MAX_BITEDITOR_FIELDS)
+    {
+        values.resize(MAX_BITEDITOR_FIELDS);
+        //LOG(LogLevel::Warning, "Too much bitfields used for can frame mapping. FrameID: {:X}, Used: {}, Maximum supported: {}", frame_id, values.size(), MAX_BITEDITOR_FIELDS);
+    }
+
+    m_Id = 0;
+    m_DataFormat = 0;
+    m_BitfieldInfo = values;
+
+    for (const auto& [label, value, frame] : values)
+    {
+        m_InputLabel[m_Id]->SetLabelText(label);
+
+        m_InputLabel[m_Id]->SetForegroundColour(RGB_TO_WXCOLOR(frame->m_color));  /* input for red: 0x00FF0000, excepted input for wxColor 0x0000FF */
+        m_InputLabel[m_Id]->SetBackgroundColour(RGB_TO_WXCOLOR(frame->m_bg_color));
+
+        wxFont font;
+        font.SetWeight(frame->m_is_bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
+        font.Scale(1.0f);  /* Scale has to be set to default first */
+        m_InputLabel[m_Id]->SetFont(font);
+        font.Scale(frame->m_scale);
+        font.SetFaceName("Segoe UI");
+        m_InputLabel[m_Id]->SetFont(font);
+
+        m_InputLabel[m_Id]->Show();
+        m_InputLabel[m_Id]->SetToolTip(frame->m_Description);
+        m_Input[m_Id]->SetValue(value);
+        m_Input[m_Id]->Show();
+        m_Id++;
+    }
+
+    for (int i = m_Id; i != MAX_BITEDITOR_FIELDS; i++)
+    {
+        m_InputLabel[i]->Hide();
+        m_InputLabel[i]->SetToolTip("");
+        m_Input[i]->Hide();
+    }
+
+    SetTitle(wxString::Format("Bit editor"));
+    bit_sel = BitSelection::Decimal;
+    m_IsDecimal->SetValue(true);
+    m_IsHex->SetValue(false);
+    m_IsBinary->SetValue(false);
+
+    sizerTop->Layout();
+    sizerTop->Fit(this);
+
+    m_ClickType = ClickType::None;
+    int ret = ShowModal();
+    DBG("ShowModal ret: %d\n", ret);
+}
+
+std::vector<std::string> ModbusBitEditorDialog::GetOutput()
+{
+    std::vector<std::string> ret;
+    for (int i = 0; i != m_Id; i++)
+    {
+        std::string input_ret = m_Input[i]->GetValue().ToStdString();
+        switch (bit_sel)
+        {
+        case BitSelection::Hex:
+        {
+            try
+            {
+                input_ret = std::to_string(std::stoll(input_ret, nullptr, 16));
+            }
+            catch (...)
+            {
+                LOG(LogLevel::Error, "Exception with std::stoll, str: {}", input_ret);
+            }
+            break;
+        }
+        case BitSelection::Binary:
+        {
+            try
+            {
+                input_ret = std::to_string(std::stoll(input_ret, nullptr, 2));
+            }
+            catch (...)
+            {
+                LOG(LogLevel::Error, "Exception with std::to_string, str: {}", input_ret);
+            }
+            break;
+        }
+        }
+
+        DBG("input_ret: %s\n", input_ret.c_str());
+        ret.push_back(input_ret);
+    }
+    return ret;
+}
+
+void ModbusBitEditorDialog::OnApply(wxCommandEvent& WXUNUSED(event))
+{
+    DBG("OnApply %d\n", (int)m_ClickType)
+        EndModal(wxID_APPLY);
+    //Close();
+    m_ClickType = ClickType::Apply;
+}
+
+void ModbusBitEditorDialog::OnOk(wxCommandEvent& event)
+{
+    DBG("OnOK %d\n", (int)m_ClickType);
+    if (m_ClickType == ClickType::Close)
+        return;
+    EndModal(wxID_OK);
+    //Close();
+    m_ClickType = ClickType::Ok;
+    event.Skip();
+}
+
+void ModbusBitEditorDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
+{
+    DBG("OnCancel %d\n", (int)m_ClickType);
+    EndModal(wxID_CLOSE);
+    m_ClickType = ClickType::Close;
+    //Close();
+}
+
+void ModbusBitEditorDialog::OnClose(wxCloseEvent& event)
+{
+    DBG("OnClose %d\n", (int)m_ClickType);
+    m_ClickType = ClickType::Close;
+    EndModal(wxID_CLOSE);
+}
+
+void ModbusBitEditorDialog::OnRadioButtonClicked(wxCommandEvent& event)
+{
+    if (event.GetEventObject() == dynamic_cast<wxObject*>(m_IsDecimal))
+    {
+        uint8_t cnt = 0;
+        for (const auto& [label, value, frame] : m_BitfieldInfo)
+        {
+            m_Input[cnt]->SetValue(value);
+            if (++cnt > m_Id)
+                break;
+        }
+        bit_sel = BitSelection::Decimal;
+    }
+    else if (event.GetEventObject() == dynamic_cast<wxObject*>(m_IsHex))
+    {
+        uint8_t cnt = 0;
+        for (const auto& [label, value, frame] : m_BitfieldInfo)
+        {
+            if (utils::is_number(value))
+            {
+                uint64_t decimal_val = std::stoll(value);
+                std::string hex_str = std::format("{:X}", decimal_val);  /* std::to_chars gives lower case letters, I don't like it :/ */
+
+                m_Input[cnt]->SetValue(hex_str);
+                if (++cnt > m_Id)
+                    break;
+            }
+        }
+        bit_sel = BitSelection::Hex;
+    }
+    else if (event.GetEventObject() == dynamic_cast<wxObject*>(m_IsBinary))
+    {
+        uint8_t cnt = 0;
+        for (const auto& [label, value, frame] : m_BitfieldInfo)
+        {
+            if (utils::is_number(value))
+            {
+                uint64_t decimal_val = std::stoll(value);
+                std::string hex_str = std::format("{:b}", decimal_val);
+
+                m_Input[cnt]->SetValue(hex_str);
+                if (++cnt > m_Id)
+                    break;
+            }
+        }
+        bit_sel = BitSelection::Binary;
+    }
 }

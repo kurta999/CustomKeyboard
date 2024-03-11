@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IModbusEntry.hpp"
+#include <map>
 
 class XmlModbusEnteryLoader : public IModbusEntryLoader
 {
@@ -11,6 +12,28 @@ public:
         ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries) override;
     bool Save(const std::filesystem::path& path, uint8_t& slave_id, ModbusItemType& coils, ModbusItemType& input_status,
         ModbusItemType& holding, ModbusItemType& input, NumModbusEntries& num_entries) const override;
+
+    static ModbusBitfieldType GetTypeFromString(const std::string_view& input);
+    static const std::string_view GetStringFromType(ModbusBitfieldType type);
+
+private:
+    static inline std::map<ModbusBitfieldType, std::string> m_ModbusBitfieldTypeMap
+    {
+        {MBT_BOOL, "bool"},
+        {MBT_UI8, "uint8_t"},
+        {MBT_I8, "int8_t"},
+        {MBT_UI16, "uint16_t"},
+        {MBT_I16, "int16_t"},
+        {MBT_UI32, "uint32_t"},
+        {MBT_I32, "int32_t"},
+        {MBT_UI64, "uint64_t"},
+        {MBT_I64, "int64_t"},
+        {MBT_FLOAT, "float"},
+        {MBT_DOUBLE, "double"},
+        {MBT_STRING, "string"},
+        {MBT_INVALID, "invalid"}
+    };
+
 };
 
 typedef enum
@@ -157,9 +180,19 @@ public:
     void EditCoil(size_t id, bool value) { m_pendingCoilWrites.push_back({ id, value }); }
 
     // !\brief Edit holding registers
-     // !\param id [in] Holding Register ID
+    // !\param id [in] Holding Register ID
     // !\param value [in] New value for given holding register
     void EditHolding(size_t id, uint64_t value) { m_pendingHoldingWrites.push_back({ id, value }); }
+
+    // !\brief Handle bit reading of a frame
+    template <typename T> void HandleBitReading(size_t id, bool is_holding, std::unique_ptr<ModbusMap>& m, size_t offset, ModbusBitfieldInfo& info);
+
+    // !\brief Handle bit writing of a frame
+    template <typename T> void HandleBitWriting(size_t id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data);
+
+    ModbusBitfieldInfo GetMapForHolding(size_t id, bool is_holding);
+
+    void ApplyEditingOnHolding(size_t id, std::vector<std::string> new_data);
 
     // !\brief Return reference to serial
     // !\return Reference to serial port
@@ -178,7 +211,7 @@ public:
     size_t GetErrFrameCount() { return err_frame_cnt; }
 
     // !\brief Slave ID
-    uint8_t m_slaveId;
+    uint8_t m_slaveId = 1;
 
     // !\brief Coils
     ModbusItemType m_coils;
@@ -228,6 +261,9 @@ private:
 
     // !\brief Handle register reading (input & holding registers)
     void HandleRegisterReading(std::vector<uint16_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel);
+
+    // !\brief Suspends main thread execution until everything is inited
+    void WaitUntilInited();
 
     // !\brief Suspends main thread execution until paused
     void WaitIfPaused();

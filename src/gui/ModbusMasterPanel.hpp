@@ -29,6 +29,62 @@ enum ModbusSpecialRegisterCol : int
 	ModbusSpec_Max
 };
 
+class ModbusMap;
+using ModbusBitfieldInfo = std::vector<std::tuple<std::string, std::string, ModbusMap*>>;
+
+class ModbusBitEditorDialog : public wxDialog
+{
+public:
+	ModbusBitEditorDialog(wxWindow* parent);
+
+	// [label] = value
+	void ShowDialog(ModbusBitfieldInfo& values);
+	std::vector<std::string> GetOutput();
+
+	enum class BitSelection
+	{
+		Decimal,
+		Hex,
+		Binary,
+	};
+
+	enum class ClickType
+	{
+		None,
+		Ok,
+		Close,
+		Apply,
+	};
+
+	ClickType GetClickType() { return m_ClickType; }
+
+protected:
+	void OnApply(wxCommandEvent& event);
+	void OnOk(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
+	void OnClose(wxCloseEvent& event);
+	void OnRadioButtonClicked(wxCommandEvent& event);
+private:
+	int m_Id = 0;
+	uint8_t m_DataFormat = 0;
+	wxRadioButton* m_IsDecimal = {};
+	wxRadioButton* m_IsHex = {};
+	wxRadioButton* m_IsBinary = {};
+	wxStaticText* m_InputLabel[MAX_BITEDITOR_FIELDS] = {};
+	wxTextCtrl* m_Input[MAX_BITEDITOR_FIELDS] = {};
+	wxRadioButton* m_InputBit[MAX_BITEDITOR_FIELDS] = {};
+	wxSizer* sizerTop = {};
+	wxSizer* sizerMsgs = {};
+
+	ClickType m_ClickType = ClickType::None;
+
+	ModbusBitfieldInfo m_BitfieldInfo;
+	BitSelection bit_sel = BitSelection::Decimal;
+
+	wxDECLARE_EVENT_TABLE();
+	wxDECLARE_NO_COPY_CLASS(ModbusBitEditorDialog);
+};
+
 class ModbusDataEditDialog : public wxDialog
 {
 public:
@@ -96,6 +152,7 @@ public:
 	wxBoxSizer* m_hSizer = nullptr;
 
 	ModbusDataEditDialog* m_StyleEditDialog = nullptr;
+	ModbusBitEditorDialog* m_BitfieldEditor = nullptr;
 
 	ModbusItemPanel* m_coil = nullptr;
 	ModbusItemPanel* m_input = nullptr;

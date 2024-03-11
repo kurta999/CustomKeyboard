@@ -1,7 +1,5 @@
 #include "pch.hpp"
 
-constexpr uint32_t DEFAULT_TXTCTRL_BACKGROUND = 0x00F0F0F0;
-
 CanEntryHandler::CanEntryHandler(ICanEntryLoader& loader, ICanRxEntryLoader& rx_loader, ICanMappingLoader& mapping_loader) :
     m_CanEntryLoader(loader), m_CanRxEntryLoader(rx_loader), m_CanMappingLoader(mapping_loader)
 {

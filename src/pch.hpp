@@ -157,6 +157,7 @@ namespace std
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/endian.hpp>
 #include <boost/circular_buffer.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 
 #include <assert.h>
 

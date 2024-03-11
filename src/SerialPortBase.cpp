@@ -155,6 +155,11 @@ void SerialPortBase::DestroyWorkerThread()
     }
 }
 
+bool SerialPortBase::IsInstanceInited()
+{
+    return m_serial != nullptr && m_serial;
+}
+
 void SerialPortBase::WorkerThread(std::stop_token token)
 {
     while(!token.stop_requested())

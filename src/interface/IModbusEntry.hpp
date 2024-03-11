@@ -16,7 +16,7 @@ class NumModbusEntries
 public:
     size_t coils = 0xFFFF;
     size_t inputStatus = 0xFFFF;
-    size_t inputRegisters = 0xFFFF;
+    size_t Input = 0xFFFF;
     size_t holdingRegisters = 0xFFFF;
 
     uint16_t coilsOffset;
@@ -35,13 +35,47 @@ enum ModbusValueFormat : uint8_t
     MVF_DEC, MVF_HEX, MVF_BIN
 };
 
+class ModbusMap : public BasicGuiTextCustomization
+{
+public:
+    ModbusMap(const std::string& name, ModbusBitfieldType type, uint8_t size, size_t min_val, size_t max_val, const std::string& description,
+        uint32_t color, uint32_t bg_color, bool is_bold, float scale) :
+        m_Name(name), m_Type(type), m_Size(size), m_MinVal(min_val), m_MaxVal(max_val), m_Description(description),
+        BasicGuiTextCustomization(color, bg_color, is_bold, scale)
+    {
+
+    }
+
+    //std::map<uint8_t, std::variant<bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t, float, double, std::string>> m_Type;
+
+    // !\brief Mapping type
+    ModbusBitfieldType m_Type;
+
+    // !\brief Mapping name
+    std::string m_Name;
+
+    // !\brief Bit length (starting from it's offset)
+    uint8_t m_Size;
+
+    // !\brief Minimum value
+    size_t m_MinVal;
+
+    // !\brief Maximum value
+    size_t m_MaxVal;
+
+    // !\brief Description (or whatever, more info about bitfields)
+    std::string m_Description;
+};
+
+using ModbusMapping = std::map<uint8_t, std::unique_ptr<ModbusMap>>;
+
 class ModbusItem 
 {
 public:
     ModbusItem(const std::string& name, uint8_t fav_level, size_t offset, ModbusBitfieldType type, ModbusValueFormat value_format, const std::string& desc, 
-        int64_t min_val, int64_t max_val, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {}, std::optional<bool> is_bold_ = false, 
+        ModbusMapping& map, int64_t min_val, int64_t max_val, uint64_t value, std::optional<uint32_t> color_ = {}, std::optional<uint32_t> bg_color_ = {}, std::optional<bool> is_bold_ = false,
         std::optional<float> scale = {}, std::optional<std::string> font_face = {}) :
-        m_Name(name), m_FavLevel(fav_level), m_Offset(offset), m_Type(type), m_Format(value_format), m_Desc(desc), m_Min(min_val), m_Max(max_val), m_Value(value),
+        m_Name(name), m_FavLevel(fav_level), m_Offset(offset), m_Type(type), m_Format(value_format), m_Desc(desc), m_Mapping(std::move(map)), m_Min(min_val), m_Max(max_val), m_Value(value),
         m_color(color_), m_bg_color(bg_color_), m_is_bold(is_bold_)
     {
         if(scale.has_value())
@@ -70,6 +104,9 @@ public:
 
     uint64_t m_Value;
     float m_fValue = 0.0f;
+
+    ModbusMapping m_Mapping;
+
 
     std::string m_Desc;
 

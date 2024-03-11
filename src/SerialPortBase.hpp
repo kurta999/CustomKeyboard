@@ -41,6 +41,7 @@ public:
     bool IsErrorPresent() const override;
     void NotifiyMainThread();
     void DestroyWorkerThread();
+    bool IsInstanceInited();
 
 protected:
     std::unique_ptr<CallbackAsyncSerial> m_serial;

@@ -34,9 +34,9 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                 num_entries.holdingRegisters = v.second.get_value<size_t>(0);
                 continue;
             }
-            if(v.first == "NumInputRegisters")
+            if(v.first == "NumInput")
             {
-                num_entries.inputRegisters = v.second.get_value<size_t>(0);
+                num_entries.Input = v.second.get_value<size_t>(0);
                 continue;
             }            
             if(v.first == "InputStatusOffset")
@@ -95,6 +95,11 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     offset = &register_offset_holding;
                     register_value_type = ModbusBitfieldType::MBT_UI16;
                 }
+                else
+                {
+                    LOG(LogLevel::Warning, "Invalid modbus register child in Modbus.xml: {}", m.first);
+                    continue;
+                }
 
                 if(register_type != UNKNOWN)
                 {
@@ -108,42 +113,7 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     boost::optional<std::string> data_type = m.second.get_optional<std::string>("DataType");
                     if (data_type)
                     {
-                        if (*data_type == "bool")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_BOOL;
-                        }
-                        else if (*data_type == "int16_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_I16;
-                        }
-                        else if (*data_type == "uint16_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_UI16;
-                        }
-                        else if (*data_type == "int32_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_I32;
-                        }
-                        else if (*data_type == "uint32_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_UI32;
-                        }
-                        else if (*data_type == "int64_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_I64;
-                        }
-                        else if (*data_type == "uint64_t")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_UI64;
-                        }
-                        else if (*data_type == "float")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_FLOAT;
-                        }
-                        else if (*data_type == "double")
-                        {
-                            register_value_type = ModbusBitfieldType::MBT_DOUBLE;
-                        }
+                        register_value_type = GetTypeFromString(*data_type);
                     }
 
                     ModbusValueFormat val_format = ModbusValueFormat::MVF_DEC;
@@ -163,6 +133,8 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                             val_format = ModbusValueFormat::MVF_BIN;
                         }
                     }
+
+                    boost::optional<boost::multiprecision::int128_t> min_val = m.second.get_optional<boost::multiprecision::int128_t>("Min");
 
                     boost::optional<int64_t> min_val_child = m.second.get_optional<int64_t>("Min");
                     boost::optional<int64_t> max_val_child = m.second.get_optional<int64_t>("Max");
@@ -202,7 +174,80 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
                     if(is_font_face.has_value())
                         is_font_face_ = *is_font_face;
 
-                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, fav_level, *offset, register_value_type, val_format, description, 0, 0, last_val,
+                    ModbusMapping mapping;
+                    size_t calculated_size = 0;
+                    for (const boost::property_tree::ptree::value_type& x : m.second) /* loop over each nested child */
+                    {
+                        if (x.first == "Mapping")
+                        {
+                            uint8_t offset = x.second.get<uint8_t>("<xmlattr>.offset");
+                            uint8_t len = x.second.get<uint8_t>("<xmlattr>.len");
+                            std::string type = x.second.get<std::string>("<xmlattr>.type");
+                            std::string name = x.second.get_value<std::string>();
+                            int64_t min_val = std::numeric_limits<int64_t>::min();
+                            int64_t max_val = std::numeric_limits<int64_t>::max();
+                            uint32_t color = wxBLACK->GetRGB();
+                            uint32_t bg_color = DEFAULT_TXTCTRL_BACKGROUND;
+                            bool is_bold = false;
+                            float scale = 1.0f;
+                            
+                            ModbusBitfieldType bitfield_type = GetTypeFromString(type);
+                            if (bitfield_type == MBT_INVALID)
+                            {
+                                LOG(LogLevel::Warning, "Invalid type used for frame mapping. Type: {}", type);
+                                continue;
+                            }
+
+                            boost::optional<int64_t> min_val_child = x.second.get_optional<int64_t>("<xmlattr>.min");
+                            boost::optional<int64_t> max_val_child = x.second.get_optional<int64_t>("<xmlattr>.max");
+                            boost::optional<std::string> color_child = x.second.get_optional<std::string>("<xmlattr>.color");
+                            boost::optional<std::string> bg_color_child = x.second.get_optional<std::string>("<xmlattr>.bg_color");
+                            boost::optional<bool> is_bold_child = x.second.get_optional<bool>("<xmlattr>.bold");
+                            boost::optional<float> scale_child = x.second.get_optional<float>("<xmlattr>.scale");
+                            /*
+                            if (min_val_child)
+                            {
+                                min_val = *min_val_child;
+                                if (min_val < GetMinMaxForType(bitfield_type).first)
+                                    min_val = GetMinMaxForType(bitfield_type).first;
+                            }
+                            else
+                                min_val = GetMinMaxForType(bitfield_type).first;
+
+                            if (max_val_child)
+                            {
+                                max_val = *max_val_child;
+                                if (max_val > GetMinMaxForType(bitfield_type).second)
+                                    max_val = GetMinMaxForType(bitfield_type).second;
+                            }
+                            else
+                                max_val = GetMinMaxForType(bitfield_type).second;
+                                */
+                            if (color_child)
+                                color = utils::ColorStringToInt(*color_child);
+                            if (bg_color_child)
+                                bg_color = utils::ColorStringToInt(*bg_color_child);
+                            if (is_bold_child)
+                                is_bold = *is_bold_child;
+                            if (scale_child)
+                                scale = *scale_child;
+
+                            std::string description;
+                            boost::optional<std::string> description_child = m.second.get_optional<std::string>("<xmlattr>.desc");
+                            if (description_child)
+                            {
+                                description = *description_child;
+                                boost::algorithm::replace_all(description, "\\n", "\n");  /* Fix for newlines */
+                            }
+
+                            mapping.try_emplace(offset, std::make_unique<ModbusMap>(std::move(name), bitfield_type, len, min_val, max_val, std::move(description),
+                                color, bg_color, is_bold, scale));
+                            calculated_size += len;
+
+                        }
+                    }
+
+                    std::unique_ptr<ModbusItem> ptr = std::make_unique<ModbusItem>(name, fav_level, *offset, register_value_type, val_format, description, mapping, 0, 0, last_val,
                         color_, bg_color_, is_bold_, is_scale_, is_font_face_);
                     *offset += ptr->GetSize();
                     item->push_back(std::move(ptr));
@@ -216,8 +261,8 @@ bool XmlModbusEnteryLoader::Load(const std::filesystem::path& path, uint8_t& sla
             num_entries.inputStatus = register_offset_input_status;
         if (num_entries.holdingRegisters == 0xFFFF)
             num_entries.holdingRegisters = register_offset_holding;
-        if (num_entries.inputRegisters == 0xFFFF)
-            num_entries.inputRegisters = register_offset_input;
+        if (num_entries.Input == 0xFFFF)
+            num_entries.Input = register_offset_input;
     }
     catch(const boost::property_tree::xml_parser_error& e)
     {
@@ -242,13 +287,12 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
     root_node.add("NumCoils", num_entries.coils);
     root_node.add("NumInputStatus", num_entries.inputStatus);
     root_node.add("NumHoldingRegisters", num_entries.holdingRegisters);
-    root_node.add("NumInputRegisters", num_entries.inputRegisters);
+    root_node.add("NumInput", num_entries.Input);
     root_node.add("SlaveAddress", slave_id);
-    auto& coils_node = root_node.add_child("Coils", boost::property_tree::ptree{});
 
     ModbusItemType* items[] = { &coils, &input_status, &holding, &input };
     std::string child_names[] = { "Coils", "InputStatus", "Holding", "Input" };
-    std::string subchild_names[] = { "Coils", "InputStatuses", "HoldingRegisters", "InputRegisters" };
+    std::string subchild_names[] = { "Coils", "InputStatuses", "HoldingRegisters", "Input" };
 
     int id = 0;
     for(auto& i : items)
@@ -260,43 +304,7 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
             sub_node.add("Name", m->m_Name);
             sub_node.add("FavLevel", m->m_FavLevel);
             
-            std::string type = "uint16_t";
-            if (m->m_Type == ModbusBitfieldType::MBT_BOOL)
-            {
-                type = "bool";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_I16)
-            {
-                type = "int16_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_UI16)
-            {
-                type = "uint16_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_I32)
-            {
-                type = "int32_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_UI32)
-            {
-                type = "uint32_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_I64)
-            {
-                type = "int64_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_UI64)
-            {
-                type = "uint64_t";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_FLOAT)
-            {
-                type = "float";
-            }
-            else if (m->m_Type == ModbusBitfieldType::MBT_DOUBLE)
-            {
-                type = "double";
-            }
+            std::string_view type = GetStringFromType(m->m_Type);
             sub_node.add("DataType", type);
 
             std::string value_type_str = "dec";
@@ -357,6 +365,22 @@ bool XmlModbusEnteryLoader::Save(const std::filesystem::path& path, uint8_t& sla
         ret = false;
     }
     return ret;
+}
+
+ModbusBitfieldType XmlModbusEnteryLoader::GetTypeFromString(const std::string_view& input)
+{
+    auto ret = std::find_if(m_ModbusBitfieldTypeMap.cbegin(), m_ModbusBitfieldTypeMap.cend(), [&input](const auto& item) { return item.second == input; });
+    if (ret == m_ModbusBitfieldTypeMap.cend())
+        return ModbusBitfieldType::MBT_INVALID;
+    return ret->first;
+}
+
+const std::string_view XmlModbusEnteryLoader::GetStringFromType(ModbusBitfieldType type)
+{
+    auto it = m_ModbusBitfieldTypeMap.find(type);
+    if (it != m_ModbusBitfieldTypeMap.end())
+        return it->second;
+    return m_ModbusBitfieldTypeMap[MBT_INVALID];
 }
 
 ModbusEntryHandler::ModbusEntryHandler(XmlModbusEnteryLoader& loader) : m_ModbusEntryLoader(loader)
@@ -519,6 +543,166 @@ bool ModbusEntryHandler::SaveSpecialRecordingToFile(std::filesystem::path& path)
     return ret;
 }
 
+template <typename T> void ModbusEntryHandler::HandleBitReading(size_t id, bool is_holding, std::unique_ptr<ModbusMap>& m, size_t offset, ModbusBitfieldInfo& info)
+{
+    uint8_t* register_pointer = is_holding ? (uint8_t*)&m_Holding[id]->m_Value : (uint8_t*)&m_Input[id]->m_Value;
+    uint64_t value = get_bitfield(register_pointer, 8, offset, m->m_Size);
+    T extracted_data = static_cast<T>(value);
+    info.push_back({std::format("{}         (offset: {}, size: {}, range: {} - {})", m->m_Name, offset, m->m_Size, m->m_MinVal, m->m_MaxVal), std::to_string(extracted_data), m.get() });
+}
+
+template <typename T> void ModbusEntryHandler::HandleBitWriting(size_t id, uint8_t& pos, uint8_t offset, uint8_t size, uint8_t* byte_array, std::vector<std::string>& new_data)
+{
+    T raw_data;
+    try
+    {
+        raw_data = static_cast<T>(std::stoi(new_data[pos]));
+        set_bitfield(raw_data, offset, size, byte_array, sizeof(byte_array));
+    }
+    catch (const std::exception& e)
+    {
+        LOG(LogLevel::Error, "Invalid input for pos {}. Exception: {}", pos, e.what());
+    }
+
+    //DBG("%s - %d, %x ......... %d\n", m.second->m_Name.c_str(), m.first, raw_data, m.second->m_Size);
+    pos++;
+}
+
+ModbusBitfieldInfo ModbusEntryHandler::GetMapForHolding(size_t id, bool is_holding)
+{
+    ModbusBitfieldInfo info;
+    bool is_valid_id = is_holding ? m_Holding.size() >= id : m_Input.size() > id;
+    if (is_valid_id)
+    {
+        for (auto& [offset, m] : m_Holding.at(id)->m_Mapping)
+        {
+            DBG("%d, %s\n", offset, m->m_Name.c_str());
+            switch (m->m_Type)
+            {
+            case CBT_BOOL:
+            case CBT_UI8:
+            {
+                HandleBitReading<uint8_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_I8:
+            {
+                HandleBitReading<int8_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_UI16:
+            {
+                HandleBitReading<uint16_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_I16:
+            {
+                HandleBitReading<int16_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_UI32:
+            {
+                HandleBitReading<uint32_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_I32:
+            {
+                HandleBitReading<int32_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_UI64:
+            {
+                HandleBitReading<uint64_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_I64:
+            {
+                HandleBitReading<int64_t>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_FLOAT:
+            {
+                HandleBitReading<float>(id, is_holding, m, offset, info);
+                break;
+            }
+            case CBT_DOUBLE:
+            {
+                HandleBitReading<double>(id, is_holding, m, offset, info);
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+        }
+    }
+    return info;
+}
+
+void ModbusEntryHandler::ApplyEditingOnHolding(size_t id, std::vector<std::string> new_data)
+{
+    uint8_t cnt = 0;
+    uint8_t byte_array[8] = {};
+    memcpy(byte_array, &m_Holding.at(id)->m_Value, 8);
+
+    if (m_Holding.size() >= id)
+    {
+        //LOG(LogLevel::Normal, "MapSize: {}, NewDataSize: {}", m_mapping[frame_id].size(), new_data.size());
+        for (auto& [offset, m] : m_Holding.at(id)->m_Mapping)
+        {
+            switch (m->m_Type)
+            {
+            case CBT_BOOL:
+            case CBT_UI8:
+            {
+                HandleBitWriting<uint8_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_I8:
+            {
+                HandleBitWriting<int8_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_UI16:
+            {
+                HandleBitWriting<uint16_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_I16:
+            {
+                HandleBitWriting<int16_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_UI32:
+            {
+                HandleBitWriting<uint32_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_I32:
+            {
+                HandleBitWriting<int32_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_UI64:
+            {
+                HandleBitWriting<uint64_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            case CBT_I64:
+            {
+                HandleBitWriting<int64_t>(id, cnt, offset, m->m_Size, byte_array, new_data);
+                break;
+            }
+            }
+        }
+    }
+    DBG("ok");
+
+    uint64_t value = m_Holding.at(id)->m_Value = *(uint64_t*)&byte_array;
+    EditHolding(id, value);
+}
+
 void ModbusEntryHandler::HandleBoolReading(std::vector<uint8_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel)
 {
     std::vector<uint8_t> changed_rows;
@@ -645,6 +829,13 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
     rx_frame_cnt++;
 }
 
+void ModbusEntryHandler::WaitUntilInited()
+{
+    std::unique_lock lk(m);
+    cv.wait(lk, [this] { return m_Serial != nullptr && m_Serial->IsInstanceInited(); });
+    std::this_thread::sleep_for(100ms);
+}
+
 void ModbusEntryHandler::WaitIfPaused()
 {
     std::unique_lock lk(m);
@@ -699,11 +890,11 @@ void ModbusEntryHandler::HandlePolling()
         tx_frame_cnt++;
     }
 
-    if (m_numEntries.inputRegisters > 0)
+    if (m_numEntries.Input > 0)
     {
-        std::expected<std::vector<uint16_t>, ModbusError> reg = m_Serial->ReadInputRegister(m_slaveId, m_numEntries.inputOffset, m_numEntries.inputRegisters);
+        std::expected<std::vector<uint16_t>, ModbusError> reg = m_Serial->ReadInputRegister(m_slaveId, m_numEntries.inputOffset, m_numEntries.Input);
         if(reg.has_value() && !reg->empty())
-            HandleRegisterReading(*reg, m_Input, m_numEntries.inputRegisters, panel_inputReg);
+            HandleRegisterReading(*reg, m_Input, m_numEntries.Input, panel_inputReg);
         else
             err_frame_cnt++;
 
@@ -778,9 +969,10 @@ void ModbusEntryHandler::HandleWrites()
 void ModbusEntryHandler::ModbusWorker(std::stop_token token)
 {
     m_Serial->SetStopToken(token);
-    std::this_thread::sleep_for(400ms);
     while(!token.stop_requested())
     {
+        WaitUntilInited();
+
         if (m_isMainThreadPaused)
         {
             m_isOpenInProgress = false;
