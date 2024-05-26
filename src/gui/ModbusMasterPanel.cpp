@@ -683,22 +683,25 @@ void ModbusDataPanel::OnSize(wxSizeEvent& event)
 void ModbusDataPanel::On10MsTimer()
 {
     std::unique_ptr<ModbusEntryHandler>& modbus_handler = wxGetApp().modbus_handler;
-    if (modbus_handler->GetSerial().IsOpen())
+    if (modbus_handler->IsEnabled())
     {
-        m_ConnectionStatus->SetLabelText("Status: Connected");
-        m_ConnectionStatus->SetForegroundColour(*wxGREEN);
-    }
-    else
-    {
-        if (modbus_handler->GetSerial().IsErrorPresent())
+        if (modbus_handler->GetSerial().IsOpen())
         {
-            m_ConnectionStatus->SetLabelText("Status: Error");
-            m_ConnectionStatus->SetForegroundColour(*wxRED);
+            m_ConnectionStatus->SetLabelText("Status: Connected");
+            m_ConnectionStatus->SetForegroundColour(*wxGREEN);
         }
         else
         {
-            m_ConnectionStatus->SetLabelText("Status: Disconnected");
-            m_ConnectionStatus->SetForegroundColour(*wxBLACK);
+            if (modbus_handler->GetSerial().IsErrorPresent())
+            {
+                m_ConnectionStatus->SetLabelText("Status: Error");
+                m_ConnectionStatus->SetForegroundColour(*wxRED);
+            }
+            else
+            {
+                m_ConnectionStatus->SetLabelText("Status: Disconnected");
+                m_ConnectionStatus->SetForegroundColour(*wxBLACK);
+            }
         }
     }
 }
