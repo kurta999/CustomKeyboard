@@ -18,7 +18,7 @@ bool FindImageOnScreen(const std::string& image_name, int& x, int& y)
 
     // Get the handle to the secondary monitor, if it exists
     HMONITOR secondaryMonitor = NULL;
-    int  monitor_count = GetSystemMetrics(SM_CMONITORS) > 1;
+    int  monitor_count = GetSystemMetrics(SM_CMONITORS);
     if(monitor_count > 1) {
         EnumDisplayMonitors(NULL, NULL, [](HMONITOR monitor, HDC, LPRECT, LPARAM lParam) -> BOOL {
             HMONITOR* secondaryMonitorPtr = reinterpret_cast<HMONITOR*>(lParam);
