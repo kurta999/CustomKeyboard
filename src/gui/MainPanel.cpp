@@ -139,6 +139,14 @@ MainPanel::MainPanel(wxFrame* parent)
 			CryptoPrice::Get()->UpdatePrices(true);
 		});
 
+	m_WorkingDays = new wxStaticText(this, wxID_ANY, wxString::Format("Working days: %d (%d)", WorkingDays::Get()->m_WorkingDays, WorkingDays::Get()->m_Holidays),
+		wxDefaultPosition, wxSize(-1, -1), 0);
+	m_WorkingDays->Wrap(-1);
+	m_WorkingDays->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+	m_WorkingDays->SetForegroundColour(wxColor(14, 231, 235));
+	m_WorkingDays->SetToolTip("Working days in the month");
+	bSizer1->Add(m_WorkingDays, 0, wxALL, 5);
+
 	m_WeekNumber = new wxStaticText(this, wxID_ANY, FormatCurrentWeekNumber(), wxDefaultPosition, wxSize(-1, -1), 0);
 	m_WeekNumber->SetToolTip("Week number in the year");
 	m_WeekNumber->SetForegroundColour(*wxBLUE);

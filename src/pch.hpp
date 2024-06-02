@@ -94,6 +94,7 @@ namespace std
 #include "DataSender.hpp"
 #include "DataSerialPort.hpp"
 #include "Alarms.hpp"
+#include "WorkingDays.hpp"
 #include "Utils.hpp"
 
 #include <wx/aui/aui.h>
@@ -158,6 +159,7 @@ namespace std
 #include <boost/endian.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 #include <assert.h>
 

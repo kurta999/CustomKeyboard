@@ -29,6 +29,7 @@ bool MyApp::OnInit()
     SerialTcpBackend::Get()->Init();
     CorsairHid::Get()->Init();
     BsecHandler::Get()->Init();
+    WorkingDays::Get()->Update();
 
     can_entry->Init();
     cmd_executor->Init();

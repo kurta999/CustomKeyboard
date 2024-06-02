@@ -37,6 +37,7 @@ public:
 	wxSpinCtrl* m_GraphStartHours2 = nullptr;
 	wxStaticText* m_EthPrice = nullptr;
 	wxStaticText* m_BtcPrice = nullptr;
+	wxStaticText* m_WorkingDays = nullptr;
 	wxButton* m_RefreshCrypto = nullptr;
 	wxStaticText* m_WeekNumber = nullptr;
 
