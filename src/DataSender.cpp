@@ -292,14 +292,14 @@ void DataSender::HandleAutoSendFrames(std::unique_ptr<DataEntry>& entry, uint32_
             {
 
                 AddToLog(entry.get(), std::format("ERR: NO RESPONSE: {}", m_lastSentData));
-                LOG(LogLevel::Normal, "ERR: NO RESPONSE : {}", m_lastSentData);
+                //LOG(LogLevel::Normal, "ERR: NO RESPONSE : {}", m_lastSentData);
                 m_error_count++;
             }
         }
         else
         {
             AddToLog(entry.get(), std::format("ERR: CV TIMEOUT - NO RESPONSE: {}", m_lastSentData));
-            LOG(LogLevel::Normal, "ERR: CV TIMEOUT - NO RESPONSE : {}", m_lastSentData);
+            //LOG(LogLevel::Normal, "ERR: CV TIMEOUT - NO RESPONSE : {}", m_lastSentData);
             m_error_count++;
         }
         m_isResponseReceived = false;
@@ -374,14 +374,14 @@ void DataSender::HandleTriggerSendFrames(std::unique_ptr<DataEntry>& entry, uint
             {
 
                 AddToLog(entry.get(), std::format("ERR: NO RESPONSE: {}", m_lastSentData));
-                LOG(LogLevel::Normal, "ERR: NO RESPONSE : {}", m_lastSentData);
+                //LOG(LogLevel::Normal, "ERR: NO RESPONSE : {}", m_lastSentData);
                 m_error_count++;
             }
         }
         else
         {
             AddToLog(entry.get(), std::format("ERR: CV TIMEOUT - NO RESPONSE: {}", m_lastSentData));
-            LOG(LogLevel::Normal, "ERR: CV TIMEOUT - NO RESPONSE : {}", m_lastSentData);
+            //LOG(LogLevel::Normal, "ERR: CV TIMEOUT - NO RESPONSE : {}", m_lastSentData);
             m_error_count++;
         }
         m_isResponseReceived = false;
