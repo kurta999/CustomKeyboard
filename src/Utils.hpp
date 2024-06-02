@@ -48,6 +48,7 @@ namespace utils
     bool is_number(const std::string& s);
     void MadeTextFromKeys(std::string& chr);
     std::string GetDataUnit(size_t input);
+    std::string SecondsToHms(int total_seconds);
     size_t MBStringToWString(const std::string& src, std::wstring& dest);
     size_t WStringToMBString(const std::wstring& src, std::string& dest);
     uint16_t crc16_modbus(void* data, size_t len);

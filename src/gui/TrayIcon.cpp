@@ -10,6 +10,7 @@ EVT_MENU(TrayIcon::ID::Exit, TrayIcon::OnQuit)
 END_EVENT_TABLE()
 
 int TrayIcon::max_backups = 0;
+int TrayIcon::max_alarms = 0;
 
 int MenuEventFilter::FilterEvent(wxEvent& event)
 {
@@ -22,6 +23,14 @@ int MenuEventFilter::FilterEvent(wxEvent& event)
 		{
 			int backup_id = id - TrayIcon::ID::DoBackup;
 			DirectoryBackup::Get()->BackupFile(backup_id);
+			return Event_Processed;
+		}
+		else if(id >= TrayIcon::ID::DoAlarm && id <= TrayIcon::ID::DoAlarm + TrayIcon::max_backups)
+		{
+			int alarm_id = id - TrayIcon::ID::DoAlarm;
+
+			std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+			alarm_entry->HandleKeypress(alarm_entry->entries[alarm_id]->trigger_key, true);
 			return Event_Processed;
 		}
 	}
@@ -60,6 +69,17 @@ wxMenu* TrayIcon::CreatePopupMenu()
 	{
 		wxMenuItem* item = popup->Append(TrayIcon::ID::DoBackup + max_backups++, i->from.filename().generic_string());
 		item->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW_DIR, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
+		if(DirectoryBackup::Get()->IsInProgress())
+			item->Enable(false);
+	}
+	popup->AppendSeparator();
+
+	std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+	max_alarms = 0;
+	for(auto& i : alarm_entry->entries)
+	{
+		wxMenuItem* item = popup->Append(TrayIcon::ID::DoAlarm + max_alarms++, i->name);
+		item->SetBitmap(wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, mainFrame->GetMainWindowOfCompositeControl()->FromDIP(wxSize(14, 14))));
 		if(DirectoryBackup::Get()->IsInProgress())
 			item->Enable(false);
 	}

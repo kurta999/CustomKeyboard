@@ -8,6 +8,14 @@ AlarmPanel::AlarmPanel(wxFrame* parent) :
 {
     wxBoxSizer* bSizer1 = new wxBoxSizer(wxVERTICAL);
 
+    std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+    for (auto& i : alarm_entry->entries)
+    {
+        wxStaticText* text = new wxStaticText(this, NULL, i->name);
+        text->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+        alarms.push_back(text);
+    }
+
     this->SetSizer(bSizer1);
     this->Layout();
 }
@@ -40,6 +48,22 @@ void AlarmPanel::WaitForAlarmSemaphore()
     m_alarmSemaphore.acquire();
 }
 
+void AlarmPanel::UpdateAlarmsDisplay()
+{
+    int pos = 0;
+    std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+    for (auto& i : alarms)
+    {
+        i->SetLabelText(wxString::Format("%s - %s", alarm_entry->entries[pos]->name, utils::SecondsToHms(alarm_entry->entries[pos]->duration.count())));
+        if (alarm_entry->entries[pos]->is_armed)
+            i->SetForegroundColour(*wxRED);
+        else
+            i->SetForegroundColour(*wxBLACK);
+        pos++;
+    }
+
+}
+
 void AlarmPanel::On10MsTimer()
 {
     if(m_showAlarmDialog)
@@ -47,4 +71,6 @@ void AlarmPanel::On10MsTimer()
 		m_showAlarmDialog = false;
         ShowAlarmDialogInternal();
 	}
+
+    UpdateAlarmsDisplay();
 }

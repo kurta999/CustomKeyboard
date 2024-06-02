@@ -123,6 +123,15 @@ namespace utils
 		return std::string("X");
 	}
 
+	std::string SecondsToHms(int total_seconds) 
+	{
+		int hours = total_seconds / 3600;
+		int minutes = (total_seconds % 3600) / 60;
+		int seconds = total_seconds % 60;
+
+		return std::format("{:02}:{:02}:{:02}", hours, minutes, seconds);
+	}
+
 	size_t MBStringToWString(const std::string& src, std::wstring& dest)
 	{
 		wchar_t* wstr = new wchar_t[src.length() + 1];

@@ -15,10 +15,13 @@ public:
 
 private:
 	void ShowAlarmDialogInternal();
+	void UpdateAlarmsDisplay();
 
 	std::binary_semaphore m_alarmSemaphore{0};
 	bool m_showAlarmDialog = false;
 	std::string m_DurationText;
+
+	std::vector<wxStaticText*> alarms;
 
 	wxDECLARE_EVENT_TABLE();
 };

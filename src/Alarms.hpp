@@ -57,7 +57,7 @@ public:
 
     bool SaveAlarms(std::filesystem::path& path);
 
-    void HandleKeypress(const std::string& key);
+    void HandleKeypress(const std::string& key, bool force_timer_call = false);
 
     // !\brief Default alarms XML name
     std::filesystem::path default_alarms = "Alarms.xml";

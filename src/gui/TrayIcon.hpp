@@ -45,8 +45,10 @@ public:
 		OpenRootFolder,
 		ToggleAntilock,
 		DoBackup = 1500,
+		DoAlarm = 1600,
 	};
 	static int max_backups;
+	static int max_alarms;
 protected:
 	MyFrame* mainFrame = nullptr;
 private:

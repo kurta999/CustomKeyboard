@@ -143,12 +143,15 @@ bool AlarmEntryHandler::SaveAlarms(std::filesystem::path& path)
     return ret;
 }
 
-void AlarmEntryHandler::HandleKeypress(const std::string& key)
+void AlarmEntryHandler::HandleKeypress(const std::string& key, bool force_timer_call)
 {
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
     if(frame)
     {
         frame->alarm_panel->ShowAlarmDialog();
+
+        if (force_timer_call)
+            frame->alarm_panel->On10MsTimer();
         frame->alarm_panel->WaitForAlarmSemaphore();
 
         std::string duration_str = frame->alarm_panel->GetAlarmTime();
@@ -204,13 +207,25 @@ std::chrono::seconds AlarmEntryHandler::ParseDurationStringToSeconds(const std::
     {
         ret = std::chrono::hours(hours) + std::chrono::minutes(minutes) + std::chrono::seconds(seconds);
 	}
+    else if(sscanf(input.c_str(), "%dh%dm", &hours, &minutes) == 2)
+    {
+        ret = std::chrono::hours(hours) + std::chrono::minutes(minutes);
+    }    
     else if(sscanf(input.c_str(), "%dm%ds", &minutes, &seconds) == 2)
     {
         ret = std::chrono::minutes(minutes) + std::chrono::seconds(seconds);
     }
-    else if(sscanf(input.c_str(), "%ds", &seconds) == 1)
+    else if(sscanf(input.c_str(), "%d[^hour]", &hours) == 1)
+    {
+        ret = std::chrono::hours(hours);
+    }
+    else if(sscanf(input.c_str(), "%d[^min]", &minutes) == 1)
+    {
+        ret = std::chrono::minutes(minutes);
+    }    
+    else if(sscanf(input.c_str(), "%d[^sec]", &seconds) == 1)
     {
         ret = std::chrono::seconds(seconds);
-    }
+    }    
     return ret;
 }
