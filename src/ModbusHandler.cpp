@@ -829,17 +829,17 @@ void ModbusEntryHandler::HandleRegisterReading(std::vector<uint16_t>& reg, Modbu
     rx_frame_cnt++;
 }
 
-void ModbusEntryHandler::WaitUntilInited()
+void ModbusEntryHandler::WaitUntilInited(std::stop_token token)
 {
     std::unique_lock lk(m);
-    cv.wait(lk, [this] { return m_Serial != nullptr && m_Serial->IsInstanceInited(); });
+    cv.wait(lk, token, [this] { return m_Serial != nullptr && m_Serial->IsInstanceInited(); });
     std::this_thread::sleep_for(100ms);
 }
 
-void ModbusEntryHandler::WaitIfPaused()
+void ModbusEntryHandler::WaitIfPaused(std::stop_token token)
 {
     std::unique_lock lk(m);
-    cv.wait(lk, [this] { return !m_isMainThreadPaused; });
+    cv.wait(lk, token, [this] { return !m_isMainThreadPaused; });
 }
 
 void ModbusEntryHandler::HandlePolling()
@@ -897,7 +897,7 @@ void ModbusEntryHandler::HandlePolling()
             HandleRegisterReading(*reg, m_Input, m_numEntries.Input, panel_inputReg);
         else
             err_frame_cnt++;
-
+        /*
         std::expected<std::vector<uint16_t>, ModbusError> special_reg = m_Serial->ReadInputRegister(m_slaveId, 31000 - 1, EVENTLOG_BUFFER_SIZE + 1);
         if(special_reg && special_reg->size() == EVENTLOG_BUFFER_SIZE + 1)
         {
@@ -917,7 +917,7 @@ void ModbusEntryHandler::HandlePolling()
                 DBG("break");
             }
         }
-
+        */
         tx_frame_cnt++;
     }
 }
@@ -971,7 +971,7 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
     m_Serial->SetStopToken(token);
     while(!token.stop_requested())
     {
-        WaitUntilInited();
+        WaitUntilInited(token);
 
         if (m_isMainThreadPaused)
         {
@@ -991,28 +991,31 @@ void ModbusEntryHandler::ModbusWorker(std::stop_token token)
             }
         }
 
-        WaitIfPaused();
+        WaitIfPaused(token);
         
-        if (!GetSerial().IsOpen() && !m_isOpenInProgress)
+        if (is_enabled)
         {
-            m_isOpenInProgress = true;
-            GetSerial().Open();
-            m_isOpenInProgress = false;
-
-            if (!GetSerial().IsOpen())
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        }
-
-        
-        if (!token.stop_requested() && GetSerial().IsOpen())
-        {
-            HandlePolling();
-            HandleWrites();
-
+            if (!GetSerial().IsOpen() && !m_isOpenInProgress)
             {
-                std::unique_lock lock(m);
-                auto now = std::chrono::system_clock::now();
-                cv.wait_until(lock, token, now + std::chrono::milliseconds(m_pollingRate), []() { return 0 == 1; });
+                m_isOpenInProgress = true;
+                GetSerial().Open();
+                m_isOpenInProgress = false;
+
+                if (!GetSerial().IsOpen())
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            }
+
+
+            if (!token.stop_requested() && GetSerial().IsOpen())
+            {
+                HandlePolling();
+                HandleWrites();
+
+                {
+                    std::unique_lock lock(m);
+                    auto now = std::chrono::system_clock::now();
+                    cv.wait_until(lock, token, now + std::chrono::milliseconds(m_pollingRate), []() { return 0 == 1; });
+                }
             }
         }
     }

@@ -263,10 +263,10 @@ private:
     void HandleRegisterReading(std::vector<uint16_t>& reg, ModbusItemType& items, size_t num_items, ModbusItemPanel* panel);
 
     // !\brief Suspends main thread execution until everything is inited
-    void WaitUntilInited();
+    void WaitUntilInited(std::stop_token token);
 
     // !\brief Suspends main thread execution until paused
-    void WaitIfPaused();
+    void WaitIfPaused(std::stop_token token);
 
     // !\brief Handle modbus register polling
     void HandlePolling();
