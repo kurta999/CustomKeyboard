@@ -70,5 +70,7 @@ enum
 	ID_ModbusDataDec,
 	ID_ModbusDataHex,
 	ID_ModbusDataBin,
-	ID_ModbusEditFavourites
+	ID_ModbusEditFavourites,
+	ID_AlarmTrigger,
+	ID_AlarmCancel,
 };

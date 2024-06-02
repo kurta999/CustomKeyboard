@@ -5,6 +5,8 @@ AlarmTrigger AlarmStringToTrigger(const std::string& in)
     AlarmTrigger ret = AlarmTrigger::Invalid;
     if (in == "macro")
         ret = AlarmTrigger::Macro;
+    else if (in == "gui")
+        ret = AlarmTrigger::Gui;
     return ret;
 }
 
@@ -16,6 +18,11 @@ const std::string AlarmTriggerToString(AlarmTrigger trigger)
         case AlarmTrigger::Macro:
         {
             ret = "macro";
+            break;
+        }
+        case AlarmTrigger::Gui:
+        {
+            ret = "gui";
             break;
         }
     }
@@ -47,7 +54,6 @@ bool XmlAlarmEntryLoader::Load(const std::filesystem::path& path, std::vector<st
 
             AlarmTrigger trigger = AlarmStringToTrigger(trigger_str);
             std::unique_ptr<AlarmEntry> local_entry = std::make_unique<AlarmEntry>(name, trigger, key, execute, show_dialog);
-
 
             auto& macros = CustomMacro::Get()->GetMacros();
 
@@ -143,6 +149,49 @@ bool AlarmEntryHandler::SaveAlarms(std::filesystem::path& path)
     return ret;
 }
 
+void AlarmEntryHandler::SetupAlarm(uint8_t id)
+{
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if (frame)
+    {
+        frame->alarm_panel->ShowAlarmDialog();
+
+        frame->alarm_panel->On10MsTimer();
+        frame->alarm_panel->WaitForAlarmSemaphore();
+
+        std::string duration_str = frame->alarm_panel->GetAlarmTime();
+
+        SetupAlarm(entries[id].get());
+    }
+}
+
+void AlarmEntryHandler::SetupAlarm(AlarmEntry* entry)
+{
+    MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+    if (frame)
+    {
+        frame->alarm_panel->ShowAlarmDialog();
+
+        frame->alarm_panel->On10MsTimer();
+        frame->alarm_panel->WaitForAlarmSemaphore();
+
+        std::string duration_str = frame->alarm_panel->GetAlarmTime();
+ 
+        entry->is_armed = true;
+        entry->duration = ParseDurationStringToSeconds(duration_str);
+
+        MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
+        std::unique_lock lock(frame->mtx);
+        frame->pending_msgs.push_back({ static_cast<uint8_t>(PopupMsgIds::AlarmSetup), entry->name, entry->duration });
+    }
+}
+
+void AlarmEntryHandler::CancelAlarm(AlarmEntry* entry)
+{
+    entry->duration = 0s;
+    entry->is_armed = false;
+}
+
 void AlarmEntryHandler::HandleKeypress(const std::string& key, bool force_timer_call)
 {
     MyFrame* frame = ((MyFrame*)(wxGetApp().GetTopWindow()));
@@ -215,15 +264,15 @@ std::chrono::seconds AlarmEntryHandler::ParseDurationStringToSeconds(const std::
     {
         ret = std::chrono::minutes(minutes) + std::chrono::seconds(seconds);
     }
-    else if(sscanf(input.c_str(), "%d[^hour]", &hours) == 1)
+    else if(sscanf(input.c_str(), "%d[^hour]", &hours) == 1 && input.find("hour") != std::string::npos)
     {
         ret = std::chrono::hours(hours);
     }
-    else if(sscanf(input.c_str(), "%d[^min]", &minutes) == 1)
+    else if(sscanf(input.c_str(), "%d[^min]", &minutes) == 1 && input.find("min") != std::string::npos)
     {
         ret = std::chrono::minutes(minutes);
     }    
-    else if(sscanf(input.c_str(), "%d[^sec]", &seconds) == 1)
+    else if(sscanf(input.c_str(), "%d[^sec]", &seconds) == 1 && input.find("sec") != std::string::npos)
     {
         ret = std::chrono::seconds(seconds);
     }    

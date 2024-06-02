@@ -7,6 +7,7 @@
 enum class AlarmTrigger
 {
     Macro,
+    Gui,
     Invalid,
 };
 
@@ -56,6 +57,10 @@ public:
     bool LoadAlarms(std::filesystem::path& path);
 
     bool SaveAlarms(std::filesystem::path& path);
+
+    void SetupAlarm(uint8_t id);
+    void SetupAlarm(AlarmEntry* entry);
+    void CancelAlarm(AlarmEntry* entry);
 
     void HandleKeypress(const std::string& key, bool force_timer_call = false);
 

@@ -17,6 +17,8 @@ private:
 	void ShowAlarmDialogInternal();
 	void UpdateAlarmsDisplay();
 
+	void OnRightClick(wxMouseEvent& event);
+
 	std::binary_semaphore m_alarmSemaphore{0};
 	bool m_showAlarmDialog = false;
 	std::string m_DurationText;

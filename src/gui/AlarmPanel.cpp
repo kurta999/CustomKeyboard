@@ -12,7 +12,10 @@ AlarmPanel::AlarmPanel(wxFrame* parent) :
     for (auto& i : alarm_entry->entries)
     {
         wxStaticText* text = new wxStaticText(this, NULL, i->name);
-        text->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString)); \
+        text->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
+        text->SetClientData((void*)i.get());
+        text->Bind(wxEVT_RIGHT_DOWN, &AlarmPanel::OnRightClick, this);
+
         alarms.push_back(text);
     }
 
@@ -73,4 +76,45 @@ void AlarmPanel::On10MsTimer()
 	}
 
     UpdateAlarmsDisplay();
+}
+
+void AlarmPanel::OnRightClick(wxMouseEvent& event)
+{
+    auto obj = event.GetEventObject();
+    std::unique_ptr<AlarmEntryHandler>& alarm_entry = wxGetApp().alarm_entry;
+
+    wxStaticText* text = dynamic_cast<wxStaticText*>(obj);
+    if (text == nullptr)
+    {
+        LOG(LogLevel::Error, "text is nullptr");
+        return;
+    }
+
+    void* clientdata = text->GetClientData();
+    if (clientdata == nullptr)
+    {
+        LOG(LogLevel::Error, "clientdata is nullptr");
+        return;
+    }
+
+    AlarmEntry* e = reinterpret_cast<AlarmEntry*>(clientdata);
+    wxMenu menu;
+    menu.Append(ID_AlarmTrigger, "&Trigger")->SetBitmap(wxArtProvider::GetBitmap(wxART_EDIT, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    menu.Append(ID_AlarmCancel, "&Cancel")->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_OTHER, FromDIP(wxSize(14, 14))));
+    int ret = GetPopupMenuSelectionFromUser(menu);
+
+    switch (ret)
+    {
+        case ID_AlarmTrigger:
+        {
+            alarm_entry->SetupAlarm(e);
+            break;
+        }
+        case ID_AlarmCancel:
+        {
+            alarm_entry->CancelAlarm(e);
+            break;
+        }
+    }
+    event.Skip();
 }
