@@ -286,17 +286,22 @@ template<typename T1> void Sensors::WriteGraph(const char* filename, uint16_t mi
 #ifdef _WIN32  /* TODO: remove once std::format support is added to clang */
     try
     {
+        std::string latest_reading = "Latest " + std::string(name) + " readings";
+        std::string last_meas = "Last " + std::to_string(Sensors::Get()->GetGraphResolution()) + " measurements";
+        std::string name_avg = std::string(name) + " (Avg)";
+        std::string name_max = std::string(name) + " (Max)";
+        std::string name_min = std::string(name) + " (Min)";
         std::string out_str = std::vformat(template_str, std::make_format_args(min_val, max_val,
-            labels_time_last, "Latest " + std::string(name) + " readings", "window.chartColors.orange", "window.chartColors.orange", data_latest,
+            labels_time_last, latest_reading, "window.chartColors.orange", "window.chartColors.orange", data_latest,
             labels_time_day[0],
-            std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_day[0],
-            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_day[1],
-            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_day[2],
+            name_avg, "window.chartColors.orange", "window.chartColors.orange", data_day[0],
+            name_max, "window.chartColors.blue", "window.chartColors.blue", data_day[1],
+            name_min, "window.chartColors.green", "window.chartColors.green", data_day[2],
             labels_time_week[0],
-            std::string(name) + " (Avg)", "window.chartColors.orange", "window.chartColors.orange", data_week[0],
-            std::string(name) + " (Max)", "window.chartColors.blue", "window.chartColors.blue", data_week[1],
-            std::string(name) + " (Min)", "window.chartColors.green", "window.chartColors.green", data_week[2],
-            "Last " + std::to_string(Sensors::Get()->GetGraphResolution()) + " measurements", "Last Day", "Last Week"));
+            name_avg, "window.chartColors.orange", "window.chartColors.orange", data_week[0],
+            name_max, "window.chartColors.blue", "window.chartColors.blue", data_week[1],
+            name_min, "window.chartColors.green", "window.chartColors.green", data_week[2],
+            last_meas, "Last Day", "Last Week"));
         out << out_str;
         out.close();
     }
