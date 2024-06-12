@@ -2,7 +2,7 @@ This is a personal project for myself to improve my daily computer usage, partic
 
 If you want to use/resuse some part(s) of the project, you have a question or an idea, feel free to open a Pull Request. Bugs can happen, as this is just a side project beside my full time job. I do not have the time to always retest everything when I change something how it's done in a proper managed company.
 
-Unfinished, abandoned Qt port of this application is available here, has no meaning to port everything to Qt from my perspective: https://gitlab.com/kurta999/QustomKeyboard
+Unfinished, abandoned Qt port of this application is available here, has no meaning to port everything to Qt from my perspective: https://github.com/kurta999/QustomKeyboard
 
 If the project is useful for you and you're able, please consider small amount of donation over PayPal: nmsstulaj@gmail.com
 
@@ -22,7 +22,7 @@ If the project is useful for you and you're able, please consider small amount o
 
 ### 3. For Personal use:
 1. **CustomMacro** - Connect a second keyboard and binding macros to it's keys - full GUI support for macro editing with macro recorder
-2. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs - Source code for STM32 which processes the sensors are available here: https://gitlab.com/kurta999/AirQualitySensors
+2. **Sensors** - TCP Backend for sensors with SQLite database for measurements & HTTP Web server for reading measurement's graphs. By default, graphs can be accessed at: http://localhost:2005/graphs - Source code for STM32 which processes the sensors are available here: https://github.com/kurta999/AirQualitySensors
 3. **Backend for Corsair's G Keys** - Bind macros to G keys as those were on second keyboard, without even installing iCUE
 4. **AntiLock** - Bypass idle timeout for Windows to avoid lock screen by pressing SCROLL LOCK & moving mouse in given interval. Can be useful for workstations if you can't disable idle logout or you're being monitored.
 5. **AntiNumLock** - Doesn't allow to disable NumLock, re-enables it immendiately when it's disabled.
@@ -39,7 +39,7 @@ If the project is useful for you and you're able, please consider small amount o
 
 # In depth details of implemented features
 ### 1. For Automotive development:
-1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://gitlab.com/kurta999/CanUsbTransceiver The default baudrate is 500kbit/s, it's changeability isn't implemented - it might be in the future.
+1. **CAN-USB Transceiver** - Requires [LAWICEL CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB's Homepage") or NUCLEO-G474RE board with UART-TTL to USB adapter & Waveshare SN65HVD230 3.3v CAN Transceiver or something else which converts TTL signals to real CAN signal. Supports standard, extended, ISO-TP (ISO 15765-2) CAN frames (eg. for sending and receiving UDS frames easily), logging and searching between them. Bits and bytes for CAN frame also can be binded to be able to manipulate them easyer with GUI. Firmware for nucleo board is available here: https://github.com/kurta999/CanUsbTransceiver The default baudrate is 500kbit/s, it's changeability isn't implemented - it might be in the future.
 
 2. **CAN Script handler** - Execute tests scripts by settings specific frames and sendinig them to the bus automatically
 
@@ -56,7 +56,7 @@ If the project is useful for you and you're able, please consider small amount o
 
 ### 3. For Personal use:
 
-1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://gitlab.com/kurta999/UsbHost\  
+1. **CustomMacro** - Currently requires an external Nucleo L495ZG board with UART TTL to USB adapter for transmitting key-presses to PC and additionally an USB-A to Micro-USB adapter if your keyboard has USB-A port. The nucleo is just a simple USB Host, which receives key-presses from the connected keyboard and transmits it to PC via UART. It could be done with hooking in windows, but this solution always crashed the debugger in MSVC, so I went with the more expensive way - another way would be to create a custom driver for the secondary keyboard, but I do not have time for that. Macros can be added in configuration page or in settings.ini file directly - they can be bound to a global profile or per application, even key combinations are supported too. Firmware for Nucle board is available here: https://github.com/kurta999/UsbHost\  
 This feature also works for Corsair G keys without using iCUE, read the "Backend for Corsair's G Keys" section\
 \
 <span style="color:red">Supported macro types:</span>\
@@ -114,9 +114,9 @@ Required external depencencies:
 - [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
 Required external hardware:
-- Second keyboard & Sensors: [AirQualitySensors](https://gitlab.com/kurta999/AirQualitySensors "AirQualitySensors + UsbHost") 
-- Second keyboard only: [UsbHost](https://gitlab.com/kurta999/UsbHost "UsbHot")
-- CAN: [STM32 CAN USB](https://gitlab.com/kurta999/CanUsbTransceiver "STM32 CAN USB") OR  [Lawicel CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB") 
+- Second keyboard & Sensors: [AirQualitySensors](https://github.com/kurta999/AirQualitySensors "AirQualitySensors + UsbHost") 
+- Second keyboard only: [UsbHost](https://github.com/kurta999/UsbHost "UsbHot")
+- CAN: [STM32 CAN USB](https://github.com/kurta999/CanUsbTransceiver "STM32 CAN USB") OR  [Lawicel CAN USB](https://www.canusb.com/products/canusb/ "Lawicel CAN USB") 
 
 ## Building
 
