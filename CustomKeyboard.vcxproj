@@ -292,7 +292,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX23_DENORM_DEPRECATION_WARNING;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;Z:\libs\wxWidgets-3.2.4\include;Z:\libs\wxWidgets-3.2.4\include\msvc;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib;Z:\libs\boost\boost_1_83_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -303,8 +303,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib;Z:\libs\boost\boost_1_83_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase32ud.lib;wxmsw32ud_stc.lib;wxmsw32ud_core.lib;wxmsw32ud_aui.lib;wxmsw32ud_propgrid.lib;ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Secur32.lib;hidapi.lib;PowrProf.lib;BSECLibrary64.lib;opencv_world481d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ShlwApi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Secur32.lib;PowrProf.lib;BSECLibrary64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll\mswud;Z:\libs\wxWidgets-3.2.4\include;Z:\libs\wxWidgets-3.2.4\include\msvc;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
@@ -357,7 +357,7 @@
       <PreprocessorDefinitions>WXUSINGDLL=1;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX23_DENORM_DEPRECATION_WARNING;USE_HIDAPI;USE_BSEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;Z:\libs\wxWidgets-3.2.4\include;Z:\libs\wxWidgets-3.2.4\include\msvc;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll;Z:\libs\boost\boost_1_83_0;.\libs;.\src\interface;C:\opencv\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\libs;.\src\interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
@@ -369,8 +369,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>wxbase32u.lib;wxmsw32u_core.lib;wxmsw32u_aui.lib;wxmsw32u_stc.lib;wxmsw32u_propgrid.lib;ShlwApi.lib;hidapi.lib;PowrProf.lib;Dbghelp.lib;BSECLibrary64.lib;opencv_world481.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib;Z:\libs\boost\boost_1_83_0\stage\lib;C:\hidapi;C:\opencv\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ShlwApi.lib;PowrProf.lib;Dbghelp.lib;BSECLibrary64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>Z:\libs\wxWidgets-3.2.4\lib\vc_x64_dll\mswu;Z:\libs\wxWidgets-3.2.4\include;Z:\libs\wxWidgets-3.2.4\include\msvc;Z:\libs\wxWidgets-3.2.4\lib\vc_x64_lib</AdditionalIncludeDirectories>
@@ -422,16 +422,11 @@
     <ClInclude Include="libs\bitfield\read.h" />
     <ClInclude Include="libs\bitfield\write.h" />
     <ClInclude Include="libs\enumser\enumser.h" />
-    <ClInclude Include="libs\hidapi\hidapi.h" />
-    <ClInclude Include="libs\hidapi\hidapi_winapi.h" />
     <ClInclude Include="libs\isotp\isotp.h" />
     <ClInclude Include="libs\isotp\isotp_config.h" />
     <ClInclude Include="libs\isotp\isotp_defines.h" />
     <ClInclude Include="libs\isotp\isotp_user.h" />
-    <ClInclude Include="libs\lodepng\lodepng.h" />
     <ClInclude Include="libs\sha256\sha256.h" />
-    <ClInclude Include="libs\sqlite\sqlite3.h" />
-    <ClInclude Include="libs\sqlite\sqlite3ext.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\Alarms.hpp" />
     <ClInclude Include="src\AntiLock.hpp" />
@@ -597,24 +592,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="libs\lodepng\lodepng.cpp">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">4334;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="libs\sha256\sha256.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -632,35 +609,6 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">4244</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">4244</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="libs\sqlite\shell.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="libs\sqlite\sqlite3.c">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">4996</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">4996</DisableSpecificWarnings>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Bsec|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Alarms.cpp" />
     <ClCompile Include="src\AntiLock.cpp" />

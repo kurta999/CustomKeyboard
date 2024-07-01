@@ -202,7 +202,7 @@ namespace std
 #ifdef _WIN32
 #include <enumser/enumser.h>
 #endif
-#include <lodepng/lodepng.h>
+#include <lodepng.h>
 
 #include "utils/AsyncSerial.hpp"
 

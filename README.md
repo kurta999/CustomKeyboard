@@ -109,8 +109,8 @@ G4 = BIND_NAME[reddit CPP button] CMD_FG[chrome.exe,C++] CMD_IMG[test_image.png,
 - [opencv](https://opencv.org/ "OpenCV's Homepage")
 
 Required external depencencies:
-- [Boost 1.83.0](https://www.boost.org/ "Boost's Homepage")
-- [wxWidgets 3.2.2](https://www.wxwidgets.org/ "wxWidgets' Homepage")
+- [Boost](https://www.boost.org/ "Boost's Homepage")
+- [wxWidgets](https://www.wxwidgets.org/ "wxWidgets' Homepage")
 - [HIDAPI](https://github.com/libusb/hidapi "HIDAPI's Homepage")
 
 Required external hardware:
@@ -121,12 +121,9 @@ Required external hardware:
 ## Building
 
 **Windows**
-1. Get the latest version of Visual Studio 2022, boost & wxWidgets. My default directories are; 
-- boost: C:\Program Files\boost\boost_1_83_0
-- wxWidgets: C:\wxWidgets-3.2.2
-- HIDAPI: C:\hidapi (*)
-
-Feel free to change, but don't forget to change them too in Visual Studio's project file.
+1. Get the latest version of Visual Studio 2022, vcpkg.
+Install required vcpkg libraries:
+vckpkg install boost wxwidgets opencv sqlite3 lodepng hidapi
 
 (*) If you worry that this project contains keylogger due to HIDAPI, then copy the parts what you need from the source or just remove HIDAPI from depencies with CorsairHID and recompile everything.
 

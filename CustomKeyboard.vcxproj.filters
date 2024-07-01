@@ -22,12 +22,6 @@
     <Filter Include="libs">
       <UniqueIdentifier>{30ed3812-466e-43d1-b8a2-367882daa7dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="libs\sqlite">
-      <UniqueIdentifier>{cf1d0355-c7e2-41b6-9a73-63801df4a88c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="libs\lodepng">
-      <UniqueIdentifier>{1e60b691-2095-46e1-9760-a5d39f105ac2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\gui">
       <UniqueIdentifier>{89a830e2-9a23-4ada-8f00-2e8e92ec48f5}</UniqueIdentifier>
     </Filter>
@@ -39,9 +33,6 @@
     </Filter>
     <Filter Include="libs\sha256">
       <UniqueIdentifier>{234ba694-100f-4adb-9649-c1f75f35be86}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="libs\hidapi">
-      <UniqueIdentifier>{ecbd72f2-6710-4abc-b8c5-74c0bcc1de70}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\interface">
       <UniqueIdentifier>{9c6a47d6-f75b-4e2b-8481-01238fbe0e0c}</UniqueIdentifier>
@@ -60,15 +51,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="libs\sqlite\sqlite3.h">
-      <Filter>libs\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\sqlite\sqlite3ext.h">
-      <Filter>libs\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\lodepng\lodepng.h">
-      <Filter>libs\lodepng</Filter>
-    </ClInclude>
     <ClInclude Include="libs\enumser\enumser.h">
       <Filter>libs\enumser</Filter>
     </ClInclude>
@@ -218,12 +200,6 @@
     </ClInclude>
     <ClInclude Include="src\gui\ModbusMasterPanel.hpp">
       <Filter>Header Files\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\hidapi\hidapi.h">
-      <Filter>libs\hidapi</Filter>
-    </ClInclude>
-    <ClInclude Include="libs\hidapi\hidapi_winapi.h">
-      <Filter>libs\hidapi</Filter>
     </ClInclude>
     <ClInclude Include="src\CorsairHid.hpp">
       <Filter>Header Files</Filter>
@@ -386,15 +362,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="libs\sqlite\shell.c">
-      <Filter>libs\sqlite</Filter>
-    </ClCompile>
-    <ClCompile Include="libs\sqlite\sqlite3.c">
-      <Filter>libs\sqlite</Filter>
-    </ClCompile>
-    <ClCompile Include="libs\lodepng\lodepng.cpp">
-      <Filter>libs\lodepng</Filter>
-    </ClCompile>
     <ClCompile Include="libs\enumser\enumser.cpp">
       <Filter>libs\enumser</Filter>
     </ClCompile>

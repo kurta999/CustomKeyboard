@@ -11,7 +11,7 @@
 #include <any>
 #include <future>
 
-#include <sqlite/sqlite3.h>
+#include <sqlite3.h>
 
 class Measurement;
 class Result;

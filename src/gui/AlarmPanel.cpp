@@ -64,7 +64,6 @@ void AlarmPanel::UpdateAlarmsDisplay()
             i->SetForegroundColour(*wxBLACK);
         pos++;
     }
-
 }
 
 void AlarmPanel::On10MsTimer()
