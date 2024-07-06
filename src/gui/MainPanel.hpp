@@ -12,6 +12,7 @@ public:
 	void UpdateKeybindings();
 	void UpdateStatuses();
 	void UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy, float btc_sell);
+	void UpdateWorkingDays();
 
 	wxButton* m_RefreshButton = nullptr;
 	wxButton* m_ResetButton = nullptr;

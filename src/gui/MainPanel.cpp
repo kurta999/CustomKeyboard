@@ -139,12 +139,12 @@ MainPanel::MainPanel(wxFrame* parent)
 			CryptoPrice::Get()->UpdatePrices(true);
 		});
 
-	m_WorkingDays = new wxStaticText(this, wxID_ANY, wxString::Format("Working days: %d (%d)", WorkingDays::Get()->m_WorkingDays, WorkingDays::Get()->m_Holidays),
-		wxDefaultPosition, wxSize(-1, -1), 0);
+	m_WorkingDays = new wxStaticText(this, wxID_ANY, "Working Days: ", wxDefaultPosition, wxSize(-1, -1), 0);
 	m_WorkingDays->Wrap(-1);
 	m_WorkingDays->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString));
-	m_WorkingDays->SetForegroundColour(wxColor(14, 231, 235));
+	m_WorkingDays->SetForegroundColour(wxColor(217, 28, 201));
 	m_WorkingDays->SetToolTip("Working days in the month");
+	UpdateWorkingDays();
 	bSizer1->Add(m_WorkingDays, 0, wxALL, 5);
 
 	m_WeekNumber = new wxStaticText(this, wxID_ANY, FormatCurrentWeekNumber(), wxDefaultPosition, wxSize(-1, -1), 0);
@@ -488,6 +488,13 @@ void MainPanel::UpdateCryptoPrices(float eth_buy, float eth_sell, float btc_buy,
 		m_BtcPrice->SetLabelText(wxString::Format("BTC: N/A - N/A", btc_buy, btc_sell));
 	}
 	UpdateCurrentWeekNumber();
+}
+
+void MainPanel::UpdateWorkingDays()
+{
+	WorkingDays::Get()->Update();
+	m_WorkingDays->SetLabelText(wxString::Format("Working days: %d [%d] - (%d)", WorkingDays::Get()->m_WorkingDays, WorkingDays::Get()->m_WorkingDays * 8,
+		WorkingDays::Get()->m_Holidays));
 }
 
 wxString MainPanel::FormatCurrentWeekNumber()

@@ -121,6 +121,8 @@ void TrayIcon::OnReload(wxCommandEvent& WXUNUSED(event))
 	can_handler->LoadFiles();
 	LOG(LogLevel::Verbose, "reload 3");
 	mainFrame->main_panel->UpdateKeybindings();
+	LOG(LogLevel::Verbose, "reload 3-2");
+	mainFrame->main_panel->UpdateWorkingDays();
 	LOG(LogLevel::Verbose, "reload 4");
 	mainFrame->config_panel->UpdateSubpanels();
 	LOG(LogLevel::Verbose, "reload 5");
