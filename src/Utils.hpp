@@ -194,6 +194,7 @@ namespace utils
 #endif
 
     bool SendTcpBlocking(std::string& ip, uint16_t port, const char* data, size_t len, int timeout_ms = 300);
+    std::pair<int, int> ConvertToDecimalHoursAndMinutes(const std::string& timeInput);
 
     constexpr unsigned long RGB_TO_INT(int r, int g, int b)
     {

@@ -24,6 +24,8 @@ public:
 	wxButton* m_CpuPowerRefresh = nullptr;
 	wxButton* m_CpuPowerApply = nullptr;
 	wxButton* m_TestCrashHandler = nullptr;
+	wxTextCtrl* m_HourMinSec = nullptr;
+	wxButton* m_HourConvert = nullptr;
 
 private:
 	std::future<void> keypress_future;

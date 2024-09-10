@@ -86,7 +86,6 @@ DebugPanel::DebugPanel(wxFrame* parent)
 		});
 	h_sizer->Add(m_CpuPowerApply);
 
-
 	bSizer1->AddSpacer(10);
 	bSizer1->Add(h_sizer);
 
@@ -96,6 +95,26 @@ DebugPanel::DebugPanel(wxFrame* parent)
 	        {
 				*((unsigned int*)0) = 0xDEAD;
 			});
+
+	wxBoxSizer* hsizer_2 = new wxBoxSizer(wxHORIZONTAL);
+	m_HourMinSec = new wxTextCtrl(this, wxID_ANY, "10:30", wxDefaultPosition, wxSize(150, 50), wxTE_MULTILINE);
+	hsizer_2->Add(m_HourMinSec);
+	hsizer_2->AddSpacer(5);
+
+	m_HourConvert = new wxButton(this, wxID_ANY, "Convert", wxDefaultPosition, wxDefaultSize);
+	m_HourConvert->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+		{
+			wxString input = m_HourMinSec->GetValue();
+			auto [hours, minutes] = utils::ConvertToDecimalHoursAndMinutes(input.ToStdString());
+
+			if (wxTheClipboard->Open())
+			{
+				wxTheClipboard->SetData(new wxTextDataObject(std::format("{},{}", hours, minutes)));
+				wxTheClipboard->Close();
+			}
+		});
+	hsizer_2->Add(m_HourConvert);
+	bSizer1->Add(hsizer_2);
 
 	this->SetSizer(bSizer1);
 	this->Layout();

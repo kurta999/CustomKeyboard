@@ -621,4 +621,26 @@ namespace utils
 		}
 		return is_connected;
 	}
+
+	std::pair<int, int> ConvertToDecimalHoursAndMinutes(const std::string& timeInput)
+	{
+		int hours = 0, minutes = 0, seconds = 0;
+		char colon;
+
+		std::stringstream ss(timeInput);
+
+		// Parse the input based on whether it has seconds or not
+		ss >> hours >> colon >> minutes;
+
+		if (ss.peek() == ':') {
+			ss >> colon >> seconds;  // Handle the seconds part if present
+		}
+
+		// Convert minutes to a percentage of 60, i.e., decimal minutes
+		int decimalMinutes = (minutes * 100) / 60;
+
+		// Return hours and the decimal representation of minutes as an integer
+		return std::make_pair(hours, decimalMinutes);
+	}
+
 }
